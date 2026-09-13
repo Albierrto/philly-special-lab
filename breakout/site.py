@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse, json, shutil, sys
 from pathlib import Path
 from . import config as C
+from . import picks
 from .assemble import HD_COLS, PS_COLS, G_COLS, columnar
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -153,7 +154,7 @@ output/*/philly_special*.html
 def build(default_team: str):
     site = ROOT / "site"; (site / "data").mkdir(parents=True, exist_ok=True)
     tpl = (C.OUT / "v4" / "explorer_template.html").read_text(encoding="utf-8")
-    data = json.loads((C.OUT / "v3" / "explorer_data.json").read_text())
+    data = picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text()))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
     data["meta"]["default_team"] = default_team
     s = json.loads((C.OUT / "streamers" / "streamers.json").read_text())

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json, sys
 import pandas as pd
 from . import config as C
+from . import picks
 
 HD_COLS = ["mlbam_id", "name", "team", "bats", "elig", "owner", "date", "gamePk", "home", "opp", "opp_sp", "opp_sp_throws", "opp_sp_source", "sp_xwoba", "sp_k", "sp_pitching_plus",
            "park_runs", "park_hr", "temp_f", "wind_mph", "wind_out", "precip_prob", "roof", "local_start", "base_rate", "pa_g", "f_sp", "f_park", "f_wx", "f_platoon", "f_form", "mult", "exp_pts", "woba_30", "pa_30", "active", "status", "cbs"]
@@ -20,7 +21,7 @@ def columnar(rows, cols):
 
 
 def main(argv=None):
-    tpl = (C.OUT / "v4" / "explorer_template.html") if (C.OUT / "v4" / "explorer_template.html").exists() else (C.OUT / "v3" / "explorer_template.html"); data = json.loads((C.OUT / "v3" / "explorer_data.json").read_text())
+    tpl = (C.OUT / "v4" / "explorer_template.html") if (C.OUT / "v4" / "explorer_template.html").exists() else (C.OUT / "v3" / "explorer_template.html"); data = picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text()))
     sp = C.OUT / "streamers" / "streamers.json"
     if sp.exists():
         s = json.loads(sp.read_text())

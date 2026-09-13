@@ -101,7 +101,7 @@
     setInd('LIVE · updating…', 'busy');
     try {
       const ch = await refreshSchedule(); const posted = await refreshLineups(); await refreshWeather();
-      if (typeof renderStreamers==='function') renderStreamers(); if (typeof renderDash==='function') renderDash();
+      if (typeof renderStreamers==='function') renderStreamers(); if (typeof renderDash==='function') renderDash(); if (typeof renderToday==='function') renderToday();
       const t = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
       setInd(`LIVE · ${t}${posted?` · ${posted} lineups posted`:''}`, 'ok');
     } catch(e){ setInd('LIVE · offline', 'err'); }
