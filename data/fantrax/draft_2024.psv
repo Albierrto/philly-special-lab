@@ -1,0 +1,181 @@
+overall|round|pick|team|player|pos|mlb|type
+1|1|1|The Great Bambi|Yoshinobu Yamamoto|SP|LAD|LS
+2|1|2|Ring the bell|Freddy Peralta|SP|MIL|LS
+3|1|3|Juiced Ballz|Tarik Skubal|SP|DET|LS
+4|1|4|Some Ting Wong|George Kirby|SP|SEA|LS
+5|1|5|Basketball|Evan Carter|OF|TEX|LS
+6|1|6|City to the Shore|Justin Steele|SP|CHC|LS
+7|1|7|The Chosen Juan|Bobby Miller|SP|LAD|LS
+8|1|8|The Greatest Glizzy Guzzlers|Shane Bieber|SP|CLE|LS
+9|1|9|Ring the bell|Spencer Torkelson|1B|DET|LS
+10|1|10|SS Factory|Triston Casas|1B|BOS|LS
+11|1|11|Let's try this again|Chris Sale|SP|ATL|LS
+12|1|12|Ring the bell|Cole Ragans|SP|KC|LS
+13|2|1|Basketball|Zach Eflin|SP|TB/BAL|LS
+14|2|2|Ring the bell|George Springer|OF|TOR|LS
+15|2|3|Juiced Ballz|Nolan Jones|OF|COL|LS
+16|2|4|Let's try this again|Nathan Eovaldi|SP|TEX|LS
+17|2|5|The Great Bambi|Jesus Luzardo|SP|MIA|LS
+18|2|6|City to the Shore|Nick Castellanos|OF|PHI|LS
+19|2|7|The Chosen Juan|Christian Walker|1B|ARI|LS
+20|2|8|The Greatest Glizzy Guzzlers|Teoscar Hernandez|OF|LAD|LS
+21|2|9|The Chosen Juan|Bryan Reynolds|OF|PIT|LA
+22|2|10|Some Ting Wong|Joe Ryan|SP|MIN|LS
+23|2|11|Some Ting Wong|Jazz Chisholm Jr.|2B,3B,OF|MIA/NYY|LS
+24|2|12|Ring the bell|Luis Arraez|1B,2B|MIA/SD|LS
+25|3|1|Basketball|Josh Hader|RP|HOU|LS
+26|3|2|Ring the bell|Anthony Santander|OF|BAL|LS
+27|3|3|Juiced Ballz|Joe Musgrove|SP|SD|LS
+28|3|4|The Greatest Glizzy Guzzlers|Chris Bassitt|SP|TOR|LS
+29|3|5|The Great Bambi|Josh Jung|3B|TEX|LS
+30|3|6|City to the Shore|Spencer Steer|1B,3B,OF|CIN|LS
+31|3|7|The Chosen Juan|Christopher Morel|2B,3B,OF|CHC/TB|LS
+32|3|8|Some Ting Wong|Edwin Diaz|RP|NYM|LS
+33|3|9|Ring the bell|Anthony Volpe|SS|NYY|LS
+34|3|10|Some Ting Wong|Cedric Mullins|OF|BAL|LS
+35|3|11|Let's try this again|Lane Thomas|OF|WSH/CLE|LS
+36|3|12|Some Ting Wong|Marcell Ozuna|UT|ATL|LS
+37|4|1|SS Factory|Xander Bogaerts|2B,SS|SD|LS
+38|4|2|Ring the bell|Max Muncy|3B|LAD|LS
+39|4|3|Juiced Ballz|Tanner Bibee|SP|CLE|LS
+40|4|4|Some Ting Wong|Walker Buehler|SP|LAD|LS
+41|4|5|Some Ting Wong|Yandy Diaz|1B|TB|LS
+42|4|6|City to the Shore|Hunter Greene|SP|CIN|LS
+43|4|7|The Chosen Juan|Rhys Hoskins|1B|MIL|LS
+44|4|8|The Greatest Glizzy Guzzlers|Alec Bohm|1B,3B|PHI|LS
+45|4|9|SS Factory|Yu Darvish|SP|SD|LS
+46|4|10|SS Factory|Cristian Javier|SP|HOU|LS
+47|4|11|Let's try this again|Ke'Bryan Hayes|3B|PIT|LS
+48|4|12|Some Ting Wong|Cal Raleigh|C|SEA|LS
+49|5|1|Basketball|Merrill Kelly|SP|ARI|LS
+50|5|2|Ring the bell|Yainer Diaz|C,1B|HOU|LS
+51|5|3|Juiced Ballz|Christian Encarnacion-Strand|1B|CIN|LS
+52|5|4|Gotham Knights|Hunter Brown|SP|HOU|LS
+53|5|5|Basketball|Josh Naylor|1B|CLE|LS
+54|5|6|City to the Shore|Parker Meadows|OF|DET|LS
+55|5|7|The Chosen Juan|Charlie Morton|SP|ATL|LS
+56|5|8|The Greatest Glizzy Guzzlers|Jordan Walker|OF|STL|LS
+57|5|9|Gotham Knights|Seiya Suzuki|OF|CHC|LS
+58|5|10|SS Factory|James Outman|OF|LAD|LS
+59|5|11|Some Ting Wong|Willy Adames|SS|MIL|LS
+60|5|12|Brandywine Riverhounds|Trevor Story|2B,SS|BOS|LS
+61|6|1|Basketball|Andres Gimenez|2B|CLE|LS
+62|6|2|Ring the bell|Alexis Diaz|RP|CIN|LS
+63|6|3|Juiced Ballz|Chas McCormick|OF|HOU|LS
+64|6|4|The Greatest Glizzy Guzzlers|Dean Kremer|SP|BAL|LS
+65|6|5|The Great Bambi|Zack Gelof|2B,SS|OAK|LS
+66|6|6|City to the Shore|Ranger Suarez|SP|PHI|LS
+67|6|7|The Chosen Juan|Brandon Drury|1B,2B,3B|LAA|LS
+68|6|8|The Greatest Glizzy Guzzlers|Emmanuel Clase|RP|CLE|LS
+69|6|9|Gotham Knights|Masataka Yoshida|OF|BOS|LS
+70|6|10|SS Factory|Ian Happ|OF|CHC|LS
+71|6|11|Let's try this again|Jordan Montgomery|SP|ARI|LS
+72|6|12|Brandywine Riverhounds|Riley Greene|OF|DET|LS
+73|7|1|Basketball|Isaac Paredes|1B,3B|TB/CHC|LS
+74|7|2|Ring the bell|Camilo Doval|RP|SF|LA
+75|7|3|Juiced Ballz|Raisel Iglesias|RP|ATL|LS
+76|7|4|Some Ting Wong|Jose Berrios|SP|TOR|LS
+77|7|5|Basketball|Paul Sewald|RP|ARI|LS
+78|7|6|City to the Shore|Carlos Correa|SS|MIN|LS
+79|7|7|The Chosen Juan|Justin Verlander|SP|HOU|LA
+80|7|8|The Greatest Glizzy Guzzlers|Esteury Ruiz|OF|OAK|LS
+81|7|9|Gotham Knights|Shota Imanaga|SP|CHC|LS
+82|7|10|Some Ting Wong|Steven Kwan|OF|CLE|LS
+83|7|11|Let's try this again|Brandon Nimmo|OF|NYM|LS
+84|7|12|Brandywine Riverhounds|Nick Pivetta|SP|BOS|LS
+85|8|1|Basketball|Jhoan Duran|RP|MIN|LS
+86|8|2|Ring the bell|David Bednar|RP|PIT|LA
+87|8|3|Juiced Ballz|Thairo Estrada|2B,SS|SF|LS
+88|8|4|Let's try this again|Jonah Heim|C|TEX|LS
+89|8|5|The Great Bambi|Logan O'Hoppe|C|LAA|LS
+90|8|6|City to the Shore|Michael King|SP|SD|LS
+91|8|7|The Chosen Juan|Jordan Romano|RP|TOR|LA
+92|8|8|The Greatest Glizzy Guzzlers|Sean Murphy|C|ATL|LS
+93|8|9|Gotham Knights|Francisco Alvarez|C|NYM|LS
+94|8|10|SS Factory|Willson Contreras|C|STL|LS
+95|8|11|Let's try this again|Jorge Polanco|2B,SS|SEA|LS
+96|8|12|Brandywine Riverhounds|Kyle Bradish|SP|BAL|LS
+97|9|1|Basketball|Salvador Perez|C,1B|KC|LS
+98|9|2|Ring the bell|TJ Friedl|OF|CIN|LA
+99|9|3|Juiced Ballz|Ezequiel Tovar|SS|COL|LS
+100|9|4|Some Ting Wong|Gavin Williams|SP|CLE|LA
+101|9|5|The Great Bambi|Jarren Duran|OF|BOS|LS
+102|9|6|City to the Shore|Clay Holmes|P|NYY|LS
+103|9|7|The Chosen Juan|Eduardo Rodriguez|SP|ARI|LA
+104|9|8|The Greatest Glizzy Guzzlers|Jake Cronenworth|1B,2B|SD|LS
+105|9|9|Gotham Knights|Cavan Biggio|1B,2B,3B,OF|TOR/LAD/SF/ATL|LS
+106|9|10|SS Factory|Triston McKenzie|SP|CLE|LS
+107|9|11|Let's try this again|Marcus Stroman|SP|NYY|LS
+108|9|12|Brandywine Riverhounds|Edouard Julien|2B|MIN|LS
+109|10|1|Basketball|Bailey Ober|SP|MIN|LS
+110|10|2|Ring the bell|Nolan Gorman|2B|STL|LA
+111|10|3|Juiced Ballz|Daulton Varsho|OF|TOR|LS
+112|10|4|Some Ting Wong|Bryce Miller|SP|SEA|LA
+113|10|5|The Great Bambi|Kyle Harrison|SP|SF|LS
+114|10|6|City to the Shore|Jose Alvarado|RP|PHI|LS
+115|10|7|The Chosen Juan|Jake Burger|1B,3B|MIA|LA
+116|10|8|The Greatest Glizzy Guzzlers|Carlos Rodon|SP|NYY|LS
+117|10|9|Gotham Knights|Brady Singer|SP|KC|LS
+118|10|10|SS Factory|Byron Buxton|OF|MIN|LS
+119|10|11|Some Ting Wong|Andres Munoz|RP|SEA|LA
+120|10|12|Brandywine Riverhounds|Kenta Maeda|SP|DET|LS
+121|11|1|Basketball|Bryan Woo|SP|SEA|LA
+122|11|2|Ring the bell|Eloy Jimenez|UT|CHW/BAL|LA
+123|11|3|Juiced Ballz|Sonny Gray|SP|STL|LS
+124|11|4|Some Ting Wong|Ryan Pepiot|SP|TB|LA
+125|11|5|The Great Bambi|Pete Fairbanks|RP|TB|LS
+126|11|6|City to the Shore|J.P. Crawford|SS|SEA|LS
+127|11|7|The Chosen Juan|Giancarlo Stanton|OF|NYY|LS
+128|11|8|The Greatest Glizzy Guzzlers|Reid Detmers|SP|LAA|LS
+129|11|9|Gotham Knights|Brayan Bello|SP|BOS|LS
+130|11|10|SS Factory|Ryan McMahon|2B,3B|COL|LS
+131|11|11|Let's try this again|Jacob deGrom|SP|TEX|LS
+132|11|12|Brandywine Riverhounds|J.D. Martinez|UT|NYM|LS
+133|12|1|Basketball|Ryan Helsley|RP|STL|LA
+134|12|2|Ring the bell|Kerry Carpenter|OF|DET|LA
+135|12|3|Juiced Ballz|Evan Phillips|RP|LAD|LS
+136|12|4|Some Ting Wong|Brandon Pfaadt|SP|ARI|LA
+137|12|5|The Great Bambi|Brandon Lowe|1B,2B|TB|LS
+138|12|6|City to the Shore|Jeimer Candelario|1B,3B|CIN|LS
+139|12|7|The Chosen Juan|Jack Suwinski|OF|PIT|LA
+140|12|8|The Greatest Glizzy Guzzlers|Aaron Civale|SP|TB/MIL|LA
+141|12|9|Gotham Knights|Davis Schneider|2B,3B,OF|TOR|LS
+142|12|10|SS Factory|Nestor Cortes Jr.|SP|NYY|LS
+143|12|11|Let's try this again|Andrew Abbott|SP|CIN|LS
+144|12|12|Brandywine Riverhounds|Josiah Gray|SP|WSH|LS
+145|13|1|Basketball|Nick Lodolo|SP|CIN|LA
+146|13|2|Ring the bell|Lourdes Gurriel Jr.|OF|ARI|LA
+147|13|3|Juiced Ballz|Cristopher Sanchez|SP|PHI|LS
+148|13|4|SS Factory|John Means|SP|BAL|LS
+149|13|5|The Great Bambi|Starling Marte|OF|NYM|LS
+150|13|6|City to the Shore|Mitch Garver|C|SEA|LS
+151|13|7|The Chosen Juan|Tanner Scott|RP|MIA/SD|LA
+152|13|8|The Greatest Glizzy Guzzlers|Jarred Kelenic|OF|ATL|LA
+153|13|9|Gotham Knights|Chris Paddack|SP|MIN|LS
+154|13|10|SS Factory|Alex Verdugo|OF|NYY|LS
+155|13|11|Let's try this again|Jonathan India|2B|CIN|LS
+156|13|12|Brandywine Riverhounds|Nolan Schanuel|1B,3B,OF|LAA|LS
+157|14|1|Basketball|Andrew Vaughn|1B,OF|CHW|LA
+158|14|2|Ring the bell|Adbert Alzolay|RP|CHC|LA
+159|14|3|Juiced Ballz|Nathaniel Lowe|1B|TEX|LS
+160|14|4|SS Factory|Ryan Mountcastle|1B|BAL|LS
+161|14|5|The Great Bambi|Keibert Ruiz|C|WSH|LS
+162|14|6|City to the Shore|Taylor Ward|OF|LAA|LA
+163|14|7|The Chosen Juan|Taj Bradley|SP|TB|LA
+164|14|8|The Greatest Glizzy Guzzlers|Matt Chapman|3B|SF|LA
+165|14|9|Gotham Knights|Zack Littell|SP|TB|LS
+166|14|10|SS Factory|Sal Frelick|OF|MIL|LS
+167|14|11|Let's try this again|Michael Wacha|SP|KC|LS
+168|14|12|Brandywine Riverhounds|Bo Naylor|C|CLE|LS
+169|15|1|Basketball|Seth Lugo|SP|KC|LA
+170|15|2|Ring the bell|Kenley Jansen|RP|BOS|LA
+171|15|3|Juiced Ballz|Lars Nootbaar|OF|STL|LS
+172|15|4|SS Factory|Jackson Merrill|SS,OF|SD|LS
+173|15|5|The Great Bambi|Tyler O'Neill|OF|BOS|LS
+174|15|6|City to the Shore|Justin Turner|1B|TOR/SEA|LA
+175|15|7|The Chosen Juan|Craig Kimbrel|RP|BAL|LA
+176|15|8|The Greatest Glizzy Guzzlers|Jon Gray|SP|TEX|LA
+177|15|9|Gotham Knights|Seth Brown|1B,OF|OAK|LS
+178|15|10|SS Factory|MacKenzie Gore|SP|WSH|LS
+179|15|11|Let's try this again|Maikel Garcia|2B,3B,SS|KC|LS
+180|15|12|Brandywine Riverhounds|Jasson Dominguez|OF|NYY|LS

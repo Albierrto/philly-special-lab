@@ -1,0 +1,281 @@
+Top 100 Prospects list MLB Pipeline preseason 2025 | MiLB.com
+:root{--contentful-body-background-color:#ececec;--contentful-palette-name:milb-base-palette;--contentful-page-container-border-color:#ECECEC;--contentful-header-masthead-background-color:#00278C;--contentful-header-masthead-text-color:#ffffff;--contentful-header-navigation-background-color:#00278C;--contentful-header-navigation-border-color:#006CFF;--contentful-header-navigation-text-color-hover:currentcolor;--contentful-header-navigation-text-color:#fff;--contentful-footer-title-color:#ffffff;--contentful-footer-text-color:#E2E2E2;--contentful-footer-background-color:#00278C;--contentful-footer-border-color:#00278C;--contentful-footer-link-color:#FFFFFF;--contentful-footer-link-color-hover:#fff;--contentful-footer-link-color-active:#fff;--contentful-button-primary-background-color:#00278C;--contentful-button-primary-background-color-hover:lighten;--contentful-button-primary-text-color:#ffffff;--contentful-button-primary-text-color-hover:#ffffff;--contentful-button-spotlight-background-color:#006CFF;--contentful-button-spotlight-background-color-hover:lighten;--contentful-button-spotlight-text-color:#ffffff;--contentful-button-spotlight-text-color-hover:#ffffff;--contentful-table-header-background-color:#00278C;--contentful-table-row-background-color:#ffffff;--contentful-table-text-color:#333333;--contentful-organism-section-title-color:#231F20;--contentful-organism-title-color:#333333;--contentful-organism-text-color:#333333;--contentful-organism-tag-background-color:#00278C;--contentful-organism-tag-text-color:#ffffff;--contentful-organism-background-color:#ffffff;--contentful-organism-border-color:#ececec;--contentful-organism-link-color:#333333;--contentful-organism-link-color-hover:#006CFF;--contentful-organism-link-text-decoration:none;--contentful-organism-link-color-active:#004CDD;--contentful-organism-scrim-title-color:#ffffff;--contentful-organism-scrim-text-color:#ffffff;--contentful-organism-scrim-tag-color:#ffffff;--contentful-organism-scrim-background-color:#00278C;--contentful-organism-scrim-background-color-hover:lighten;--contentful-organism-scrim-border-color:#ececec;--contentful-organism-scrim-link-color:#ececec;--contentful-organism-scrim-link-color-hover:#000000;--contentful-organism-content-heading-lined-text-color:null;--contentful-organism-content-heading-secondary-border-color:#df4601;--contentful-organism-content-heading-primary-border-color:#000000;--contentful-organism-sidekick-background-color:#333333;--contentful-organism-jumbotron-title-color:#333333;--contentful-typename:Palette;--contentful-page-container-background-color:#e2e2e2;}/*!sc*/
+data-styled.g82[id="sc-global-iwoXxM1"]{content:"sc-global-iwoXxM1,"}/*!sc*/
+.dqcbuA{height:1em;width:1em;vertical-align:bottom;}/*!sc*/
+.dqcbuA *{fill:currentColor;}/*!sc*/
+.dqcbuA.p-icon--sm{height:1.5rem;width:1.5rem;}/*!sc*/
+.dqcbuA.p-icon--md{height:2rem;width:2rem;}/*!sc*/
+.dqcbuA.p-icon--lg{height:3rem;width:3rem;}/*!sc*/
+data-styled.g1[id="styles__IconContainer-sc-172tajy-0"]{content:"dqcbuA,"}/*!sc*/
+.dTqUYl img{object-fit:cover;height:100%;}/*!sc*/
+.dTqUYl .p-image__image[data-aspect-ratio] a > *{display:block;height:100%;left:0px;position:absolute;top:0px;width:100%;}/*!sc*/
+.dTqUYl .p-image__image[data-aspect-ratio] a img{object-fit:cover;height:100%;}/*!sc*/
+.dTqUYl .p-image__image[data-raw-aspect-ratio="raw"] img{display:block;width:100%;}/*!sc*/
+data-styled.g2[id="styles__ImageContainer-sc-cboeeq-0"]{content:"dTqUYl,"}/*!sc*/
+.dUSPFK.p-image__image[data-aspect-ratio]{background-color:#ECECEC;background-image:url("https://www.mlbstatic.com/team-logos/image-placeholders/milb.svg");background-position:center;background-repeat:no-repeat;background-size:cover;display:block;max-width:100%;overflow:hidden;position:relative;}/*!sc*/
+.dUSPFK.p-image__image[data-aspect-ratio]:before{content:"";display:block;padding-top:56.25%;}/*!sc*/
+.bvHwSR.p-image__image[data-aspect-ratio]{background-color:#ECECEC;background-image:url("https://www.mlbstatic.com/team-logos/image-placeholders/milb.svg");background-position:center;background-repeat:no-repeat;background-size:cover;display:block;max-width:100%;overflow:hidden;position:relative;}/*!sc*/
+.bvHwSR.p-image__image[data-aspect-ratio]:before{content:"";display:block;padding-top:100%;}/*!sc*/
+data-styled.g3[id="styles__ImageContainerInner-sc-cboeeq-1"]{content:"dUSPFK,bvHwSR,"}/*!sc*/
+.gtwUTy svg{height:35px;vertical-align:middle;width:35px;}/*!sc*/
+.gtwUTy svg *{fill:#FFFFFF;}/*!sc*/
+data-styled.g81[id="styles__ProfileIconContainer-sc-1ugrqyj-0"]{content:"gtwUTy,"}/*!sc*/
+Globe icon
+Login icon
+Recap icon
+Search icon
+Tickets icon
+Scores
+All Scores
+Triple-A Scores
+Double-A Scores
+High-A Scores
+Single-A Scores
+Rookie Scores
+Schedule
+Complete Game Schedule
+Triple-A Schedule
+Double-A Schedule
+High-A Schedule
+Single-A Schedule
+Rookie Schedule
+Downloadable Schedules
+Teams
+Teams by Affiliate
+Teams by Name
+Teams by Class
+Teams by League
+Rookie Leagues
+Ballparks
+Standings
+Full Season
+Rookie Leagues
+Playoff Procedures
+Stats
+Full Season
+Rookie Leagues
+Trending Players
+Top Prospect Stats
+News
+Pipeline
+Transactions
+Copa de la Diversión
+Baseball Traveler
+MiLB App
+MiLB Newsletters
+…
+Prospects
+Playoffs
+MLB
+Watch
+Watch Games
+Subscribe
+Highlights
+Prospect Highlights
+Streaming FAQ
+Help Center
+Gameday Audio
+Podcast
+Bally Sports Live
+Tickets
+Tickets
+Shop
+MiLB Store
+Auctions
+Shop Copa
+Shop Marvel
+-->
+-->
+Edit Profile
+Log Out
+.header__nav-item-link--highlight,
+.header__nav-item--has-dropdown[data-nav-item="Teams"].open {
+background-color: #006CFF;
+}
+.header__nav-item--has-dropdown[data-nav-item="Teams"].open .header__nav-item-body {
+border-top: 2px solid #006CFF;
+}
+.header__nav-item--spotlight {
+background-color: #006CFF;
+color: #ffffff;
+}
+.header__nav-item--spotlight .header__nav-item-link {
+color: #ffffff;
+}
+.league-milb .header__nav-item--spotlight:hover .header__nav-item-link:hover,
+.league-milb .header__nav-item--spotlight:hover .header__nav-item-link,
+.leagueClass .header__nav-item--spotlight:hover .header__nav-item-link:hover,
+.leagueClass .header__nav-item--spotlight:hover .header__nav-item-link,
+.clubCLass .header__nav-item--spotlight:hover .header__nav-item-link,
+.clubCLass .header__nav-item--spotlight:hover .header__nav-item-link:hover,
+.header .header__nav-item--spotlight .header__nav-item-link:hover {
+color: #ffffff;
+}
+Scores
+Schedule
+Teams
+Scores
+All Scores
+Triple-A Scores
+Double-A Scores
+High-A Scores
+Single-A Scores
+Rookie Scores
+Schedule
+Complete Game Schedule
+Triple-A Schedule
+Double-A Schedule
+High-A Schedule
+Single-A Schedule
+Rookie Schedule
+Downloadable Schedules
+Teams
+Teams by Affiliate
+Teams by Name
+Teams by Class
+Teams by League
+Rookie Leagues
+Ballparks
+Watch
+Watch Games
+Subscribe
+Highlights
+Prospect Highlights
+Streaming FAQ
+Help Center
+Gameday Audio
+Podcast
+Bally Sports Live
+Tickets
+Tickets
+Shop
+MiLB Store
+Auctions
+Shop Copa
+Shop Marvel
+Standings
+Full Season
+Rookie Leagues
+Playoff Procedures
+Stats
+Full Season
+Rookie Leagues
+Trending Players
+Top Prospect Stats
+News
+Pipeline
+Transactions
+Copa de la Diversión
+Baseball Traveler
+MiLB App
+MiLB Newsletters
+Prospects
+Top 100
+Top 30 by Team
+Top 50 International
+Draft Top 250
+Trending Players
+Playoffs
+MLB
+Check out MLB Pipeline's 2025 Top 100 Prospects list
+Check out MLB Pipeline's 2025 Top 100 Prospects list
+By
+Sam Dykstra
+@SamDykstraMiLB
+January 24, 2025
+Facebook Share
+X Share
+Email
+Copy Link
+He was one of the most sought-after talents this offseason, and he hadn’t even played stateside ball yet. Now, he can add another bullet point to his already lengthy baseball resume.
+Dodgers right-hander Roki Sasaki tops MLB Pipeline’s 2025 preseason ranking of the Top 100 prospects, followed by Red Sox
+He was one of the most sought-after talents this offseason, and he hadn’t even played stateside ball yet. Now, he can add another bullet point to his already lengthy baseball resume.
+Dodgers right-hander Roki Sasaki tops MLB Pipeline’s 2025 preseason ranking of the Top 100 prospects, followed by Red Sox outfielder Roman Anthony and Twins outfielder Walker Jenkins in the top three.
+NEW: Top 100 Prospects list for 2025
+Clubs with the most Top 100 prospects
+Check out the Top 10 prospects in action
+Top 10 Prospects by Position:
+C
+|
+1B
+|
+2B
+|
+3B
+|
+SS
+|
+OF
+|
+RHP
+|
+LHP
+Top 100 lists:
+2025
+|
+2024
+|
+2023
+|
+2022
+|
+2021
+|
+2020
+Every No. 1 overall prospect, ranked
+Club-by-club breakdown of Top 100
+The 23-year-old pitcher was posted this offseason after four professional seasons in Japan’s Nippon Professional Baseball, and after taking meetings with multiple Major League clubs, he signed with the Dodgers for $6.5 million earlier this week. Since Sasaki is younger than 25 and did not play more than six professional seasons overseas, he qualified to sign under the international amateur signing rules and was therefore considered prospect-eligible for the purposes of this list. His triple-digit fastball and 80-grade splitter become two of the best pitches in prospectdom immediately, and he has the ceiling of a true ace with Los Angeles.
+Anthony -- one of three Boston prospects in the Top 12 -- continues to close in on Fenway Park with improved bat speed, power and overall hitting ability. Jenkins is another potential plus hitter with plus power who could stick in center field, as is No. 4 Dylan Crews, who debuted for the Nationals late last summer. Rounding out the top five is a fellow 2024 debutant Jackson Jobe, who sports four plus to plus-plus pitches that he put on display during the Tigers’ recent run to the postseason.
+The Top 10
+1. Roki Sasaki, RHP, Dodgers
+2. Roman Anthony, OF, Red Sox
+3. Walker Jenkins, OF, Twins
+4. Dylan Crews, OF, Nationals
+5. Jackson Jobe, RHP, Tigers
+6. Max Clark, OF, Tigers
+7. Kristian Campbell, 2B/SS/OF, Red Sox
+8. Andrew Painter, RHP, Phillies
+9. Carson Williams, SS, Rays
+10. Travis Bazzana, 2B, Guardians
+Complete Top 100 »
+Here are myriad other ways to look at the 2025 preseason Top 100:
+Biggest rises
+There are 40 new faces on this preseason Top 100 compared to last year’s, though that total does not include the 15 players from the 2024 Draft and the only 2025 international signee on the list in Sasaki.
+No one who was eligible for the list in 2024 made a bigger leap than Campbell, who wasn’t even on the Red Sox’s Top 30 list heading into last season. The 2023 132nd overall pick slashed .330/.439/.558 with 20 homers and 24 steals in 115 games across three levels (including Triple-A Worcester) in his first full season and won Hitting Prospect and Breakout Prospect of the Year honors for his efforts. Padres shortstop Leodalis De Vries – the top 2024 international prospect – also jumped from outside the Top 100 at this time last year to No. 18 after looking advanced at the plate and in the field in Single-A at just 17. Tigers infielder Kevin McGonigle (No. 28), Dodgers outfielder Josue De Paula (No. 40) and Marlins left-hander Thomas White (No. 41) also make strong debuts on a preseason Top 100 after missing out this time last year.
+The highest jumper from the 2024 edition to 2025 is Pirates right-hander Bubba Chandler, who leapt from No. 93 to No. 15 after a strong season at the upper levels, especially down the stretch with Triple-A Indianapolis. The others to climb 40-plus spots were Giants first baseman Bryce Eldridge (No. 96 to No. 24), Mariners shortstop Colt Emerson (No. 87 to No. 20), Rangers shortstop Sebastian Walcott (No. 71 to No. 17), Royals catcher Blake Mitchell (No. 94 to No. 48) and Dodgers catcher Dalton Rushing (No. 75 to No. 30).
+Furthest falls
+Rockies middle infielder Adael Amador (No. 28 in 2024) slashed just .230/.343/.376 in 455 plate appearances with Double-A Hartford and slid over to second base full-time (aka away from a more premium position at shortstop). The 21-year-old switch-hitter was also pushed to the Majors likely before he was ready, and his 6-for-35 (.171) turn with limited power didn’t help his stock in the eyes of evaluators, deepening his slide off the Top 100 heading into this year. Others from last year’s Top 50 to fall off completely while retaining prospect eligibility for 2025 were Blue Jays left-hander Ricky Tiedemann (No. 29), Marlins left-hander Robby Snelling (No. 36), Brewers first baseman Tyler Black (No. 46), Nationals third baseman Brady House (No. 48) and Phillies right-hander Mick Abel (No. 49).
+Subscribe to The Baseball Traveler Newsletter
+Nine players moved down 25 spots or more from their 2024 ranking. Most notably was Brewers right-hander Jacob Misiorowski, who dropped from No. 33 to No. 100 as it looked more likely he’s headed for a long-term bullpen role with Milwaukee. The others were Pirates second baseman Termarr Johnson (No. 44 to No. 83), White Sox shortstop Colson Montgomery (No. 9 to No. 39), Marlins right-hander Noble Meyer (No. 57 to No. 85), Mariners catcher Harry Ford (No. 38 to No. 65), Cubs right-hander Cade Horton (No. 26 to No. 52), Padres catcher Ethan Salas (No. 8 to No. 33), Cubs outfielder Kevin Alcántara (No. 65 to No. 90) and Reds shortstop Edwin Arroyo (No. 67 to No. 92).
+Demographics
+Shortstops carry the day on this ranking, taking up 25 spots – the most we’ve ever had on a preseason or midseason Top 100 update. There were also MLB Pipeline preseason highs for most catchers (13) and second basemen (eight). Those peaks correspond with a valley for total pitchers. Only 25 arms (19 righties, six lefties) cracked the Top 100 this year, in part because innings limits and injuries have lowered the ceilings of pitchers across the sport. That isn’t to say there aren’t still high-quality pitching prospects, however, with Sasaki sitting up top and three in the top eight.
+Outfielders (18), first basemen (six) and third basemen (three) round out the positional groups.
+The Top 100 prospects hail from 11 countries. Seventy-five were born in the United States, with the Dominican Republic (11), Venezuela (five) and Cuba (two) claiming multiple representatives. Australia, The Bahamas, Canada, Colombia, Japan, Panama and Puerto Rico also boast a Top 100 prospect this year.
+Seventy-five of the 100 also entered pro ball via the Draft, including 2024 No. 1 overall pick Bazzana. Angels right-hander Caden Dana (No. 78) is the lowest pick in this year’s crop, having been taken in the 11th round out of a New Jersey high school in 2022. Of the 25 international signees on the list, bonuses have ranged from Sasaki’s $6.5 million this month to Tigers catcher Thayron Liranzo’s $30,000 when he first joined the Dodgers in January 2021.
+Farm reports
+The Cubs and Mariners both claim the most Top 100 prospects this year with seven apiece, while the Dodgers, Tigers and White Sox all set the next tier with six each. All 30 farm clubs have at least one prospect on this year’s list.
+But raw numbers of Top 100 prospects don’t tell the whole story. We can also look at the strength of each group’s Top 100 class through the prism of Prospect Points (100 points for No. 1, 99 for No. 2, etc.). In that mode, we have an AL Central battle at the top between the rebuilding White Sox and the upstart Tigers.
+The Top 10 organizations in terms of Prospect Points, with their best prospect in parentheses
+White Sox, 364 (Noah Schultz, LHP, No. 16)
+Tigers, 337 (Jackson Jobe, RHP, No. 5)
+Dodgers, 317 (Roki Sasaki, RHP, No. 1)
+Red Sox, 307 (Roman Anthony, OF, No. 2)
+Mariners, 263 (Colt Emerson, SS/3B, No. 20)
+Cubs, 253 (Matt Shaw, INF, No. 19)
+Guardians, 236 (Travis Bazzana, 2B, No. 10)
+Phillies, 212 (Andrew Painter, RHP, No. 8)
+Twins, 202 (Walker Jenkins, OF, No. 3)
+Rangers, 192 (Sebastian Walcott, SS/3B, No. 17)
+Sam Dykstra
+is a reporter for MiLB.com. Follow and interact with him on Twitter,
+@SamDykstraMiLB
+.
+CONNECT WITH MiLB.COM
+Terms of Use
+Privacy Policy
+Contact Us
+Do Not Sell My Personal Data
+Advertise on Our Digital Platforms
+Copyright ©
+Minor League Baseball.
+Minor League Baseball trademarks and copyrights are the property of Minor League Baseball. All Rights Reserved

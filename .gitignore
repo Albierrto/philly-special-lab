@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.DS_Store
+# raw caches the pipelines re-download when missing (keeps the repo small)
+data/milb_statcast/
+data/mlb/
+data/savant/
+data/milb/
+data/injuries/transactions_*.json
+# generated pages (the site/ folder is the one that is served)
+output/*/philly_special*.html

@@ -1,0 +1,129 @@
+{
+  "league_name": "Philly Special",
+  "platform": "Fantrax",
+  "league_ids": {
+    "2026": "h6y78dq6mgciv7er",
+    "2025": "7hhzx1iym23ergmu",
+    "2024": "6cpn6gmelpaefbcu"
+  },
+  "user_team": "Basketball",
+  "user_team_abbrev": "BB",
+  "num_teams": 12,
+  "scoring_system": "Head-to-Head Points",
+  "keeper": {
+    "type": "Keeper",
+    "max_keepers": 7,
+    "hitters": 5,
+    "pitchers": 2,
+    "cost": "roster spot only (assumed)",
+    "note": "Ohtani counts as a pitcher keeper for Basketball (stated by Bort)."
+  },
+  "draft": {
+    "rounds": 15,
+    "type": "Live Online Standard",
+    "order": "Manual - Fixed (Non-Snake)",
+    "date_2026": "2026-03-20"
+  },
+  "season_2026": {
+    "start": "2026-03-25",
+    "end": "2026-09-20",
+    "playoffs_start_period": 22,
+    "playoff_teams": 8,
+    "playoff_rounds": 3
+  },
+  "roster": {
+    "active": {
+      "C": 1,
+      "1B": 1,
+      "2B": 1,
+      "3B": 1,
+      "SS": 1,
+      "OF": 3,
+      "UT": 2,
+      "SP": 5
+    },
+    "max_active": 15,
+    "reserve": 7,
+    "IR": 4,
+    "minors": 2,
+    "max_total": 22,
+    "note": "No RP slot. Pitching is SP-only. 10 hitters start per day."
+  },
+  "lineups": "Daily",
+  "weekly_limits": {
+    "games_started_pitching_max": 10
+  },
+  "scoring": {
+    "hitting": {
+      "1B": 2,
+      "2B": 3,
+      "3B": 4,
+      "HR": 5,
+      "R": 1,
+      "RBI": 1,
+      "BB": 1,
+      "HBP": 1,
+      "SB": 3,
+      "GS": 5,
+      "CYC": 10,
+      "E": -1,
+      "CSA": 2,
+      "AOF": 2,
+      "note": "No penalty for K or CS. Points = 2*1B + 3*2B + 4*3B + 5*HR + R + RBI + BB + HBP + 3*SB + 5*GrandSlam + 10*Cycle - E + 2*CSA + 2*AOF. Verified exactly against Fantrax 2026 table (500/500 hitters)."
+    },
+    "pitching": {
+      "IP": 1,
+      "K": 1,
+      "ER": -1,
+      "QS": 4,
+      "CG": 10,
+      "SHO": 8,
+      "NH": 10,
+      "PG": 25,
+      "BS": -3
+    }
+  },
+  "fantasy_team_abbrevs": {
+    "BB": "Basketball (Bort)",
+    "GLIZZY": "The Greatest Glizzy Guzzlers",
+    "MMM": "Midwest MooseKnuckle Mafia",
+    "BAMBI": "The Great Bambi",
+    "CJF": "?",
+    "Dan": "?",
+    "CH": "Charlie Hustle",
+    "CS": "City to the Shore",
+    "LTTA": "Let's try this again",
+    "GK": "Gotham Knights",
+    "THALER": "?",
+    "Dpf": "?",
+    "FA": "Free Agent",
+    "W (Sun)": "Waivers"
+  },
+  "draft_order_2026": [
+    "Midwest MooseKnuckle Mafia",
+    "Baseball Phanatic",
+    "Some Ting Wong",
+    "The Real Doctor",
+    "City to the Shore",
+    "The Greatest Glizzy Guzzlers",
+    "Gotham Knights",
+    "Charlie Hustle",
+    "Let's try this again",
+    "The Chosen Juan",
+    "The Great Bambi",
+    "Basketball"
+  ],
+  "my_keepers_2026": {
+    "hitters": [
+      "Nick Kurtz",
+      "Fernando Tatis Jr.",
+      "Julio Rodriguez",
+      "Bobby Witt Jr.",
+      "James Wood"
+    ],
+    "pitchers": [
+      "Bryan Woo",
+      "Shohei Ohtani"
+    ]
+  }
+}

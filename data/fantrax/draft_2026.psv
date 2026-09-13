@@ -1,0 +1,181 @@
+overall|round|pick|team|player|pos|mlb|type
+1|1|1|Baseball Phanatic|Mookie Betts|SS|LAD|LS
+2|1|2|Charlie Hustle|Riley Greene|OF|DET|LS
+3|1|3|Charlie Hustle|Tyler Soderstrom|1B,OF|ATH|LS
+4|1|4|The Real Doctor|Oneil Cruz|OF|PIT|LS
+5|1|5|City to the Shore|Jesus Luzardo|SP|PHI|LS
+6|1|6|The Greatest Glizzy Guzzlers|Luis Arraez|1B,2B|PHI|LS
+7|1|7|Gotham Knights|Tyler Glasnow|SP|LAD|LS
+8|1|8|Midwest MooseKnuckle Mafia|Chris Sale|SP|ATL|LS
+9|1|9|Let's try this again|George Springer|OF|TOR|LS
+10|1|10|The Great Bambi|Jakob Marsee|OF|MIA|LS
+11|1|11|The Great Bambi|Trey Yesavage|SP|TOR|LS
+12|1|12|The Great Bambi|Eury Perez|SP|MIA|LS
+13|2|1|Midwest MooseKnuckle Mafia|Jacob Misiorowski|SP|MIL|LS
+14|2|2|Midwest MooseKnuckle Mafia|Jacob deGrom|SP|TEX|LS
+15|2|3|Some Ting Wong|Brandon Nimmo|OF|TEX|LA
+16|2|4|The Real Doctor|Hunter Goodman|C|COL|LS
+17|2|5|City to the Shore|Taylor Ward|OF|SEA|LS
+18|2|6|The Greatest Glizzy Guzzlers|William Contreras|C|MIL|LA
+19|2|7|Baseball Phanatic|George Kirby|SP|SEA|LS
+20|2|8|Charlie Hustle|Corey Seager|SS|TEX|LS
+21|2|9|Let's try this again|Kevin Gausman|SP|CHC|LS
+22|2|10|Baseball Phanatic|Lawrence Butler|OF|ATH|LS
+23|2|11|The Great Bambi|Jose Altuve|2B,OF|HOU|LS
+24|2|12|Midwest MooseKnuckle Mafia|Luke Keaschall|2B,OF|MIN|LS
+25|3|1|Some Ting Wong|Michael Harris II|OF|ATL|LA
+26|3|2|Midwest MooseKnuckle Mafia|Joe Ryan|SP|MIN|LS
+27|3|3|Some Ting Wong|Spencer Torkelson|1B|DET|LA
+28|3|4|The Real Doctor|Jacob Wilson|SS|ATH|LS
+29|3|5|City to the Shore|Luis Castillo|SP|CHW|LS
+30|3|6|Midwest MooseKnuckle Mafia|Agustin Ramirez|C|MIA|LS
+31|3|7|Basketball|Dylan Cease|SP|TOR|LS
+32|3|8|Some Ting Wong|Salvador Perez|C,1B|KC|LA
+33|3|9|Let's try this again|Geraldo Perdomo|SS|ARI|LS
+34|3|10|Some Ting Wong|Matt Chapman|3B|SF|LA
+35|3|11|The Real Doctor|Tanner Bibee|SP|CLE|LS
+36|3|12|Some Ting Wong|Sonny Gray|SP|BOS|LA
+37|4|1|Midwest MooseKnuckle Mafia|Sandy Alcantara|SP|MIA|LS
+38|4|2|Baseball Phanatic|Aaron Nola|SP|PHI|LS
+39|4|3|Charlie Hustle|Zac Gallen|SP|ARI|LS
+40|4|4|The Real Doctor|Munetaka Murakami|1B,3B|CHW|LS
+41|4|5|City to the Shore|Willy Adames|SS|SF|LS
+42|4|6|The Great Bambi|Seiya Suzuki|OF,UT|CHC|LS
+43|4|7|Gotham Knights|Noelvi Marte|3B,OF|CIN|LS
+44|4|8|The Great Bambi|CJ Abrams|SS|WSH|LS
+45|4|9|Let's try this again|Nathan Eovaldi|SP|TEX|LS
+46|4|10|Charlie Hustle|Nick Pivetta|SP|SD|LS
+47|4|11|Baseball Phanatic|J.T. Realmuto|C|PHI|LS
+48|4|12|Some Ting Wong|Ryan Pepiot|SP|TB|LA
+49|5|1|Basketball|Kyle Bradish|SP|BAL|LS
+50|5|2|Baseball Phanatic|Ranger Suarez|SP|BOS|LS
+51|5|3|Some Ting Wong|Gavin Williams|SP|CLE|LA
+52|5|4|The Real Doctor|Ian Happ|OF|CHC|LS
+53|5|5|City to the Shore|Ernie Clement|2B,3B,SS|TOR|LS
+54|5|6|Midwest MooseKnuckle Mafia|Jo Adell|OF|CLE|LS
+55|5|7|Gotham Knights|Shota Imanaga|SP|CHC|LS
+56|5|8|Charlie Hustle|Ozzie Albies|2B|ATL|LS
+57|5|9|Let's try this again|Gerrit Cole|SP|NYY|LS
+58|5|10|Basketball|Trevor Rogers|SP|BAL|LS
+59|5|11|The Great Bambi|Blake Snell|SP|LAD|LS
+60|5|12|Basketball|Brandon Lowe|2B|PIT|LS
+61|6|1|Midwest MooseKnuckle Mafia|Mike Trout|OF,UT|LAA|LS
+62|6|2|Baseball Phanatic|Bryan Reynolds|OF|PIT|LS
+63|6|3|Some Ting Wong|Yusei Kikuchi|SP|LAA|LA
+64|6|4|The Real Doctor|Nick Lodolo|SP|CIN|LS
+65|6|5|City to the Shore|Adolis Garcia|OF|PHI|LS
+66|6|6|The Greatest Glizzy Guzzlers|Heliot Ramos|OF|NYY|LA
+67|6|7|Charlie Hustle|Isaac Paredes|1B,3B|HOU|LS
+68|6|8|Charlie Hustle|Edward Cabrera|SP|CHC|LS
+69|6|9|Let's try this again|Willson Contreras|1B|BOS|LS
+70|6|10|Some Ting Wong|Mitch Keller|SP|PIT|LA
+71|6|11|The Real Doctor|Michael Busch|1B|CHC|LS
+72|6|12|Some Ting Wong|Jeremy Pena|SS|HOU|LA
+73|7|1|Midwest MooseKnuckle Mafia|Kazuma Okamoto|1B,3B|TOR|LS
+74|7|2|Baseball Phanatic|Giancarlo Stanton|OF,UT|NYY|LS
+75|7|3|Some Ting Wong|Dansby Swanson|SS|CHC|LS
+76|7|4|The Real Doctor|Noah Cameron|SP|KC|LS
+77|7|5|City to the Shore|Luis Severino|SP|ATH|LS
+78|7|6|The Greatest Glizzy Guzzlers|Caleb Durbin|3B|BOS|LA
+79|7|7|Gotham Knights|Tatsuya Imai|SP|HOU|LS
+80|7|8|Charlie Hustle|Robbie Ray|SP|SD|LS
+81|7|9|Let's try this again|Addison Barger|3B,OF|TOR|LS
+82|7|10|The Chosen Juan|Christian Walker|1B|HOU|LA
+83|7|11|The Great Bambi|Chandler Simpson|OF|TB|LS
+84|7|12|Basketball|Emmet Sheehan|SP|LAD|LS
+85|8|1|The Greatest Glizzy Guzzlers|Andrew Abbott|SP|CIN|LA
+86|8|2|Baseball Phanatic|Alex Verdugo|OF|(N/A)|LS
+87|8|3|Some Ting Wong|Andy Pages|OF|LAD|LA
+88|8|4|The Real Doctor|Clay Holmes|SP|CHC|LS
+89|8|5|City to the Shore|Brady Singer|SP|CIN|LS
+90|8|6|The Greatest Glizzy Guzzlers|Bailey Ober|SP|MIN|LA
+91|8|7|Gotham Knights|Jackson Holliday|2B|BAL|LS
+92|8|8|Charlie Hustle|Chase Meidroth|2B,SS|CHW|LS
+93|8|9|Let's try this again|Yandy Diaz|1B|TB|LS
+94|8|10|The Chosen Juan|TJ Friedl|OF|CIN|LA
+95|8|11|The Great Bambi|Kris Bubic|SP|LAD|LS
+96|8|12|Basketball|Jac Caglianone|1B,OF|KC|LS
+97|9|1|Midwest MooseKnuckle Mafia|Shane Bieber|SP|TOR|LS
+98|9|2|Baseball Phanatic|Zebby Matthews|SP|MIN|LS
+99|9|3|Some Ting Wong|Ezequiel Tovar|SS|COL|LA
+100|9|4|The Real Doctor|Alec Burleson|1B,OF|STL|LS
+101|9|5|City to the Shore|Bryson Stott|2B,3B|PHI|LS
+102|9|6|The Greatest Glizzy Guzzlers|Drew Rasmussen|SP|TB|LA
+103|9|7|Gotham Knights|Samuel Basallo|C,1B|BAL|LS
+104|9|8|Charlie Hustle|Jack Flaherty|SP|DET|LS
+105|9|9|Let's try this again|Jordan Westburg|3B|BAL|LS
+106|9|10|The Chosen Juan|Ceddanne Rafaela|2B,OF|BOS|LA
+107|9|11|The Great Bambi|Xander Bogaerts|SS|SD|LS
+108|9|12|Basketball|Bubba Chandler|SP|PIT|LS
+109|10|1|Midwest MooseKnuckle Mafia|Daylen Lile|OF|WSH|LS
+110|10|2|Baseball Phanatic|Gleyber Torres|2B|DET|LS
+111|10|3|Some Ting Wong|J.P. Crawford|3B,SS|SEA|LA
+112|10|4|The Real Doctor|Carlos Rodon|SP|NYY|LS
+113|10|5|City to the Shore|Luis Gil|SP|NYY|LS
+114|10|6|The Greatest Glizzy Guzzlers|Marcell Ozuna|UT|PIT|LA
+115|10|7|Gotham Knights|Kyle Manzardo|1B|CLE|LS
+116|10|8|Charlie Hustle|Luis Robert Jr.|OF|BAL|LS
+117|10|9|Let's try this again|Ramon Laureano|OF|SD|LS
+118|10|10|The Chosen Juan|Spencer Steer|1B,2B,OF|CIN|LA
+119|10|11|The Great Bambi|Jonathan Aranda|1B|TB|LS
+120|10|12|Basketball|Sal Stewart|1B,3B|CIN|LQA
+121|11|1|Midwest MooseKnuckle Mafia|Spencer Schwellenbach|SP|ATL|LS
+122|11|2|Baseball Phanatic|Corbin Burnes|SP|ARI|LS
+123|11|3|Some Ting Wong|Otto Lopez|2B,SS|MIA|LSS
+124|11|4|The Real Doctor|Matthew Boyd|SP|CHC|LS
+125|11|5|City to the Shore|Jung Hoo Lee|OF|SF|LS
+126|11|6|The Greatest Glizzy Guzzlers|Sal Frelick|OF|MIL|LA
+127|11|7|Gotham Knights|Jasson Dominguez|OF|NYY|LS
+128|11|8|Some Ting Wong|Jordan Beck|OF|COL|LSS
+129|11|9|Let's try this again|Ivan Herrera|C|STL|LS
+130|11|10|The Chosen Juan|Jose Soriano|SP|TOR|LA
+131|11|11|The Great Bambi|Drake Baldwin|C|ATL|LS
+132|11|12|Basketball|Ryne Nelson|SP|ARI|LQA
+133|12|1|Midwest MooseKnuckle Mafia|Cade Cavalli|SP|WSH|LS
+134|12|2|Baseball Phanatic|Jake Burger|1B|TEX|LS
+135|12|3|Some Ting Wong|Colton Cowser|OF|BAL|LA
+136|12|4|The Real Doctor|Brenton Doyle|OF|CHW|LS
+137|12|5|City to the Shore|Jack Leiter|SP|TEX|LS
+138|12|6|The Greatest Glizzy Guzzlers|Evan Carter|OF|TEX|LA
+139|12|7|Gotham Knights|Chase DeLauter|OF|CLE|LS
+140|12|8|Charlie Hustle|Kerry Carpenter|OF|DET|LS
+141|12|9|Let's try this again|Reynaldo Lopez|SP|ATL|LS
+142|12|10|The Chosen Juan|Dylan Crews|OF|WSH|LS
+143|12|11|The Great Bambi|Jorge Polanco|1B,2B|NYM|LS
+144|12|12|Basketball|Carter Jensen|C|KC|LQA
+145|13|1|Midwest MooseKnuckle Mafia|Logan Henderson|SP|MIL|LS
+146|13|2|Baseball Phanatic|Justin Verlander|SP|DET|LS
+147|13|3|Some Ting Wong|Luis Garcia Jr.|1B,2B|NYY|LA
+148|13|4|The Real Doctor|Brayan Bello|SP|BOS|LS
+149|13|5|City to the Shore|Alec Bohm|1B,3B|PHI|LS
+150|13|6|The Greatest Glizzy Guzzlers|Kyle Stowers|1B,OF|MIA|LA
+151|13|7|Gotham Knights|Roki Sasaki|SP|LAD|LS
+152|13|8|Charlie Hustle|Seth Lugo|SP|KC|LS
+153|13|9|Let's try this again|Jonathan India|2B,3B,OF|KC|LS
+154|13|10|The Chosen Juan|Kodai Senga|SP|NYM|LS
+155|13|11|The Great Bambi|Shane McClanahan|SP|TB|LS
+156|13|12|Basketball|Trent Grisham|OF|NYY|LQA
+157|14|1|Midwest MooseKnuckle Mafia|Moises Ballesteros|C,1B|LAA|LS
+158|14|2|Baseball Phanatic|Jose Caballero|2B,3B,SS,OF|NYY|LS
+159|14|3|Some Ting Wong|Andrew Vaughn|1B,3B|MIL|LA
+160|14|4|The Real Doctor|Michael Wacha|SP|KC|LS
+161|14|5|City to the Shore|Daulton Varsho|OF|HOU|LS
+162|14|6|The Greatest Glizzy Guzzlers|Miguel Vargas|1B,3B|CHW|LA
+163|14|7|Gotham Knights|Josh Smith|1B,2B,3B,SS|TOR|LS
+164|14|8|Some Ting Wong|Carlos Correa|3B,SS|HOU|LA
+165|14|9|Let's try this again|Chris Bassitt|SP|BAL|LS
+166|14|10|The Chosen Juan|Josh Lowe|OF|LAA|LA
+167|14|11|The Great Bambi|Max Muncy|3B|LAD|LQA
+168|14|12|Basketball|Shane Baz|SP|BAL|LQA
+169|15|1|Midwest MooseKnuckle Mafia|Dante Nori|OF|PHI|LS
+170|15|2|Baseball Phanatic|Zack Gelof|2B,3B,OF|ATH|LS
+171|15|3|Some Ting Wong|Trevor Larnach|OF,UT|MIN|LA
+172|15|4|The Real Doctor|Bryce Miller|SP|SEA|LS
+173|15|5|City to the Shore|Cade Horton|SP|CHC|LA
+174|15|6|The Greatest Glizzy Guzzlers|Wilyer Abreu|OF|BOS|LA
+175|15|7|Gotham Knights|Dillon Dingler|C|DET|LS
+176|15|8|Charlie Hustle|Brooks Lee|2B,3B,SS|MIN|LS
+177|15|9|Let's try this again|Justin Steele|SP|CHC|LS
+178|15|10|The Chosen Juan|Joe Musgrove|SP|SD|LS
+179|15|11|The Great Bambi|Tyler Tolbert|2B,SS,OF|KC|LS
+180|15|12|Basketball|Jordan Lawlar|3B,SS,OF|ARI|LQA

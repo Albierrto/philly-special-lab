@@ -1,0 +1,1032 @@
+<title>Philly Special Hitter Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#0D1726; --panel:#142138; --panel2:#1B2B47; --panel3:#243755; --line:#2A3C58; --ink:#EEF3F9; --ink2:#B5C2D4; --ink3:#7E8FA7;
+  --accent:#E5484D; --amber:#F0B429; --hot:#F0645C; --cold:#5FA8F5; --good:#4CC27A; --bad:#F26D6D; --warn:#E8B04B; --mine:#3A3110; --mine-ink:#F7E3A1;
+  --hot-rgb:240,100,92; --cold-rgb:95,168,245; --shadow:0 10px 30px rgba(0,0,0,.35);
+  --font-d:"Barlow Condensed","Arial Narrow",Impact,sans-serif; --font-b:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif; --font-m:"IBM Plex Mono",Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#EEF1F5; --panel:#FFFFFF; --panel2:#E8ECF2; --panel3:#DAE0E9; --line:#D3DAE4; --ink:#121B2B; --ink2:#46546A; --ink3:#77849A;
+  --accent:#C8232A; --amber:#B7791F; --hot:#C8312B; --cold:#2C6FB7; --good:#2E7D4F; --bad:#B23A2E; --warn:#B7791F; --mine:#FBEFC4; --mine-ink:#5A4300;
+  --hot-rgb:200,49,43; --cold-rgb:44,111,183; --shadow:0 10px 30px rgba(20,30,50,.12); color-scheme:light; }}
+:root[data-theme="light"]{
+  --bg:#EEF1F5; --panel:#FFFFFF; --panel2:#E8ECF2; --panel3:#DAE0E9; --line:#D3DAE4; --ink:#121B2B; --ink2:#46546A; --ink3:#77849A;
+  --accent:#C8232A; --amber:#B7791F; --hot:#C8312B; --cold:#2C6FB7; --good:#2E7D4F; --bad:#B23A2E; --warn:#B7791F; --mine:#FBEFC4; --mine-ink:#5A4300;
+  --hot-rgb:200,49,43; --cold-rgb:44,111,183; --shadow:0 10px 30px rgba(20,30,50,.12); color-scheme:light; }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:13.5px;line-height:1.45;padding-inline:0;padding-block:0}
+a{color:var(--cold)}
+button{font-family:inherit}
+/* ---------- app shell */
+.topbar{position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand .mark{width:30px;height:30px;flex:0 0 auto}
+.brand b{font-family:var(--font-d);font-weight:800;font-size:22px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+.brand b span{color:var(--accent)}
+.brand small{display:block;font-family:var(--font-m);font-size:10px;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;margin-top:2px}
+.teamsel{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3);white-space:nowrap}
+.teamsel select{font-size:12.5px;padding:5px 8px;border-radius:999px;max-width:190px}
+.search{position:relative;flex:1;max-width:460px;margin-left:auto}
+.search input[type="search"]{width:100%;font:inherit;font-size:13px;padding:8px 12px 8px 34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.search svg{position:absolute;left:11px;top:9px;width:16px;height:16px;color:var(--ink3)}
+.search .dd{position:absolute;top:40px;left:0;right:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);display:none;overflow:hidden;z-index:40}
+.search .dd.open{display:block}
+.search .dd button{display:flex;width:100%;align-items:center;gap:10px;background:none;border:0;text-align:left;padding:8px 12px;color:var(--ink);cursor:pointer;font-size:13px}
+.search .dd button:hover,.search .dd button:focus{background:var(--panel2);outline:none}
+.search .dd .ava{width:26px;height:26px;font-size:10px}
+.search .dd small{color:var(--ink3);margin-left:auto;font-family:var(--font-m);font-size:11px}
+.liveind{font-family:var(--font-m);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);white-space:nowrap;cursor:pointer}
+.liveind.ok{color:var(--good)} .liveind.busy{color:var(--amber)} .liveind.err{color:var(--bad)}
+.liveind::before{content:"●";margin-right:5px}
+.liveind:empty{display:none}
+.iconbtn{width:36px;height:36px;border:1px solid var(--line);background:var(--panel);color:var(--ink2);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.iconbtn svg{width:18px;height:18px}
+.iconbtn:hover{color:var(--ink);background:var(--panel2)}
+.iconbtn[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+.shell{display:grid;grid-template-columns:212px 1fr;min-height:calc(100vh - 56px)}
+.rail{position:sticky;top:56px;height:calc(100vh - 56px);overflow:auto;border-right:1px solid var(--line);background:var(--panel);padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.rail .grp{font-family:var(--font-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);padding:12px 10px 4px}
+.navbtn{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--ink2);padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;text-align:left}
+.navbtn svg{width:18px;height:18px;flex:0 0 auto;opacity:.9}
+.navbtn:hover{background:var(--panel2);color:var(--ink)}
+.navbtn[aria-selected="true"]{background:var(--panel2);color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+.rail .foot{margin-top:auto;padding:10px;font-size:11px;color:var(--ink3);line-height:1.4}
+main{min-width:0;padding:18px clamp(14px,2.2vw,28px) 90px}
+.tabbar{display:none}
+section[role="tabpanel"]{display:none} section[role="tabpanel"].on{display:block}
+.pagehead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px;margin:0 0 14px}
+h1,h2{font-family:var(--font-d);font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1;margin:0}
+h1{font-size:34px} h2{font-size:28px;margin:0 0 6px}
+h3{font-family:var(--font-d);font-size:18px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:16px 0 6px;color:var(--ink)}
+.lede{color:var(--ink2);max-width:80ch;margin:0 0 12px;font-size:13.5px}
+.lede b,.note b{color:var(--ink)}
+/* ---------- settings drawer */
+.drawer{position:fixed;top:56px;right:0;bottom:0;width:min(420px,100%);background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--shadow);z-index:35;transform:translateX(100%);transition:transform .2s;padding:16px;overflow:auto}
+.drawer.open{transform:none}
+@media (prefers-reduced-motion:reduce){.drawer,.card{transition:none}}
+.drawer h2{font-size:22px;margin-bottom:10px}
+.leaguebar{display:flex;flex-direction:column;gap:10px}
+.leaguebar label{font-size:12.5px;color:var(--ink2);display:flex;align-items:center;justify-content:space-between;gap:8px}
+select,input[type="number"],input[type="search"],input[type="text"]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px}
+input[type="number"]{width:68px;font-family:var(--font-m);font-size:12px}
+.wts{display:flex;flex-wrap:wrap;gap:6px 10px}
+.wts label{font-family:var(--font-m);font-size:11.5px;color:var(--ink2);display:flex;align-items:center;gap:4px}
+.wts input{width:54px;padding:3px 4px}
+.btn{font:inherit;font-size:12.5px;font-weight:500;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 11px;cursor:pointer;border-radius:6px}
+.btn:hover{background:var(--panel2)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.small{padding:4px 9px;font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--line);background:var(--bg);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-size:12.5px;font-weight:500;border:0;background:transparent;color:var(--ink2);padding:6px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* ---------- toolbars and filters */
+.filters{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.filters label{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink2);padding:2px 9px;border-radius:999px;cursor:pointer;user-select:none}
+.chip[aria-pressed="true"]{background:var(--cold);color:#fff;border-color:var(--cold)}
+.rangefilters{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}
+.rf{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--ink2)}
+.rf select{min-width:180px}
+.colpicker{display:none;flex-wrap:wrap;gap:4px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.colpicker.open{display:flex}
+.colpicker .grp{min-width:150px}
+.colpicker .grp b{display:block;font-family:var(--font-d);font-size:14px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.colpicker label{display:block;font-size:12px;color:var(--ink2);cursor:pointer}
+.hint{color:var(--ink3);font-size:12px}
+.count{font-family:var(--font-m);font-size:12px;color:var(--ink3)}
+/* ---------- tables */
+.tblwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);max-height:72vh}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-variant-numeric:tabular-nums;font-size:12.5px}
+th{position:sticky;top:0;z-index:2;background:var(--panel2);color:var(--ink2);font-weight:600;text-align:right;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+th.l,td.l{text-align:left}
+th.sticky,td.sticky{position:sticky;left:0;z-index:3;background:var(--panel);box-shadow:1px 0 0 var(--line)}
+th.sticky{z-index:4;background:var(--panel2)}
+th[aria-sort="descending"]::after{content:" ▾";color:var(--accent)} th[aria-sort="ascending"]::after{content:" ▴";color:var(--accent)}
+td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-family:var(--font-m);font-size:12px}
+td.l{font-family:var(--font-b);font-size:12.5px}
+tbody tr:hover td{background-color:var(--panel2)}
+tbody tr:hover td.sticky{background:var(--panel2)}
+tr.mine td.sticky{background:var(--mine)} tr.mine td.sticky .sub{color:var(--mine-ink)}
+td.name{font-weight:600;cursor:pointer}
+td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:11px;font-family:var(--font-b)}
+.pill{display:inline-block;padding:0 6px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--font-b);line-height:18px}
+.pill.g{background:rgba(76,194,122,.18);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.18);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.18);color:var(--cold)} .pill.w{background:rgba(232,176,75,.18);color:var(--warn)} .pill.n{background:var(--panel3);color:var(--ink2)}
+.pos-d{color:var(--good);font-weight:600}.neg-d{color:var(--bad);font-weight:600}
+/* ---------- dashboard */
+.dash{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.dcard{grid-column:span 4;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.dcard.w6{grid-column:span 6} .dcard.w8{grid-column:span 8} .dcard.w12{grid-column:span 12}
+.dcard h3{margin:0 0 8px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.dcard h3 small{font-family:var(--font-b);font-size:11px;color:var(--ink3);text-transform:none;letter-spacing:0;font-weight:400}
+.dcard .go{font-size:12px;color:var(--cold);background:none;border:0;cursor:pointer;padding:0;font-family:var(--font-b)}
+.rowlist{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line);cursor:pointer}
+.row:first-child{border-top:0}
+.row:hover .nm{color:var(--cold)}
+.row>div{min-width:0}
+.row .nm{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .val{font-family:var(--font-m);font-size:13px;font-weight:600;text-align:right}
+.row .val small{display:block;font-weight:400;color:var(--ink3);font-size:10.5px}
+.ava{width:32px;height:32px;border-radius:50%;background:var(--tc,var(--panel3));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:12px;letter-spacing:.02em;flex:0 0 auto;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:10px 0}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kpi b{display:block;font-family:var(--font-d);font-size:24px;font-weight:700;line-height:1}
+.kpi span{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.stat{display:flex;align-items:baseline;gap:8px}
+.stat b{font-family:var(--font-d);font-size:34px;font-weight:700;line-height:1}
+.stat span{color:var(--ink3);font-size:12px}
+.todaystrip{display:flex;flex-wrap:wrap;gap:8px}
+.wxchip{display:flex;flex-direction:column;gap:2px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:118px;font-size:12px}
+.wxchip b{font-family:var(--font-d);font-size:15px;font-weight:600;letter-spacing:.02em}
+.wxchip small{color:var(--ink3);font-size:11px}
+/* ---------- player page (slide-over) */
+.overlay{position:fixed;inset:0;background:rgba(3,8,16,.55);display:none;z-index:40}
+.overlay.open{display:block}
+.card{position:fixed;top:0;right:0;bottom:0;width:min(780px,100%);background:var(--bg);z-index:41;overflow:auto;transform:translateX(100%);transition:transform .2s;padding:0 0 30px;border-left:1px solid var(--line)}
+.card.open{transform:none}
+.card .close{position:absolute;top:12px;right:14px;z-index:2}
+.card-body{padding:0 clamp(14px,2vw,24px) 20px}
+.pband{display:flex;align-items:center;gap:14px;padding:22px clamp(14px,2vw,24px) 16px;background:linear-gradient(135deg,var(--tc,#33415c) 0%,color-mix(in srgb,var(--tc,#33415c) 45%,var(--bg)) 70%,var(--bg) 100%);border-bottom:1px solid var(--line)}
+.pband .ava{width:56px;height:56px;font-size:20px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.25)}
+.pband h2{font-size:32px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.pband .hint{color:rgba(255,255,255,.85);font-size:12.5px}
+.pband .pill{background:rgba(255,255,255,.18);color:#fff}
+.card h3{margin-top:18px}
+.card table{font-size:12px}
+.bars{display:flex;gap:2px;align-items:flex-end;height:36px}
+.bars i{display:block;width:14px;background:var(--cold);opacity:.85;border-radius:2px 2px 0 0}
+.bars i.cur{background:var(--hot)}
+.zrow{display:grid;grid-template-columns:150px 1fr 60px;gap:8px;align-items:center;font-size:12px;margin:2px 0}
+.pbar{position:relative;height:16px;margin:0 16px 0 12px;background:linear-gradient(90deg,rgba(var(--cold-rgb),.35),var(--panel2) 50%,rgba(var(--hot-rgb),.35));border-radius:8px}
+.pbar b{position:absolute;top:-3px;width:22px;height:22px;margin-left:-11px;border-radius:50%;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--font-m);box-shadow:0 0 0 2px var(--bg)}
+.pbar i{position:absolute;top:2px;bottom:2px;width:2px}
+.pas{display:flex;height:18px;border-radius:4px;overflow:hidden;background:var(--panel2);margin:6px 0 2px}
+.pas span{display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#fff;font-family:var(--font-m);white-space:nowrap;overflow:hidden}
+.pas .p1{background:#2C6FB7}.pas .p2{background:#2E7D4F}.pas .p3{background:#B7791F}.pas .p4{background:#C8312B}
+details{border:1px solid var(--line);background:var(--panel);padding:6px 10px;margin:6px 0;border-radius:8px} summary{cursor:pointer;font-size:13px} table.mini{width:100%;margin-top:6px} table.mini td{padding:3px 6px;font-size:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.note{border-left:3px solid var(--accent);padding:8px 12px;background:var(--panel);margin:10px 0;max-width:80ch;color:var(--ink2)}
+.formula{font-family:var(--font-m);font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0 10px;white-space:pre-wrap;color:var(--ink)}
+.method p,.method li{max-width:76ch;color:var(--ink2)} .method li b,.method p b{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink2);margin:6px 0 0}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px;border-radius:2px}
+.legend .h::before{background:var(--hot)} .legend .c::before{background:var(--cold)} .legend .m::before{background:var(--mine);border:1px solid var(--line)}
+.legend span:not(.h):not(.c):not(.m)::before{display:none}
+svg text{fill:var(--ink2);font-family:var(--font-m);font-size:11px}
+button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visible{outline:2px solid var(--cold);outline-offset:1px}
+/* ---------- responsive */
+
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr} .rail{display:none}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);overflow-x:auto;padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+  .tabbar .navbtn{flex:1 0 64px;flex-direction:column;gap:3px;font-size:10.5px;padding:6px 4px;border-radius:8px;text-align:center;justify-content:center}
+  .tabbar .navbtn[aria-selected="true"]{box-shadow:none;color:var(--accent)}
+  .dcard,.dcard.w6,.dcard.w8{grid-column:span 12}
+  .zrow{grid-template-columns:110px 1fr 50px} .tblwrap{max-height:none}
+  .teamsel span{display:none} .teamsel select{max-width:120px}
+  .search{max-width:none;min-width:0} .search input[type="search"]{padding-left:30px} .brand small{display:none} .brand b{font-size:18px} .topbar{gap:8px;padding:0 10px} h1{font-size:28px}
+  .row{grid-template-columns:auto minmax(0,1fr) auto} .row .sub{white-space:normal}
+}
+</style>
+
+<header class="topbar">
+  <a class="brand" href="#" id="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 4h24v12L16 30 4 16z" fill="#E5484D"/><path d="M8 8h16v7l-8 10-8-10z" fill="#fff" opacity=".92"/><path d="M12 12h8v3l-4 5-4-5z" fill="#E5484D"/></svg><div><b>Philly <span>Special</span></b><small>Lab · 2026 season</small></div></a>
+  <label class="teamsel"><span>Viewing as</span><select id="team-sel" aria-label="Your team"></select></label>
+  <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="gsearch" placeholder="Find a player" aria-label="Find a player" autocomplete="off"><div class="dd" id="gsearch-dd" role="listbox"></div></div>
+  <span class="liveind" id="live-ind" title="Live data from MLB and Open-Meteo refreshes every 10 minutes on the website; the artifact copy is the daily build"></span>
+  <button class="iconbtn" id="theme-btn" title="Day / night" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <button class="iconbtn" id="settings-btn" title="League settings" aria-label="League settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+</header>
+<div class="shell">
+<nav class="rail" role="tablist" aria-label="Sections"><button class="navbtn" role="tab" aria-selected="true" data-tab="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Dashboard</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l9-9"/><path d="M12 12l5-5a2.5 2.5 0 0 1 3.5 3.5l-5 5"/><circle cx="6" cy="18" r="1.5"/></svg><span>Hitters</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="breakouts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span>Breakouts</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="pitchers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M6 6c3 2 3 10 0 12M18 6c-3 2-3 10 0 12"/></svg><span>Pitchers</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="streamers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Streamers</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="keepers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Keepers</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Drafts</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="prospects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 11c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5-5-5 0 3 2.5 5 5 5z"/></svg><span>Prospects</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="formulas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg><span>Methods</span></button><div class="foot">Scored in your league's points. Data: Baseball Savant, MLB Stats API, Fantrax (read-only), Open-Meteo.</div></nav>
+<main>
+<section role="tabpanel" id="tab-dash" class="on">
+  <div class="pagehead"><div><h1 id="dash-title">Dashboard</h1><p class="lede" id="dash-sub"></p></div><div class="hint" id="dash-asof"></div></div>
+  <div class="dash" id="dash"></div>
+</section>
+<section role="tabpanel" id="tab-explore">
+  <div class="pagehead"><div><h2>Hitters</h2><p class="lede">Every hitter-season since 2021 scored in your league's points. Filter, add stat ranges, pick columns; click a name for the player page.</p></div></div>
+  <div class="filters">
+    <label>Season <select id="f-season"></select></label>
+    <label>Min PA <input type="number" id="f-minpa" value="200" min="0" step="50"></label>
+    <label>Age <input type="number" id="f-agemin" value="18" min="17" max="45"> – <input type="number" id="f-agemax" value="45" min="17" max="45"></label>
+    <label>Positions <span class="chips" id="f-pos"></span></label>
+    <label>Fantrax owner <select id="f-owner"><option value="">any</option></select></label>
+    <label>Status <select id="f-status"><option value="">any</option></select></label>
+    <input type="search" id="f-q" placeholder="Search name" aria-label="Search name">
+    <button class="btn small" id="toggle-cols">Columns</button>
+    <button class="btn small" id="add-rf">+ stat filter</button>
+    <button class="btn small" id="reset">Reset</button>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="rangefilters" id="rangefilters"></div>
+  <div class="colpicker" id="colpicker"></div>
+  <div class="tblwrap"><table id="t-explore"></table></div>
+  <div class="legend"><span class="h">top of the pool</span><span class="c">bottom of the pool</span> <span>Color = percentile among hitters with 200+ PA in the same season (direction-aware: low K% is red). Click a name for the player card.</span></div>
+</section>
+
+<section role="tabpanel" id="tab-breakouts">
+  <h2>2027 breakout candidates</h2>
+  <p class="lede"><b>BI</b> is the Breakout Index: the model's probability that 2027 is <b>new territory for the player</b> (points per PA at least 0.08 above his best 200-PA season, 350+ PA, top-90 finish). It is trained on 2021→22 through 2025→26 and reads Statcast skills, expected-vs-actual points, career track, age, and IL history. An aging star cannot score high here by construction, which is the fix for the Trout problem. <b>Proj</b> is the separate points projection (skills model + empirical aging step, times a durability-aware PA estimate).</p>
+  <div class="filters">
+    <label>Pool <span class="seg" role="group"><button aria-pressed="true" data-bpool="all">All</button><button aria-pressed="false" data-bpool="ft">400+ PA</button><button aria-pressed="false" data-bpool="pt">&lt;400 PA</button></span></label>
+    <label>Availability <select id="b-avail"><option value="">everyone</option><option value="FA">free agents in my league</option><option value="notkept">not a likely keeper</option><option value="mine">my roster</option></select></label>
+    <label>Max age <input type="number" id="b-agemax" value="34" min="18" max="45"></label>
+    <label>Min BI <input type="number" id="b-minbi" value="0" min="0" max="100"></label>
+    <span class="count" id="b-count"></span>
+  </div>
+  <div class="tblwrap"><table id="t-break"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-pitchers">
+  <h2>Starting pitchers</h2>
+  <p class="lede">Every starter-season since 2021 (5+ starts) in your pitching scoring: <b>IP + K − ER + 4×QS + 10×CG + 8×SHO − 3×BS</b>, no RP slot, ten starts a week. The three "plus" columns are public-data proxies built the way PitcherList's Pitching+ and Eno Sarris's Stuff+/Location+ are framed: <b>Stuff+</b> reads whiff, in-zone miss, put-away, velocity, movement uniqueness and arsenal run value; <b>Location+</b> reads edge, first-strike, zone, meatball, walk and chase rates; <b>Pitching+</b> is the ridge blend that best predicts <i>next year's</i> points per start. 100 is league average, 10 is one standard deviation. <b>BI</b> = chance next season is a new career level in points per start.</p>
+  <div class="filters">
+    <label>View <span class="seg" role="group"><button aria-pressed="true" data-pview="explore">Explorer</button><button aria-pressed="false" data-pview="break">Breakouts 2027</button></span></label>
+    <label>Season <select id="pf-season"></select></label>
+    <label>Min GS <input type="number" id="pf-mings" value="10" min="0" step="5"></label>
+    <label>Age <input type="number" id="pf-agemin" value="18" min="17" max="45"> – <input type="number" id="pf-agemax" value="45" min="17" max="45"></label>
+    <label>Fantrax owner <select id="pf-owner"><option value="">any</option></select></label>
+    <input type="search" id="pf-q" placeholder="Search name" aria-label="Search pitcher name">
+    <button class="btn small" id="p-toggle-cols">Columns</button>
+    <button class="btn small" id="p-add-rf">+ stat filter</button>
+    <button class="btn small" id="p-reset">Reset</button>
+    <span class="count" id="p-count"></span>
+  </div>
+  <div class="rangefilters" id="p-rangefilters"></div>
+  <div class="colpicker" id="p-colpicker"></div>
+  <div class="tblwrap"><table id="t-pitch"></table></div>
+  <div class="legend"><span class="h">top of the pool</span><span class="c">bottom of the pool</span> <span>Color = percentile among starters with 15+ GS in the same season (direction-aware: low xERA is red). Click a name for the pitcher card with the arsenal and Savant-style sliders.</span></div>
+</section>
+
+<section role="tabpanel" id="tab-streamers">
+  <h2>Streamers: this week's matchups</h2>
+  <p class="lede" id="s-lede"></p>
+  <div class="filters">
+    <label>Day <select id="s-day"></select></label>
+    <label>Show <select id="s-avail"><option value="FA">free agents in my league</option><option value="mine">my roster</option><option value="">everyone</option></select></label>
+    <label>Positions <span class="chips" id="s-pos"></span></label>
+    <label>Hide projected SP <input type="checkbox" id="s-listed"></label>
+    <span class="count" id="s-count"></span>
+  </div>
+  <h3>Hitters</h3>
+  <div class="tblwrap" style="max-height:60vh"><table id="t-shit"></table></div>
+  <div class="legend"><span>Exp pts = base pts/PA × PA/G × opposing SP^0.6 × platoon × park × weather × home × form. "P" after a starter = projected from rotation order, not yet posted by the club.</span></div>
+  <h3>Starting pitchers</h3>
+  <div class="filters"><label>Show <select id="s-pavail"><option value="FA">free agents</option><option value="mine">my roster</option><option value="">everyone</option></select></label><label>Two-start only <input type="checkbox" id="s-two"></label><label title="By default openers, swingmen and PitcherList Do-Not-Start arms are hidden">Show all roles <input type="checkbox" id="s-allroles"></label><span class="count" id="s-pcount"></span></div>
+  <div class="tblwrap" style="max-height:60vh"><table id="t-sp"></table></div>
+  <div class="legend"><span>Exp pts = base pts/GS × opponent (wOBA vs the pitcher's hand) × park^0.5 × weather^0.5 × home + K bonus from the opponent's K% vs that hand. Ten starts a week is the cap. Openers, swingmen and PitcherList "Do Not Start" arms are hidden unless you tick Show all roles; the PitcherList column is Nick Pollock's 9/8 playoff tier, the CBS column is Scott White's Week 26 lists.</span></div>
+  <div class="grid2">
+    <div><h3>Your week</h3><div id="s-mine"></div></div>
+    <div><h3>Games, parks and weather</h3><div class="tblwrap" style="max-height:50vh"><table id="t-sgames"></table></div><p class="hint">Weather is Open-Meteo's hourly forecast at first pitch (temperature, wind speed and the wind component blowing out to center field from the park's orientation). Roofed parks ignore weather. Park factors are Savant's three-year Statcast run factors by batter side.</p></div>
+  </div>
+</section>
+
+<section role="tabpanel" id="tab-keepers">
+  <h2>Keepers and the 2027 draft pool</h2>
+  <p class="lede">You keep 5 hitters and 2 pitchers and the draft only holds what's left. <b>KSV</b> (Keeper Surplus Value) = projected 2027 points minus what the best player on the board at your first pick is projected to return (the (kept + 12)th best at that slot type). Positive means keeping him beats drafting; "lock" is 120+ for hitters and 80+ for pitchers. <b>Likely kept</b> assumes each team keeps its highest-KSV players. Your real 2026 keepers are marked; <b>Ohtani is a pitcher keeper</b> for you, so his hitting projection is added to his pitcher-slot value and he is left off your hitter board. Other teams' past keepers are inferred as top-ADP players missing from the draft.</p>
+  <div class="filters"><label>Team <select id="k-owner"></select></label><span class="hint" id="k-real"></span></div>
+  <div class="grid2">
+    <div>
+      <h3>Hitter keeper board</h3>
+      <div class="tblwrap"><table id="t-kboard"></table></div>
+    </div>
+    <div>
+      <h3>2027 hitter draft pool (likely keepers removed)</h3>
+      <div class="filters"><label>Show <select id="p-n"><option>50</option><option>100</option><option>200</option><option>400</option></select></label></div>
+      <div class="tblwrap"><table id="t-pool"></table></div>
+    </div>
+    <div>
+      <h3>Pitcher keeper board</h3>
+      <div class="tblwrap"><table id="t-pkboard"></table></div>
+    </div>
+    <div>
+      <h3>2027 pitcher draft pool (likely keepers removed)</h3>
+      <div class="filters"><label>Show <select id="pp-n"><option>50</option><option>100</option><option>200</option></select></label></div>
+      <div class="tblwrap"><table id="t-ppool"></table></div>
+    </div>
+  </div>
+  <h3>Inferred keepers by year</h3>
+  <div class="filters"><label>Year <select id="ky-year"></select></label></div>
+  <div class="tblwrap" style="max-width:820px"><table id="t-keepyear"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-drafts">
+  <h2>Your league's real drafts, 2024-2026</h2>
+  <p class="lede">Every hitter pick (keepers are not picks) against two yardsticks: the market ADP curve for that year, and the <b>league's own pick curve</b> (median points returned by the Nth hitter taken in this league, pooled over three drafts). Your picks are highlighted.</p>
+  <div class="filters"><label>Year <select id="d-year"><option value="">all</option></select></label><label>Team <select id="d-team"><option value="">all</option></select></label><span class="count" id="d-count"></span></div>
+  <div class="tblwrap"><table id="t-drafts"></table></div>
+  <h3>League pick curve</h3>
+  <div id="pickcurve"></div>
+</section>
+
+<section role="tabpanel" id="tab-prospects">
+  <h2>Prospects and rookies</h2>
+  <p class="lede"><b>PAS</b> (Prospect Arrival Score, 0-100) = 35 × pedigree (MLB Pipeline rank) + 25 × age-vs-level + 25 × minor-league bat (ISO, OBP, BB−K, steals, z-scored within level) + 15 × MLB sample quality (xwOBA, EV50, bat speed) when he has one. Hitters only; current Pipeline top-100 plus every rookie-eligible bat with a 2026 MLB or upper-minors line. <b>Click a name for the prospect card</b>: level-by-level lines colored by percentile within that level, minor-league Statcast from Triple-A parks (exit velocity, barrels, bat speed, whiff and chase, with percentiles inside this prospect cohort), and the MLB sample when there is one.</p>
+  <div class="filters"><label>Status <select id="pr-status"><option value="">all</option></select></label><label>Min PAS <input type="number" id="pr-min" value="0" min="0" max="100"></label><label>Availability <select id="pr-avail"><option value="">everyone</option><option value="FA">free agents in my league</option><option value="mine">my roster</option></select></label><label><input type="checkbox" id="pr-sc"> has Triple-A Statcast</label><span class="count" id="pr-count"></span></div>
+  <div class="tblwrap"><table id="t-pros"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-formulas" class="method">
+  <h2>Formulas and checks</h2>
+  <h3>League points (verified against Fantrax)</h3>
+  <div class="formula" id="f-scoring"></div>
+  <h3>xLP — expected league points</h3>
+  <p>What a hitter <b>deserved</b> in your scoring, from Statcast expected stats. Hits come from xBA, extra-base hits from xISO split by the hitter's own doubles/triples/homers mix (regressed to the league mix over 40 XBH), walks/HBP/steals are skills so they stay actual, runs and RBI come from a ridge model on xOBP/xISO/xBA/speed (league-average lineup context).</p>
+  <div class="formula">xH = xBA × AB;  xXBH = xISO × AB / (r2B + 2·r3B + 3·rHR);  x1B = xH − xXBH
+x2B = xXBH·r2B;  x3B = xXBH·r3B;  xHR = xXBH·rHR
+xR/PA, xRBI/PA = ridge(xOBP, xISO, xBA, SB/PA, xHR/PA, sprint)
+xLP = Σ weight(event) × x(event)      luck = LP − xLP   (+ = out-hit his contact quality)</div>
+  <p>Check: across 987 consecutive 300-PA seasons, xLP/PA predicted the next year's points/PA with r = 0.52 versus r = 0.47 for actual points/PA.</p>
+  <h3>LPAR — league points above replacement</h3>
+  <div class="formula">fill C, SS, 2B, 3B, 1B, OF slots for every team with the best available hitters, then the UT slots;
+replacement(pos) = points of the best hitter still unrostered at that position (+2 bench bats)
+LPAR = points − min(replacement over the positions he qualifies at, replacement(UT))</div>
+  <h3>Value over ADP</h3>
+  <div class="formula">expected(rank) = isotonic( rolling median of points by preseason ADP hitter rank )   per season
+pts_over_exp = points − expected(ADP rank);  rank_gain = ADP rank − final rank
+beat: ≥ +75 pts, ≥ +25 ranks, top-150 finish     big beat: ≥ +150, ≥ +60, top-75</div>
+  <h3>Aging curve (empirical, delta method)</h3>
+  <p>Change in points/PA from age a to a+1 for hitters with 300+ PA both years, PA-weighted, smoothed, cumulated relative to 27. Your league's scoring rewards singles and steals, both of which age badly, so the curve turns down early and hard.</p>
+  <div id="agingchart"></div>
+  <h3>Durability</h3>
+  <div class="formula">projected PA = (0.6 × PA_2026 + 0.4 × mean PA 2024-26) × (1 − 0.0008 × IL days over last 3 years, capped 250) × (0.95 if age ≥ 33), clipped 200-650</div>
+  <h3>Breakout Index</h3>
+  <div class="formula">breakout(t+1) := pts/PA(t+1) ≥ career-best(200+ PA seasons through t) + 0.08  AND  PA(t+1) ≥ 350  AND  final rank(t+1) ≤ 90
+BI = 100 × P(breakout | Statcast skills, xLP gap, career best, gap to best, seasons, age, PA, IL history, yoy K%/barrel/bat-speed change)
+      gradient-boosted classifier, 2021→22 … 2025→26</div>
+  <div class="grid2">
+    <div><h3>Breakout Index, leave-one-season-out</h3><div class="tblwrap"><table id="t-cvbi"></table></div></div>
+    <div><h3>Points projection, leave-one-season-out</h3><div class="tblwrap"><table id="t-cvproj"></table></div></div>
+  </div>
+  <p>As of 2025 data only, the 25 highest BI hitters produced a new-level 2026 at a 16% clip against a 3.3% base rate; Caglianone, Otto Lopez, Crow-Armstrong and Meidroth were all inside that top 25. Trout's 2027 BI is 1.9.</p>
+  <h3>Keeper Surplus Value</h3>
+  <div class="formula">KSV = proj_pts − proj_pts[ rank = hitters kept league-wide + 12 ]     (worth keeping over your first pick)
+KSV_2nd = proj_pts − proj_pts[ rank = kept + 24 ]                    (worth keeping over your second pick)</div>
+  <h3>League fit</h3>
+  <div class="formula">fit_vs_points = percentile(pts/PA, this scoring) − percentile(pts/PA, ESPN-style points with K = −1)
+fit_vs_roto   = percentile(pts/PA, this scoring) − percentile(5x5 roto z-score)</div>
+  <h3>Prospect Arrival Score</h3>
+  <div class="formula">PAS = 35·pedigree + 25·level_age + 25·milb_bat + 15·mlb_sample
+pedigree = 1 − (Pipeline rank − 1)/100 (0.15 unranked);  level_age = clip(0.5 + (avg age at level − age)·0.15, 0, 1) × level weight (AAA 1, AA .85, A+ .6, A .4)
+milb_bat = 0.5 + 0.2·z( ISO, OBP, BB−K, ½·SB/600 ) within level;  mlb_sample = mean percentile of xwOBA, EV50, bat speed</div>
+  <h3>Prospect card (TJStats-style)</h3>
+  <p>Each minor-league line is colored by its percentile against every hitter with 100+ PA at the same level in the same season. The Statcast block comes from Savant's minor-league search (Triple-A parks carry Hawk-Eye; a few lower-level parks too): exit velocity, EV90, max EV, hard-hit and barrel rates, sweet-spot and ground-ball rates, an estimated wOBA built from xwOBAcon plus walks and strikeouts, whiff and chase rates, and bat-tracking when Savant publishes it for that park (it did not for 2025-2026 minor-league feeds, so bat speed is usually absent). Percentiles there are within the prospect cohort for the same season, so "90th" means top decile of tracked prospects, not of all Triple-A hitters.</p>
+  <h3>Pitching: Stuff+, Location+, Pitching+ proxies</h3>
+  <p>FanGraphs' Stuff+/Location+/Pitching+ (Eno Sarris and Max Bay) and PitcherList's PLV/Pitching+ are pitch-level models on velocity, movement, release and location. Those inputs are not public at the per-pitch level for free, so these are <b>season-level proxies</b> built from the same ideas with Savant's leaderboard and pitch-arsenal tables, scaled 100 ± 10 like the originals. They are not the real thing; the check below is what they are worth in this league's scoring.</p>
+  <div class="formula">Stuff+    = 100 + 10·z[ z(whiff%) + z(in-zone swing-miss%) + z(arsenal put-away%) + z(fastball velo) + ½·z(movement uniqueness) + z(arsenal RV/100 vs hitters) ] / 5.5
+Location+ = 100 + 10·z[ z(edge%) + z(first-strike%) + ½·z(zone%) − z(meatball%) − z(BB%) + z(chase%) ] / 5.5
+Pitching+ = 100 + 10·z[ ridge(Stuff+, Location+, xERA, K−BB%) → next-year points per start ]   (coefficients below)
+arsenal: pitch types with 10+% usage; put-away = K / 2-strike pitches; movement uniqueness = distance from league-average movement of the same pitch type; z-scores among starters with 50+ IP in the same season</div>
+  <div class="formula" id="f-ppcoef"></div>
+  <h3>Pitcher Breakout Index and projection</h3>
+  <div class="formula">breakout(t+1) := pts/GS(t+1) ≥ career-best(10+ GS seasons through t) + 1.5  AND  GS(t+1) ≥ 20  AND  SP rank(t+1) ≤ 40
+BI = 100 × P(breakout | Stuff+, Location+, Pitching+, xERA, K−BB%, whiff, velo, yoy stuff/velo change, age, GS, career best, gap to best, IL history)
+proj pts/GS = ridge(Pitching+ inputs, last 2 seasons) + aging step(age);   proj GS = (0.6·GS + 0.4·3-yr mean) × (1 − 0.001·IL days 3y, cap 250) × (0.93 if age ≥ 34), clipped 12-32
+proj pts = proj pts/GS × proj GS;   two-way: keeper value = pitching proj + hitting proj (Ohtani)
+pitcher KSV = proj pts − proj pts[ rank = pitcher keepers league-wide + 12 ]</div>
+  <div class="grid2">
+    <div><h3>Pitcher projection, leave-one-season-out</h3><div class="tblwrap"><table id="t-cvpit"></table></div><p class="hint">r vs next-year points per start (10+ GS both years). Pitching+ beats carrying last year over in every fold.</p></div>
+    <div><h3>Pitcher Breakout Index, leave-one-season-out</h3><div class="tblwrap"><table id="t-cvpbi"></table></div><p class="hint">Top-20 hit rate = share of the 20 highest-BI starters who actually broke out; base rate is the share of all starters.</p></div>
+  </div>
+  <h3>Pitcher aging (points per start, year over year)</h3>
+  <div id="pagingchart"></div>
+  <h3>Data</h3>
+  <p>Baseball Savant custom leaderboards (hitters 196 fields 25+ PA, pitchers 50+ IP, 2021-2026), Savant pitch-arsenal stats, arsenals and movement tables, Savant minor-league Statcast search per prospect (2025-2026); MLB Stats API season hitting + fielding + pitching (quality starts from the advanced feed), minor-league hitting AAA–A 2024-2026, transactions (IL) 2021-2026; MLB Pipeline current top 100; FantasyPros composite ADP archive 2021-2026 (NFBC and Fantrax columns kept); your Fantrax rules, drafts, keepers and player tables (read-only). Bat tracking exists from 2023/24. Grand slams, cycles, no-hitters and perfect games are the only scored events not in public feeds.</p>
+</section>
+</main>
+</div>
+<nav class="tabbar" role="tablist" aria-label="Sections"><button class="navbtn" role="tab" aria-selected="true" data-tab="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Dashboard</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l9-9"/><path d="M12 12l5-5a2.5 2.5 0 0 1 3.5 3.5l-5 5"/><circle cx="6" cy="18" r="1.5"/></svg><span>Hitters</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="breakouts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span>Breakouts</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="pitchers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M6 6c3 2 3 10 0 12M18 6c-3 2-3 10 0 12"/></svg><span>Pitchers</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="streamers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Streamers</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="keepers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Keepers</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Drafts</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="prospects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 11c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5-5-5 0 3 2.5 5 5 5z"/></svg><span>Prospects</span></button><button class="navbtn" role="tab" aria-selected="false" data-tab="formulas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg><span>Methods</span></button></nav>
+<aside class="drawer" id="settings" aria-label="League settings">
+  <button class="btn small" id="settings-close" style="position:absolute;top:12px;right:14px">Close ✕</button>
+  <h2>League settings</h2>
+  <p class="hint">Everything re-scores when you change these. Presets approximate each site's default points; edit the weights for your league.</p>
+  <div class="leaguebar" id="leaguebar">
+    <label>Scoring preset <select id="preset"></select></label>
+    <label>Mode <span class="seg" role="group"><button aria-pressed="true" data-mode="points" id="mode-points">Points</button><button aria-pressed="false" data-mode="roto" id="mode-roto">5x5 Roto</button></span></label>
+    <label>Teams <input type="number" id="teams" value="12" min="4" max="30"></label>
+    <label>Hitters started <input type="number" id="hstart" value="10" min="5" max="16"></label>
+    <label>SP started <input type="number" id="pstart" value="5" min="1" max="12"></label>
+    <label>Hitter keepers per team <input type="number" id="hkeep" value="5" min="0" max="10"></label>
+    <label>Pitcher keepers per team <input type="number" id="pkeep" value="2" min="0" max="10"></label>
+    <span class="hint" id="score-note"></span>
+    <button class="btn small" id="toggle-wts">Edit weights</button>
+  </div>
+  <div id="wts-wrap" hidden><div class="hint" style="margin:8px 0 4px">Hitting</div><div class="wts" id="wts"></div><div class="hint" style="margin:10px 0 4px">Pitching <select id="ppreset" style="font-size:12px;padding:2px 4px"></select></div><div class="wts" id="pwts"></div></div>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+<aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// ---------- unpack columnar tables
+function unpack(t){ return t.rows.map(r => Object.fromEntries(t.cols.map((c,i)=>[c, r[i]]))); }
+const ROWS = unpack(D.seasons);
+const PROJ = Object.fromEntries(unpack(D.projections).map(p => [p.mlbam_id, p]));
+const BY_ID = {}; ROWS.forEach(r => (BY_ID[r.mlbam_id] ||= []).push(r)); Object.values(BY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
+const SEASONS = [...new Set(ROWS.map(r=>r.season))].sort();
+const CUR = D.meta.season; const HOME_ABBR = D.meta.my_abbrev; let MY = (D.meta.default_team ?? HOME_ABBR); try{ const s=localStorage.getItem('lab-team'); if(s!==null) MY=s; }catch(e){}
+ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as}); });
+// pitchers
+const PROWS = unpack(D.pitchers); const PSEASONS = [...new Set(PROWS.map(r=>r.season))].sort();
+const PPROJ = Object.fromEntries(unpack(D.pitcher_proj).map(p => [p.mlbam_id, p]));
+const PBY_ID = {}; PROWS.forEach(r => (PBY_ID[r.mlbam_id] ||= []).push(r)); Object.values(PBY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
+PROWS.forEach(r => { const p = PPROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_gs:p.proj_pts_gs, proj_GS:p.proj_GS, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, proj_pts_hitting:p.proj_pts_hitting, proj_pts_total:p.proj_pts_total}); r.elig = 'SP'; r.team_abbr = r.team; });
+// prospects
+const PROS_BY_ID = Object.fromEntries(D.prospects.map(p => [p.mlbam_id, p]));
+const PLINES = {}; D.prospect_lines.forEach(l => (PLINES[l.mlbam_id] ||= []).push(l));
+const PSC = {}; (D.prospect_statcast||[]).forEach(s => (PSC[s.mlbam_id] ||= []).push(s));
+// real keepers (your team) by slot
+const TEAM_NAMES = D.meta.team_names || {}; const teamLabel = o => { const n = TEAM_NAMES[o]; return n && n!=='?' ? `${n.replace(/ \(.*\)$/,'')} (${o})` : o; };
+const REAL_K = D.meta.real_keepers || []; const nk = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').replace(/\b(jr|sr|ii|iii)\b/g,'').trim();
+const REAL_K_SLOT = Object.fromEntries(REAL_K.map(k => [nk(k.player), k.slot]));
+
+// ---------- scoring engine (client side)
+const EVENTS = ['1B','2B','3B','HR','R','RBI','BB','HBP','SB','CS','K','E','CSA','AOF'];
+let W = {...D.meta.scoring}; let MODE = 'points'; let TEAMS = D.meta.teams, HSTART = 10, HKEEP = D.meta.hitter_keepers ?? 5, PSTART = 5, PKEEP = D.meta.pitcher_keepers ?? 2;
+// pitching
+const PEVENTS = ['IP','K','ER','QS','CG','SHO','BS','W','L','SV','HLD','H','BB','HR'];
+const PPRESETS = { philly_special: {...D.meta.pitching_scoring}, espn_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:2,L:-2,SV:5}, yahoo_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-5,SV:5,HLD:2}, cbs_points: {IP:3,K:1,ER:-1,H:-1,BB:-1,W:7,L:-5,SV:7,QS:3}, fantrax_default: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-3,SV:6,HLD:3,QS:3,CG:5,SHO:5} };
+let PW = {...PPRESETS.philly_special};
+function prescore(){
+  for (const r of PROWS){ let p = 0; for (const e of PEVENTS){ const wt = +PW[e]||0; if(wt) p += wt*(r[e]||0); } r.pts_c = p; r.pts_gs_c = r.GS ? p/r.GS : null; r.pts_ip_c = r.IP ? p/r.IP : null; }
+  for (const s of PSEASONS){
+    const pool = PROWS.filter(r=>r.season===s);
+    // roto (W, K, SV, ERA, WHIP) among the top TEAMS*PSTART*1.4 by IP
+    const q = pool.filter(r=>r.GS>=10).sort((a,b)=>b.IP-a.IP).slice(0, Math.round(TEAMS*PSTART*1.4));
+    const st = {}; for (const c of ['W','K','SV']){ const v=q.map(r=>r[c]||0); const mu=v.reduce((a,b)=>a+b,0)/v.length; const sd=Math.sqrt(v.reduce((a,b)=>a+(b-mu)**2,0)/v.length)||1; st[c]=[mu,sd]; }
+    const lgERA = 9*q.reduce((a,r)=>a+r.ER,0)/q.reduce((a,r)=>a+r.IP,0), lgWHIP = q.reduce((a,r)=>a+r.H+r.BB,0)/q.reduce((a,r)=>a+r.IP,0);
+    const eraV = q.map(r=>(lgERA-r.ERA)*r.IP/9), whipV = q.map(r=>(lgWHIP-r.WHIP)*r.IP); const z2=(arr)=>{const mu=arr.reduce((a,b)=>a+b,0)/arr.length; const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-mu)**2,0)/arr.length)||1; return [mu,sd];}; const [em,es]=z2(eraV), [wm,ws]=z2(whipV);
+    for (const r of pool){ let z=0; for (const c of ['W','K','SV']) z += ((r[c]||0)-st[c][0])/st[c][1]; z += ((lgERA-r.ERA)*r.IP/9-em)/es + ((lgWHIP-r.WHIP)*r.IP-wm)/ws; r.roto_c = z; r.val = MODE==='roto' ? z : r.pts_c; }
+    const sorted = pool.slice().sort((a,b)=>b.val-a.val); sorted.forEach((r,i)=>r.rank_c=i+1);
+    const repl = sorted[Math.min(TEAMS*PSTART+TEAMS-1, sorted.length-1)]?.val ?? 0; for (const r of pool) r.LPAR_c = r.val - repl;
+  }
+}
+const XMAP = {'1B':'x1B','2B':'x2B','3B':'x3B','HR':'xHR','R':'xR','RBI':'xRBI'};
+function rescore(){
+  const w = W;
+  for (const r of ROWS){
+    let p = 0, x = 0, ok = r.xLP != null;
+    for (const e of EVENTS){ const wt = +w[e]||0; if(!wt) continue; p += wt*(r[e]||0); x += wt*((XMAP[e] ? r[XMAP[e]] : r[e])||0); }
+    r.pts_c = p; r.pts_pa_c = r.PA ? p/r.PA : null; r.xLP_c = ok ? x : null; r.luck_c = ok ? p - x : null;
+  }
+  // roto z (5x5) per season among top-N by points
+  for (const s of SEASONS){
+    const pool = ROWS.filter(r=>r.season===s);
+    const q = pool.filter(r=>r.PA>=200).sort((a,b)=>b.pts_c-a.pts_c).slice(0, TEAMS*(HSTART+4));
+    const cats = ['R','HR','RBI','SB']; const st = {};
+    for (const c of cats){ const v = q.map(r=>r[c]); const mu = v.reduce((a,b)=>a+b,0)/v.length; const sd = Math.sqrt(v.reduce((a,b)=>a+(b-mu)**2,0)/v.length)||1; st[c]=[mu,sd]; }
+    const lg = q.reduce((a,r)=>a+r.H,0)/q.reduce((a,r)=>a+r.AB,0); const hv = q.map(r=>r.H-lg*r.AB); const mu=hv.reduce((a,b)=>a+b,0)/hv.length; const sd=Math.sqrt(hv.reduce((a,b)=>a+(b-mu)**2,0)/hv.length)||1;
+    for (const r of pool){ let z=0; for(const c of cats){ z += (r[c]-st[c][0])/st[c][1]; } z += ((r.H-lg*r.AB)-mu)/sd; r.roto_c = z; }
+    // value column used everywhere
+    for (const r of pool) r.val = MODE==='roto' ? r.roto_c : r.pts_c;
+    // ranks + replacement (UT-style) + ADP expected curve
+    const sorted = pool.slice().sort((a,b)=>b.val-a.val); sorted.forEach((r,i)=>r.rank_c=i+1);
+    const nslots = TEAMS*HSTART; const replAll = sorted[Math.min(nslots+2*TEAMS-1, sorted.length-1)]?.val ?? 0;
+    const cs = sorted.filter(r=>(r.elig||'').split('/').includes('C')); const replC = cs[Math.min(TEAMS*(D.meta.positions.C||1)+1, cs.length-1)]?.val ?? replAll;
+    for (const r of pool){ const isC=(r.elig||'').split('/').includes('C'); r.repl_c = Math.min(replAll, isC?replC:replAll); r.LPAR_c = r.val - r.repl_c; }
+    // ADP curve: bins of 12 ranks, median value, monotone (cummin), interpolate
+    const dr = pool.filter(r=>r.adp_hitter_rank!=null).sort((a,b)=>a.adp_hitter_rank-b.adp_hitter_rank);
+    const bins=[]; for(let i=0;i<dr.length;i+=12){ const b=dr.slice(i,i+12).map(r=>r.val).sort((a,b)=>a-b); bins.push([dr[Math.min(i+6,dr.length-1)].adp_hitter_rank, b[Math.floor(b.length/2)]]); }
+    for(let i=1;i<bins.length;i++) bins[i][1]=Math.min(bins[i][1],bins[i-1][1]);
+    const maxR = dr.length ? dr[dr.length-1].adp_hitter_rank : 0;
+    const expAt = rk => { if(!bins.length) return null; if (rk<=bins[0][0]) return bins[0][1]; for(let i=1;i<bins.length;i++){ if(rk<=bins[i][0]){ const [r0,v0]=bins[i-1],[r1,v1]=bins[i]; return v0+(v1-v0)*(rk-r0)/(r1-r0);} } return bins[bins.length-1][1]; };
+    for (const r of pool){ const rk = r.adp_hitter_rank ?? (maxR+1); r.exp_c = expAt(rk); r.over_c = r.exp_c==null?null:r.val-r.exp_c; r.gain_c = rk - r.rank_c; }
+  }
+  $('#score-note').textContent = MODE==='roto' ? '5x5 roto: value = z-score sum (R, HR, RBI, SB, AVG). Points columns still show the selected weights.' : `points = ${EVENTS.filter(e=>+W[e]).map(e=>`${W[e]}×${e}`).join(' + ')}`;
+}
+
+// ---------- column catalogue
+const COLS = [
+  {k:'name',l:'Hitter',g:'Identity',t:'name',sticky:true},{k:'season',l:'Yr',g:'Identity',f:'int',dir:0,def:true},{k:'age',l:'Age',g:'Identity',f:'1',dir:-1,def:true},{k:'elig',l:'Pos',g:'Identity',t:'txt',def:true},{k:'team_abbr',l:'MLB',g:'Identity',t:'txt'},{k:'owner',l:'Owner',g:'Identity',t:'txt',def:true},{k:'prospect_status',l:'Status',g:'Identity',t:'txt'},
+  {k:'PA',l:'PA',g:'Production',f:'int',dir:1,def:true},{k:'G',l:'G',g:'Production',f:'int',dir:1},{k:'pa_pace_162',l:'PA pace',g:'Production',f:'int',dir:1,title:'PA per 162 team games while on the roster (late call-ups and IL time excluded)'},{k:'avail_games',l:'Avail G',g:'Production',f:'int',dir:0},{k:'days_late',l:'Days late',g:'Production',f:'int',dir:0,title:'days between opening day and his first MLB game'},{k:'pts_c',l:'Pts',g:'Production',f:'0',dir:1,def:true},{k:'pts_pa_c',l:'Pts/PA',g:'Production',f:'3',dir:1,def:true},{k:'rank_c',l:'Rank',g:'Production',f:'int',dir:-1,def:true},{k:'LPAR_c',l:'LPAR',g:'Production',f:'0',dir:1,def:true},{k:'roto_c',l:'Roto z',g:'Production',f:'1',dir:1},
+  {k:'HR',l:'HR',g:'Counting',f:'int',dir:1},{k:'R',l:'R',g:'Counting',f:'int',dir:1},{k:'RBI',l:'RBI',g:'Counting',f:'int',dir:1},{k:'SB',l:'SB',g:'Counting',f:'int',dir:1,def:true},{k:'BB',l:'BB',g:'Counting',f:'int',dir:1},{k:'K',l:'K',g:'Counting',f:'int',dir:-1},{k:'1B',l:'1B',g:'Counting',f:'int',dir:1},{k:'2B',l:'2B',g:'Counting',f:'int',dir:1},{k:'3B',l:'3B',g:'Counting',f:'int',dir:1},{k:'HBP',l:'HBP',g:'Counting',f:'int',dir:1},{k:'CS',l:'CS',g:'Counting',f:'int',dir:-1},{k:'E',l:'E',g:'Counting',f:'int',dir:-1},{k:'CSA',l:'CSA',g:'Counting',f:'int',dir:1},{k:'AOF',l:'OF A',g:'Counting',f:'int',dir:1},
+  {k:'xLP_c',l:'xLP',g:'Expected',f:'0',dir:1,def:true},{k:'luck_c',l:'Luck',g:'Expected',f:'0',dir:-1,def:true},{k:'batting_avg',l:'AVG',g:'Expected',f:'3',dir:1},{k:'xba',l:'xBA',g:'Expected',f:'3',dir:1},{k:'slg_percent',l:'SLG',g:'Expected',f:'3',dir:1},{k:'xslg',l:'xSLG',g:'Expected',f:'3',dir:1},{k:'woba',l:'wOBA',g:'Expected',f:'3',dir:1},{k:'xwoba',l:'xwOBA',g:'Expected',f:'3',dir:1,def:true},{k:'xobp',l:'xOBP',g:'Expected',f:'3',dir:1},{k:'xiso',l:'xISO',g:'Expected',f:'3',dir:1},{k:'babip',l:'BABIP',g:'Expected',f:'3',dir:0},
+  {k:'over_c',l:'vs ADP',g:'Market',f:'0',dir:1,def:true},{k:'adp',l:'ADP',g:'Market',f:'1',dir:-1},{k:'adp_hitter_rank',l:'ADP rk',g:'Market',f:'int',dir:-1,def:true},{k:'adp_nfbc',l:'NFBC rk',g:'Market',f:'int',dir:-1},{k:'adp_fantrax',l:'FT rk',g:'Market',f:'int',dir:-1},{k:'gain_c',l:'Rank gain',g:'Market',f:'0',dir:1},{k:'fit_vs_points',l:'Fit vs pts',g:'Market',f:'0',dir:1},{k:'fit_vs_roto',l:'Fit vs roto',g:'Market',f:'0',dir:1},
+  {k:'barrel_batted_rate',l:'Brl%',g:'Contact quality',f:'1',dir:1,def:true},{k:'hard_hit_percent',l:'HH%',g:'Contact quality',f:'1',dir:1},{k:'avg_best_speed',l:'EV50',g:'Contact quality',f:'1',dir:1,def:true},{k:'exit_velocity_avg',l:'EV',g:'Contact quality',f:'1',dir:1},{k:'launch_angle_avg',l:'LA',g:'Contact quality',f:'1',dir:0},{k:'sweet_spot_percent',l:'SwSp%',g:'Contact quality',f:'1',dir:1},{k:'pull_percent',l:'Pull%',g:'Contact quality',f:'1',dir:0},{k:'flyballs_percent',l:'FB%',g:'Contact quality',f:'1',dir:0},{k:'groundballs_percent',l:'GB%',g:'Contact quality',f:'1',dir:-1},{k:'linedrives_percent',l:'LD%',g:'Contact quality',f:'1',dir:1},
+  {k:'avg_swing_speed',l:'Bat spd',g:'Bat tracking',f:'1',dir:1,def:true},{k:'fast_swing_rate',l:'Fast%',g:'Bat tracking',f:'1',dir:1},{k:'ideal_angle_rate',l:'Ideal∠%',g:'Bat tracking',f:'1',dir:1},{k:'squared_up_swing',l:'SqUp%',g:'Bat tracking',f:'1',dir:1},{k:'blasts_swing',l:'Blast%',g:'Bat tracking',f:'1',dir:1},{k:'attack_angle',l:'Attack∠',g:'Bat tracking',f:'1',dir:0},
+  {k:'k_percent',l:'K%',g:'Discipline',f:'1',dir:-1,def:true},{k:'bb_percent',l:'BB%',g:'Discipline',f:'1',dir:1,def:true},{k:'oz_swing_percent',l:'Chase%',g:'Discipline',f:'1',dir:-1},{k:'whiff_percent',l:'Whiff%',g:'Discipline',f:'1',dir:-1},{k:'iz_contact_percent',l:'Z-Con%',g:'Discipline',f:'1',dir:1},{k:'z_swing_percent',l:'Z-Sw%',g:'Discipline',f:'1',dir:0},{k:'swing_take_run_value',l:'Sw/Tk RV',g:'Discipline',f:'0',dir:1},
+  {k:'sprint_speed',l:'Sprint',g:'Speed',f:'1',dir:1,def:true},
+  {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
+  {k:'career_best_pa',l:'Career best /PA',g:'Career',f:'3',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'3',dir:1},{k:'seasons_200',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_PA',l:'Career PA',g:'Career',f:'int',dir:0},{k:'pipeline_rank',l:'Pipeline',g:'Career',f:'int',dir:-1},{k:'PAS',l:'PAS',g:'Career',f:'1',dir:1},
+  {k:'BI',l:'BI',g:'2027 (this season only)',f:'1',dir:1,def:true},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'Proj rk',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_600',l:'Proj/600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'KSV',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Keep',g:'2027 (this season only)',t:'txt'},
+];
+const CI = Object.fromEntries(COLS.map(c=>[c.k,c]));
+let visible = new Set(COLS.filter(c=>c.def||c.t==='name').map(c=>c.k));
+// pitcher column catalogue
+const PCOLS = [
+  {k:'name',l:'Pitcher',g:'Identity',t:'name',sticky:true},{k:'season',l:'Yr',g:'Identity',f:'int',dir:0,def:true},{k:'age',l:'Age',g:'Identity',f:'1',dir:-1,def:true},{k:'throws',l:'T',g:'Identity',t:'txt'},{k:'team',l:'MLB',g:'Identity',t:'txt'},{k:'owner',l:'Owner',g:'Identity',t:'txt',def:true},
+  {k:'GS',l:'GS',g:'Production',f:'int',dir:1,def:true},{k:'IP',l:'IP',g:'Production',f:'1',dir:1,def:true},{k:'pts_c',l:'Pts',g:'Production',f:'0',dir:1,def:true},{k:'pts_gs_c',l:'Pts/GS',g:'Production',f:'1',dir:1,def:true},{k:'pts_ip_c',l:'Pts/IP',g:'Production',f:'2',dir:1},{k:'rank_c',l:'SP rk',g:'Production',f:'int',dir:-1,def:true},{k:'LPAR_c',l:'LPAR',g:'Production',f:'0',dir:1},{k:'roto_c',l:'Roto z',g:'Production',f:'1',dir:1},{k:'ERA',l:'ERA',g:'Production',f:'2',dir:-1,def:true},{k:'WHIP',l:'WHIP',g:'Production',f:'2',dir:-1},{k:'W',l:'W',g:'Production',f:'int',dir:1},
+  {k:'K',l:'K',g:'Counting',f:'int',dir:1,def:true},{k:'BB',l:'BB',g:'Counting',f:'int',dir:-1},{k:'ER',l:'ER',g:'Counting',f:'int',dir:-1},{k:'H',l:'H',g:'Counting',f:'int',dir:-1},{k:'HR',l:'HR',g:'Counting',f:'int',dir:-1},{k:'QS',l:'QS',g:'Counting',f:'int',dir:1,def:true},{k:'CG',l:'CG',g:'Counting',f:'int',dir:1},{k:'SHO',l:'SHO',g:'Counting',f:'int',dir:1},{k:'BS',l:'BS',g:'Counting',f:'int',dir:-1},{k:'L',l:'L',g:'Counting',f:'int',dir:-1},{k:'SV',l:'SV',g:'Counting',f:'int',dir:1},{k:'HLD',l:'HLD',g:'Counting',f:'int',dir:1},
+  {k:'stuff_plus',l:'Stuff+',g:'Plus (proxies)',f:'1',dir:1,def:true},{k:'location_plus',l:'Location+',g:'Plus (proxies)',f:'1',dir:1,def:true},{k:'pitching_plus',l:'Pitching+',g:'Plus (proxies)',f:'1',dir:1,def:true},{k:'yoy_stuff_change',l:'Δ Stuff+',g:'Plus (proxies)',f:'1',dir:1},{k:'yoy_velo_change',l:'Δ velo',g:'Plus (proxies)',f:'1',dir:1},
+  {k:'k_percent',l:'K%',g:'Skills',f:'1',dir:1,def:true},{k:'bb_percent',l:'BB%',g:'Skills',f:'1',dir:-1,def:true},{k:'k_minus_bb',l:'K−BB%',g:'Skills',f:'1',dir:1},{k:'xera',l:'xERA',g:'Skills',f:'2',dir:-1,def:true},{k:'xwoba',l:'xwOBA',g:'Skills',f:'3',dir:-1},{k:'woba',l:'wOBA',g:'Skills',f:'3',dir:-1},{k:'xba',l:'xBA',g:'Skills',f:'3',dir:-1},{k:'whiff_percent',l:'Whiff%',g:'Skills',f:'1',dir:1,def:true},{k:'z_swing_miss_percent',l:'Z-miss%',g:'Skills',f:'1',dir:1},{k:'oz_swing_percent',l:'Chase%',g:'Skills',f:'1',dir:1},{k:'in_zone_percent',l:'Zone%',g:'Skills',f:'1',dir:0},{k:'edge_percent',l:'Edge%',g:'Skills',f:'1',dir:1},{k:'meatball_percent',l:'Meatball%',g:'Skills',f:'1',dir:-1},{k:'f_strike_percent',l:'F-strike%',g:'Skills',f:'1',dir:1},{k:'groundballs_percent',l:'GB%',g:'Skills',f:'1',dir:1},{k:'flyballs_percent',l:'FB%',g:'Skills',f:'1',dir:0},{k:'barrel_batted_rate',l:'Brl% agn',g:'Skills',f:'1',dir:-1},{k:'hard_hit_percent',l:'HH% agn',g:'Skills',f:'1',dir:-1},{k:'exit_velocity_avg',l:'EV agn',g:'Skills',f:'1',dir:-1},{k:'pitches_per_ip',l:'P/IP',g:'Skills',f:'1',dir:-1},
+  {k:'fb_velo',l:'FB velo',g:'Arsenal',f:'1',dir:1,def:true},{k:'movement_uniqueness',l:'Mvmt uniq',g:'Arsenal',f:'2',dir:1},{k:'n_pitches_10',l:'# pitches',g:'Arsenal',f:'int',dir:1},{k:'arsenal_whiff',l:'Ars whiff',g:'Arsenal',f:'1',dir:1},{k:'arsenal_putaway',l:'Put-away',g:'Arsenal',f:'1',dir:1},{k:'arsenal_rv100',l:'Ars RV/100',g:'Arsenal',f:'2',dir:1},{k:'best_pitch',l:'Best',g:'Arsenal',t:'txt',def:true},{k:'best_pitch_whiff',l:'Best whiff',g:'Arsenal',f:'1',dir:1},{k:'n_plus_pitches',l:'Plus pitches',g:'Arsenal',f:'int',dir:1},
+  {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
+  {k:'career_best_gs',l:'Career best /GS',g:'Career',f:'1',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'1',dir:1},{k:'seasons_10gs',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_GS',l:'Career GS',g:'Career',f:'int',dir:0},
+  {k:'BI',l:'BI',g:'2027 (this season only)',f:'1',dir:1,def:true},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'Proj rk',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_gs',l:'Proj /GS',g:'2027 (this season only)',f:'1',dir:1},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'KSV',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Keep',g:'2027 (this season only)',t:'txt'},
+];
+const PCI = Object.fromEntries(PCOLS.map(c=>[c.k,c]));
+let pvisible = new Set(PCOLS.filter(c=>c.def||c.t==='name').map(c=>c.k));
+const fmt = (c, v) => { if (v==null || v==='' || Number.isNaN(v)) return ''; if (c.t==='txt') return esc(v); if (c.f==='int') return Math.round(v).toString(); if (c.f==='0') return Math.round(v).toLocaleString(); if (c.f==='1') return (+v).toFixed(1); if (c.f==='2') return (+v).toFixed(2); if (c.f==='3') return (+v).toFixed(3); return esc(v); };
+const signed = v => v==null ? '' : `<span class="${v>=0?'pos-d':'neg-d'}">${v>=0?'+':''}${Math.round(v)}</span>`;
+
+// ---------- percentile coloring
+const PCT = {}; // season -> key -> sorted values (hitters, 200+ PA)
+const PPCT = {}; // season -> key -> sorted values (starters, 15+ GS)
+function buildPct(){
+  for (const s of SEASONS){ PCT[s] = {}; const pool = ROWS.filter(r=>r.season===s && r.PA>=200); for (const c of COLS){ if(!c.dir) continue; PCT[s][c.k] = pool.map(r=>r[c.k]).filter(v=>v!=null && !Number.isNaN(v)).sort((a,b)=>a-b); } }
+  for (const s of PSEASONS){ PPCT[s] = {}; const pool = PROWS.filter(r=>r.season===s && r.GS>=15); for (const c of PCOLS){ if(!c.dir) continue; PPCT[s][c.k] = pool.map(r=>r[c.k]).filter(v=>v!=null && !Number.isNaN(v)).sort((a,b)=>a-b); } }
+}
+function pct(s, k, v, tbl=PCT){ const arr = tbl[s]?.[k]; if(!arr||!arr.length||v==null) return null; let lo=0,hi=arr.length; while(lo<hi){const m=(lo+hi)>>1; if(arr[m]<v) lo=m+1; else hi=m;} return lo/arr.length; }
+function cellStyle(c, s, v, tbl=PCT){ if(!c.dir) return ''; let p = pct(s, c.k, v, tbl); if(p==null) return ''; if(c.dir<0) p = 1-p; const a = Math.abs(p-0.5)*2; const rgb = p>=0.5 ? 'var(--hot-rgb)' : 'var(--cold-rgb)'; return `background:rgba(${rgb},${(0.08+0.42*a).toFixed(2)})`; }
+function pctStyle(p){ if(p==null) return ''; const a = Math.abs(p-0.5)*2; const rgb = p>=0.5 ? 'var(--hot-rgb)' : 'var(--cold-rgb)'; return `background:rgba(${rgb},${(0.08+0.42*a).toFixed(2)})`; }
+// Savant-style percentile slider row
+function slider(label, val, p, fmtv){ if(val==null||p==null) return `<div class="zrow"><span>${label}</span><div class="pbar"><i style="left:50%;background:var(--panel3)"></i></div><span class="count">–</span></div>`; const pc = Math.round(100*p); const col = p>=0.5?'var(--hot)':'var(--cold)'; return `<div class="zrow"><span>${label}</span><div class="pbar"><b style="left:${pc}%;background:${col}">${pc}</b></div><span class="count">${fmtv(val)}</span></div>`; }
+
+// ---------- generic table
+function table(id, cols, rows, opts={}){
+  const el = document.getElementById(id); let sortKey = opts.sort||null, dir = opts.dir||-1;
+  function render(){
+    let r = rows.slice();
+    if (sortKey) r.sort((a,b)=>{ const x=a[sortKey], y=b[sortKey]; if(x==null||x==='') return 1; if(y==null||y==='') return -1; return (typeof x==='number'? x-y : String(x).localeCompare(String(y)))*dir; });
+    if (opts.limit) r = r.slice(0, opts.limit);
+    let h = '<thead><tr>' + cols.map(c=>`<th class="${c.left||c.t==='name'||c.t==='txt'?'l':''} ${c.sticky?'sticky':''}" data-k="${c.k}" ${sortKey===c.k?`aria-sort="${dir<0?'descending':'ascending'}"`:''} title="${esc(c.title||c.g||'')}">${c.l}</th>`).join('') + '</tr></thead><tbody>';
+    for (const x of r){
+      h += `<tr class="${opts.rowClass?opts.rowClass(x):''}">` + cols.map(c=>{
+        if (c.t==='name') return `<td class="l name sticky" data-id="${x.mlbam_id||''}">${esc(x[c.k])}${x.kept_2026_as&&MY===HOME_ABBR?` <span class="pill ${x.kept_2026_as==='pitcher'?'b':'w'}" title="your real 2026 keeper (${x.kept_2026_as} slot)">K'26 ${x.kept_2026_as==='pitcher'?'P':'H'}</span>`:''}<span class="sub">${esc(x.elig||x.pos||'')}${x.team_abbr?' · '+esc(x.team_abbr):''}</span></td>`;
+        if (c.render) return `<td class="${c.left?'l':''}">${c.render(x[c.k], x)}</td>`;
+        const st = opts.color ? cellStyle(c, x.season, x[c.k], opts.pct||PCT) : '';
+        return `<td class="${c.t==='txt'?'l':''}" style="${st}">${fmt(c, x[c.k])}</td>`;
+      }).join('') + '</tr>';
+    }
+    el.innerHTML = h + '</tbody>';
+    const ci = opts.ci || CI;
+    el.querySelectorAll('th').forEach(th=>th.addEventListener('click',()=>{ const k=th.dataset.k; if(sortKey===k) dir=-dir; else {sortKey=k; dir = (ci[k]?.dir===-1 || k==='rank_c' || k==='adp_hitter_rank' || k==='pool_rank'||k==='hitter_pick'||k==='overall'||k==='pipeline_rank'||k==='proj_rank'||k==='team_rank') ? 1 : -1;} render(); }));
+    el.querySelectorAll('td.name').forEach(td=>td.addEventListener('click',()=>{ const id=+td.dataset.id; if(id) (opts.card||openCard)(id); }));
+  }
+  render(); return {setRows(rs){rows=rs;render();}, setCols(cs){cols=cs;render();}, setSort(k,d){sortKey=k;dir=d||-1;render();}};
+}
+
+// ---------- explorer state
+const posList = ['C','1B','2B','3B','SS','OF','UT'];
+const state = { season: CUR, minpa: 200, agemin: 18, agemax: 45, pos: new Set(), owner: '', status: '', q: '', rf: [] };
+function explorerRows(){
+  return ROWS.filter(r => (state.season==='all' || r.season===state.season) && r.PA>=state.minpa && r.age>=state.agemin && r.age<=state.agemax
+    && (!state.pos.size || [...state.pos].some(p => (r.elig||'').split('/').includes(p)))
+    && (!state.owner || (state.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===state.owner))
+    && (!state.status || r.prospect_status===state.status)
+    && (!state.q || r.name.toLowerCase().includes(state.q))
+    && state.rf.every(f => f.k && ((f.min==null || f.min==='' || r[f.k]>=+f.min) && (f.max==null || f.max==='' || r[f.k]<=+f.max))));
+}
+let tExplore;
+function renderExplorer(){ const rows = explorerRows(); $('#count').textContent = `${rows.length} hitter-seasons`; tExplore.setCols(COLS.filter(c=>visible.has(c.k))); tExplore.setRows(rows); }
+function buildExplorer(){
+  const ss = $('#f-season'); ss.innerHTML = SEASONS.slice().reverse().map(s=>`<option value="${s}">${s}</option>`).join('') + '<option value="all">all seasons</option>'; ss.value = String(CUR);
+  ss.addEventListener('change', e=>{ state.season = e.target.value==='all'?'all':+e.target.value; renderExplorer(); });
+  $('#f-minpa').addEventListener('input', e=>{ state.minpa=+e.target.value||0; renderExplorer(); });
+  $('#f-agemin').addEventListener('input', e=>{ state.agemin=+e.target.value||0; renderExplorer(); });
+  $('#f-agemax').addEventListener('input', e=>{ state.agemax=+e.target.value||99; renderExplorer(); });
+  $('#f-pos').innerHTML = posList.map(p=>`<span class="chip" role="button" tabindex="0" aria-pressed="false" data-p="${p}">${p}</span>`).join('');
+  $$('#f-pos .chip').forEach(ch=>{ const t=()=>{ const p=ch.dataset.p; if(state.pos.has(p)) state.pos.delete(p); else state.pos.add(p); ch.setAttribute('aria-pressed', state.pos.has(p)); renderExplorer(); }; ch.addEventListener('click',t); ch.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();t();} }); });
+  const owners = [...new Set(Object.values(PROJ).map(p=>p.owner).filter(Boolean))].sort();
+  $('#f-owner').innerHTML = '<option value="">any</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join('');
+  $('#f-owner').addEventListener('change', e=>{ state.owner=e.target.value; renderExplorer(); });
+  const statuses = [...new Set(ROWS.map(r=>r.prospect_status).filter(Boolean))];
+  $('#f-status').innerHTML = '<option value="">any</option>' + statuses.map(s=>`<option>${esc(s)}</option>`).join('');
+  $('#f-status').addEventListener('change', e=>{ state.status=e.target.value; renderExplorer(); });
+  $('#f-q').addEventListener('input', e=>{ state.q=e.target.value.trim().toLowerCase(); renderExplorer(); });
+  $('#reset').addEventListener('click', ()=>{ Object.assign(state,{minpa:200,agemin:18,agemax:45,owner:'',status:'',q:'',rf:[]}); state.pos.clear(); $('#f-minpa').value=200; $('#f-agemin').value=18; $('#f-agemax').value=45; $('#f-owner').value=''; $('#f-status').value=''; $('#f-q').value=''; $$('#f-pos .chip').forEach(c=>c.setAttribute('aria-pressed','false')); renderRF(); renderExplorer(); });
+  // column picker
+  const groups = [...new Set(COLS.map(c=>c.g))];
+  $('#colpicker').innerHTML = groups.map(g=>`<div class="grp"><b>${g}</b>${COLS.filter(c=>c.g===g && c.t!=='name').map(c=>`<label><input type="checkbox" data-k="${c.k}" ${visible.has(c.k)?'checked':''}> ${c.l}</label>`).join('')}</div>`).join('');
+  $$('#colpicker input').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked) visible.add(cb.dataset.k); else visible.delete(cb.dataset.k); renderExplorer(); }));
+  $('#toggle-cols').addEventListener('click', ()=>$('#colpicker').classList.toggle('open'));
+  $('#add-rf').addEventListener('click', ()=>{ state.rf.push({k:'barrel_batted_rate',min:'',max:''}); renderRF(); });
+  tExplore = table('t-explore', COLS.filter(c=>visible.has(c.k)), [], {sort:'pts_c', color:true, rowClass: x => x.owner===MY ? 'mine':''});
+  renderExplorer();
+}
+function renderRF(){
+  const numeric = COLS.filter(c=>c.f);
+  $('#rangefilters').innerHTML = state.rf.map((f,i)=>`<div class="rf"><select data-i="${i}" class="rf-k">${numeric.map(c=>`<option value="${c.k}" ${c.k===f.k?'selected':''}>${c.l} (${c.g})</option>`).join('')}</select> min <input type="number" step="any" class="rf-min" data-i="${i}" value="${f.min}"> max <input type="number" step="any" class="rf-max" data-i="${i}" value="${f.max}"> <button class="btn small rf-x" data-i="${i}">✕</button></div>`).join('');
+  $$('.rf-k').forEach(s=>s.addEventListener('change',e=>{ state.rf[+e.target.dataset.i].k=e.target.value; renderExplorer(); }));
+  $$('.rf-min').forEach(s=>s.addEventListener('input',e=>{ state.rf[+e.target.dataset.i].min=e.target.value; renderExplorer(); }));
+  $$('.rf-max').forEach(s=>s.addEventListener('input',e=>{ state.rf[+e.target.dataset.i].max=e.target.value; renderExplorer(); }));
+  $$('.rf-x').forEach(s=>s.addEventListener('click',e=>{ state.rf.splice(+e.target.dataset.i,1); renderRF(); renderExplorer(); }));
+}
+
+// ---------- league bar
+function buildLeagueBar(){
+  const presets = {...D.meta.presets};
+  $('#preset').innerHTML = Object.keys(presets).map(k=>`<option value="${k}">${k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
+  $('#preset').value = 'philly_special';
+  $('#preset').addEventListener('change', e=>{ const v=e.target.value; if(v!=='custom'){ W = {...Object.fromEntries(EVENTS.map(x=>[x,0])), ...presets[v]}; if(PPRESETS[v]){ PW = {...Object.fromEntries(PEVENTS.map(x=>[x,0])), ...PPRESETS[v]}; $('#ppreset').value = v; } renderWts(); refreshAll(); } });
+  $('#ppreset').innerHTML = Object.keys(PPRESETS).map(k=>`<option value="${k}">${k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
+  $('#ppreset').addEventListener('change', e=>{ const v=e.target.value; if(v!=='custom'){ PW = {...Object.fromEntries(PEVENTS.map(x=>[x,0])), ...PPRESETS[v]}; renderWts(); refreshAll(); } });
+  $('#toggle-wts').addEventListener('click', ()=>{ $('#wts-wrap').hidden = !$('#wts-wrap').hidden; });
+  $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{ MODE=b.dataset.mode; $$('[data-mode]').forEach(x=>x.setAttribute('aria-pressed', x===b)); refreshAll(); }));
+  $('#teams').addEventListener('input', e=>{ TEAMS=+e.target.value||12; refreshAll(); });
+  $('#hstart').addEventListener('input', e=>{ HSTART=+e.target.value||10; refreshAll(); });
+  $('#pstart').addEventListener('input', e=>{ PSTART=+e.target.value||5; refreshAll(); });
+  $('#hkeep').addEventListener('input', e=>{ HKEEP=+e.target.value||0; refreshAll(); });
+  $('#pkeep').addEventListener('input', e=>{ PKEEP=+e.target.value||0; refreshAll(); });
+  $('#hkeep').value = HKEEP; $('#pkeep').value = PKEEP;
+  renderWts();
+}
+function renderWts(){
+  $('#wts').innerHTML = EVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${W[e]??0}"></label>`).join(''); $$('#wts input').forEach(i=>i.addEventListener('input',e=>{ W[e.target.dataset.e]=+e.target.value||0; $('#preset').value='custom'; refreshAll(); }));
+  $('#pwts').innerHTML = PEVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${PW[e]??0}"></label>`).join(''); $$('#pwts input').forEach(i=>i.addEventListener('input',e=>{ PW[e.target.dataset.e]=+e.target.value||0; $('#ppreset').value='custom'; refreshAll(); }));
+}
+function refreshAll(){ rescore(); prescore(); buildPct(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderDash(); }
+
+// ---------- player card
+const kp = (l,v)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+function showCard(html){ $('#card-body').innerHTML = html; $('#overlay').classList.add('open'); $('#card').classList.add('open'); $('#card-close').focus(); $('#card').scrollTop = 0; }
+function openCard(id){
+  const hist = BY_ID[id], pros = PROS_BY_ID[id], phist = PBY_ID[id];
+  if(!hist && !pros && !phist) return;
+  let html = hist ? hitterSection(id) : (pros ? prospectHeader(pros) : '');
+  if (pros || PLINES[id] || PSC[id]) html += prospectSection(id, !hist);
+  if (phist) html += pitcherSection(id, true);
+  showCard(html);
+}
+function openPitcherCard(id){
+  const phist = PBY_ID[id]; if(!phist) return openCard(id);
+  let html = pitcherSection(id, false); if (BY_ID[id]) html += hitterSection(id, true);
+  showCard(html);
+}
+function hitterSection(id, sub=false){
+  const hist = BY_ID[id]; const last = hist[hist.length-1]; const p = PROJ[id];
+  const yrs = hist.map(r=>r.season);
+  const bars = (key, fmtv, dirn=1) => { const vals = hist.map(r=>r[key]); const mx = Math.max(...vals.filter(v=>v!=null)), mn = Math.min(...vals.filter(v=>v!=null)); return `<div class="bars" title="${key}">${hist.map(r=>{ const v=r[key]; const h = v==null?2: (mx===mn?18: 4+30*(v-mn)/(mx-mn)); return `<i style="height:${h}px" class="${r.season===CUR?'cur':''}" title="${r.season}: ${v==null?'-':fmtv(v)}"></i>`; }).join('')}</div>`; };
+  const trend = [['pts_pa_c','Pts/PA',v=>v.toFixed(3)],['xLP_c','xLP',v=>Math.round(v)],['xwoba','xwOBA',v=>v.toFixed(3)],['barrel_batted_rate','Barrel%',v=>v.toFixed(1)],['k_percent','K%',v=>v.toFixed(1)],['avg_swing_speed','Bat speed',v=>v.toFixed(1)],['sprint_speed','Sprint',v=>v.toFixed(1)],['PA','PA',v=>Math.round(v)]];
+  const cols = [{k:'season',l:'Yr',f:'int'},{k:'age',l:'Age',f:'1'},{k:'team_abbr',l:'Tm',t:'txt'},{k:'PA',l:'PA',f:'int'},{k:'pts_c',l:'Pts',f:'0'},{k:'pts_pa_c',l:'/PA',f:'3'},{k:'rank_c',l:'Rk',f:'int'},{k:'adp_hitter_rank',l:'ADP rk',f:'int'},{k:'over_c',l:'vs ADP',f:'0'},{k:'xLP_c',l:'xLP',f:'0'},{k:'luck_c',l:'Luck',f:'0'},{k:'HR',l:'HR',f:'int'},{k:'SB',l:'SB',f:'int'},{k:'xwoba',l:'xwOBA',f:'3'},{k:'barrel_batted_rate',l:'Brl%',f:'1'},{k:'avg_swing_speed',l:'Bat',f:'1'},{k:'k_percent',l:'K%',f:'1'},{k:'bb_percent',l:'BB%',f:'1'},{k:'sprint_speed',l:'Spr',f:'1'},{k:'il_days',l:'IL d',f:'int'}];
+  const rowsHtml = hist.map(r=>`<tr>${cols.map(c=>`<td class="${c.t==='txt'?'l':''}" style="${cellStyle(CI[c.k]||{dir:0}, r.season, r[c.k])}">${fmt(c, r[c.k])}</td>`).join('')}</tr>`).join('');
+  const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
+  const pj = p ? `${kp('BI 2027', p.BI??'–')}${kp('Proj pts', p.proj_pts??'–')}${kp('Proj rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('Proj /600', p.proj_pts_600??'–')}${kp('Proj PA', p.proj_PA??'–')}${kp('KSV', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
+  const subline = `${esc(last.elig||'')} · ${esc(last.team_abbr||'')} · bats ${esc(last.bats||'?')} · age ${last.age} · owner ${esc(last.owner||'–')}${last.prospect_status?' · '+esc(last.prospect_status):''}${last.pipeline_rank?' · Pipeline #'+last.pipeline_rank:''}`;
+  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
+  const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips);
+  return `${head}<div class="card-body">
+    <div class="kpis">${kp(CUR+' pts', Math.round(last.pts_c))}${kp('Rank', '#'+last.rank_c)}${kp('LPAR', Math.round(last.LPAR_c))}${kp('vs ADP', last.over_c==null?'–':(last.over_c>=0?'+':'')+Math.round(last.over_c))}${kp('Luck', last.luck_c==null?'–':(last.luck_c>=0?'+':'')+Math.round(last.luck_c))}${pj}</div>
+    ${last.avail_games!=null?`<p class="hint" style="margin:4px 0 8px"><b>Playing time ${last.season}:</b> first game ${esc(last.first_game||'')}${last.days_late>21?` (${last.days_late} days after opening day, a late call-up)`:''} · played ${last.G} of ${Math.round(last.avail_games)} games he was available for${last.il_games_in_window?` (${Math.round(last.il_games_in_window)} team games lost to the IL)`:''} · pace <b>${Math.round(last.pa_pace_162)} PA</b> per 162. Raw PA understates a late call-up or an injured player; the projection uses this pace.</p>`:''}
+    <h3>Savant-style percentiles, ${last.season} (hitters with 200+ PA)</h3>
+    <div class="grid2">${[['xwoba','xwOBA',v=>v.toFixed(3)],['xba','xBA',v=>v.toFixed(3)],['xslg','xSLG',v=>v.toFixed(3)],['avg_best_speed','EV50',v=>v.toFixed(1)],['barrel_batted_rate','Barrel%',v=>v.toFixed(1)+'%'],['hard_hit_percent','Hard-hit%',v=>v.toFixed(1)+'%'],['avg_swing_speed','Bat speed',v=>v.toFixed(1)],['squared_up_swing','Squared-up%',v=>v.toFixed(1)+'%'],['k_percent','K%',v=>v.toFixed(1)+'%'],['bb_percent','BB%',v=>v.toFixed(1)+'%'],['oz_swing_percent','Chase%',v=>v.toFixed(1)+'%'],['whiff_percent','Whiff%',v=>v.toFixed(1)+'%'],['sprint_speed','Sprint',v=>v.toFixed(1)],['xLP_c','xLP',v=>Math.round(v)]].map(([k,l,f])=>{ const c=CI[k]||{dir:1,k}; let q=pct(last.season,k,last[k]); if(q!=null&&c.dir<0) q=1-q; return slider(l,last[k],q,f); }).join('')}</div>
+    <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3>
+    <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
+    <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    <h3>Injured list</h3><p class="hint">${il}</p>
+    ${p ? `<h3>2027 projection</h3><p class="hint">rate ${p.proj_rate?.toFixed(3)} pts/PA (model ${p.proj_rate_raw?.toFixed(3)}, aging step ${(p.age_step??0)>=0?'+':''}${(p.age_step??0).toFixed(3)}), durability ×${p.durability}, projected PA ${p.proj_PA}. BI ${p.BI} = chance 2027 is a new career level.</p>` : ''}</div>`;
+}
+
+// ---------- prospect card (TJStats-style)
+const LVL_ORDER = {MLB:0, AAA:1, AA:2, 'A+':3, A:4};
+function prospectHeader(p){
+  return pband(p.name, (p.prospect_org||'').toUpperCase(), `${esc(p.prospect_pos||'')} · ${esc((p.prospect_org||'').toUpperCase())} · age ${p.age} · owner ${esc(p.owner||'–')} · ${esc(p.prospect_status||'')}${p.pipeline_rank?' · Pipeline #'+p.pipeline_rank:''}${p.rookie_eligible?' · rookie-eligible':''}`);
+}
+function prospectSection(id, primary){
+  const p = PROS_BY_ID[id] || {}; const lines = (PLINES[id]||[]).slice().sort((a,b)=>(a.season-b.season)||((LVL_ORDER[a.level]??9)-(LVL_ORDER[b.level]??9))); const sc = (PSC[id]||[]).slice().sort((a,b)=>a.season-b.season);
+  const pasParts = [['p1','Pedigree',35*(p.pedigree??0)],['p2','Age vs level',25*(p.level_age_score??0)],['p3','MiLB bat',25*(p.milb_bat_score??0)],['p4','MLB sample',15*(p.mlb_sample??0)]];
+  const pas = p.PAS!=null ? `<h3>Prospect Arrival Score ${p.PAS.toFixed(1)}</h3><div class="pas">${pasParts.map(([c,l,v])=>`<span class="${c}" style="width:${Math.max(0,v)}%" title="${l}: ${v.toFixed(1)} / ${c==='p1'?35:c==='p4'?15:25}">${v>=6?l+' '+v.toFixed(0):''}</span>`).join('')}</div><div class="hint">pedigree ${(35*(p.pedigree??0)).toFixed(1)}/35 · age-vs-level ${(25*(p.level_age_score??0)).toFixed(1)}/25 · minor-league bat ${(25*(p.milb_bat_score??0)).toFixed(1)}/25 · MLB sample ${p.mlb_sample==null?'none':(15*p.mlb_sample).toFixed(1)+'/15'}</div>` : '';
+  const kpis = primary ? `<div class="kpis">${kp('PAS', p.PAS!=null?p.PAS.toFixed(1):'–')}${kp('Pipeline', p.pipeline_rank?'#'+p.pipeline_rank:'unranked')}${kp('Highest lvl '+CUR, p.milb_level||'–')}${kp('MiLB PA '+CUR, p.milb_PA!=null?Math.round(p.milb_PA):'–')}${kp('MLB PA '+CUR, p.PA!=null?Math.round(p.PA):'0')}${kp('Proj /600', p.proj_pts_600??'–')}${kp('BI', p.BI??'–')}</div>` : '';
+  const lcols = [['season','Yr',v=>v],['level','Lvl',v=>v],['age','Age',v=>v?.toFixed(1)],['milb_PA','PA',v=>Math.round(v)],['milb_AVG','AVG',v=>v.toFixed(3)],['milb_OBP','OBP',v=>v.toFixed(3),'milb_OBP_pct'],['milb_SLG','SLG',v=>v.toFixed(3)],['milb_OPS','OPS',v=>v.toFixed(3),'milb_OPS_pct'],['milb_ISO','ISO',v=>v.toFixed(3),'milb_ISO_pct'],['milb_K','K%',v=>(100*v).toFixed(1),'milb_K_pct'],['milb_BB','BB%',v=>(100*v).toFixed(1),'milb_BB_pct'],['milb_HR','HR',v=>Math.round(v)],['milb_SB','SB',v=>Math.round(v),'milb_SB600_pct']];
+  const ltable = lines.length ? `<h3>Minor-league lines (color = percentile within that level and season, 100+ PA)</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${lcols.map(c=>`<th class="${typeof lines[0][c[0]]==='string'?'l':''}">${c[1]}</th>`).join('')}</tr></thead><tbody>${lines.map(l=>`<tr>${lcols.map(([k,_,f,pk])=>`<td class="${typeof l[k]==='string'?'l':''}" style="${pk&&l[pk]!=null?pctStyle(l[pk]/100):''}" title="${pk&&l[pk]!=null?l[pk]+'th pct':''}">${l[k]==null?'':(typeof l[k]==='string'?esc(l[k]):f(l[k]))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : `<p class="hint">no 2024-2026 minor-league line (AAA–A) on file</p>`;
+  const scm = [['sc_ev_avg','Avg EV',v=>v.toFixed(1)],['sc_ev90','EV90',v=>v.toFixed(1)],['sc_ev_max','Max EV',v=>v.toFixed(1)],['sc_hard_hit','Hard-hit%',v=>v.toFixed(1)+'%'],['sc_barrel','Barrel%',v=>v.toFixed(1)+'%'],['sc_sweet_spot','Sweet-spot%',v=>v.toFixed(1)+'%'],['sc_gb','GB% (low good)',v=>v.toFixed(1)+'%'],['sc_xwoba','est. wOBA',v=>v.toFixed(3)],['sc_xwobacon','xwOBAcon',v=>v.toFixed(3)],['sc_k','K% (low good)',v=>v.toFixed(1)+'%'],['sc_bb','BB%',v=>v.toFixed(1)+'%'],['sc_whiff','Whiff% (low good)',v=>v.toFixed(1)+'%'],['sc_chase','Chase% (low good)',v=>v.toFixed(1)+'%'],['sc_bat_speed','Bat speed',v=>v.toFixed(1)],['sc_fast_swing','Fast-swing%',v=>v.toFixed(1)+'%'],['sc_swing_length','Swing length',v=>v.toFixed(2)]];
+  const scHtml = sc.length ? sc.slice().reverse().map(s=>`<h3>Minor-league Statcast ${s.season} · ${s.sc_PA} PA, ${s.sc_BIP} balls in play <span class="hint" style="text-transform:none;font-family:var(--font-b);font-weight:400">(${esc(s.sc_parks||'')})</span></h3>${s.sc_PA<100?'<p class="hint">small sample: under 100 tracked PA</p>':''}<div class="grid2">${scm.filter(([k])=>s[k]!=null).map(([k,l,f])=>slider(l, s[k], s[k+'_pct']!=null? s[k+'_pct']/100 : null, f)).join('')}</div>`).join('') : `<h3>Minor-league Statcast</h3><p class="hint">no tracked minor-league plate appearances found (Statcast covers Triple-A parks; lower levels only in a few parks)</p>`;
+  const mlb = (!primary || !BY_ID[id]) ? '' : '';
+  return `<div class="card-body">${kpis}${pas}${ltable}${scHtml}<p class="hint">Percentiles in the Statcast block are within the tracked prospect cohort for that season; minor-league lines are against every hitter with 100+ PA at that level.</p></div>`;
+}
+
+// ---------- pitcher card
+function pitcherSection(id, sub){
+  const hist = PBY_ID[id]; const last = hist[hist.length-1]; const p = PPROJ[id]; const yrs = hist.map(r=>r.season);
+  const bars = (key, fmtv) => { const vals = hist.map(r=>r[key]); const ok = vals.filter(v=>v!=null); const mx = Math.max(...ok), mn = Math.min(...ok); return `<div class="bars" title="${key}">${hist.map(r=>{ const v=r[key]; const h = v==null?2: (mx===mn?18: 4+30*(v-mn)/(mx-mn)); return `<i style="height:${h}px" class="${r.season===CUR?'cur':''}" title="${r.season}: ${v==null?'-':fmtv(v)}"></i>`; }).join('')}</div>`; };
+  const trend = [['pts_gs_c','Pts/GS',v=>v.toFixed(1)],['pitching_plus','Pitching+',v=>v.toFixed(1)],['stuff_plus','Stuff+',v=>v.toFixed(1)],['location_plus','Location+',v=>v.toFixed(1)],['k_minus_bb','K−BB%',v=>v.toFixed(1)],['xera','xERA',v=>v.toFixed(2)],['fb_velo','FB velo',v=>v.toFixed(1)],['GS','GS',v=>Math.round(v)]];
+  const cols = [{k:'season',l:'Yr',f:'int'},{k:'age',l:'Age',f:'1'},{k:'team',l:'Tm',t:'txt'},{k:'GS',l:'GS',f:'int'},{k:'IP',l:'IP',f:'1'},{k:'pts_c',l:'Pts',f:'0'},{k:'pts_gs_c',l:'/GS',f:'1'},{k:'rank_c',l:'Rk',f:'int'},{k:'ERA',l:'ERA',f:'2'},{k:'xera',l:'xERA',f:'2'},{k:'K',l:'K',f:'int'},{k:'QS',l:'QS',f:'int'},{k:'k_percent',l:'K%',f:'1'},{k:'bb_percent',l:'BB%',f:'1'},{k:'whiff_percent',l:'Whiff',f:'1'},{k:'fb_velo',l:'Velo',f:'1'},{k:'stuff_plus',l:'Stf+',f:'1'},{k:'location_plus',l:'Loc+',f:'1'},{k:'pitching_plus',l:'Pit+',f:'1'},{k:'il_days',l:'IL d',f:'int'}];
+  const rowsHtml = hist.map(r=>`<tr>${cols.map(c=>`<td class="${c.t==='txt'?'l':''}" style="${cellStyle(PCI[c.k]||{dir:0}, r.season, r[c.k], PPCT)}">${fmt(c, r[c.k])}</td>`).join('')}</tr>`).join('');
+  const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
+  const sl = [['pitching_plus','Pitching+',v=>v.toFixed(1)],['stuff_plus','Stuff+',v=>v.toFixed(1)],['location_plus','Location+',v=>v.toFixed(1)],['k_percent','K%',v=>v.toFixed(1)+'%'],['bb_percent','BB% (low good)',v=>v.toFixed(1)+'%'],['xera','xERA (low good)',v=>v.toFixed(2)],['whiff_percent','Whiff%',v=>v.toFixed(1)+'%'],['z_swing_miss_percent','In-zone miss%',v=>v.toFixed(1)+'%'],['oz_swing_percent','Chase%',v=>v.toFixed(1)+'%'],['edge_percent','Edge%',v=>v.toFixed(1)+'%'],['meatball_percent','Meatball% (low good)',v=>v.toFixed(1)+'%'],['f_strike_percent','First-strike%',v=>v.toFixed(1)+'%'],['groundballs_percent','GB%',v=>v.toFixed(1)+'%'],['hard_hit_percent','Hard-hit% agn (low good)',v=>v.toFixed(1)+'%'],['barrel_batted_rate','Barrel% agn (low good)',v=>v.toFixed(1)+'%'],['fb_velo','Fastball velo',v=>v.toFixed(1)],['movement_uniqueness','Movement uniqueness',v=>v.toFixed(2)],['arsenal_putaway','Put-away%',v=>v.toFixed(1)+'%']];
+  const sliders = sl.map(([k,l,f])=>{ const c=PCI[k]||{dir:1}; let q=pct(last.season,k,last[k],PPCT); if(q!=null&&c.dir<0) q=1-q; return slider(l,last[k],q,f); }).join('');
+  const pj = p ? `${kp('BI 2027', p.BI??'–')}${kp('Proj pts', p.proj_pts??'–')}${kp('Proj SP rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('Proj /GS', p.proj_pts_gs??'–')}${kp('Proj GS', p.proj_GS??'–')}${(p.proj_pts_hitting||0)>0?kp('+ hitting', Math.round(p.proj_pts_hitting)):''}${kp('KSV', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
+  const subline = `SP · ${esc(last.throws||'')}HP · ${esc(last.team||'')} · age ${last.age} · owner ${esc(last.owner||'–')}`;
+  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
+  const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips);
+  return `${head}<div class="card-body">
+    <div class="kpis">${kp(CUR+' pts', Math.round(last.pts_c))}${kp('SP rank', '#'+last.rank_c)}${kp('Pts/GS', (last.pts_gs_c??0).toFixed(1))}${kp('Pitching+', last.pitching_plus?.toFixed(0)??'–')}${kp('Stuff+', last.stuff_plus?.toFixed(0)??'–')}${kp('Location+', last.location_plus?.toFixed(0)??'–')}${pj}</div>
+    <h3>Arsenal ${last.season}</h3><p class="hint">${esc(last.arsenal_desc||'no arsenal table (fewer than 50 IP or pre-2021)')}${last.best_pitch?` · best pitch by run value: <b>${esc(last.best_pitch)}</b> (${(last.best_pitch_whiff??0).toFixed(1)}% whiff) · ${last.n_plus_pitches??0} plus pitch${last.n_plus_pitches===1?'':'es'} · ${last.n_pitches_10??0} pitches thrown 10%+`:''}</p>
+    <h3>Savant-style percentiles, ${last.season} (starters with 15+ GS)</h3><div class="grid2">${sliders}</div>
+    <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3><div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
+    <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    <h3>Injured list</h3><p class="hint">${il}</p>
+    ${p ? `<h3>2027 projection</h3><p class="hint">${p.proj_pts_gs} pts/GS (model ${p.proj_pts_gs_raw?.toFixed(1)}, aging step ${(p.age_step??0)>=0?'+':''}${(p.age_step??0).toFixed(2)}), durability ×${p.durability}, projected ${p.proj_GS} starts → ${p.proj_pts} pts${(p.proj_pts_hitting||0)>0?` pitching + ${Math.round(p.proj_pts_hitting)} hitting = ${Math.round(p.proj_pts_total)} for a pitcher-slot keeper`:''}. BI ${p.BI} = chance 2027 is a new career level in points per start.</p>` : ''}</div>`;
+}
+$('#overlay').addEventListener('click', closeCard); $('#card-close').addEventListener('click', closeCard); document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCard(); });
+function closeCard(){ $('#overlay').classList.remove('open'); $('#card').classList.remove('open'); }
+
+// ---------- breakouts tab
+let bpool='all', tBreak;
+function renderBreak(){
+  const avail = $('#b-avail').value, agemax = +$('#b-agemax').value||99, minbi = +$('#b-minbi').value||0;
+  let rows = ROWS.filter(r=>r.season===CUR && r.BI!=null && r.PA>=100 && r.age<=agemax && r.BI>=minbi);
+  if (bpool==='ft') rows = rows.filter(r=>r.PA>=400); if (bpool==='pt') rows = rows.filter(r=>r.PA<400);
+  if (avail==='FA') rows = rows.filter(r=>r.owner==='FA'||r.owner==='W (Sun)'); if (avail==='notkept') rows = rows.filter(r=>!r.likely_kept); if (avail==='mine') rows = rows.filter(r=>r.owner===MY);
+  $('#b-count').textContent = `${rows.length} hitters`;
+  const cols = [CI.name, CI.age, CI.owner, CI.PA, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'career_best_pa',l:'Best /PA',f:'3',dir:1}, {k:'pts_pa_c',l:'2026 /PA',f:'3',dir:1}, {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'BI',f:'1',dir:1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'proj_pts_600',l:'Proj/600',f:'0',dir:1}, CI.KSV, {k:'keep_tier',l:'Keep',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'3',dir:1}];
+  if (!tBreak) tBreak = table('t-break', cols, rows, {sort:'BI', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBreak.setCols(cols); tBreak.setRows(rows); }
+}
+$$('[data-bpool]').forEach(b=>b.addEventListener('click',()=>{ bpool=b.dataset.bpool; $$('[data-bpool]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBreak(); }));
+['#b-avail','#b-agemax','#b-minbi'].forEach(s=>$(s).addEventListener('input', renderBreak));
+
+// ---------- pitchers tab
+const pstate = { view:'explore', season: CUR, mings: 10, agemin: 18, agemax: 45, owner: '', q: '', rf: [] };
+let tPitch;
+function pitchRows(){
+  return PROWS.filter(r => (pstate.season==='all' || r.season===pstate.season) && r.GS>=pstate.mings && r.age>=pstate.agemin && r.age<=pstate.agemax
+    && (!pstate.owner || (pstate.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===pstate.owner))
+    && (!pstate.q || r.name.toLowerCase().includes(pstate.q))
+    && pstate.rf.every(f => f.k && ((f.min==null || f.min==='' || r[f.k]>=+f.min) && (f.max==null || f.max==='' || r[f.k]<=+f.max))));
+}
+function renderPitch(){
+  if(!tPitch) return;
+  if (pstate.view==='break'){
+    const rows = PROWS.filter(r=>r.season===CUR && r.BI!=null && r.GS>=Math.max(10,pstate.mings) && r.age>=pstate.agemin && r.age<=pstate.agemax && (!pstate.owner || (pstate.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===pstate.owner)) && (!pstate.q || r.name.toLowerCase().includes(pstate.q)));
+    $('#p-count').textContent = `${rows.length} starters (10+ GS)`;
+    const cols = [PCI.name, PCI.age, PCI.owner, PCI.GS, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'career_best_gs',l:'Best /GS',f:'1',dir:1}, {k:'pts_gs_c',l:'2026 /GS',f:'1',dir:1}, {k:'BI',l:'BI',f:'1',dir:1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'proj_pts_gs',l:'Proj /GS',f:'1',dir:1}, PCI.KSV, {k:'keep_tier',l:'Keep',t:'txt'}, PCI.pitching_plus, PCI.stuff_plus, PCI.location_plus, PCI.yoy_stuff_change, PCI.yoy_velo_change, PCI.k_minus_bb, PCI.xera, PCI.fb_velo, PCI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'1',dir:1}];
+    tPitch.setCols(cols); tPitch.setRows(rows); return;
+  }
+  const rows = pitchRows(); $('#p-count').textContent = `${rows.length} starter-seasons`; tPitch.setCols(PCOLS.filter(c=>pvisible.has(c.k))); tPitch.setRows(rows);
+}
+function buildPitch(){
+  const ss = $('#pf-season'); ss.innerHTML = PSEASONS.slice().reverse().map(s=>`<option value="${s}">${s}</option>`).join('') + '<option value="all">all seasons</option>'; ss.value = String(CUR);
+  ss.addEventListener('change', e=>{ pstate.season = e.target.value==='all'?'all':+e.target.value; renderPitch(); });
+  $('#pf-mings').addEventListener('input', e=>{ pstate.mings=+e.target.value||0; renderPitch(); });
+  $('#pf-agemin').addEventListener('input', e=>{ pstate.agemin=+e.target.value||0; renderPitch(); });
+  $('#pf-agemax').addEventListener('input', e=>{ pstate.agemax=+e.target.value||99; renderPitch(); });
+  const owners = [...new Set(Object.values(PPROJ).map(p=>p.owner).filter(Boolean))].sort();
+  $('#pf-owner').innerHTML = '<option value="">any</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join('');
+  $('#pf-owner').addEventListener('change', e=>{ pstate.owner=e.target.value; renderPitch(); });
+  $('#pf-q').addEventListener('input', e=>{ pstate.q=e.target.value.trim().toLowerCase(); renderPitch(); });
+  $('#p-reset').addEventListener('click', ()=>{ Object.assign(pstate,{mings:10,agemin:18,agemax:45,owner:'',q:'',rf:[]}); $('#pf-mings').value=10; $('#pf-agemin').value=18; $('#pf-agemax').value=45; $('#pf-owner').value=''; $('#pf-q').value=''; renderPRF(); renderPitch(); });
+  $$('[data-pview]').forEach(b=>b.addEventListener('click',()=>{ pstate.view=b.dataset.pview; $$('[data-pview]').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('#pf-season').disabled = pstate.view==='break'; renderPitch(); tPitch.setSort(pstate.view==='break'?'BI':'pts_c', -1); }));
+  const groups = [...new Set(PCOLS.map(c=>c.g))];
+  $('#p-colpicker').innerHTML = groups.map(g=>`<div class="grp"><b>${g}</b>${PCOLS.filter(c=>c.g===g && c.t!=='name').map(c=>`<label><input type="checkbox" data-k="${c.k}" ${pvisible.has(c.k)?'checked':''}> ${c.l}</label>`).join('')}</div>`).join('');
+  $$('#p-colpicker input').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked) pvisible.add(cb.dataset.k); else pvisible.delete(cb.dataset.k); renderPitch(); }));
+  $('#p-toggle-cols').addEventListener('click', ()=>$('#p-colpicker').classList.toggle('open'));
+  $('#p-add-rf').addEventListener('click', ()=>{ pstate.rf.push({k:'pitching_plus',min:'',max:''}); renderPRF(); });
+  tPitch = table('t-pitch', PCOLS.filter(c=>pvisible.has(c.k)), [], {sort:'pts_c', color:true, pct:PPCT, ci:PCI, card:openPitcherCard, rowClass: x => x.owner===MY ? 'mine':''});
+  renderPitch();
+}
+function renderPRF(){
+  const numeric = PCOLS.filter(c=>c.f);
+  $('#p-rangefilters').innerHTML = pstate.rf.map((f,i)=>`<div class="rf"><select data-i="${i}" class="prf-k">${numeric.map(c=>`<option value="${c.k}" ${c.k===f.k?'selected':''}>${c.l} (${c.g})</option>`).join('')}</select> min <input type="number" step="any" class="prf-min" data-i="${i}" value="${f.min}"> max <input type="number" step="any" class="prf-max" data-i="${i}" value="${f.max}"> <button class="btn small prf-x" data-i="${i}">✕</button></div>`).join('');
+  $$('.prf-k').forEach(s=>s.addEventListener('change',e=>{ pstate.rf[+e.target.dataset.i].k=e.target.value; renderPitch(); }));
+  $$('.prf-min').forEach(s=>s.addEventListener('input',e=>{ pstate.rf[+e.target.dataset.i].min=e.target.value; renderPitch(); }));
+  $$('.prf-max').forEach(s=>s.addEventListener('input',e=>{ pstate.rf[+e.target.dataset.i].max=e.target.value; renderPitch(); }));
+  $$('.prf-x').forEach(s=>s.addEventListener('click',e=>{ pstate.rf.splice(+e.target.dataset.i,1); renderPRF(); renderPitch(); }));
+}
+
+// ---------- streamers tab
+const SD = D.streamers || null;
+const SHD = SD ? unpack(SD.hitter_days) : [], SPS = SD ? unpack(SD.pitcher_starts) : [], SGM = SD ? unpack(SD.games) : [];
+const sstate = { day:'week', avail:'FA', pos:new Set(), listed:false, pavail:'FA', two:false, allroles:false };
+const goodRole = r => (r.role==null || r.role==='starter') && !['Do Not Start','Not listed'].includes(r.pl_tier||'');
+const tierPillP = v => { if(!v) return ''; const c = v==='Auto'?'g':v==='Solid'?'b':v==='Tobys & Bombs'?'w':v==='Do Not Start'?'r':'n'; return `<span class="pill ${c}">${esc(v)}</span>`; };
+let tSH, tSP, tSG;
+const isFA = o => !o || o==='FA' || o==='W (Sun)' || o==='W (Mon)';
+const dayLabel = d => { const x = new Date(d+'T12:00:00'); return x.toLocaleDateString(undefined,{weekday:'short', month:'numeric', day:'numeric'}); };
+const lineupPill = r => r.lineup==null ? '' : (r.lineup ? `<span class="pill g" title="in today's posted lineup">bats ${r.lineup}</span>` : `<span class="pill r" title="lineup posted without him">not in lineup</span>`);
+const stateChip = pk => { const s = (window.gameState||{})[pk]; if(!s) return ''; if(s.ppd) return '<span class="pill w">PPD</span>'; if(s.final) return `<span class="pill n">Final ${s.away??''}-${s.home??''}</span>`; if(s.live) return `<span class="pill r">${esc(s.half||'')} ${s.inning||''} · ${s.away??''}-${s.home??''}</span>`; return ''; };
+function spTag(name, src){ return name ? `${esc(name)}${src==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}` : '<span class="hint">TBD</span>'; }
+function wxCell(r){ if(r.temp_f==null) return r.roof && r.roof!=='Open' ? '<span class="hint">roof</span>' : ''; const w = r.wind_out==null?'':(r.wind_out>=0?'out ':'in ')+Math.abs(r.wind_out).toFixed(0); return `${Math.round(r.temp_f)}° · ${w}${r.precip_prob>=50?` · <span class="pill w">${Math.round(r.precip_prob)}% rain</span>`:''}`; }
+function renderStreamers(){
+  if(!SD){ $('#s-lede').textContent = 'No streamer data in this build.'; return; }
+  const m = SD.meta; $('#s-lede').innerHTML = `Window <b>${dayLabel(m.start)} – ${dayLabel(m.end)}</b>, built ${esc(m.generated)} from the MLB schedule (${m.listed} of ${m.games} games had a posted probable; the rest are projected from each club's rotation order), Savant park factors, Open-Meteo forecasts and each hitter's and pitcher's 2026 rates, L/R splits and last 30 days. Free-agent status is your Fantrax table as of ${esc(m.asof)}. Players on the IL, in the minors or off the 40-man are hidden.`;
+  const days = [...new Set(SHD.map(r=>r.date))].sort();
+  if(!$('#s-day').options.length){ $('#s-day').innerHTML = '<option value="week">whole week</option>' + days.map(d=>`<option value="${d}">${dayLabel(d)}</option>`).join(''); $('#s-day').addEventListener('change', e=>{ sstate.day=e.target.value; renderStreamers(); });
+    $('#s-avail').addEventListener('change', e=>{ sstate.avail=e.target.value; renderStreamers(); }); $('#s-listed').addEventListener('change', e=>{ sstate.listed=e.target.checked; renderStreamers(); });
+    $('#s-pavail').addEventListener('change', e=>{ sstate.pavail=e.target.value; renderStreamers(); }); $('#s-two').addEventListener('change', e=>{ sstate.two=e.target.checked; renderStreamers(); }); $('#s-allroles').addEventListener('change', e=>{ sstate.allroles=e.target.checked; renderStreamers(); });
+    $('#s-pos').innerHTML = posList.map(p=>`<span class="chip" role="button" tabindex="0" aria-pressed="false" data-p="${p}">${p}</span>`).join('');
+    $$('#s-pos .chip').forEach(ch=>{ const t=()=>{ const p=ch.dataset.p; if(sstate.pos.has(p)) sstate.pos.delete(p); else sstate.pos.add(p); ch.setAttribute('aria-pressed', sstate.pos.has(p)); renderStreamers(); }; ch.addEventListener('click',t); ch.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();t();} }); });
+  }
+  const availOk = o => sstate.avail==='FA' ? isFA(o) : sstate.avail==='mine' ? o===MY : true;
+  const posOk = e => !sstate.pos.size || [...sstate.pos].some(p => (e||'').split('/').includes(p));
+  let rows = SHD.filter(r => r.active!==0 && availOk(r.owner) && posOk(r.elig) && (!sstate.listed || r.opp_sp_source!=='projected'));
+  let cols;
+  if (sstate.day==='week'){
+    const by = {}; rows.forEach(r=>{ const k=r.mlbam_id; (by[k] ||= {...r, games:0, week_pts:0, mults:[], days:[]}); by[k].games++; by[k].week_pts += r.exp_pts; by[k].mults.push(r.mult); by[k].days.push(`${dayLabel(r.date).split(',')[0]} ${r.home?'vs':'@'} ${r.opp.split(' ').pop()} (${r.opp_sp_throws||'?'}HP${r.opp_sp_source==='projected'?'·P':''}) ${r.exp_pts.toFixed(1)}`); });
+    rows = Object.values(by).map(r=>({...r, week_pts:+r.week_pts.toFixed(1), avg_mult:+(r.mults.reduce((a,b)=>a+b,0)/r.mults.length).toFixed(3), days_txt:r.days.join(' · ')}));
+    cols = [{k:'name',l:'Hitter',t:'name'},{k:'team',l:'Team',t:'txt'},{k:'bats',l:'B',t:'txt'},{k:'owner',l:'Owner',t:'txt'},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'games',l:'G',f:'int'},{k:'week_pts',l:'Week pts',f:'1'},{k:'avg_mult',l:'Avg mult',f:'3'},{k:'base_rate',l:'Base /PA',f:'3'},{k:'pa_g',l:'PA/G',f:'2'},{k:'woba_30',l:'wOBA 30d',f:'3'},{k:'pa_30',l:'PA 30d',f:'int'},{k:'days_txt',l:'Day by day',t:'txt'}];
+  } else {
+    rows = rows.filter(r=>r.date===sstate.day);
+    cols = [{k:'name',l:'Hitter',t:'name'},{k:'lineup',l:'Today',render:(v,r)=>lineupPill(r),left:true},{k:'team',l:'Team',t:'txt'},{k:'bats',l:'B',t:'txt'},{k:'owner',l:'Owner',t:'txt'},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(v)} ${stateChip(r.gamePk)}`,left:true},{k:'opp_sp',l:'Opp SP',render:(v,r)=>spTag(v,r.opp_sp_source)+(r.opp_sp_throws?` <span class="hint">${r.opp_sp_throws}HP</span>`:''),left:true},{k:'sp_xwoba',l:'SP xwOBA',f:'3'},{k:'sp_k',l:'SP K%',f:'1'},{k:'park_runs',l:'Park runs',f:'int'},{k:'park_hr',l:'Park HR',f:'int'},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'exp_pts',l:'Exp pts',f:'2'},{k:'mult',l:'Mult',f:'3'},{k:'f_sp',l:'×SP',f:'3'},{k:'f_platoon',l:'×Platoon',f:'3'},{k:'f_park',l:'×Park',f:'3'},{k:'f_wx',l:'×Wx',f:'3'},{k:'f_form',l:'×Form',f:'3'},{k:'base_rate',l:'Base /PA',f:'3'},{k:'pa_g',l:'PA/G',f:'2'},{k:'woba_30',l:'wOBA 30d',f:'3'},{k:'local_start',l:'First pitch',t:'txt'}];
+  }
+  $('#s-count').textContent = `${rows.length} hitters`;
+  const sortKey = sstate.day==='week' ? 'week_pts' : 'exp_pts';
+  if(!tSH) tSH = table('t-shit', cols, rows, {sort:sortKey, rowClass:x=>x.owner===MY?'mine':''}); else { tSH.setCols(cols); tSH.setRows(rows); tSH.setSort(sortKey,-1); }
+  // pitchers
+  const pOk = o => sstate.pavail==='FA' ? isFA(o) : sstate.pavail==='mine' ? o===MY : true;
+  let prow = SPS.filter(r => r.sp_source!=='replaced' && r.active!==0 && pOk(r.owner) && (sstate.allroles || goodRole(r) || r.owner===MY) && (!sstate.two || r.two_start) && (sstate.day==='week' || r.date===sstate.day));
+  const pcols = [{k:'date',l:'Day',render:v=>dayLabel(v),left:true},{k:'name',l:'Pitcher',t:'name'},{k:'team',l:'Team',t:'txt'},{k:'owner',l:'Owner',t:'txt'},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(v)} ${stateChip(r.gamePk)}`,left:true},{k:'sp_source',l:'',render:v=>v==='projected'?'<span class="pill n" title="projected from rotation order">P</span>':'<span class="pill g">listed</span>'},{k:'exp_pts',l:'Exp pts',f:'2'},{k:'pl_tier',l:'PitcherList 9/8',render:(v,r)=>tierPillP(v)+(r.pl_note?` <span class="hint" title="${esc(r.pl_note)}">ⓘ</span>`:''),left:true},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'role',l:'Role',t:'txt'},{k:'n_starts',l:'Starts',f:'int'},{k:'ip_gs',l:'IP/GS',f:'1'},{k:'last5_pts',l:'Last 5 /GS',f:'1'},{k:'two_start',l:'2-start',render:v=>v?'<span class="pill b">2</span>':''},{k:'week_pts',l:'Week pts',f:'1'},{k:'base_gs',l:'Base /GS',f:'2'},{k:'opp_woba_vs_hand',l:'Opp wOBA',f:'3'},{k:'opp_k_vs_hand',l:'Opp K%',render:v=>v==null?'':(100*v).toFixed(1)},{k:'park_runs',l:'Park',f:'int'},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'f_opp',l:'×Opp',f:'3'},{k:'f_park',l:'×Park',f:'3'},{k:'f_wx',l:'×Wx',f:'3'},{k:'k_bonus',l:'K bonus',f:'2'},{k:'pitching_plus',l:'Pitching+',f:'1'},{k:'xera',l:'xERA',f:'2'},{k:'pts_gs_2026',l:'2026 /GS',f:'2'},{k:'GS',l:'GS',f:'int'},{k:'local_start',l:'First pitch',t:'txt'}];
+  $('#s-pcount').textContent = `${prow.length} starts`;
+  if(!tSP) tSP = table('t-sp', pcols, prow, {sort:'exp_pts', card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); else { tSP.setCols(pcols); tSP.setRows(prow); }
+  // games table
+  const gcols = [{k:'date',l:'Day',render:v=>dayLabel(v),left:true},{k:'team',l:'Team',t:'txt'},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(v)} ${stateChip(r.gamePk)}`,left:true},{k:'sp_name',l:'SP',render:(v,r)=>spTag(v,r.sp_source),left:true},{k:'opp_sp_name',l:'Opp SP',render:(v,r)=>spTag(v,r.opp_sp_source),left:true},{k:'venue',l:'Park',t:'txt'},{k:'local_start',l:'First pitch',t:'txt'},{k:'temp_f',l:'Temp',f:'int'},{k:'wind_mph',l:'Wind',f:'int'},{k:'precip_prob',l:'Rain %',f:'int'}];
+  const grows = SGM.filter(g=>sstate.day==='week'||g.date===sstate.day);
+  if(!tSG) tSG = table('t-sgames', gcols, grows, {sort:'date', dir:1}); else tSG.setRows(grows);
+  renderMyWeek();
+}
+const SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','UT','UT'];
+function bestLineup(rows){ // greedy: fill scarce slots first by expected points
+  const used = new Set(); const out = [];
+  const order = ['C','SS','2B','3B','1B','OF','OF','OF','UT','UT'];
+  rows = rows.filter(r => r.lineup!==0);
+  for (const s of order){ const cand = rows.filter(r=>!used.has(r.mlbam_id) && (s==='UT' || (r.elig||'').split('/').includes(s))).sort((a,b)=>b.exp_pts-a.exp_pts)[0]; if(cand){ used.add(cand.mlbam_id); out.push([s,cand]); } else out.push([s,null]); }
+  return out;
+}
+function renderMyWeek(){
+  if(!MY){ $('#s-mine').innerHTML = '<p class="hint">Pick your team in the top bar to see your lineup, your starts and the free agents that beat them.</p>'; return; }
+  const inactive = [...new Map(SHD.filter(r=>r.owner===MY && r.active===0).map(r=>[r.mlbam_id, r])).values()];
+  const mine = SHD.filter(r=>r.owner===MY && r.active!==0); const myStarts = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts);
+  const faStarts = SPS.filter(r=>isFA(r.owner) && r.active!==0 && r.sp_source!=='replaced' && goodRole(r)).sort((a,b)=>b.exp_pts-a.exp_pts);
+  const tenth = myStarts[9]?.exp_pts ?? 0; const better = faStarts.filter(r=>r.exp_pts>tenth).slice(0,8);
+  let h = inactive.length ? `<p class="hint">Not on an active roster right now: ${inactive.map(r=>`<b>${esc(r.name)}</b> (${esc(r.status)})`).join(', ')}.</p>` : '';
+  h += `<p class="hint">Your starters have <b>${myStarts.length}</b> projected starts this week (cap 10); the 10th-best is worth ${tenth.toFixed(1)}. Free-agent starts that beat it: ${better.length?better.map(r=>`${esc(r.name)} ${dayLabel(r.date).split(',')[0]} ${r.home?'vs':'@'} ${esc(r.opp.split(' ').pop())} (${r.exp_pts.toFixed(1)}${r.sp_source==='projected'?', P':''})`).join('; '):'none'}.</p>`;
+  h += `<div class="tblwrap" style="max-height:none"><table><thead><tr><th class="l">Your starts</th><th class="l">Day</th><th class="l">Opp</th><th>Exp</th></tr></thead><tbody>${myStarts.map(r=>`<tr><td class="l">${esc(r.name)}${r.two_start?' <span class="pill b">2</span>':''}${r.sp_source==='projected'?' <span class="pill n">P</span>':''}</td><td class="l">${dayLabel(r.date)}</td><td class="l">${r.home?'vs':'@'} ${esc(r.opp)}</td><td>${r.exp_pts.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`;
+  const days = [...new Set(mine.map(r=>r.date))].sort();
+  h += `<h3 style="margin-top:14px">Best lineup by day (your hitters)</h3>`;
+  for (const d of days){ const lu = bestLineup(mine.filter(r=>r.date===d)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0); const bench = mine.filter(r=>r.date===d && !lu.some(([s,x])=>x&&x.mlbam_id===r.mlbam_id)).sort((a,b)=>b.exp_pts-a.exp_pts);
+    h += `<details><summary><b>${dayLabel(d)}</b> · ${tot.toFixed(1)} expected · ${lu.filter(x=>x[1]).length} filled</summary><table class="mini"><tbody>${lu.map(([s,r])=>`<tr><td class="l" style="width:36px"><b>${s}</b></td><td class="l">${r?esc(r.name)+' '+lineupPill(r):'<span class="hint">open</span>'}</td><td class="l hint">${r?`${r.home?'vs':'@'} ${esc(r.opp.split(' ').pop())} · ${spTag(r.opp_sp,r.opp_sp_source)} ${r.opp_sp_throws||''}`:''}</td><td>${r?r.exp_pts.toFixed(1):''}</td></tr>`).join('')}${bench.length?`<tr><td class="l hint" colspan="4">bench: ${bench.map(r=>`${esc(r.name)} ${r.exp_pts.toFixed(1)}`).join(', ')}</td></tr>`:''}</tbody></table></details>`; }
+  $('#s-mine').innerHTML = h;
+}
+
+// ---------- keepers tab
+let tK, tPool, tKY, tPK, tPPool;
+const tierPill = v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':'n'}">${v}</span>`;
+function renderKeepers(){
+  const cur = ROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
+  // players your team kept in a PITCHER slot (Ohtani) are not hitter-slot candidates for that team
+  const pitcherSlot = new Set(REAL_K.filter(k=>k.slot==='pitcher').map(k=>nk(k.player)));
+  // recompute KSV under current settings: pool replacement = (HKEEP*TEAMS + 12)th projected
+  const sorted = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts); const nkh = HKEEP*TEAMS; const r1 = sorted[Math.min(nkh+TEAMS-1, sorted.length-1)]?.proj_pts ?? 0; const r2 = sorted[Math.min(nkh+2*TEAMS-1, sorted.length-1)]?.proj_pts ?? 0;
+  cur.forEach(r=>{ r.KSV_c = Math.round(r.proj_pts - r1); r.KSV2_c = Math.round(r.proj_pts - r2); r.tier_c = r.KSV_c>=120?'lock':r.KSV_c>=40?'clear keep':r.KSV_c>0?'marginal':'let go'; r.pslot = r.owner===HOME_ABBR && pitcherSlot.has(nk(r.name)); });
+  // likely kept: each owner's top-HKEEP by KSV (pitcher-slot two-way players excluded from the hitter board)
+  const byOwner = {}; cur.forEach(r=>{ if(r.owner && r.owner!=='FA' && r.owner!=='W (Sun)' && !r.pslot) (byOwner[r.owner] ||= []).push(r); });
+  const kept = new Set(); Object.values(byOwner).forEach(a=>a.sort((x,y)=>y.KSV_c-x.KSV_c).slice(0,HKEEP).forEach(r=>kept.add(r.mlbam_id)));
+  cur.forEach(r=>r.kept_c = kept.has(r.mlbam_id) || r.pslot);
+  const owners = Object.keys(byOwner).sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
+  $('#k-real').textContent = sel.value===HOME_ABBR && MY===HOME_ABBR && REAL_K.length ? `Your real 2026 keepers: ${REAL_K.filter(k=>k.slot==='hitter').map(k=>k.player).join(', ')} (hitters); ${REAL_K.filter(k=>k.slot==='pitcher').map(k=>k.player).join(', ')} (pitchers). Boards below are the 2027 recommendation.` : '';
+  const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.KSV_c-x.KSV_c).map((r,i)=>({...r, team_rank:i+1}));
+  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'KSV_c',l:'KSV',render:signed}, {k:'KSV2_c',l:'KSV 2nd',render:signed}, {k:'tier_c',l:'Tier',render:tierPill}, {k:'BI',l:'BI',f:'1',dir:1}, CI.il_days_3yr];
+  if(!tK) tK = table('t-kboard', kcols, board, {sort:'team_rank', dir:1, color:true}); else tK.setRows(board);
+  const n = +$('#p-n').value||50;
+  const pool = sorted.filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
+  const pcols = [{k:'pool_rank',l:'#',f:'int'}, CI.name, CI.age, CI.owner, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'BI',l:'BI',f:'1',dir:1}, CI.xwoba, CI.k_percent, CI.sprint_speed, CI.il_days_3yr];
+  if(!tPool) { tPool = table('t-pool', pcols, pool, {sort:'pool_rank', dir:1, limit:n, color:true, rowClass:x=>x.owner===MY?'mine':''}); $('#p-n').addEventListener('change', renderKeepers); } else { tPool.setRows(pool.slice(0,n)); }
+  // ---- pitchers: value for a pitcher-slot keeper = pitching projection + hitting projection (two-way)
+  const pc = PROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
+  pc.forEach(r=>{ r.tot_c = (r.proj_pts||0) + (r.proj_pts_hitting||0); });
+  const psorted = pc.slice().sort((a,b)=>b.tot_c-a.tot_c); const nkp = PKEEP*TEAMS; const p1 = psorted[Math.min(nkp+TEAMS-1, psorted.length-1)]?.tot_c ?? 0; const p2 = psorted[Math.min(nkp+2*TEAMS-1, psorted.length-1)]?.tot_c ?? 0;
+  pc.forEach(r=>{ r.KSV_c = Math.round(r.tot_c - p1); r.KSV2_c = Math.round(r.tot_c - p2); r.tier_c = r.KSV_c>=80?'lock':r.KSV_c>=25?'clear keep':r.KSV_c>0?'marginal':'let go'; });
+  const pByOwner = {}; pc.forEach(r=>{ if(r.owner && r.owner!=='FA' && r.owner!=='W (Sun)') (pByOwner[r.owner] ||= []).push(r); });
+  const pkept = new Set(); Object.values(pByOwner).forEach(a=>a.sort((x,y)=>y.KSV_c-x.KSV_c).slice(0,PKEEP).forEach(r=>pkept.add(r.mlbam_id)));
+  pc.forEach(r=>r.kept_c = pkept.has(r.mlbam_id));
+  const pboard = (pByOwner[sel.value]||[]).slice().sort((x,y)=>y.KSV_c-x.KSV_c).map((r,i)=>({...r, team_rank:i+1}));
+  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'KSV_c',l:'KSV',render:signed}, {k:'KSV2_c',l:'KSV 2nd',render:signed}, {k:'tier_c',l:'Tier',render:tierPill}, {k:'BI',l:'BI',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
+  if(!tPK) tPK = table('t-pkboard', pkcols, pboard, {sort:'team_rank', dir:1, color:true, pct:PPCT, ci:PCI, card:openPitcherCard}); else tPK.setRows(pboard);
+  const pn = +$('#pp-n').value||50;
+  const ppool = psorted.filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
+  const ppcols = [{k:'pool_rank',l:'#',f:'int'}, PCI.name, PCI.age, PCI.owner, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'BI',l:'BI',f:'1',dir:1}, PCI.pitching_plus, PCI.stuff_plus, PCI.xera, PCI.il_days_3yr];
+  if(!tPPool) { tPPool = table('t-ppool', ppcols, ppool, {sort:'pool_rank', dir:1, limit:pn, color:true, pct:PPCT, ci:PCI, card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); $('#pp-n').addEventListener('change', renderKeepers); } else { tPPool.setRows(ppool.slice(0,pn)); }
+  const yrs = Object.keys(D.keepers); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
+  const kyrows = D.keepers[ky.value]||[];
+  const kycols = [{k:'player',l:'Player',left:true,t:'txt'}, {k:'adp_hitter_rank',l:'ADP hitter rk',f:'int'}, {k:'pts',l:'Pts that year',f:'0'}, {k:'final_hitter_rank',l:'Final rk',f:'int'}, {k:'source',l:'Source',t:'txt'}];
+  if(!tKY) tKY = table('t-keepyear', kycols, kyrows, {sort:'adp_hitter_rank', dir:1}); else tKY.setRows(kyrows);
+}
+
+// ---------- drafts tab
+let tD;
+function renderDrafts(){
+  const y = $('#d-year').value, t = $('#d-team').value;
+  let rows = D.drafts.filter(d=>(!y||String(d.season)===y)&&(!t||d.team===t));
+  // re-value under current scoring: find the season row for the player
+  const idx = {}; ROWS.forEach(r=>{ idx[r.season+'|'+r.name.toLowerCase()] = r; });
+  rows = rows.map(d=>{ const r = idx[d.season+'|'+d.player.toLowerCase()]; return {...d, pts_c: r?r.pts_c:d.pts, over_c: r?r.over_c:d.pts_over_exp, rank_c: r?r.rank_c:d.final_hitter_rank, mlbam_id: r?r.mlbam_id:null, elig: d.pos}; });
+  $('#d-count').textContent = `${rows.length} hitter picks`;
+  const cols = [{k:'season',l:'Yr',f:'int'},{k:'overall',l:'Pick',f:'int'},{k:'round',l:'Rd',f:'int'},{k:'team',l:'Team',t:'txt'},{k:'player',l:'Player',t:'name'},{k:'PA',l:'PA',f:'int'},{k:'pts_c',l:'Pts',f:'0'},{k:'rank_c',l:'Fin rk',f:'int'},{k:'adp_hitter_rank',l:'ADP rk',f:'int'},{k:'over_c',l:'vs ADP',render:signed},{k:'hitter_pick',l:'Lg hitter #',f:'int'},{k:'exp_pts_slot',l:'Slot exp',f:'0'},{k:'pts_over_slot',l:'vs slot',render:signed},{k:'beat',l:'',render:v=>v?'<span class="pill g">beat</span>':''}];
+  if(!tD){ $('#d-year').innerHTML = '<option value="">all</option>' + [...new Set(D.drafts.map(d=>d.season))].sort().map(s=>`<option>${s}</option>`).join(''); $('#d-team').innerHTML = '<option value="">all</option>' + [...new Set(D.drafts.map(d=>d.team))].sort().map(s=>`<option>${esc(s)}</option>`).join(''); $('#d-year').addEventListener('change', renderDrafts); $('#d-team').addEventListener('change', renderDrafts);
+    tD = table('t-drafts', cols, rows, {sort:'pts_over_slot', rowClass:x=>x.mine?'mine':''}); drawPickCurve(); } else tD.setRows(rows);
+}
+function drawPickCurve(){ const pts = Object.entries(D.pick_curve).map(([k,v])=>[+k,+v]); const W=720,H=220,pl=44,pb=28; const mx=Math.max(...pts.map(p=>p[0])), my=Math.max(...pts.map(p=>p[1])); const X=x=>pl+(x-1)/(mx-1)*(W-pl-10), Y=y=>H-pb-(y/my)*(H-pb-10); const path = pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' '); const picks = D.drafts.filter(d=>d.pts!=null); $('#pickcurve').innerHTML = `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="League pick curve"><g>${[0,200,400,600,800].filter(v=>v<=my).map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join('')}</g>${picks.map(d=>`<circle cx="${X(d.hitter_pick)}" cy="${Y(d.pts)}" r="2.5" fill="${d.mine?'var(--hot)':'var(--cold)'}" opacity="${d.mine?1:.45}"><title>${esc(d.player)} ${d.season}: pick ${d.overall}, ${Math.round(d.pts)} pts</title></circle>`).join('')}<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="${W/2}" y="${H-6}" text-anchor="middle">hitter pick number in this league (2024–2026 pooled)</text></svg></div><div class="legend"><span class="h">your picks</span><span class="c">everyone else</span> line = expected points at that slot</div>`; }
+
+// ---------- prospects
+let tP;
+function renderPros(){
+  const st = $('#pr-status').value, mn = +$('#pr-min').value||0, av = $('#pr-avail').value, needSc = $('#pr-sc').checked;
+  const latestSc = id => { const a = PSC[id]; return a && a.length ? a.reduce((x,y)=>y.season>x.season?y:x) : null; };
+  const rows = D.prospects.filter(p=>(!st||p.prospect_status===st) && (p.PAS??0)>=mn && (!av || (av==='FA' ? (!p.owner||p.owner==='FA'||p.owner==='W (Sun)') : p.owner===MY)) && (!needSc || PSC[p.mlbam_id])).map(p=>{ const s = latestSc(p.mlbam_id)||{}; return {...p, mlbam_id:p.mlbam_id, name:p.name, elig:p.prospect_pos||'', team_abbr:(p.prospect_org||'').toUpperCase(), sc_season:s.season, sc_PA:s.sc_PA, sc_ev90:s.sc_ev90, sc_barrel:s.sc_barrel, sc_hard_hit:s.sc_hard_hit, sc_xwoba:s.sc_xwoba, sc_k:s.sc_k, sc_bb:s.sc_bb, sc_whiff:s.sc_whiff, sc_chase:s.sc_chase}; });
+  $('#pr-count').textContent = `${rows.length} bats`;
+  const cols = [{k:'name',l:'Player',t:'name'},{k:'age',l:'Age',f:'1'},{k:'pipeline_rank',l:'Pipeline',f:'int'},{k:'prospect_status',l:'Status',t:'txt'},{k:'owner',l:'Owner',t:'txt'},{k:'milb_level',l:'Lvl',t:'txt'},{k:'milb_PA',l:'MiLB PA',f:'int'},{k:'milb_AVG',l:'AVG',f:'3'},{k:'milb_OBP',l:'OBP',f:'3'},{k:'milb_SLG',l:'SLG',f:'3'},{k:'milb_ISO',l:'ISO',f:'3'},{k:'milb_K',l:'K/PA',f:'3'},{k:'milb_BB',l:'BB/PA',f:'3'},{k:'milb_HR',l:'HR',f:'int'},{k:'milb_SB',l:'SB',f:'int'},{k:'PA',l:'MLB PA 26',f:'int'},{k:'career_PA',l:'Career PA',f:'int'},{k:'PAS',l:'PAS',f:'1'},{k:'BI',l:'BI',f:'1'},{k:'proj_pts_600',l:'Proj/600',f:'0'},
+    {k:'sc_season',l:'SC yr',f:'int',title:'latest minor-league Statcast season'},{k:'sc_PA',l:'SC PA',f:'int'},{k:'sc_ev90',l:'EV90',f:'1'},{k:'sc_hard_hit',l:'HH%',f:'1'},{k:'sc_barrel',l:'Brl%',f:'1'},{k:'sc_xwoba',l:'est wOBA',f:'3'},{k:'sc_k',l:'K%',f:'1'},{k:'sc_bb',l:'BB%',f:'1'},{k:'sc_whiff',l:'Whiff%',f:'1'},{k:'sc_chase',l:'Chase%',f:'1'}];
+  if(!tP){ $('#pr-status').innerHTML = '<option value="">all</option>' + [...new Set(D.prospects.map(p=>p.prospect_status))].map(s=>`<option>${esc(s)}</option>`).join(''); ['#pr-status','#pr-min','#pr-avail','#pr-sc'].forEach(s=>$(s).addEventListener('input',renderPros)); tP = table('t-pros', cols, rows, {sort:'PAS', rowClass:x=>x.owner===MY?'mine':''}); } else tP.setRows(rows);
+}
+
+// ---------- formulas tab
+function renderFormulaScoring(){ $('#f-scoring').textContent = `hitting points  = ${EVENTS.filter(e=>+W[e]).map(e=>`${W[e]}×${e}`).join(' + ')}\n(+5 grand slam, +10 cycle in Fantrax; not in public feeds)\nChecked against Fantrax 2026: 500/500 hitters match except those two events.\n\npitching points = ${PEVENTS.filter(e=>+PW[e]).map(e=>`${PW[e]}×${e}`).join(' + ')}\n(+10 no-hitter, +25 perfect game in Fantrax; not in public feeds; IP counted in thirds)\nChecked against Fantrax 2026: 116/116 pitchers with 20+ IP match exactly.`; }
+function drawAging(){ const a = D.aging; const W=720,H=240,pl=50,pb=30; const ys=a.map(r=>r.rel_to_27); const mn=Math.min(...ys), mx=Math.max(...ys); const X=x=>pl+(x-21)/(39-21)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn))*(H-pb-14); const path=a.map((r,i)=>(i?'L':'M')+X(r.age).toFixed(1)+' '+Y(r.rel_to_27).toFixed(1)).join(' '); const ticks=[-0.5,-0.4,-0.3,-0.2,-0.1,0].filter(v=>v>=mn&&v<=mx); $('#agingchart').innerHTML=`<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Aging curve"><g>${ticks.map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(1)}</text>`).join('')}</g>${a.map(r=>`<text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`).join('')}<path d="${path}" fill="none" stroke="var(--hot)" stroke-width="2.5"/>${a.map(r=>`<circle cx="${X(r.age)}" cy="${Y(r.rel_to_27)}" r="${Math.min(6,2+Math.sqrt(r.n_pairs||0)/3)}" fill="var(--hot)" opacity=".7"><title>age ${r.age}: ${r.rel_to_27.toFixed(3)} pts/PA vs 27 (${r.n_pairs} pairs)</title></circle>`).join('')}</svg></div><div class="hint">points per PA relative to age 27; dot size = number of consecutive-season pairs at that age (2021-2026, 300+ PA both years)</div>`; }
+function drawPAging(){ const a = D.pitcher_aging||[]; if(!a.length) return; const W=720,H=200,pl=50,pb=30; const ys=a.map(r=>r.yoy_delta); const mn=Math.min(...ys,0), mx=Math.max(...ys,0); const ages=a.map(r=>r.age); const a0=Math.min(...ages), a1=Math.max(...ages); const X=x=>pl+(x-a0)/(a1-a0)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn||1))*(H-pb-14); $('#pagingchart').innerHTML=`<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Pitcher aging"><line x1="${pl}" x2="${W-10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--ink3)"/>${a.map(r=>`<rect x="${X(r.age)-8}" y="${Math.min(Y(0),Y(r.yoy_delta))}" width="16" height="${Math.abs(Y(0)-Y(r.yoy_delta))}" fill="${r.yoy_delta>=0?'var(--hot)':'var(--cold)'}" opacity=".8"><title>age ${r.age}→${r.age+1}: ${r.yoy_delta>=0?'+':''}${r.yoy_delta.toFixed(2)} pts/GS</title></rect><text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`).join('')}<text x="${pl-6}" y="${Y(0)+4}" text-anchor="end">0</text></svg></div><div class="hint">expected change in points per start from one age to the next (starters with 10+ GS both years, 2021-2026, smoothed). Pitchers improve into their mid-20s and decline gently until the mid-30s.</div>`; }
+function renderPCV(){
+  const coef = D.meta.pitching_plus_coef||{}; $('#f-ppcoef').textContent = `Pitching+ ridge (alpha 5) on next-year points per start:  ${Object.entries(coef).map(([k,v])=>`${k} ${v>=0?'+':''}${v}`).join('   ')}\nK−BB% carries most of the weight; Stuff+ adds real signal on top of it; Location+ is nearly redundant once BB% is in K−BB%.`;
+  table('t-cvpit', [{k:'held_out',l:'Held out',t:'txt'},{k:'n',l:'n',f:'int'},{k:'r_model',l:'r model',f:'3'},{k:'r_pitching_plus',l:'r Pitching+',f:'3'},{k:'r_carry_over',l:'r carry-over',f:'3'},{k:'r_xera',l:'r xERA',f:'3'}], D.cv_pit||[], {});
+  table('t-cvpbi', [{k:'held_out',l:'Held out',t:'txt'},{k:'n',l:'n',f:'int'},{k:'breakouts',l:'Breakouts',f:'int'},{k:'base_rate',l:'Base rate',f:'3'},{k:'auc',l:'AUC',f:'3'},{k:'top20_hit_rate',l:'Top-20 hit',f:'3'}], D.cv_pbi||[], {});
+}
+function renderCV(){ table('t-cvbi', [{k:'held_out',l:'Held out',t:'txt'},{k:'n',l:'n',f:'int'},{k:'breakouts',l:'Breakouts',f:'int'},{k:'base_rate',l:'Base rate',f:'3'},{k:'auc',l:'AUC',f:'3'},{k:'top40_hit_rate',l:'Top-40 hit',f:'3'},{k:'top40_avg_next_pts',l:'Top-40 next pts',f:'0'}], D.cv_bi, {}); table('t-cvproj', [{k:'train_on',l:'Held out',t:'txt'},{k:'n',l:'n',f:'int'},{k:'r_model',l:'r model',f:'3'},{k:'r_naive_last_year',l:'r carry-over',f:'3'},{k:'r_xwoba_only',l:'r xwOBA',f:'3'},{k:'mae_model',l:'MAE model',f:'3'},{k:'mae_naive',l:'MAE carry',f:'3'}], D.cv_proj, {}); }
+
+
+// ---------- team colors, avatars, player page header
+const TEAM_COLORS = {ARI:'#A71930',ATH:'#0F5C3F',OAK:'#0F5C3F',ATL:'#CE1141',BAL:'#DF4601',BOS:'#BD3039',CHC:'#0E3386',CWS:'#3B3B3B',CHW:'#3B3B3B',CIN:'#C6011F',CLE:'#00385D',COL:'#4B3F8C',DET:'#0C2340',HOU:'#EB6E1F',KC:'#004687',KCR:'#004687',LAA:'#BA0021',LAD:'#005A9C',MIA:'#00A3E0',MIL:'#12284B',MIN:'#002B5C',NYM:'#002D72',NYY:'#1C2B4A',PHI:'#E81828',PIT:'#2B2B2B',SD:'#5C3D2E',SDP:'#5C3D2E',SF:'#FD5A1E',SFG:'#FD5A1E',SEA:'#0C5C5C',STL:'#C41E3A',TB:'#092C5C',TBR:'#092C5C',TEX:'#003278',TOR:'#134A8E',WSH:'#AB0003',WSN:'#AB0003'};
+const TEAM_NAME_ABBR = {'Arizona Diamondbacks':'ARI','Athletics':'ATH','Oakland Athletics':'ATH','Atlanta Braves':'ATL','Baltimore Orioles':'BAL','Boston Red Sox':'BOS','Chicago Cubs':'CHC','Chicago White Sox':'CWS','Cincinnati Reds':'CIN','Cleveland Guardians':'CLE','Colorado Rockies':'COL','Detroit Tigers':'DET','Houston Astros':'HOU','Kansas City Royals':'KC','Los Angeles Angels':'LAA','Los Angeles Dodgers':'LAD','Miami Marlins':'MIA','Milwaukee Brewers':'MIL','Minnesota Twins':'MIN','New York Mets':'NYM','New York Yankees':'NYY','Philadelphia Phillies':'PHI','Pittsburgh Pirates':'PIT','San Diego Padres':'SD','San Francisco Giants':'SF','Seattle Mariners':'SEA','St. Louis Cardinals':'STL','Tampa Bay Rays':'TB','Texas Rangers':'TEX','Toronto Blue Jays':'TOR','Washington Nationals':'WSH'};
+const abbrOf = t => !t ? '' : (TEAM_COLORS[t] ? t : (TEAM_NAME_ABBR[t] || (t.length<=3 ? t : t.split(' ').pop().slice(0,3).toUpperCase())));
+const teamColor = t => TEAM_COLORS[abbrOf(t)] || '#33415C';
+const initials = n => (n||'').split(' ').filter(x=>x && !/^(jr|sr|ii|iii)\.?$/i.test(x)).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+const ava = (name, team, size) => `<span class="ava" style="--tc:${teamColor(team)}${size?`;width:${size}px;height:${size}px;font-size:${Math.round(size*.36)}px`:''}" title="${esc(abbrOf(team))}">${esc(initials(name))}</span>`;
+function pband(name, team, sub, chips=[]){ return `<div class="pband" style="--tc:${teamColor(team)}">${ava(name, team, 56)}<div><h2>${esc(name)}</h2><div class="hint">${sub}</div>${chips.length?`<div class="taglist" style="margin:6px 0 0">${chips.join(' ')}</div>`:''}</div></div>`; }
+
+// ---------- theme + settings + navigation
+function setTheme(t){ if(t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); try{ localStorage.setItem('lab-theme', t||''); }catch(e){} }
+$('#theme-btn').addEventListener('click', ()=>{ const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); setTheme(cur==='dark' ? 'light' : 'dark'); });
+try{ const t=localStorage.getItem('lab-theme'); if(t) setTheme(t); }catch(e){}
+$('#settings-btn').addEventListener('click', ()=>{ $('#settings').classList.toggle('open'); });
+$('#settings-close').addEventListener('click', ()=>$('#settings').classList.remove('open'));
+function goTab(k){ $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); try{localStorage.setItem('lab-tab',k);}catch(e){} window.scrollTo({top:0}); }
+$$('[data-tab]').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.tab)));
+$('#brand').addEventListener('click', e=>{ e.preventDefault(); goTab('dash'); });
+$('#live-ind').addEventListener('click', ()=>{ if(window.refreshLive) window.refreshLive(); });
+
+// ---------- global player search
+const SEARCH_IDX = (()=>{ const m = new Map(); ROWS.filter(r=>r.season===CUR).forEach(r=>m.set('h'+r.mlbam_id, {id:r.mlbam_id, name:r.name, team:r.team_abbr, sub:`${r.elig||''} · ${Math.round(r.pts||0)} pts`, kind:'h'})); PROWS.filter(r=>r.season===CUR).forEach(r=>m.set('p'+r.mlbam_id, {id:r.mlbam_id, name:r.name, team:r.team, sub:`SP · ${Math.round(r.pts||0)} pts`, kind:'p'})); D.prospects.forEach(p=>{ if(!m.has('h'+p.mlbam_id)) m.set('h'+p.mlbam_id, {id:p.mlbam_id, name:p.name, team:(p.prospect_org||'').toUpperCase(), sub:`prospect · ${p.prospect_pos||''}`, kind:'h'}); }); return [...m.values()]; })();
+const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+(function buildSearch(){ const inp = $('#gsearch'), dd = $('#gsearch-dd'); let items=[];
+  function render(){ dd.innerHTML = items.map((x,i)=>`<button role="option" data-i="${i}">${ava(x.name,x.team,26)}<span>${esc(x.name)}</span><small>${esc(abbrOf(x.team))} · ${esc(x.sub)}</small></button>`).join(''); dd.classList.toggle('open', items.length>0);
+    dd.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ const x=items[+b.dataset.i]; dd.classList.remove('open'); inp.value=''; (x.kind==='p'?openPitcherCard:openCard)(x.id); })); }
+  inp.addEventListener('input', ()=>{ const q = fold(inp.value.trim()); if(q.length<2){ items=[]; render(); return; } items = SEARCH_IDX.filter(x=>fold(x.name).includes(q)).slice(0,8); render(); });
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter' && items.length){ dd.querySelector('button').click(); } if(e.key==='Escape'){ items=[]; render(); } });
+  document.addEventListener('click', e=>{ if(!e.target.closest('.search')) dd.classList.remove('open'); });
+})();
+
+// ---------- team switcher
+(function buildTeamSel(){ const sel = $('#team-sel'); const owners = [...new Set([...Object.values(PROJ).map(p=>p.owner), ...Object.values(PPROJ).map(p=>p.owner)].filter(o=>o && !isFA(o)))].sort();
+  sel.innerHTML = '<option value="">League view</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY) ? MY : '';
+  if(!owners.includes(MY)) MY = '';
+  sel.addEventListener('change', ()=>{ MY = sel.value; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(o=>o.value===MY)) ko.value = MY; refreshAll(); renderStreamers(); renderPros(); });
+})();
+
+// ---------- dashboard
+function renderDash(){
+  const today = new Date(); const iso = d => d.toISOString().slice(0,10);
+  const dates = [...new Set(SHD.map(r=>r.date))].sort(); const day = dates.find(d=>d>=iso(today)) || dates[0];
+  $('#dash-sub').textContent = SD ? `Week of ${dayLabel(SD.meta.start)}. ${SD.meta.games} games, ${SD.meta.listed} with a posted probable so far.` : 'Season data through 2026.';
+  $('#dash-asof').textContent = SD ? `Built ${SD.meta.generated}` : `Built ${D.meta.generated}`;
+  const cur = ROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
+  const rowH = (r, val, sub2) => `<div class="row" data-h="${r.mlbam_id}">${ava(r.name, r.team_abbr||r.team, 32)}<div><div class="nm">${esc(r.name)}</div><div class="sub">${esc(sub2)}</div></div><div class="val">${val}</div></div>`;
+  const rowP = (r, val, sub2) => `<div class="row" data-p="${r.mlbam_id}">${ava(r.name, r.team, 32)}<div><div class="nm">${esc(r.name)}</div><div class="sub">${esc(sub2)}</div></div><div class="val">${val}</div></div>`;
+  let cards = '';
+  if (!MY){ cards += `<div class="dcard w12"><h3>Pick your team <small>top bar</small></h3><p class="hint" style="font-size:13px">Choose your Fantrax team under "Viewing as" and this page becomes yours: lineup by day, your starts against the 10-start cap, your keeper board. Everything below is league-wide.</p></div>`; }
+  if (SD && day && MY){
+    const mine = SHD.filter(r=>r.owner===MY && r.active!==0 && r.date===day); const lu = bestLineup(mine); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
+    cards += `<div class="dcard w6"><h3>Your lineup · ${dayLabel(day)} <small>${tot.toFixed(1)} expected pts</small></h3><div class="rowlist">${lu.map(([s,r])=>r?`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm"><span class="pill n" style="margin-right:6px">${s}</span>${esc(r.name)} ${lineupPill(r)}</div><div class="sub">${r.home?'vs':'@'} ${esc(r.opp)} · ${esc(r.opp_sp||'TBD')} ${r.opp_sp_throws||''}${r.opp_sp_source==='projected'?' (P)':''} · park ${r.park_runs??'–'}${r.temp_f!=null?` · ${Math.round(r.temp_f)}°`:''}</div></div><div class="val">${r.exp_pts.toFixed(1)}</div></div>`:`<div class="row"><span class="ava" style="--tc:var(--panel3)">${s}</span><div class="sub">open slot</div><div></div></div>`).join('')}</div><button class="go" data-go="streamers">Full week and bench →</button></div>`;
+    const wx = [...new Map(SHD.filter(r=>r.owner===MY && r.active!==0 && r.date===day).map(r=>[r.gamePk, r])).values()];
+    cards += `<div class="dcard w6"><h3>Your parks today <small>forecast at first pitch</small></h3><div class="todaystrip">${wx.map(r=>`<div class="wxchip"><b>${esc(abbrOf(r.team))} ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} ${stateChip(r.gamePk)}</b><span>${r.temp_f!=null?`${Math.round(r.temp_f)}° · wind ${r.wind_out>=0?'out':'in'} ${Math.abs(r.wind_out||0).toFixed(0)}`:(r.roof&&r.roof!=='Open'?'roof':'no forecast')}</span><small>${esc(r.local_start||'')}${r.precip_prob>=50?` · ${Math.round(r.precip_prob)}% rain`:''} · park ${r.park_runs??'–'}</small></div>`).join('')||'<span class="hint">no games</span>'}</div>
+      ${(()=>{ const ms = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced'); const n = ms.length; return `<div class="stat" style="margin-top:12px"><b>${n}</b><span>of 10 starts this week from your rotation${n>10?' — you will have to bench one':''}</span></div>`; })()}</div>`;
+    const faH = Object.values(SHD.filter(r=>isFA(r.owner)&&r.active!==0).reduce((a,r)=>{ (a[r.mlbam_id] ||= {...r, week:0, g:0}); a[r.mlbam_id].week += r.exp_pts; a[r.mlbam_id].g++; return a; },{})).sort((a,b)=>b.week-a.week).slice(0,6);
+    cards += `<div class="dcard"><h3>Pickups: bats this week <small>free agents</small></h3><div class="rowlist">${faH.map(r=>rowH(r, `${r.week.toFixed(1)}<small>${r.g} games</small>`, `${r.elig||''} · ${esc(abbrOf(r.team))} · 30-day wOBA ${r.woba_30!=null?r.woba_30.toFixed(3):'–'}`)).join('')}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
+    const faP = SPS.filter(r=>isFA(r.owner)&&r.active!==0&&r.sp_source!=='replaced'&&goodRole(r)).sort((a,b)=>b.exp_pts-a.exp_pts).slice(0,6);
+    cards += `<div class="dcard"><h3>Pickups: starts this week <small>free agents</small></h3><div class="rowlist">${faP.map(r=>rowP(r, `${r.exp_pts.toFixed(1)}<small>${dayLabel(r.date).split(',')[0]}${r.two_start?' · 2-start':''}</small>`, `${r.home?'vs':'@'} ${esc(r.opp)}${r.sp_source==='projected'?' (P)':''} · opp wOBA ${r.opp_woba_vs_hand?.toFixed(3)}${r.pl_tier?' · PL: '+esc(r.pl_tier):''}${r.cbs?' · CBS '+esc(r.cbs):''}`)).join('')}</div><button class="go" data-go="streamers">Pitcher slate →</button></div>`;
+  }
+  const kb = (MY ? cur.filter(r=>r.owner===MY && !r.pslot) : cur.filter(r=>!isFA(r.owner))).sort((a,b)=>(b.KSV_c??-999)-(a.KSV_c??-999)).slice(0,6);
+  cards += `<div class="dcard"><h3>Keeper board <small>${MY?'2027, your five hitters':'2027, league-wide surplus value'}</small></h3><div class="rowlist">${kb.map((r,i)=>rowH(r, `${signed(r.KSV_c)}<small>KSV</small>`, `${i+1}. proj ${Math.round(r.proj_pts)} · ${r.tier_c||''}${MY?'':' · '+esc(r.owner)}${r.kept_2026_as&&MY===HOME_ABBR?' · kept 2026':''}`)).join('')}</div><button class="go" data-go="keepers">Boards and draft pool →</button></div>`;
+  const bo = ROWS.filter(r=>r.season===CUR && r.BI!=null && r.PA>=150 && r.age<=30 && isFA(r.owner)).sort((a,b)=>b.BI-a.BI).slice(0,6);
+  cards += `<div class="dcard"><h3>Breakout watch <small>free-agent bats, 2027 BI</small></h3><div class="rowlist">${bo.map(r=>rowH(r, `${r.BI.toFixed(0)}%<small>BI</small>`, `${r.elig||''} · age ${r.age} · ${Math.round(r.pts_c)} pts · xwOBA ${r.xwoba?.toFixed(3)??'–'}`)).join('')}</div><button class="go" data-go="breakouts">Full breakout board →</button></div>`;
+  const asofT = SD ? new Date(SD.meta.asof+'T12:00:00') : today; const recent = ROWS.filter(r=>r.season===CUR && r.first_game && r.PA>=40 && r.PA<=250 && (asofT - new Date(r.first_game+'T12:00:00'))/864e5 <= 60).sort((a,b)=>(b.pts_pa_c||0)-(a.pts_pa_c||0)).slice(0,6);
+  cards += `<div class="dcard"><h3>Just called up <small>first 2026 game in the last 60 days</small></h3><div class="rowlist">${recent.map(r=>rowH(r, `${(r.pts_pa_c||0).toFixed(2)}<small>pts/PA · ${r.PA} PA</small>`, `${r.elig||''} · ${esc(abbrOf(r.team_abbr))} · up ${esc(r.first_game)} · pace ${r.pa_pace_162?Math.round(r.pa_pace_162):'–'} PA · xwOBA ${r.xwoba?.toFixed(3)??'–'} · ${isFA(r.owner)?'free agent':esc(r.owner)}`)).join('')||'<span class="hint">none</span>'}</div><button class="go" data-go="prospects">Prospect cards →</button></div>`;
+  const pb = PROWS.filter(r=>r.season===CUR && r.BI!=null && r.GS>=10 && isFA(r.owner)).sort((a,b)=>b.BI-a.BI).slice(0,6);
+  cards += `<div class="dcard"><h3>Arms to watch <small>free-agent SP, 2027 BI</small></h3><div class="rowlist">${pb.map(r=>rowP(r, `${r.BI.toFixed(0)}%<small>BI</small>`, `${r.GS} GS · ${(r.pts_gs_c??0).toFixed(1)}/GS · Pitching+ ${r.pitching_plus?.toFixed(0)??'–'}`)).join('')}</div><button class="go" data-go="pitchers">Pitcher lab →</button></div>`;
+  $('#dash').innerHTML = cards;
+  $$('#dash .row[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
+  $$('#dash .row[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
+  $$('#dash .go').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)));
+}
+
+// ---------- tabs + boot
+buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
+renderDash(); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
+</script>

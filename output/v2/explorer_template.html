@@ -1,0 +1,519 @@
+<title>Philly Special Hitter Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F4F1; --panel:#FFFFFF; --panel2:#EAECE7; --panel3:#DFE3DC; --ink:#14201B; --ink2:#4A5750; --ink3:#7B877F; --line:#D5DAD3;
+  --accent:#1B3F8B; --hot:#C8312B; --cold:#2C6FB7; --good:#2E7D4F; --bad:#B23A2E; --warn:#B7791F; --mine:#F7E7B3;
+  --hot-rgb:200,49,43; --cold-rgb:44,111,183;
+  --font-d:"Barlow Condensed","Arial Narrow",Impact,sans-serif; --font-b:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif; --font-m:"IBM Plex Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101613; --panel:#171F1B; --panel2:#1F2924; --panel3:#28342E; --ink:#E9EEE9; --ink2:#B4BEB6; --ink3:#7F8B83; --line:#2C3833;
+  --accent:#8FB0F0; --hot:#F0645C; --cold:#6AA7EA; --good:#5CC48A; --bad:#EE7365; --warn:#E3B04B; --mine:#4A3F16;
+  --hot-rgb:240,100,92; --cold-rgb:106,167,234; }}
+:root[data-theme="dark"]{
+  --bg:#101613; --panel:#171F1B; --panel2:#1F2924; --panel3:#28342E; --ink:#E9EEE9; --ink2:#B4BEB6; --ink3:#7F8B83; --line:#2C3833;
+  --accent:#8FB0F0; --hot:#F0645C; --cold:#6AA7EA; --good:#5CC48A; --bad:#EE7365; --warn:#E3B04B; --mine:#4A3F16;
+  --hot-rgb:240,100,92; --cold-rgb:106,167,234; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:13.5px;line-height:1.45;padding-inline:clamp(12px,2vw,28px);padding-block:0 60px}
+a{color:var(--accent)}
+.wrap{max-width:1500px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 24px;padding-block:20px 12px;border-bottom:3px solid var(--ink)}
+h1{font-family:var(--font-d);font-weight:700;font-size:clamp(30px,4.5vw,44px);line-height:.95;margin:0;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+h1 small{display:block;font-family:var(--font-b);font-size:13.5px;font-weight:500;text-transform:none;color:var(--ink2);margin-top:6px;letter-spacing:0;max-width:70ch}
+h2{font-family:var(--font-d);font-size:26px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;margin:0 0 4px;line-height:1}
+h3{font-family:var(--font-d);font-size:19px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;margin:14px 0 6px}
+.lede{color:var(--ink2);max-width:75ch;margin:0 0 12px}
+.lede b,.note b{color:var(--ink)}
+nav.tabs{position:sticky;top:0;z-index:6;background:var(--bg);display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);padding-block:6px;margin-bottom:16px}
+nav.tabs button{font-family:var(--font-d);font-size:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:transparent;color:var(--ink2);border:0;border-bottom:3px solid transparent;padding:7px 12px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--hot)}
+nav.tabs button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section[role="tabpanel"]{display:none} section[role="tabpanel"].on{display:block}
+/* league bar */
+.leaguebar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:8px 12px;margin:0 0 12px}
+.leaguebar label{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+select,input[type="number"],input[type="search"],input[type="text"]{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:2px}
+input[type="number"]{width:64px;font-family:var(--font-m);font-size:12px}
+.wts{display:flex;flex-wrap:wrap;gap:6px 10px}
+.wts label{font-family:var(--font-m);font-size:11.5px;color:var(--ink2);display:flex;align-items:center;gap:4px}
+.wts input{width:52px;padding:3px 4px}
+.btn{font:inherit;font-size:12.5px;font-weight:500;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 10px;cursor:pointer;border-radius:2px}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.small{padding:3px 8px;font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--line);background:var(--panel);border-radius:2px;overflow:hidden}
+.seg button{font:inherit;font-size:12.5px;font-weight:500;border:0;background:transparent;color:var(--ink2);padding:5px 10px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:8px}
+.filters label{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:5px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink2);padding:2px 8px;border-radius:12px;cursor:pointer;user-select:none}
+.chip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rangefilters{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}
+.rf{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--ink2)}
+.rf select{min-width:180px}
+.colpicker{display:none;flex-wrap:wrap;gap:4px 14px;background:var(--panel);border:1px solid var(--line);padding:8px 10px;margin-bottom:8px}
+.colpicker.open{display:flex}
+.colpicker .grp{min-width:150px}
+.colpicker .grp b{display:block;font-family:var(--font-d);font-size:14px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+.colpicker label{display:block;font-size:12px;color:var(--ink2);cursor:pointer}
+.hint{color:var(--ink3);font-size:12px}
+/* table */
+.tblwrap{overflow:auto;border:1px solid var(--line);background:var(--panel);max-height:72vh}
+table{border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums;font-size:12.5px}
+th{position:sticky;top:0;z-index:2;background:var(--panel2);color:var(--ink2);font-weight:600;text-align:right;padding:7px 7px;border-bottom:2px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;font-size:11.5px;letter-spacing:.02em}
+th.l,td.l{text-align:left}
+th.sticky,td.sticky{position:sticky;left:0;z-index:3;background:var(--panel);box-shadow:1px 0 0 var(--line)}
+th.sticky{z-index:4;background:var(--panel2)}
+th[aria-sort="descending"]::after{content:" ▾";color:var(--hot)} th[aria-sort="ascending"]::after{content:" ▴";color:var(--hot)}
+td{padding:4px 7px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-family:var(--font-m);font-size:12px}
+td.l{font-family:var(--font-b);font-size:12.5px}
+tbody tr:hover td{filter:brightness(.96)}
+tr.mine td.sticky{background:var(--mine)}
+td.name{font-weight:600;cursor:pointer}
+td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:11px;font-family:var(--font-b)}
+.pc{padding:4px 7px;border-radius:2px}
+.pill{display:inline-block;padding:0 6px;border-radius:2px;font-size:11px;font-weight:600;font-family:var(--font-b)}
+.pill.g{background:rgba(46,125,79,.15);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.15);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.15);color:var(--cold)} .pill.w{background:rgba(183,121,31,.15);color:var(--warn)} .pill.n{background:var(--panel2);color:var(--ink2)}
+.pos-d{color:var(--good);font-weight:600}.neg-d{color:var(--bad);font-weight:600}
+.count{font-family:var(--font-m);font-size:12px;color:var(--ink3)}
+/* player card */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20}
+.overlay.open{display:block}
+.card{position:fixed;top:0;right:0;bottom:0;width:min(760px,100%);background:var(--bg);z-index:21;overflow:auto;transform:translateX(100%);transition:transform .2s;padding:18px clamp(12px,2vw,24px);border-left:1px solid var(--line)}
+.card.open{transform:none}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+.card h2{font-size:32px}
+.card .close{position:absolute;top:12px;right:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:10px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:8px 10px}
+.kpi b{display:block;font-family:var(--font-d);font-size:24px;font-weight:600;line-height:1}
+.kpi span{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em}
+.card table{font-size:12px}
+.spark{display:inline-block;vertical-align:middle}
+.bars{display:flex;gap:2px;align-items:flex-end;height:36px}
+.bars i{display:block;width:14px;background:var(--cold);opacity:.85}
+.bars i.cur{background:var(--hot)}
+.zrow{display:grid;grid-template-columns:150px 1fr 60px;gap:8px;align-items:center;font-size:12px;margin:2px 0}
+.zbar{position:relative;height:12px;background:var(--panel2)}
+.zbar::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+.zbar i{position:absolute;top:2px;bottom:2px}
+.zbar i.p{left:50%;background:var(--hot)} .zbar i.n{right:50%;background:var(--cold)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.note{border-left:3px solid var(--hot);padding:8px 12px;background:var(--panel);margin:10px 0;max-width:80ch;color:var(--ink2)}
+.formula{font-family:var(--font-m);font-size:12px;background:var(--panel);border:1px solid var(--line);padding:8px 10px;margin:6px 0 10px;white-space:pre-wrap;color:var(--ink)}
+.method p,.method li{max-width:76ch;color:var(--ink2)} .method li b,.method p b{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink2);margin:6px 0 0}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.legend .h::before{background:var(--hot)} .legend .c::before{background:var(--cold)} .legend .m::before{background:var(--mine);border:1px solid var(--line)}
+svg text{fill:var(--ink2);font-family:var(--font-m);font-size:11px}
+@media (max-width:640px){ .zrow{grid-template-columns:110px 1fr 50px} .tblwrap{max-height:none} }
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Philly Special Hitter Lab<small>Every hitter-season since 2021 scored in your league's points, with Statcast, expected points, ADP value, injury history, prospect status, keeper economics and a career-relative Breakout Index. Change the scoring and everything re-scores.</small></h1>
+</header>
+
+<div class="leaguebar" id="leaguebar">
+  <label>Scoring <select id="preset"></select></label>
+  <label>Mode <span class="seg" role="group"><button aria-pressed="true" data-mode="points" id="mode-points">Points</button><button aria-pressed="false" data-mode="roto" id="mode-roto">5x5 Roto</button></span></label>
+  <label>Teams <input type="number" id="teams" value="12" min="4" max="30"></label>
+  <label>Hitters started <input type="number" id="hstart" value="10" min="5" max="16"></label>
+  <label>Hitter keepers/team <input type="number" id="hkeep" value="5" min="0" max="10"></label>
+  <button class="btn small" id="toggle-wts">Edit weights</button>
+  <span class="hint" id="score-note"></span>
+</div>
+<div class="wts" id="wts" hidden></div>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button role="tab" aria-selected="true" data-tab="explore">Explorer</button>
+  <button role="tab" aria-selected="false" data-tab="breakouts">Breakouts 2027</button>
+  <button role="tab" aria-selected="false" data-tab="keepers">Keepers &amp; draft pool</button>
+  <button role="tab" aria-selected="false" data-tab="drafts">Real drafts</button>
+  <button role="tab" aria-selected="false" data-tab="prospects">Prospects</button>
+  <button role="tab" aria-selected="false" data-tab="formulas">Formulas &amp; checks</button>
+</nav>
+
+<section role="tabpanel" id="tab-explore" class="on">
+  <div class="filters">
+    <label>Season <select id="f-season"></select></label>
+    <label>Min PA <input type="number" id="f-minpa" value="200" min="0" step="50"></label>
+    <label>Age <input type="number" id="f-agemin" value="18" min="17" max="45"> – <input type="number" id="f-agemax" value="45" min="17" max="45"></label>
+    <label>Positions <span class="chips" id="f-pos"></span></label>
+    <label>Fantrax owner <select id="f-owner"><option value="">any</option></select></label>
+    <label>Status <select id="f-status"><option value="">any</option></select></label>
+    <input type="search" id="f-q" placeholder="Search name" aria-label="Search name">
+    <button class="btn small" id="toggle-cols">Columns</button>
+    <button class="btn small" id="add-rf">+ stat filter</button>
+    <button class="btn small" id="reset">Reset</button>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="rangefilters" id="rangefilters"></div>
+  <div class="colpicker" id="colpicker"></div>
+  <div class="tblwrap"><table id="t-explore"></table></div>
+  <div class="legend"><span class="h">top of the pool</span><span class="c">bottom of the pool</span> <span>Color = percentile among hitters with 200+ PA in the same season (direction-aware: low K% is red). Click a name for the player card.</span></div>
+</section>
+
+<section role="tabpanel" id="tab-breakouts">
+  <h2>2027 breakout candidates</h2>
+  <p class="lede"><b>BI</b> is the Breakout Index: the model's probability that 2027 is <b>new territory for the player</b> (points per PA at least 0.08 above his best 200-PA season, 350+ PA, top-90 finish). It is trained on 2021→22 through 2025→26 and reads Statcast skills, expected-vs-actual points, career track, age, and IL history. An aging star cannot score high here by construction, which is the fix for the Trout problem. <b>Proj</b> is the separate points projection (skills model + empirical aging step, times a durability-aware PA estimate).</p>
+  <div class="filters">
+    <label>Pool <span class="seg" role="group"><button aria-pressed="true" data-bpool="all">All</button><button aria-pressed="false" data-bpool="ft">400+ PA</button><button aria-pressed="false" data-bpool="pt">&lt;400 PA</button></span></label>
+    <label>Availability <select id="b-avail"><option value="">everyone</option><option value="FA">free agents in my league</option><option value="notkept">not a likely keeper</option><option value="mine">my roster</option></select></label>
+    <label>Max age <input type="number" id="b-agemax" value="34" min="18" max="45"></label>
+    <label>Min BI <input type="number" id="b-minbi" value="0" min="0" max="100"></label>
+    <span class="count" id="b-count"></span>
+  </div>
+  <div class="tblwrap"><table id="t-break"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-keepers">
+  <h2>Keepers and the 2027 draft pool</h2>
+  <p class="lede">You keep 5 hitters and the draft only holds what's left. <b>KSV</b> (Keeper Surplus Value) = projected 2027 points minus what the best hitter on the board at your first pick is projected to return (the (kept + 12)th best hitter). Positive means keeping him beats drafting; "lock" is 120+. <b>Likely kept</b> assumes each team keeps its five highest-KSV hitters. Real keeper lists are not published by Fantrax, so the past-year keepers are inferred as top-ADP hitters missing from the draft.</p>
+  <div class="grid2">
+    <div>
+      <div class="filters"><label>Team <select id="k-owner"></select></label></div>
+      <h3>Keeper board</h3>
+      <div class="tblwrap"><table id="t-kboard"></table></div>
+    </div>
+    <div>
+      <h3>2027 draft pool (likely keepers removed)</h3>
+      <div class="filters"><label>Show <select id="p-n"><option>50</option><option>100</option><option>200</option><option>400</option></select></label></div>
+      <div class="tblwrap"><table id="t-pool"></table></div>
+    </div>
+  </div>
+  <h3>Inferred keepers by year</h3>
+  <div class="filters"><label>Year <select id="ky-year"></select></label></div>
+  <div class="tblwrap" style="max-width:820px"><table id="t-keepyear"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-drafts">
+  <h2>Your league's real drafts, 2024-2026</h2>
+  <p class="lede">Every hitter pick (keepers are not picks) against two yardsticks: the market ADP curve for that year, and the <b>league's own pick curve</b> (median points returned by the Nth hitter taken in this league, pooled over three drafts). Your picks are highlighted.</p>
+  <div class="filters"><label>Year <select id="d-year"><option value="">all</option></select></label><label>Team <select id="d-team"><option value="">all</option></select></label><span class="count" id="d-count"></span></div>
+  <div class="tblwrap"><table id="t-drafts"></table></div>
+  <h3>League pick curve</h3>
+  <div id="pickcurve"></div>
+</section>
+
+<section role="tabpanel" id="tab-prospects">
+  <h2>Prospects and rookies</h2>
+  <p class="lede"><b>PAS</b> (Prospect Arrival Score, 0-100) = 35 × pedigree (MLB Pipeline rank) + 25 × age-vs-level + 25 × minor-league bat (ISO, OBP, BB−K, steals, z-scored within level) + 15 × MLB sample quality (xwOBA, EV50, bat speed) when he has one. Hitters only; current Pipeline top-100 plus every rookie-eligible bat with a 2026 MLB or upper-minors line.</p>
+  <div class="filters"><label>Status <select id="pr-status"><option value="">all</option></select></label><label>Min PAS <input type="number" id="pr-min" value="0" min="0" max="100"></label><span class="count" id="pr-count"></span></div>
+  <div class="tblwrap"><table id="t-pros"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-formulas" class="method">
+  <h2>Formulas and checks</h2>
+  <h3>League points (verified against Fantrax)</h3>
+  <div class="formula" id="f-scoring"></div>
+  <h3>xLP — expected league points</h3>
+  <p>What a hitter <b>deserved</b> in your scoring, from Statcast expected stats. Hits come from xBA, extra-base hits from xISO split by the hitter's own doubles/triples/homers mix (regressed to the league mix over 40 XBH), walks/HBP/steals are skills so they stay actual, runs and RBI come from a ridge model on xOBP/xISO/xBA/speed (league-average lineup context).</p>
+  <div class="formula">xH = xBA × AB;  xXBH = xISO × AB / (r2B + 2·r3B + 3·rHR);  x1B = xH − xXBH
+x2B = xXBH·r2B;  x3B = xXBH·r3B;  xHR = xXBH·rHR
+xR/PA, xRBI/PA = ridge(xOBP, xISO, xBA, SB/PA, xHR/PA, sprint)
+xLP = Σ weight(event) × x(event)      luck = LP − xLP   (+ = out-hit his contact quality)</div>
+  <p>Check: across 987 consecutive 300-PA seasons, xLP/PA predicted the next year's points/PA with r = 0.52 versus r = 0.47 for actual points/PA.</p>
+  <h3>LPAR — league points above replacement</h3>
+  <div class="formula">fill C, SS, 2B, 3B, 1B, OF slots for every team with the best available hitters, then the UT slots;
+replacement(pos) = points of the best hitter still unrostered at that position (+2 bench bats)
+LPAR = points − min(replacement over the positions he qualifies at, replacement(UT))</div>
+  <h3>Value over ADP</h3>
+  <div class="formula">expected(rank) = isotonic( rolling median of points by preseason ADP hitter rank )   per season
+pts_over_exp = points − expected(ADP rank);  rank_gain = ADP rank − final rank
+beat: ≥ +75 pts, ≥ +25 ranks, top-150 finish     big beat: ≥ +150, ≥ +60, top-75</div>
+  <h3>Aging curve (empirical, delta method)</h3>
+  <p>Change in points/PA from age a to a+1 for hitters with 300+ PA both years, PA-weighted, smoothed, cumulated relative to 27. Your league's scoring rewards singles and steals, both of which age badly, so the curve turns down early and hard.</p>
+  <div id="agingchart"></div>
+  <h3>Durability</h3>
+  <div class="formula">projected PA = (0.6 × PA_2026 + 0.4 × mean PA 2024-26) × (1 − 0.0008 × IL days over last 3 years, capped 250) × (0.95 if age ≥ 33), clipped 200-650</div>
+  <h3>Breakout Index</h3>
+  <div class="formula">breakout(t+1) := pts/PA(t+1) ≥ career-best(200+ PA seasons through t) + 0.08  AND  PA(t+1) ≥ 350  AND  final rank(t+1) ≤ 90
+BI = 100 × P(breakout | Statcast skills, xLP gap, career best, gap to best, seasons, age, PA, IL history, yoy K%/barrel/bat-speed change)
+      gradient-boosted classifier, 2021→22 … 2025→26</div>
+  <div class="grid2">
+    <div><h3>Breakout Index, leave-one-season-out</h3><div class="tblwrap"><table id="t-cvbi"></table></div></div>
+    <div><h3>Points projection, leave-one-season-out</h3><div class="tblwrap"><table id="t-cvproj"></table></div></div>
+  </div>
+  <p>As of 2025 data only, the 25 highest BI hitters produced a new-level 2026 at a 16% clip against a 3.3% base rate; Caglianone, Otto Lopez, Crow-Armstrong and Meidroth were all inside that top 25. Trout's 2027 BI is 1.9.</p>
+  <h3>Keeper Surplus Value</h3>
+  <div class="formula">KSV = proj_pts − proj_pts[ rank = hitters kept league-wide + 12 ]     (worth keeping over your first pick)
+KSV_2nd = proj_pts − proj_pts[ rank = kept + 24 ]                    (worth keeping over your second pick)</div>
+  <h3>League fit</h3>
+  <div class="formula">fit_vs_points = percentile(pts/PA, this scoring) − percentile(pts/PA, ESPN-style points with K = −1)
+fit_vs_roto   = percentile(pts/PA, this scoring) − percentile(5x5 roto z-score)</div>
+  <h3>Prospect Arrival Score</h3>
+  <div class="formula">PAS = 35·pedigree + 25·level_age + 25·milb_bat + 15·mlb_sample
+pedigree = 1 − (Pipeline rank − 1)/100 (0.15 unranked);  level_age = clip(0.5 + (avg age at level − age)·0.15, 0, 1) × level weight (AAA 1, AA .85, A+ .6, A .4)
+milb_bat = 0.5 + 0.2·z( ISO, OBP, BB−K, ½·SB/600 ) within level;  mlb_sample = mean percentile of xwOBA, EV50, bat speed</div>
+  <h3>Data</h3>
+  <p>Baseball Savant custom leaderboard (196 fields, 25+ PA, 2021-2026); MLB Stats API season hitting + fielding, minor-league hitting AAA–A 2024-2026, transactions (IL) 2021-2026; MLB Pipeline current top 100; FantasyPros composite ADP archive 2021-2026 (NFBC and Fantrax columns kept); your Fantrax rules, drafts and players table (read-only). Bat tracking exists from 2023/24. Grand slams and cycles are the only scored events not in public feeds.</p>
+</section>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="card" id="card" aria-label="Player card"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body"></div></aside>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// ---------- unpack columnar tables
+function unpack(t){ return t.rows.map(r => Object.fromEntries(t.cols.map((c,i)=>[c, r[i]]))); }
+const ROWS = unpack(D.seasons);
+const PROJ = Object.fromEntries(unpack(D.projections).map(p => [p.mlbam_id, p]));
+const BY_ID = {}; ROWS.forEach(r => (BY_ID[r.mlbam_id] ||= []).push(r)); Object.values(BY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
+const SEASONS = [...new Set(ROWS.map(r=>r.season))].sort();
+const CUR = D.meta.season; const MY = D.meta.my_abbrev;
+ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept}); });
+
+// ---------- scoring engine (client side)
+const EVENTS = ['1B','2B','3B','HR','R','RBI','BB','HBP','SB','CS','K','E','CSA','AOF'];
+let W = {...D.meta.scoring}; let MODE = 'points'; let TEAMS = D.meta.teams, HSTART = 10, HKEEP = 5;
+const XMAP = {'1B':'x1B','2B':'x2B','3B':'x3B','HR':'xHR','R':'xR','RBI':'xRBI'};
+function rescore(){
+  const w = W;
+  for (const r of ROWS){
+    let p = 0, x = 0, ok = r.xLP != null;
+    for (const e of EVENTS){ const wt = +w[e]||0; if(!wt) continue; p += wt*(r[e]||0); x += wt*((XMAP[e] ? r[XMAP[e]] : r[e])||0); }
+    r.pts_c = p; r.pts_pa_c = r.PA ? p/r.PA : null; r.xLP_c = ok ? x : null; r.luck_c = ok ? p - x : null;
+  }
+  // roto z (5x5) per season among top-N by points
+  for (const s of SEASONS){
+    const pool = ROWS.filter(r=>r.season===s);
+    const q = pool.filter(r=>r.PA>=200).sort((a,b)=>b.pts_c-a.pts_c).slice(0, TEAMS*(HSTART+4));
+    const cats = ['R','HR','RBI','SB']; const st = {};
+    for (const c of cats){ const v = q.map(r=>r[c]); const mu = v.reduce((a,b)=>a+b,0)/v.length; const sd = Math.sqrt(v.reduce((a,b)=>a+(b-mu)**2,0)/v.length)||1; st[c]=[mu,sd]; }
+    const lg = q.reduce((a,r)=>a+r.H,0)/q.reduce((a,r)=>a+r.AB,0); const hv = q.map(r=>r.H-lg*r.AB); const mu=hv.reduce((a,b)=>a+b,0)/hv.length; const sd=Math.sqrt(hv.reduce((a,b)=>a+(b-mu)**2,0)/hv.length)||1;
+    for (const r of pool){ let z=0; for(const c of cats){ z += (r[c]-st[c][0])/st[c][1]; } z += ((r.H-lg*r.AB)-mu)/sd; r.roto_c = z; }
+    // value column used everywhere
+    for (const r of pool) r.val = MODE==='roto' ? r.roto_c : r.pts_c;
+    // ranks + replacement (UT-style) + ADP expected curve
+    const sorted = pool.slice().sort((a,b)=>b.val-a.val); sorted.forEach((r,i)=>r.rank_c=i+1);
+    const nslots = TEAMS*HSTART; const replAll = sorted[Math.min(nslots+2*TEAMS-1, sorted.length-1)]?.val ?? 0;
+    const cs = sorted.filter(r=>(r.elig||'').split('/').includes('C')); const replC = cs[Math.min(TEAMS*(D.meta.positions.C||1)+1, cs.length-1)]?.val ?? replAll;
+    for (const r of pool){ const isC=(r.elig||'').split('/').includes('C'); r.repl_c = Math.min(replAll, isC?replC:replAll); r.LPAR_c = r.val - r.repl_c; }
+    // ADP curve: bins of 12 ranks, median value, monotone (cummin), interpolate
+    const dr = pool.filter(r=>r.adp_hitter_rank!=null).sort((a,b)=>a.adp_hitter_rank-b.adp_hitter_rank);
+    const bins=[]; for(let i=0;i<dr.length;i+=12){ const b=dr.slice(i,i+12).map(r=>r.val).sort((a,b)=>a-b); bins.push([dr[Math.min(i+6,dr.length-1)].adp_hitter_rank, b[Math.floor(b.length/2)]]); }
+    for(let i=1;i<bins.length;i++) bins[i][1]=Math.min(bins[i][1],bins[i-1][1]);
+    const maxR = dr.length ? dr[dr.length-1].adp_hitter_rank : 0;
+    const expAt = rk => { if(!bins.length) return null; if (rk<=bins[0][0]) return bins[0][1]; for(let i=1;i<bins.length;i++){ if(rk<=bins[i][0]){ const [r0,v0]=bins[i-1],[r1,v1]=bins[i]; return v0+(v1-v0)*(rk-r0)/(r1-r0);} } return bins[bins.length-1][1]; };
+    for (const r of pool){ const rk = r.adp_hitter_rank ?? (maxR+1); r.exp_c = expAt(rk); r.over_c = r.exp_c==null?null:r.val-r.exp_c; r.gain_c = rk - r.rank_c; }
+  }
+  $('#score-note').textContent = MODE==='roto' ? '5x5 roto: value = z-score sum (R, HR, RBI, SB, AVG). Points columns still show the selected weights.' : `points = ${EVENTS.filter(e=>+W[e]).map(e=>`${W[e]}×${e}`).join(' + ')}`;
+}
+
+// ---------- column catalogue
+const COLS = [
+  {k:'name',l:'Hitter',g:'Identity',t:'name',sticky:true},{k:'season',l:'Yr',g:'Identity',f:'int',dir:0,def:true},{k:'age',l:'Age',g:'Identity',f:'1',dir:-1,def:true},{k:'elig',l:'Pos',g:'Identity',t:'txt',def:true},{k:'team_abbr',l:'MLB',g:'Identity',t:'txt'},{k:'owner',l:'Owner',g:'Identity',t:'txt',def:true},{k:'prospect_status',l:'Status',g:'Identity',t:'txt'},
+  {k:'PA',l:'PA',g:'Production',f:'int',dir:1,def:true},{k:'G',l:'G',g:'Production',f:'int',dir:1},{k:'pts_c',l:'Pts',g:'Production',f:'0',dir:1,def:true},{k:'pts_pa_c',l:'Pts/PA',g:'Production',f:'3',dir:1,def:true},{k:'rank_c',l:'Rank',g:'Production',f:'int',dir:-1,def:true},{k:'LPAR_c',l:'LPAR',g:'Production',f:'0',dir:1,def:true},{k:'roto_c',l:'Roto z',g:'Production',f:'1',dir:1},
+  {k:'HR',l:'HR',g:'Counting',f:'int',dir:1},{k:'R',l:'R',g:'Counting',f:'int',dir:1},{k:'RBI',l:'RBI',g:'Counting',f:'int',dir:1},{k:'SB',l:'SB',g:'Counting',f:'int',dir:1,def:true},{k:'BB',l:'BB',g:'Counting',f:'int',dir:1},{k:'K',l:'K',g:'Counting',f:'int',dir:-1},{k:'1B',l:'1B',g:'Counting',f:'int',dir:1},{k:'2B',l:'2B',g:'Counting',f:'int',dir:1},{k:'3B',l:'3B',g:'Counting',f:'int',dir:1},{k:'HBP',l:'HBP',g:'Counting',f:'int',dir:1},{k:'CS',l:'CS',g:'Counting',f:'int',dir:-1},{k:'E',l:'E',g:'Counting',f:'int',dir:-1},{k:'CSA',l:'CSA',g:'Counting',f:'int',dir:1},{k:'AOF',l:'OF A',g:'Counting',f:'int',dir:1},
+  {k:'xLP_c',l:'xLP',g:'Expected',f:'0',dir:1,def:true},{k:'luck_c',l:'Luck',g:'Expected',f:'0',dir:-1,def:true},{k:'batting_avg',l:'AVG',g:'Expected',f:'3',dir:1},{k:'xba',l:'xBA',g:'Expected',f:'3',dir:1},{k:'slg_percent',l:'SLG',g:'Expected',f:'3',dir:1},{k:'xslg',l:'xSLG',g:'Expected',f:'3',dir:1},{k:'woba',l:'wOBA',g:'Expected',f:'3',dir:1},{k:'xwoba',l:'xwOBA',g:'Expected',f:'3',dir:1,def:true},{k:'xobp',l:'xOBP',g:'Expected',f:'3',dir:1},{k:'xiso',l:'xISO',g:'Expected',f:'3',dir:1},{k:'babip',l:'BABIP',g:'Expected',f:'3',dir:0},
+  {k:'over_c',l:'vs ADP',g:'Market',f:'0',dir:1,def:true},{k:'adp',l:'ADP',g:'Market',f:'1',dir:-1},{k:'adp_hitter_rank',l:'ADP rk',g:'Market',f:'int',dir:-1,def:true},{k:'adp_nfbc',l:'NFBC rk',g:'Market',f:'int',dir:-1},{k:'adp_fantrax',l:'FT rk',g:'Market',f:'int',dir:-1},{k:'gain_c',l:'Rank gain',g:'Market',f:'0',dir:1},{k:'fit_vs_points',l:'Fit vs pts',g:'Market',f:'0',dir:1},{k:'fit_vs_roto',l:'Fit vs roto',g:'Market',f:'0',dir:1},
+  {k:'barrel_batted_rate',l:'Brl%',g:'Contact quality',f:'1',dir:1,def:true},{k:'hard_hit_percent',l:'HH%',g:'Contact quality',f:'1',dir:1},{k:'avg_best_speed',l:'EV50',g:'Contact quality',f:'1',dir:1,def:true},{k:'exit_velocity_avg',l:'EV',g:'Contact quality',f:'1',dir:1},{k:'launch_angle_avg',l:'LA',g:'Contact quality',f:'1',dir:0},{k:'sweet_spot_percent',l:'SwSp%',g:'Contact quality',f:'1',dir:1},{k:'pull_percent',l:'Pull%',g:'Contact quality',f:'1',dir:0},{k:'flyballs_percent',l:'FB%',g:'Contact quality',f:'1',dir:0},{k:'groundballs_percent',l:'GB%',g:'Contact quality',f:'1',dir:-1},{k:'linedrives_percent',l:'LD%',g:'Contact quality',f:'1',dir:1},
+  {k:'avg_swing_speed',l:'Bat spd',g:'Bat tracking',f:'1',dir:1,def:true},{k:'fast_swing_rate',l:'Fast%',g:'Bat tracking',f:'1',dir:1},{k:'ideal_angle_rate',l:'Ideal∠%',g:'Bat tracking',f:'1',dir:1},{k:'squared_up_swing',l:'SqUp%',g:'Bat tracking',f:'1',dir:1},{k:'blasts_swing',l:'Blast%',g:'Bat tracking',f:'1',dir:1},{k:'attack_angle',l:'Attack∠',g:'Bat tracking',f:'1',dir:0},
+  {k:'k_percent',l:'K%',g:'Discipline',f:'1',dir:-1,def:true},{k:'bb_percent',l:'BB%',g:'Discipline',f:'1',dir:1,def:true},{k:'oz_swing_percent',l:'Chase%',g:'Discipline',f:'1',dir:-1},{k:'whiff_percent',l:'Whiff%',g:'Discipline',f:'1',dir:-1},{k:'iz_contact_percent',l:'Z-Con%',g:'Discipline',f:'1',dir:1},{k:'z_swing_percent',l:'Z-Sw%',g:'Discipline',f:'1',dir:0},{k:'swing_take_run_value',l:'Sw/Tk RV',g:'Discipline',f:'0',dir:1},
+  {k:'sprint_speed',l:'Sprint',g:'Speed',f:'1',dir:1,def:true},
+  {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
+  {k:'career_best_pa',l:'Career best /PA',g:'Career',f:'3',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'3',dir:1},{k:'seasons_200',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_PA',l:'Career PA',g:'Career',f:'int',dir:0},{k:'pipeline_rank',l:'Pipeline',g:'Career',f:'int',dir:-1},{k:'PAS',l:'PAS',g:'Career',f:'1',dir:1},
+  {k:'BI',l:'BI',g:'2027 (this season only)',f:'1',dir:1,def:true},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'Proj rk',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_600',l:'Proj/600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'KSV',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Keep',g:'2027 (this season only)',t:'txt'},
+];
+const CI = Object.fromEntries(COLS.map(c=>[c.k,c]));
+let visible = new Set(COLS.filter(c=>c.def||c.t==='name').map(c=>c.k));
+const fmt = (c, v) => { if (v==null || v==='' || Number.isNaN(v)) return ''; if (c.t==='txt') return esc(v); if (c.f==='int') return Math.round(v).toString(); if (c.f==='0') return Math.round(v).toLocaleString(); if (c.f==='1') return (+v).toFixed(1); if (c.f==='3') return (+v).toFixed(3); return esc(v); };
+const signed = v => v==null ? '' : `<span class="${v>=0?'pos-d':'neg-d'}">${v>=0?'+':''}${Math.round(v)}</span>`;
+
+// ---------- percentile coloring
+const PCT = {}; // season -> key -> sorted values
+function buildPct(){ for (const s of SEASONS){ PCT[s] = {}; const pool = ROWS.filter(r=>r.season===s && r.PA>=200); for (const c of COLS){ if(!c.dir) continue; PCT[s][c.k] = pool.map(r=>r[c.k]).filter(v=>v!=null && !Number.isNaN(v)).sort((a,b)=>a-b); } } }
+function pct(s, k, v){ const arr = PCT[s]?.[k]; if(!arr||!arr.length||v==null) return null; let lo=0,hi=arr.length; while(lo<hi){const m=(lo+hi)>>1; if(arr[m]<v) lo=m+1; else hi=m;} return lo/arr.length; }
+function cellStyle(c, s, v){ if(!c.dir) return ''; let p = pct(s, c.k, v); if(p==null) return ''; if(c.dir<0) p = 1-p; const a = Math.abs(p-0.5)*2; const rgb = p>=0.5 ? 'var(--hot-rgb)' : 'var(--cold-rgb)'; return `background:rgba(${rgb},${(0.08+0.42*a).toFixed(2)})`; }
+
+// ---------- generic table
+function table(id, cols, rows, opts={}){
+  const el = document.getElementById(id); let sortKey = opts.sort||null, dir = opts.dir||-1;
+  function render(){
+    let r = rows.slice();
+    if (sortKey) r.sort((a,b)=>{ const x=a[sortKey], y=b[sortKey]; if(x==null||x==='') return 1; if(y==null||y==='') return -1; return (typeof x==='number'? x-y : String(x).localeCompare(String(y)))*dir; });
+    if (opts.limit) r = r.slice(0, opts.limit);
+    let h = '<thead><tr>' + cols.map(c=>`<th class="${c.left||c.t==='name'||c.t==='txt'?'l':''} ${c.sticky?'sticky':''}" data-k="${c.k}" ${sortKey===c.k?`aria-sort="${dir<0?'descending':'ascending'}"`:''} title="${esc(c.title||c.g||'')}">${c.l}</th>`).join('') + '</tr></thead><tbody>';
+    for (const x of r){
+      h += `<tr class="${opts.rowClass?opts.rowClass(x):''}">` + cols.map(c=>{
+        if (c.t==='name') return `<td class="l name sticky" data-id="${x.mlbam_id||''}">${esc(x[c.k])}<span class="sub">${esc(x.elig||x.pos||'')}${x.team_abbr?' · '+esc(x.team_abbr):''}</span></td>`;
+        if (c.render) return `<td class="${c.left?'l':''}">${c.render(x[c.k], x)}</td>`;
+        const st = opts.color ? cellStyle(c, x.season, x[c.k]) : '';
+        return `<td class="${c.t==='txt'?'l':''}" style="${st}">${fmt(c, x[c.k])}</td>`;
+      }).join('') + '</tr>';
+    }
+    el.innerHTML = h + '</tbody>';
+    el.querySelectorAll('th').forEach(th=>th.addEventListener('click',()=>{ const k=th.dataset.k; if(sortKey===k) dir=-dir; else {sortKey=k; dir = (CI[k]?.dir===-1 || k==='rank_c' || k==='adp_hitter_rank' || k==='pool_rank'||k==='hitter_pick'||k==='overall'||k==='pipeline_rank'||k==='proj_rank'||k==='team_rank') ? 1 : -1;} render(); }));
+    el.querySelectorAll('td.name').forEach(td=>td.addEventListener('click',()=>{ const id=+td.dataset.id; if(id) openCard(id); }));
+  }
+  render(); return {setRows(rs){rows=rs;render();}, setCols(cs){cols=cs;render();}};
+}
+
+// ---------- explorer state
+const posList = ['C','1B','2B','3B','SS','OF','UT'];
+const state = { season: CUR, minpa: 200, agemin: 18, agemax: 45, pos: new Set(), owner: '', status: '', q: '', rf: [] };
+function explorerRows(){
+  return ROWS.filter(r => (state.season==='all' || r.season===state.season) && r.PA>=state.minpa && r.age>=state.agemin && r.age<=state.agemax
+    && (!state.pos.size || [...state.pos].some(p => (r.elig||'').split('/').includes(p)))
+    && (!state.owner || (state.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===state.owner))
+    && (!state.status || r.prospect_status===state.status)
+    && (!state.q || r.name.toLowerCase().includes(state.q))
+    && state.rf.every(f => f.k && ((f.min==null || f.min==='' || r[f.k]>=+f.min) && (f.max==null || f.max==='' || r[f.k]<=+f.max))));
+}
+let tExplore;
+function renderExplorer(){ const rows = explorerRows(); $('#count').textContent = `${rows.length} hitter-seasons`; tExplore.setCols(COLS.filter(c=>visible.has(c.k))); tExplore.setRows(rows); }
+function buildExplorer(){
+  const ss = $('#f-season'); ss.innerHTML = SEASONS.slice().reverse().map(s=>`<option value="${s}">${s}</option>`).join('') + '<option value="all">all seasons</option>'; ss.value = String(CUR);
+  ss.addEventListener('change', e=>{ state.season = e.target.value==='all'?'all':+e.target.value; renderExplorer(); });
+  $('#f-minpa').addEventListener('input', e=>{ state.minpa=+e.target.value||0; renderExplorer(); });
+  $('#f-agemin').addEventListener('input', e=>{ state.agemin=+e.target.value||0; renderExplorer(); });
+  $('#f-agemax').addEventListener('input', e=>{ state.agemax=+e.target.value||99; renderExplorer(); });
+  $('#f-pos').innerHTML = posList.map(p=>`<span class="chip" role="button" tabindex="0" aria-pressed="false" data-p="${p}">${p}</span>`).join('');
+  $$('#f-pos .chip').forEach(ch=>{ const t=()=>{ const p=ch.dataset.p; if(state.pos.has(p)) state.pos.delete(p); else state.pos.add(p); ch.setAttribute('aria-pressed', state.pos.has(p)); renderExplorer(); }; ch.addEventListener('click',t); ch.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();t();} }); });
+  const owners = [...new Set(Object.values(PROJ).map(p=>p.owner).filter(Boolean))].sort();
+  $('#f-owner').innerHTML = '<option value="">any</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(o===MY?o+' (me)':o)}</option>`).join('');
+  $('#f-owner').addEventListener('change', e=>{ state.owner=e.target.value; renderExplorer(); });
+  const statuses = [...new Set(ROWS.map(r=>r.prospect_status).filter(Boolean))];
+  $('#f-status').innerHTML = '<option value="">any</option>' + statuses.map(s=>`<option>${esc(s)}</option>`).join('');
+  $('#f-status').addEventListener('change', e=>{ state.status=e.target.value; renderExplorer(); });
+  $('#f-q').addEventListener('input', e=>{ state.q=e.target.value.trim().toLowerCase(); renderExplorer(); });
+  $('#reset').addEventListener('click', ()=>{ Object.assign(state,{minpa:200,agemin:18,agemax:45,owner:'',status:'',q:'',rf:[]}); state.pos.clear(); $('#f-minpa').value=200; $('#f-agemin').value=18; $('#f-agemax').value=45; $('#f-owner').value=''; $('#f-status').value=''; $('#f-q').value=''; $$('#f-pos .chip').forEach(c=>c.setAttribute('aria-pressed','false')); renderRF(); renderExplorer(); });
+  // column picker
+  const groups = [...new Set(COLS.map(c=>c.g))];
+  $('#colpicker').innerHTML = groups.map(g=>`<div class="grp"><b>${g}</b>${COLS.filter(c=>c.g===g && c.t!=='name').map(c=>`<label><input type="checkbox" data-k="${c.k}" ${visible.has(c.k)?'checked':''}> ${c.l}</label>`).join('')}</div>`).join('');
+  $$('#colpicker input').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked) visible.add(cb.dataset.k); else visible.delete(cb.dataset.k); renderExplorer(); }));
+  $('#toggle-cols').addEventListener('click', ()=>$('#colpicker').classList.toggle('open'));
+  $('#add-rf').addEventListener('click', ()=>{ state.rf.push({k:'barrel_batted_rate',min:'',max:''}); renderRF(); });
+  tExplore = table('t-explore', COLS.filter(c=>visible.has(c.k)), [], {sort:'pts_c', color:true, rowClass: x => x.owner===MY ? 'mine':''});
+  renderExplorer();
+}
+function renderRF(){
+  const numeric = COLS.filter(c=>c.f);
+  $('#rangefilters').innerHTML = state.rf.map((f,i)=>`<div class="rf"><select data-i="${i}" class="rf-k">${numeric.map(c=>`<option value="${c.k}" ${c.k===f.k?'selected':''}>${c.l} (${c.g})</option>`).join('')}</select> min <input type="number" step="any" class="rf-min" data-i="${i}" value="${f.min}"> max <input type="number" step="any" class="rf-max" data-i="${i}" value="${f.max}"> <button class="btn small rf-x" data-i="${i}">✕</button></div>`).join('');
+  $$('.rf-k').forEach(s=>s.addEventListener('change',e=>{ state.rf[+e.target.dataset.i].k=e.target.value; renderExplorer(); }));
+  $$('.rf-min').forEach(s=>s.addEventListener('input',e=>{ state.rf[+e.target.dataset.i].min=e.target.value; renderExplorer(); }));
+  $$('.rf-max').forEach(s=>s.addEventListener('input',e=>{ state.rf[+e.target.dataset.i].max=e.target.value; renderExplorer(); }));
+  $$('.rf-x').forEach(s=>s.addEventListener('click',e=>{ state.rf.splice(+e.target.dataset.i,1); renderRF(); renderExplorer(); }));
+}
+
+// ---------- league bar
+function buildLeagueBar(){
+  const presets = {...D.meta.presets};
+  $('#preset').innerHTML = Object.keys(presets).map(k=>`<option value="${k}">${k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
+  $('#preset').value = 'philly_special';
+  $('#preset').addEventListener('change', e=>{ if(e.target.value!=='custom'){ W = {...Object.fromEntries(EVENTS.map(x=>[x,0])), ...presets[e.target.value]}; renderWts(); refreshAll(); } });
+  $('#toggle-wts').addEventListener('click', ()=>{ $('#wts').hidden = !$('#wts').hidden; });
+  $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{ MODE=b.dataset.mode; $$('[data-mode]').forEach(x=>x.setAttribute('aria-pressed', x===b)); refreshAll(); }));
+  $('#teams').addEventListener('input', e=>{ TEAMS=+e.target.value||12; refreshAll(); });
+  $('#hstart').addEventListener('input', e=>{ HSTART=+e.target.value||10; refreshAll(); });
+  $('#hkeep').addEventListener('input', e=>{ HKEEP=+e.target.value||0; refreshAll(); });
+  renderWts();
+}
+function renderWts(){ $('#wts').innerHTML = EVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${W[e]??0}"></label>`).join(''); $$('#wts input').forEach(i=>i.addEventListener('input',e=>{ W[e.target.dataset.e]=+e.target.value||0; $('#preset').value='custom'; refreshAll(); })); }
+function refreshAll(){ rescore(); buildPct(); renderExplorer(); renderBreak(); renderKeepers(); renderDrafts(); renderFormulaScoring(); }
+
+// ---------- player card
+function openCard(id){
+  const hist = BY_ID[id]; if(!hist) return; const last = hist[hist.length-1]; const p = PROJ[id];
+  const kp = (l,v)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  const yrs = hist.map(r=>r.season);
+  const bars = (key, fmtv, dirn=1) => { const vals = hist.map(r=>r[key]); const mx = Math.max(...vals.filter(v=>v!=null)), mn = Math.min(...vals.filter(v=>v!=null)); return `<div class="bars" title="${key}">${hist.map(r=>{ const v=r[key]; const h = v==null?2: (mx===mn?18: 4+30*(v-mn)/(mx-mn)); return `<i style="height:${h}px" class="${r.season===CUR?'cur':''}" title="${r.season}: ${v==null?'-':fmtv(v)}"></i>`; }).join('')}</div>`; };
+  const trend = [['pts_pa_c','Pts/PA',v=>v.toFixed(3)],['xLP_c','xLP',v=>Math.round(v)],['xwoba','xwOBA',v=>v.toFixed(3)],['barrel_batted_rate','Barrel%',v=>v.toFixed(1)],['k_percent','K%',v=>v.toFixed(1)],['avg_swing_speed','Bat speed',v=>v.toFixed(1)],['sprint_speed','Sprint',v=>v.toFixed(1)],['PA','PA',v=>Math.round(v)]];
+  const cols = [{k:'season',l:'Yr',f:'int'},{k:'age',l:'Age',f:'1'},{k:'team_abbr',l:'Tm',t:'txt'},{k:'PA',l:'PA',f:'int'},{k:'pts_c',l:'Pts',f:'0'},{k:'pts_pa_c',l:'/PA',f:'3'},{k:'rank_c',l:'Rk',f:'int'},{k:'adp_hitter_rank',l:'ADP rk',f:'int'},{k:'over_c',l:'vs ADP',f:'0'},{k:'xLP_c',l:'xLP',f:'0'},{k:'luck_c',l:'Luck',f:'0'},{k:'HR',l:'HR',f:'int'},{k:'SB',l:'SB',f:'int'},{k:'xwoba',l:'xwOBA',f:'3'},{k:'barrel_batted_rate',l:'Brl%',f:'1'},{k:'avg_swing_speed',l:'Bat',f:'1'},{k:'k_percent',l:'K%',f:'1'},{k:'bb_percent',l:'BB%',f:'1'},{k:'sprint_speed',l:'Spr',f:'1'},{k:'il_days',l:'IL d',f:'int'}];
+  const rowsHtml = hist.map(r=>`<tr>${cols.map(c=>`<td class="${c.t==='txt'?'l':''}" style="${cellStyle(CI[c.k]||{dir:0}, r.season, r[c.k])}">${fmt(c, r[c.k])}</td>`).join('')}</tr>`).join('');
+  const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
+  const pj = p ? `${kp('BI 2027', p.BI??'–')}${kp('Proj pts', p.proj_pts??'–')}${kp('Proj rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('Proj /600', p.proj_pts_600??'–')}${kp('Proj PA', p.proj_PA??'–')}${kp('KSV', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  $('#card-body').innerHTML = `<h2>${esc(last.name)}</h2><div class="hint">${esc(last.elig||'')} · ${esc(last.team_abbr||'')} · age ${last.age} · owner ${esc(last.owner||'–')} · ${esc(last.prospect_status||'')}${last.pipeline_rank?' · Pipeline #'+last.pipeline_rank:''}${p?.keep_tier?' · keeper: '+p.keep_tier:''}</div>
+    <div class="kpis">${kp(CUR+' pts', Math.round(last.pts_c))}${kp('Rank', '#'+last.rank_c)}${kp('LPAR', Math.round(last.LPAR_c))}${kp('vs ADP', last.over_c==null?'–':(last.over_c>=0?'+':'')+Math.round(last.over_c))}${kp('Luck', last.luck_c==null?'–':(last.luck_c>=0?'+':'')+Math.round(last.luck_c))}${pj}</div>
+    <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3>
+    <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
+    <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    <h3>Injured list</h3><p class="hint">${il}</p>
+    ${p ? `<h3>2027 projection</h3><p class="hint">rate ${p.proj_rate?.toFixed(3)} pts/PA (model ${p.proj_rate_raw?.toFixed(3)}, aging step ${(p.age_step??0)>=0?'+':''}${(p.age_step??0).toFixed(3)}), durability ×${p.durability}, projected PA ${p.proj_PA}. BI ${p.BI} = chance 2027 is a new career level.</p>` : ''}`;
+  $('#overlay').classList.add('open'); $('#card').classList.add('open'); $('#card-close').focus();
+}
+$('#overlay').addEventListener('click', closeCard); $('#card-close').addEventListener('click', closeCard); document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCard(); });
+function closeCard(){ $('#overlay').classList.remove('open'); $('#card').classList.remove('open'); }
+
+// ---------- breakouts tab
+let bpool='all', tBreak;
+function renderBreak(){
+  const avail = $('#b-avail').value, agemax = +$('#b-agemax').value||99, minbi = +$('#b-minbi').value||0;
+  let rows = ROWS.filter(r=>r.season===CUR && r.BI!=null && r.PA>=100 && r.age<=agemax && r.BI>=minbi);
+  if (bpool==='ft') rows = rows.filter(r=>r.PA>=400); if (bpool==='pt') rows = rows.filter(r=>r.PA<400);
+  if (avail==='FA') rows = rows.filter(r=>r.owner==='FA'||r.owner==='W (Sun)'); if (avail==='notkept') rows = rows.filter(r=>!r.likely_kept); if (avail==='mine') rows = rows.filter(r=>r.owner===MY);
+  $('#b-count').textContent = `${rows.length} hitters`;
+  const cols = [CI.name, CI.age, CI.owner, CI.PA, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'career_best_pa',l:'Best /PA',f:'3',dir:1}, {k:'pts_pa_c',l:'2026 /PA',f:'3',dir:1}, {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'BI',f:'1',dir:1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'proj_pts_600',l:'Proj/600',f:'0',dir:1}, CI.KSV, {k:'keep_tier',l:'Keep',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'3',dir:1}];
+  if (!tBreak) tBreak = table('t-break', cols, rows, {sort:'BI', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBreak.setCols(cols); tBreak.setRows(rows); }
+}
+$$('[data-bpool]').forEach(b=>b.addEventListener('click',()=>{ bpool=b.dataset.bpool; $$('[data-bpool]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBreak(); }));
+['#b-avail','#b-agemax','#b-minbi'].forEach(s=>$(s).addEventListener('input', renderBreak));
+
+// ---------- keepers tab
+let tK, tPool, tKY;
+function renderKeepers(){
+  const cur = ROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
+  // recompute KSV under current settings: pool replacement = (HKEEP*TEAMS + 12)th projected
+  const sorted = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts); const nk = HKEEP*TEAMS; const r1 = sorted[Math.min(nk+TEAMS-1, sorted.length-1)]?.proj_pts ?? 0; const r2 = sorted[Math.min(nk+2*TEAMS-1, sorted.length-1)]?.proj_pts ?? 0;
+  cur.forEach(r=>{ r.KSV_c = Math.round(r.proj_pts - r1); r.KSV2_c = Math.round(r.proj_pts - r2); r.tier_c = r.KSV_c>=120?'lock':r.KSV_c>=40?'clear keep':r.KSV_c>0?'marginal':'let go'; });
+  // likely kept: each owner's top-HKEEP by KSV
+  const byOwner = {}; cur.forEach(r=>{ if(r.owner && r.owner!=='FA' && r.owner!=='W (Sun)') (byOwner[r.owner] ||= []).push(r); });
+  const kept = new Set(); Object.values(byOwner).forEach(a=>a.sort((x,y)=>y.KSV_c-x.KSV_c).slice(0,HKEEP).forEach(r=>kept.add(r.mlbam_id)));
+  cur.forEach(r=>r.kept_c = kept.has(r.mlbam_id));
+  const owners = Object.keys(byOwner).sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(o===MY?o+' (me)':o)}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
+  const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.KSV_c-x.KSV_c).map((r,i)=>({...r, team_rank:i+1}));
+  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'KSV_c',l:'KSV',render:signed}, {k:'KSV2_c',l:'KSV 2nd',render:signed}, {k:'tier_c',l:'Tier',render:v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':'n'}">${v}</span>`}, {k:'BI',l:'BI',f:'1',dir:1}, CI.il_days_3yr];
+  if(!tK) tK = table('t-kboard', kcols, board, {sort:'team_rank', dir:1, color:true}); else tK.setRows(board);
+  const n = +$('#p-n').value||50;
+  const pool = sorted.filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
+  const pcols = [{k:'pool_rank',l:'#',f:'int'}, CI.name, CI.age, CI.owner, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'Proj',f:'0',dir:1}, {k:'proj_rank',l:'Proj rk',f:'int',dir:-1}, {k:'BI',l:'BI',f:'1',dir:1}, CI.xwoba, CI.k_percent, CI.sprint_speed, CI.il_days_3yr];
+  if(!tPool) { tPool = table('t-pool', pcols, pool, {sort:'pool_rank', dir:1, limit:n, color:true, rowClass:x=>x.owner===MY?'mine':''}); $('#p-n').addEventListener('change', renderKeepers); } else { tPool.setRows(pool.slice(0,n)); }
+  const yrs = Object.keys(D.keepers); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
+  const kyrows = D.keepers[ky.value]||[];
+  const kycols = [{k:'player',l:'Player',left:true,t:'txt'}, {k:'adp_hitter_rank',l:'ADP hitter rk',f:'int'}, {k:'pts',l:'Pts that year',f:'0'}, {k:'final_hitter_rank',l:'Final rk',f:'int'}, {k:'source',l:'Source',t:'txt'}];
+  if(!tKY) tKY = table('t-keepyear', kycols, kyrows, {sort:'adp_hitter_rank', dir:1}); else tKY.setRows(kyrows);
+}
+
+// ---------- drafts tab
+let tD;
+function renderDrafts(){
+  const y = $('#d-year').value, t = $('#d-team').value;
+  let rows = D.drafts.filter(d=>(!y||String(d.season)===y)&&(!t||d.team===t));
+  // re-value under current scoring: find the season row for the player
+  const idx = {}; ROWS.forEach(r=>{ idx[r.season+'|'+r.name.toLowerCase()] = r; });
+  rows = rows.map(d=>{ const r = idx[d.season+'|'+d.player.toLowerCase()]; return {...d, pts_c: r?r.pts_c:d.pts, over_c: r?r.over_c:d.pts_over_exp, rank_c: r?r.rank_c:d.final_hitter_rank, mlbam_id: r?r.mlbam_id:null, elig: d.pos}; });
+  $('#d-count').textContent = `${rows.length} hitter picks`;
+  const cols = [{k:'season',l:'Yr',f:'int'},{k:'overall',l:'Pick',f:'int'},{k:'round',l:'Rd',f:'int'},{k:'team',l:'Team',t:'txt'},{k:'player',l:'Player',t:'name'},{k:'PA',l:'PA',f:'int'},{k:'pts_c',l:'Pts',f:'0'},{k:'rank_c',l:'Fin rk',f:'int'},{k:'adp_hitter_rank',l:'ADP rk',f:'int'},{k:'over_c',l:'vs ADP',render:signed},{k:'hitter_pick',l:'Lg hitter #',f:'int'},{k:'exp_pts_slot',l:'Slot exp',f:'0'},{k:'pts_over_slot',l:'vs slot',render:signed},{k:'beat',l:'',render:v=>v?'<span class="pill g">beat</span>':''}];
+  if(!tD){ $('#d-year').innerHTML = '<option value="">all</option>' + [...new Set(D.drafts.map(d=>d.season))].sort().map(s=>`<option>${s}</option>`).join(''); $('#d-team').innerHTML = '<option value="">all</option>' + [...new Set(D.drafts.map(d=>d.team))].sort().map(s=>`<option>${esc(s)}</option>`).join(''); $('#d-year').addEventListener('change', renderDrafts); $('#d-team').addEventListener('change', renderDrafts);
+    tD = table('t-drafts', cols, rows, {sort:'pts_over_slot', rowClass:x=>x.mine?'mine':''}); drawPickCurve(); } else tD.setRows(rows);
+}
+function drawPickCurve(){ const pts = Object.entries(D.pick_curve).map(([k,v])=>[+k,+v]); const W=720,H=220,pl=44,pb=28; const mx=Math.max(...pts.map(p=>p[0])), my=Math.max(...pts.map(p=>p[1])); const X=x=>pl+(x-1)/(mx-1)*(W-pl-10), Y=y=>H-pb-(y/my)*(H-pb-10); const path = pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' '); const picks = D.drafts.filter(d=>d.pts!=null); $('#pickcurve').innerHTML = `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="League pick curve"><g>${[0,200,400,600,800].filter(v=>v<=my).map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join('')}</g>${picks.map(d=>`<circle cx="${X(d.hitter_pick)}" cy="${Y(d.pts)}" r="2.5" fill="${d.mine?'var(--hot)':'var(--cold)'}" opacity="${d.mine?1:.45}"><title>${esc(d.player)} ${d.season}: pick ${d.overall}, ${Math.round(d.pts)} pts</title></circle>`).join('')}<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="${W/2}" y="${H-6}" text-anchor="middle">hitter pick number in this league (2024–2026 pooled)</text></svg></div><div class="legend"><span class="h">your picks</span><span class="c">everyone else</span> line = expected points at that slot</div>`; }
+
+// ---------- prospects
+let tP;
+function renderPros(){
+  const st = $('#pr-status').value, mn = +$('#pr-min').value||0;
+  const rows = D.prospects.filter(p=>(!st||p.prospect_status===st) && (p.PAS??0)>=mn).map(p=>({...p, mlbam_id:p.mlbam_id, name:p.name, elig:p.prospect_pos||'', team_abbr:(p.prospect_org||'').toUpperCase()}));
+  $('#pr-count').textContent = `${rows.length} bats`;
+  const cols = [{k:'name',l:'Player',t:'name'},{k:'age',l:'Age',f:'1'},{k:'pipeline_rank',l:'Pipeline',f:'int'},{k:'prospect_status',l:'Status',t:'txt'},{k:'milb_level',l:'Lvl',t:'txt'},{k:'milb_PA',l:'MiLB PA',f:'int'},{k:'milb_AVG',l:'AVG',f:'3'},{k:'milb_OBP',l:'OBP',f:'3'},{k:'milb_SLG',l:'SLG',f:'3'},{k:'milb_ISO',l:'ISO',f:'3'},{k:'milb_K',l:'K/PA',f:'3'},{k:'milb_BB',l:'BB/PA',f:'3'},{k:'milb_HR',l:'HR',f:'int'},{k:'milb_SB',l:'SB',f:'int'},{k:'PA',l:'MLB PA 26',f:'int'},{k:'career_PA',l:'Career PA',f:'int'},{k:'PAS',l:'PAS',f:'1'},{k:'BI',l:'BI',f:'1'},{k:'proj_pts_600',l:'Proj/600',f:'0'},{k:'owner',l:'Owner',t:'txt'}];
+  if(!tP){ $('#pr-status').innerHTML = '<option value="">all</option>' + [...new Set(D.prospects.map(p=>p.prospect_status))].map(s=>`<option>${esc(s)}</option>`).join(''); $('#pr-status').addEventListener('change',renderPros); $('#pr-min').addEventListener('input',renderPros); tP = table('t-pros', cols, rows, {sort:'PAS'}); } else tP.setRows(rows);
+}
+
+// ---------- formulas tab
+function renderFormulaScoring(){ $('#f-scoring').textContent = `points = ${EVENTS.filter(e=>+W[e]).map(e=>`${W[e]}×${e}`).join(' + ')}\n(+5 grand slam, +10 cycle in Fantrax; not in public feeds)\nChecked against Fantrax 2026: 500/500 hitters match except those two events.`; }
+function drawAging(){ const a = D.aging; const W=720,H=240,pl=50,pb=30; const ys=a.map(r=>r.rel_to_27); const mn=Math.min(...ys), mx=Math.max(...ys); const X=x=>pl+(x-21)/(39-21)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn))*(H-pb-14); const path=a.map((r,i)=>(i?'L':'M')+X(r.age).toFixed(1)+' '+Y(r.rel_to_27).toFixed(1)).join(' '); const ticks=[-0.5,-0.4,-0.3,-0.2,-0.1,0].filter(v=>v>=mn&&v<=mx); $('#agingchart').innerHTML=`<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Aging curve"><g>${ticks.map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(1)}</text>`).join('')}</g>${a.map(r=>`<text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`).join('')}<path d="${path}" fill="none" stroke="var(--hot)" stroke-width="2.5"/>${a.map(r=>`<circle cx="${X(r.age)}" cy="${Y(r.rel_to_27)}" r="${Math.min(6,2+Math.sqrt(r.n_pairs||0)/3)}" fill="var(--hot)" opacity=".7"><title>age ${r.age}: ${r.rel_to_27.toFixed(3)} pts/PA vs 27 (${r.n_pairs} pairs)</title></circle>`).join('')}</svg></div><div class="hint">points per PA relative to age 27; dot size = number of consecutive-season pairs at that age (2021-2026, 300+ PA both years)</div>`; }
+function renderCV(){ table('t-cvbi', [{k:'held_out',l:'Held out',t:'txt'},{k:'n',l:'n',f:'int'},{k:'breakouts',l:'Breakouts',f:'int'},{k:'base_rate',l:'Base rate',f:'3'},{k:'auc',l:'AUC',f:'3'},{k:'top40_hit_rate',l:'Top-40 hit',f:'3'},{k:'top40_avg_next_pts',l:'Top-40 next pts',f:'0'}], D.cv_bi, {}); table('t-cvproj', [{k:'train_on',l:'Held out',t:'txt'},{k:'n',l:'n',f:'int'},{k:'r_model',l:'r model',f:'3'},{k:'r_naive_last_year',l:'r carry-over',f:'3'},{k:'r_xwoba_only',l:'r xwOBA',f:'3'},{k:'mae_model',l:'MAE model',f:'3'},{k:'mae_naive',l:'MAE carry',f:'3'}], D.cv_proj, {}); }
+
+// ---------- tabs + boot
+$$('nav.tabs button').forEach(b=>b.addEventListener('click',()=>{ $$('nav.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+b.dataset.tab)); try{localStorage.setItem('lab-tab',b.dataset.tab);}catch(e){} }));
+buildLeagueBar(); rescore(); buildPct(); buildExplorer(); renderBreak(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); renderCV();
+try{ const t=localStorage.getItem('lab-tab'); if(t) $(`nav.tabs button[data-tab="${t}"]`)?.click(); }catch(e){}
+</script>

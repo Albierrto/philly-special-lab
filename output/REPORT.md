@@ -1,0 +1,190 @@
+# Breakout & ADP-value report (2026 season data)
+
+## Multi-year ADP beaters (active in 2026)
+
+| name                |   age_2026 | elig     |   seasons_evaluated |   beats |   big_beats |   busts |   current_streak |   avg_pts_over_exp |   last_pts |   last_adp |   last_final_rank |
+|:--------------------|-----------:|:---------|--------------------:|--------:|------------:|--------:|-----------------:|-------------------:|-----------:|-----------:|------------------:|
+| Yandy Díaz          |         35 | UT       |                   6 |       5 |           2 |       0 |                2 |                172 |        670 |        126 |                25 |
+| Luis Arraez         |         29 | 2B       |                   6 |       4 |           2 |       0 |                2 |                133 |        597 |        233 |                48 |
+| Steven Kwan         |         29 | OF       |                   5 |       4 |           1 |       0 |                0 |                165 |        528 |        147 |                99 |
+| Brandon Nimmo       |         33 | OF       |                   6 |       4 |           2 |       0 |                0 |                130 |        563 |        130 |                74 |
+| Alec Burleson       |         28 | 1B       |                   4 |       3 |           2 |       0 |                3 |                179 |        674 |        173 |                24 |
+| Josh Bell           |         34 | 1B       |                   6 |       3 |           1 |       0 |                3 |                114 |        567 |        376 |                69 |
+| Ceddanne Rafaela    |         26 | OF       |                   3 |       3 |           0 |       0 |                3 |                138 |        619 |        153 |                41 |
+| Randy Arozarena     |         31 | OF       |                   6 |       3 |           1 |       0 |                2 |                110 |        711 |         83 |                 9 |
+| Bryan Reynolds      |         31 | OF       |                   6 |       3 |           2 |       0 |                1 |                155 |        677 |        179 |                22 |
+| Brandon Marsh       |         28 | OF       |                   6 |       3 |           0 |       0 |                1 |                125 |        526 |        352 |               102 |
+| Willi Castro        |         29 | 2B/3B/SS |                   6 |       3 |           1 |       1 |                1 |                118 |        477 |        287 |               124 |
+| Joc Pederson        |         34 | UT       |                   6 |       3 |           0 |       1 |                1 |                 69 |        438 |        nan |               149 |
+| Alec Bohm           |         30 | 1B/3B    |                   6 |       3 |           1 |       1 |                1 |                 43 |        508 |        230 |               107 |
+| Nathaniel Lowe      |         31 | 1B       |                   6 |       3 |           2 |       0 |                0 |                186 |        382 |        nan |               184 |
+| J.P. Crawford       |         32 | 3B/SS    |                   6 |       3 |           1 |       0 |                0 |                150 |        348 |        312 |               210 |
+| Taylor Ward         |         32 | OF       |                   6 |       3 |           3 |       1 |                0 |                137 |        488 |        118 |               119 |
+| Andrew McCutchen    |         40 | UT       |                   6 |       3 |           0 |       1 |                0 |                134 |         55 |        686 |               495 |
+| Kyle Schwarber      |         33 | UT       |                   6 |       3 |           0 |       0 |                0 |                131 |        690 |         21 |                15 |
+| Ian Happ            |         32 | OF       |                   6 |       3 |           3 |       0 |                0 |                130 |        576 |        147 |                61 |
+| Willy Adames        |         31 | SS       |                   6 |       3 |           1 |       0 |                0 |                121 |        453 |        106 |               136 |
+| Cal Raleigh         |         30 | C        |                   6 |       3 |           0 |       1 |                0 |                 96 |        432 |         15 |               155 |
+| Nico Hoerner        |         29 | 2B/SS    |                   6 |       3 |           2 |       1 |                0 |                 96 |        596 |         90 |                49 |
+| Maikel Garcia       |         26 | 3B       |                   4 |       3 |           2 |       1 |                0 |                142 |        285 |         64 |               251 |
+| Mike Yastrzemski    |         36 | OF       |                   6 |       3 |           0 |       0 |                0 |                 87 |        326 |        362 |               217 |
+| Jeremy Peña         |         29 | SS       |                   5 |       3 |           1 |       0 |                0 |                 93 |        449 |        106 |               141 |
+| Eugenio Suárez      |         35 | 3B       |                   6 |       3 |           2 |       2 |                0 |                 74 |        418 |         85 |               165 |
+| Jake Cronenworth    |         32 | 2B       |                   6 |       3 |           1 |       1 |                0 |                 67 |        280 |        340 |               259 |
+| Lourdes Gurriel Jr. |         33 | OF       |                   6 |       3 |           1 |       0 |                0 |                 53 |        149 |        440 |               373 |
+| Austin Hays         |         31 | OF       |                   6 |       3 |           0 |       2 |                0 |                 23 |         80 |        363 |               457 |
+| Christian Yelich    |         35 | UT       |                   6 |       3 |           0 |       2 |                0 |                 12 |        455 |         90 |               133 |
+| Otto Lopez          |         28 | SS       |                   4 |       2 |           1 |       1 |                2 |                191 |        705 |        270 |                11 |
+| Ernie Clement       |         30 | 2B/SS    |                   4 |       2 |           0 |       0 |                2 |                180 |        493 |        257 |               115 |
+| Andy Pages          |         26 | OF       |                   3 |       2 |           1 |       0 |                2 |                238 |        623 |        140 |                39 |
+| Dillon Dingler      |         28 | C        |                   2 |       2 |           1 |       0 |                2 |                280 |        594 |        259 |                52 |
+| Ben Rice            |         27 | 1B       |                   3 |       2 |           0 |       0 |                2 |                132 |        679 |         65 |                20 |
+| Chandler Simpson    |         26 | OF       |                   2 |       2 |           0 |       0 |                2 |                161 |        596 |        169 |                49 |
+| Caleb Durbin        |         26 | 3B       |                   2 |       2 |           0 |       0 |                2 |                150 |        524 |        230 |               103 |
+| Miguel Vargas       |         27 | 1B/3B    |                   5 |       2 |           1 |       1 |                2 |                 57 |        701 |        289 |                12 |
+| Jung Hoo Lee        |         28 | OF       |                   3 |       2 |           0 |       1 |                2 |                 22 |        543 |        249 |                91 |
+| Ty France           |         32 | 1B       |                   6 |       2 |           1 |       0 |                1 |                146 |        473 |        nan |               125 |
+
+## 2026 breakouts (career-best by 100+, top-75 finish, beat ADP curve)
+
+| name                |   age | elig        |   PA |   pts |   prev_best_pts |   jump |   adp_hitter_rank |   final_hitter_rank |   pts_over_exp |
+|:--------------------|------:|:------------|-----:|------:|----------------:|-------:|------------------:|--------------------:|---------------:|
+| Sal Stewart         |    23 | 1B/3B       |  641 |   716 |              65 |    651 |               113 |                   6 |            215 |
+| Kevin McGonigle     |    22 | 3B/SS       |  645 |   646 |               0 |    646 |               152 |                  32 |            255 |
+| Carson Benge        |    23 | OF          |  591 |   635 |               0 |    635 |               180 |                  35 |            287 |
+| TJ Rumfield         |    26 | 1B          |  583 |   580 |               0 |    580 |               nan |                  58 |            427 |
+| JJ Wetherholt       |    24 | 2B          |  586 |   564 |               0 |    564 |               131 |                  73 |            146 |
+| Carter Jensen       |    23 | C           |  556 |   579 |              89 |    490 |               139 |                  59 |            188 |
+| Jake Bauers         |    31 | 1B/OF       |  532 |   614 |             335 |    279 |               316 |                  43 |            461 |
+| Jordan Walker       |    24 | OF          |  616 |   743 |             480 |    263 |               229 |                   4 |            438 |
+| Daylen Lile         |    24 | OF          |  610 |   629 |             400 |    229 |               117 |                  38 |            128 |
+| Wilyer Abreu        |    27 | OF          |  632 |   662 |             479 |    183 |               125 |                  28 |            237 |
+| Miguel Vargas       |    27 | 1B/3B       |  644 |   701 |             529 |    172 |               174 |                  12 |            332 |
+| Otto Lopez          |    28 | SS          |  631 |   705 |             557 |    148 |               165 |                  11 |            314 |
+| Jonathan Aranda     |    28 | 1B          |  625 |   604 |             457 |    147 |               124 |                  45 |            179 |
+| Iván Herrera        |    26 | C           |  666 |   634 |             491 |    143 |               103 |                  36 |            117 |
+| Ezequiel Duran      |    27 | 2B/3B/SS/OF |  546 |   573 |             440 |    133 |               nan |                  64 |            420 |
+| Pete Crow-Armstrong |    24 | OF          |  668 |   895 |             767 |    128 |                25 |                   1 |            290 |
+| Ben Rice            |    27 | 1B          |  608 |   679 |             560 |    119 |                46 |                  20 |            121 |
+| Jake McCarthy       |    29 | OF          |  538 |   658 |             547 |    111 |               247 |                  29 |            404 |
+| Dillon Dingler      |    28 | C           |  567 |   594 |             494 |    100 |               160 |                  52 |            203 |
+
+## 2027 breakout candidates — full-time bats
+
+| name                |   age | elig     |   PA |   pts |   final_hitter_rank |   adp_hitter_rank |   proj_pts |   proj_rank |   skills_score |   breakout_score | tag                                                                                    |
+|:--------------------|------:|:---------|-----:|------:|--------------------:|------------------:|-----------:|------------:|---------------:|-----------------:|:---------------------------------------------------------------------------------------|
+| Cam Smith           |    23 | OF       |  521 |   493 |                 115 |               193 |        532 |          77 |           4.94 |             5.7  | unlucky (xwOBA >> wOBA); elite bat speed; skills trending up; plus speed; young        |
+| Garrett Mitchell    |    28 | OF       |  485 |   537 |                  95 |               286 |        464 |         127 |           4.01 |             3.37 | elite bat speed; elite contact quality; plus speed                                     |
+| Coby Mayo           |    25 | 3B       |  402 |   408 |                 172 |               232 |        387 |         181 |           3.46 |             3.28 | elite bat speed; elite contact quality; skills trending up; needs playing time; young  |
+| Henry Bolte         |    23 | OF       |  415 |   436 |                 151 |               nan |        448 |         138 |           2.9  |             3.16 | elite bat speed; elite contact quality; plus speed; needs playing time; young          |
+| Jac Caglianone      |    23 | 1B/OF    |  511 |   566 |                  71 |               105 |        493 |         103 |           3.71 |             3.07 | elite bat speed; elite contact quality; young                                          |
+| JJ Wetherholt       |    24 | 2B       |  586 |   564 |                  73 |               131 |        580 |          49 |           2.58 |             3.06 | unlucky (xwOBA >> wOBA); young                                                         |
+| Heriberto Hernández |    26 | OF       |  446 |   465 |                 130 |               nan |        418 |         160 |           3.61 |             3.01 | unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; needs playing time    |
+| Riley Greene        |    26 | OF       |  536 |   568 |                  68 |                44 |        567 |          56 |           2.74 |             2.5  | elite contact quality                                                                  |
+| Mike Trout          |    35 | OF       |  575 |   588 |                  55 |                98 |        565 |          59 |           2.57 |             2.49 | unlucky (xwOBA >> wOBA); elite contact quality; plus speed                             |
+| A.J. Ewing          |    22 | OF       |  438 |   451 |                 138 |               nan |        474 |         120 |           1.95 |             2.31 | unlucky (xwOBA >> wOBA); plus speed; needs playing time; young                         |
+| Munetaka Murakami   |    26 | 1B       |  492 |   501 |                 111 |               111 |        494 |         102 |           2.08 |             2.26 | elite contact quality                                                                  |
+| Jo Adell            |    27 | OF       |  603 |   560 |                  76 |                79 |        610 |          34 |           1.26 |             2.1  | unlucky (xwOBA >> wOBA); elite bat speed                                               |
+| Royce Lewis         |    27 | 1B/3B    |  460 |   432 |                 155 |               132 |        453 |         132 |           2.07 |             2.07 | elite bat speed                                                                        |
+| Colt Keith          |    25 | 3B       |  410 |   379 |                 186 |               189 |        399 |         170 |           1.64 |             1.96 | unlucky (xwOBA >> wOBA); needs playing time; young                                     |
+| JJ Bleday           |    29 | OF       |  498 |   479 |                 123 |               nan |        456 |         130 |           1.99 |             1.85 | unlucky (xwOBA >> wOBA); skills trending up                                            |
+| Trent Grisham       |    30 | OF       |  484 |   472 |                 126 |               142 |        502 |          96 |           1.13 |             1.73 | unlucky (xwOBA >> wOBA); plus approach                                                 |
+| Brandon Nimmo       |    33 | OF       |  606 |   563 |                  74 |                83 |        591 |          42 |           1.05 |             1.69 | unlucky (xwOBA >> wOBA); elite contact quality                                         |
+| Casey Schmitt       |    27 | 3B/OF    |  409 |   434 |                 153 |               321 |        382 |         183 |           2.24 |             1.64 | unlucky (xwOBA >> wOBA); elite contact quality; skills trending up; needs playing time |
+| Drake Baldwin       |    25 | C        |  559 |   595 |                  51 |                69 |        532 |          77 |           1.97 |             1.45 | elite contact quality                                                                  |
+| Luis García Jr.     |    26 | 1B       |  503 |   593 |                  53 |               157 |        496 |         100 |           2.31 |             1.37 | elite bat speed; elite contact quality; skills trending up                             |
+| Bryce Eldridge      |    22 | 1B       |  429 |   426 |                 162 |               207 |        349 |         207 |           2.21 |             1.31 | elite contact quality; needs playing time; young                                       |
+| Jake Bauers         |    31 | 1B/OF    |  532 |   614 |                  43 |               316 |        490 |         106 |           2.57 |             1.31 | elite bat speed; elite contact quality                                                 |
+| Cole Young          |    23 | 2B       |  593 |   535 |                  97 |               287 |        511 |          92 |           1.21 |             1.31 | young                                                                                  |
+| Shea Langeliers     |    29 | C        |  419 |   471 |                 127 |                48 |        453 |         132 |           2.98 |             1.3  | elite bat speed; elite contact quality; needs playing time                             |
+| Colson Montgomery   |    24 | 3B/SS    |  591 |   542 |                  93 |               109 |        533 |          74 |           0.83 |             1.21 | elite bat speed; elite contact quality; young                                          |
+| Brett Baty          |    27 | 2B/3B/OF |  432 |   375 |                 189 |               188 |        393 |         175 |           0.94 |             1.2  | unlucky (xwOBA >> wOBA); needs playing time                                            |
+| Kyle Karros         |    24 | 3B       |  423 |   411 |                 170 |               nan |        346 |         212 |           1.8  |             0.96 | skills trending up; needs playing time; young                                          |
+| Kody Clemens        |    30 | 1B/2B/OF |  530 |   556 |                  82 |               243 |        515 |          87 |           1.02 |             0.92 | elite contact quality                                                                  |
+| Bryson Stott        |    29 | 2B/3B    |  553 |   562 |                  75 |               110 |        543 |          68 |           0.6  |             0.74 |                                                                                        |
+| Masyn Winn          |    24 | SS       |  502 |   426 |                 162 |               176 |        448 |         138 |           0.24 |             0.72 | young                                                                                  |
+| Matt McLain         |    27 | 2B/SS    |  458 |   406 |                 174 |               101 |        451 |         135 |           1.36 |             0.68 | unlucky (xwOBA >> wOBA); plus speed                                                    |
+| Lawrence Butler     |    26 | OF       |  482 |   451 |                 138 |                84 |        493 |         103 |           0.91 |             0.53 |                                                                                        |
+| Spencer Torkelson   |    27 | 1B       |  558 |   495 |                 114 |               107 |        549 |          64 |          -0.37 |             0.49 |                                                                                        |
+| Chase DeLauter      |    25 | OF       |  513 |   548 |                  85 |               167 |        500 |          98 |           0.74 |             0.48 | plus approach; young                                                                   |
+| Willson Contreras   |    34 | 1B       |  517 |   571 |                  66 |               108 |        524 |          83 |           0.77 |             0.43 | elite bat speed; elite contact quality                                                 |
+| Xander Bogaerts     |    34 | SS       |  560 |   502 |                 110 |               154 |        532 |          77 |          -0.24 |             0.42 | unlucky (xwOBA >> wOBA)                                                                |
+| Tyler Soderstrom    |    25 | OF       |  453 |   471 |                 127 |                54 |        483 |         111 |           1.49 |             0.35 | young                                                                                  |
+| Jake Burger         |    30 | 1B       |  566 |   548 |                  85 |               163 |        480 |         114 |           0.9  |             0.32 | elite bat speed; elite contact quality                                                 |
+| Jacob Young         |    27 | OF       |  440 |   449 |                 141 |               nan |        412 |         163 |           0.73 |             0.29 | plus speed; needs playing time                                                         |
+| Josh Jung           |    28 | 3B       |  401 |   384 |                 182 |               199 |        389 |         177 |           0.19 |             0.29 | needs playing time                                                                     |
+
+## 2027 breakout candidates — playing-time dependent
+
+| name              |   age | elig     |   PA |   pts |   final_hitter_rank |   proj_pts_600pa |   proj_rank_600pa |   skills_score |   breakout_score | tag                                                                                                                 |
+|:------------------|------:|:---------|-----:|------:|--------------------:|-----------------:|------------------:|---------------:|-----------------:|:--------------------------------------------------------------------------------------------------------------------|
+| Brady House       |    23 | 3B       |  322 |   292 |                 245 |              598 |                95 |           3.18 |             3.46 | unlucky (xwOBA >> wOBA); elite contact quality; skills trending up; needs playing time; young                       |
+| Spencer Jones     |    25 | OF       |  243 |   277 |                 262 |              700 |                10 |           2.94 |             3.22 | elite bat speed; elite contact quality; plus speed; needs playing time                                              |
+| Lars Nootbaar     |    29 | OF       |  282 |   254 |                 278 |              575 |               176 |           2.33 |             2.73 | unlucky (xwOBA >> wOBA); plus approach; needs playing time                                                          |
+| Henry Davis       |    27 | C        |  279 |   250 |                 280 |              621 |                51 |           2.04 |             2.64 | unlucky (xwOBA >> wOBA); elite bat speed; needs playing time                                                        |
+| Luke Raley        |    32 | OF       |  287 |   267 |                 270 |              591 |               121 |           2.41 |             2.39 | unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; plus speed; needs playing time |
+| Jose Fernandez    |    23 | 3B       |  207 |   194 |                 332 |              615 |                60 |           1.28 |             2.02 | plus speed; needs playing time; young                                                                               |
+| Spencer Steer     |    29 | 1B/OF    |  384 |   368 |                 195 |              575 |               176 |           1.81 |             1.81 | unlucky (xwOBA >> wOBA); skills trending up; plus speed; needs playing time                                         |
+| Edouard Julien    |    27 | 2B       |  276 |   225 |                 302 |              569 |               198 |           1.86 |             1.78 | unlucky (xwOBA >> wOBA); needs playing time                                                                         |
+| Braden Montgomery |    23 | OF       |  325 |   289 |                 249 |              573 |               187 |           1.35 |             1.67 | unlucky (xwOBA >> wOBA); needs playing time; young                                                                  |
+| Jose Siri         |    31 | OF       |  210 |   214 |                 309 |              643 |                33 |           0.96 |             1.64 | elite contact quality; plus speed; needs playing time                                                               |
+| Ke'Bryan Hayes    |    29 | 3B       |  224 |   122 |                 402 |              550 |               270 |           1.44 |             1.64 | unlucky (xwOBA >> wOBA); needs playing time                                                                         |
+| Oneil Cruz        |    28 | OF       |  375 |   501 |                 111 |              717 |                 4 |           2.58 |             1.6  | elite bat speed; elite contact quality; needs playing time                                                          |
+| Max Muncy         |    24 | 3B       |  279 |   250 |                 280 |              579 |               164 |           1.87 |             1.59 | skills trending up; needs playing time; young                                                                       |
+| Dylan Crews       |    24 | OF       |  396 |   368 |                 195 |              611 |                65 |           2.14 |             1.58 | plus speed; needs playing time; young                                                                               |
+| Esmerlyn Valdez   |    22 | OF       |  287 |   311 |                 227 |              561 |               225 |           2.45 |             1.57 | elite contact quality; needs playing time; young                                                                    |
+| Luisangel Acuña   |    24 | SS/OF    |  209 |   192 |                 334 |              663 |                18 |           2.08 |             1.52 | unlucky (xwOBA >> wOBA); plus speed; needs playing time; young                                                      |
+| Curtis Mead       |    26 | 1B/3B    |  329 |   365 |                 198 |              618 |                55 |           1.93 |             1.47 | skills trending up; plus approach; needs playing time                                                               |
+| Heliot Ramos      |    27 | OF       |  395 |   362 |                 202 |              588 |               129 |           1.64 |             1.34 | unlucky (xwOBA >> wOBA); elite contact quality; needs playing time                                                  |
+| Patrick Bailey    |    27 | C        |  311 |   283 |                 253 |              585 |               141 |           0.63 |             1.15 | unlucky (xwOBA >> wOBA); skills trending up; needs playing time                                                     |
+| Blaze Alexander   |    27 | 2B/3B/OF |  289 |   299 |                 239 |              587 |               132 |           1.63 |             1.15 | needs playing time                                                                                                  |
+| Brice Matthews    |    24 | 2B/OF    |  226 |   185 |                 338 |              598 |                95 |           0.47 |             1.11 | plus speed; needs playing time; young                                                                               |
+| Nathaniel Lowe    |    31 | 1B       |  397 |   382 |                 184 |              554 |               258 |           0.7  |             1.08 | skills trending up; needs playing time                                                                              |
+| Ryan Jeffers      |    29 | C        |  330 |   377 |                 188 |              586 |               137 |           1.48 |             1.04 | skills trending up; plus approach; needs playing time                                                               |
+| Ryan Vilade       |    27 | OF       |  241 |   255 |                 277 |              629 |                44 |           1.16 |             0.98 | plus speed; needs playing time                                                                                      |
+| Tim Tawa          |    27 | 1B/OF    |  303 |   292 |                 245 |              574 |               182 |           1.29 |             0.87 | needs playing time                                                                                                  |
+| Victor Mesa Jr.   |    25 | OF       |  218 |   256 |                 276 |              602 |                77 |           1.32 |             0.86 | elite bat speed; needs playing time; young                                                                          |
+| Hao-Yu Lee        |    23 | 2B/3B    |  303 |   287 |                 250 |              571 |               194 |           0.76 |             0.74 | needs playing time; young                                                                                           |
+| Edmundo Sosa      |    30 | OF       |  237 |   232 |                 294 |              614 |                62 |           0.73 |             0.71 | unlucky (xwOBA >> wOBA); plus speed; needs playing time                                                             |
+| Angel Martínez    |    24 | OF       |  377 |   397 |                 176 |              587 |               132 |           0.61 |             0.59 | skills trending up; needs playing time; young                                                                       |
+| Luis Rengifo      |    29 | 3B/OF    |  354 |   296 |                 242 |              550 |               270 |          -0.29 |             0.57 | unlucky (xwOBA >> wOBA); skills trending up; needs playing time                                                     |
+| Colton Cowser     |    26 | OF       |  357 |   332 |                 215 |              621 |                51 |           1.23 |             0.57 | unlucky (xwOBA >> wOBA); needs playing time                                                                         |
+| Amed Rosario      |    31 | 3B       |  231 |   207 |                 318 |              593 |               116 |           0.45 |             0.57 | plus speed; needs playing time                                                                                      |
+| Ryan Kreidler     |    29 | SS/OF    |  238 |   213 |                 310 |              600 |                84 |           0.27 |             0.45 | elite bat speed; needs playing time                                                                                 |
+| Jeremiah Jackson  |    26 | 2B       |  254 |   219 |                 305 |              590 |               125 |           0.64 |             0.44 | unlucky (xwOBA >> wOBA); needs playing time                                                                         |
+| Griffin Conine    |    29 | OF       |  276 |   305 |                 231 |              643 |                33 |           1.23 |             0.35 | elite contact quality; needs playing time                                                                           |
+| José Tena         |    25 | 2B       |  278 |   252 |                 279 |              568 |               200 |           1.26 |             0.3  | skills trending up; needs playing time                                                                              |
+| Joey Ortiz        |    28 | 3B/SS    |  375 |   353 |                 207 |              559 |               233 |          -0.13 |             0.27 | plus speed; needs playing time                                                                                      |
+| Jacob Gonzalez    |    24 | 1B/SS    |  217 |   183 |                 339 |              566 |               206 |           0.22 |             0.2  | unlucky (xwOBA >> wOBA); needs playing time; young                                                                  |
+| Francisco Alvarez |    25 | C        |  380 |   344 |                 211 |              579 |               164 |           1.28 |             0.14 | elite bat speed; elite contact quality; needs playing time; young                                                   |
+| Mickey Gasper     |    31 | UT       |  202 |   211 |                 315 |              586 |               137 |           0.18 |             0.06 | plus approach; needs playing time                                                                                   |
+
+## Model cross-validation (next-season points/PA)
+
+| train_on            |   n |   r_model |   r_naive_last_year |   r_xwoba_only |   mae_model |   mae_naive |
+|:--------------------|----:|----------:|--------------------:|---------------:|------------:|------------:|
+| 2021->2022 held out | 267 |     0.545 |               0.426 |          0.382 |       0.099 |       0.12  |
+| 2022->2023 held out | 261 |     0.552 |               0.493 |          0.391 |       0.1   |       0.11  |
+| 2023->2024 held out | 278 |     0.593 |               0.444 |          0.428 |       0.086 |       0.118 |
+| 2024->2025 held out | 265 |     0.553 |               0.515 |          0.387 |       0.085 |       0.1   |
+| 2025->2026 held out | 258 |     0.392 |               0.342 |          0.326 |       0.093 |       0.113 |
+
+## Your roster: keeper view
+
+| player              | pos      |   age |   PA |   pts |   final_hitter_rank |   proj_pts |   proj_rank |   breakout_score | tag                                                                                             |
+|:--------------------|:---------|------:|-----:|------:|--------------------:|-----------:|------------:|-----------------:|:------------------------------------------------------------------------------------------------|
+| Bobby Witt Jr.      | SS       |    26 |  576 |   684 |                  19 |        771 |           1 |             4.22 | unlucky (xwOBA >> wOBA); elite contact quality; plus speed                                      |
+| Fernando Tatis Jr.  | 2B,OF    |    28 |  645 |   750 |                   3 |        760 |           2 |             4.98 | unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; plus speed |
+| James Wood          | OF       |    24 |  575 |   716 |                   6 |        746 |           4 |             6.35 | unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; young      |
+| Shohei Ohtani       | UT,SP    |    32 |  596 |   689 |                  16 |        726 |           6 |             1.32 | unlucky (xwOBA >> wOBA); elite contact quality                                                  |
+| Julio Rodriguez     | OF       |    26 |  601 |   598 |                  47 |        622 |          29 |             2.44 | unlucky (xwOBA >> wOBA); elite bat speed; plus speed                                            |
+| Sal Stewart         | 1B,3B    |    23 |  641 |   716 |                   6 |        566 |          58 |             0.48 | young                                                                                           |
+| Brandon Lowe        | 2B       |    32 |  606 |   619 |                  41 |        548 |          66 |            -1.6  |                                                                                                 |
+| Nick Kurtz          | 1B       |    23 |  434 |   491 |                 117 |        532 |          77 |             3.47 | elite bat speed; elite contact quality; needs playing time; young                               |
+| Carter Jensen       | C        |    23 |  556 |   579 |                  59 |        448 |         138 |             0.11 | young                                                                                           |
+| Heriberto Hernandez | OF       |    26 |  446 |   465 |                 130 |        418 |         160 |             3.01 | unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; needs playing time             |
+| Jeff McNeil         | 1B,2B,OF |    34 |  472 |   431 |                 157 |        408 |         164 |            -4.19 |                                                                                                 |
+| Ty France           | 1B       |    32 |  442 |   473 |                 125 |        386 |         182 |            -3    | needs playing time                                                                              |
+| Corey Seager        | SS       |    32 |  379 |   351 |                 208 |        349 |         207 |            -3.7  | unlucky (xwOBA >> wOBA); elite contact quality; needs playing time                              |
+| Cole Carrigg        | SS,OF    |    24 |  313 |   337 |                 213 |        298 |         241 |            -0.15 | plus speed; needs playing time; young                                                           |
+| Spencer Jones       | OF       |    25 |  243 |   277 |                 262 |        292 |         248 |             3.22 | elite bat speed; elite contact quality; plus speed; needs playing time                          |
