@@ -9,6 +9,8 @@ on:
         default: "false"
 permissions:
   contents: write
+  pages: write
+  id-token: write
 concurrency: refresh
 jobs:
   refresh:
@@ -35,3 +37,9 @@ jobs:
           git add -A site output data/availability data/injuries
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
+      # publish the site folder to GitHub Pages (a commit made by the workflow does not trigger other workflows)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deployment
+        uses: actions/deploy-pages@v4
