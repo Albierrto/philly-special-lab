@@ -24,9 +24,9 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 5. Actions tab → **pages** → Run workflow. Your site is at `https://<your-username>.github.io/<repo-name>/` a minute later. Share that link.
    The daily refresh republishes it every morning; the Actions tab shows each run.
 
-Fantrax ownership (who owns whom) cannot be pulled by the daily job because it needs your Fantrax login; it is refreshed
-from the CSVs in `data/fantrax/` whenever you update them (ask Claude to re-export them from your Chrome session, or
-export the Players page yourself).
+Fantrax rosters (who owns whom, IR/minors status), standings and next year's draft order are pulled every morning through
+Fantrax's official read-only API (`python -m breakout.fantrax_api`, no login needed because the league allows API reads).
+Nothing in this repo can touch a roster, make a claim, propose a trade or post in the league.
 
 ## Run it locally
 
