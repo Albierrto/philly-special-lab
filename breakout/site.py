@@ -42,6 +42,8 @@ jobs:
       - name: Full model rebuild (manual only)
         if: ${{ github.event.inputs.full == 'true' }}
         run: python -m breakout.pipeline3
+      - name: Fantrax rosters, standings and draft order (read-only, official API)
+        run: python -m breakout.fantrax_api
       - name: This week's streamers (schedule, probables, rosters, weather, splits)
         run: python -m breakout.pipeline_streamers
       - name: Assemble the site
@@ -53,7 +55,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output
+          git add -A site output data/fantrax
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
@@ -120,9 +122,9 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 5. Actions tab → **pages** → Run workflow. Your site is at `https://<your-username>.github.io/<repo-name>/` a minute later. Share that link.
    The daily refresh republishes it every morning; the Actions tab shows each run.
 
-Fantrax ownership (who owns whom) cannot be pulled by the daily job because it needs your Fantrax login; it is refreshed
-from the CSVs in `data/fantrax/` whenever you update them (ask Claude to re-export them from your Chrome session, or
-export the Players page yourself).
+Fantrax rosters (who owns whom, IR/minors status), standings and next year's draft order are pulled every morning through
+Fantrax's official read-only API (`python -m breakout.fantrax_api`, no login needed because the league allows API reads).
+Nothing in this repo can touch a roster, make a claim, propose a trade or post in the league.
 
 ## Run it locally
 

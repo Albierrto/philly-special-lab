@@ -17,9 +17,52 @@
 
   async function getJSON(u){ const ctl = new AbortController(); const tm = setTimeout(()=>ctl.abort(), 15000); try { const r = await fetch(u, {cache:'no-store', signal: ctl.signal}); if(!r.ok) throw new Error(r.status); return await r.json(); } finally { clearTimeout(tm); } }
 
+  const GAME_KEYS = ['date','gamePk','home','opp','venue','park_runs','temp_f','wind_out','precip_prob','local_start','f_park','f_wx','opp_woba_vs_hand','opp_k_vs_hand','f_opp'];
+  const gameFields = r => Object.fromEntries(GAME_KEYS.filter(k => k in r).map(k => [k, r[k]]));
+  // everything the game did to the original pitcher's rate: opponent x park x weather x home (recovered from his row)
+  const gameFactor = r => (r.base_gs ? ((r.exp_pts||0) - (r.k_bonus||0)) / r.base_gs : 1) || 1;
+  const kBonusFor = (r, base) => (r.base_gs ? (r.k_bonus||0) / r.base_gs : 0) * base;
+  const dayDiff = (a, b) => Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00')) / 864e5);
+  // a club's posted probables re-project the rest of its week: continue the rotation from the last posted starter,
+  // never the same arm twice within four days (that is what double-listed Logan Henderson)
+  function reprojectClubs(posted){
+    const clubs = [...new Set(posted.map(p => p.team))];
+    for (const team of clubs){
+      const all = SPS.filter(r => r.team===team).sort((a,b) => a.date.localeCompare(b.date));
+      const live = all.filter(r => r.sp_source!=='replaced');
+      const listed = live.filter(r => r.sp_source==='listed'); if (!listed.length) continue;
+      const rotation = [...new Set(all.map(r => r.mlbam_id))];              // the pipeline's cycle, in date order, plus anyone posted
+      const lastListed = listed[listed.length-1];
+      const lastStart = {}; listed.forEach(r => { lastStart[r.mlbam_id] = r.date; });
+      // projected starts that clash with a posted start (same arm within 4 days) or sit after the last posted game get re-projected
+      const games = [...new Map(live.map(r => [r.gamePk, r])).values()].sort((a,b) => a.date.localeCompare(b.date));
+      let idx = rotation.indexOf(lastListed.mlbam_id);
+      for (const g of games){
+        if (g.sp_source==='listed') continue;
+        if (g.date < lastListed.date){ // before the last posted game: only fix a clash
+          const clash = listed.some(l => l.mlbam_id===g.mlbam_id && Math.abs(dayDiff(l.date, g.date)) < 4);
+          if (!clash) continue;
+        }
+        // next arm in the cycle who has not started in the previous 4 days
+        let pick = null;
+        for (let k = 1; k <= rotation.length; k++){ const cand = rotation[(idx + k) % rotation.length]; const ls = lastStart[cand]; if (ls && Math.abs(dayDiff(ls, g.date)) < 4) continue; pick = cand; idx = (idx + k) % rotation.length; break; }
+        if (!pick) continue;
+        lastStart[pick] = g.date;
+        if (pick === g.mlbam_id) continue;
+        const tpl = all.find(r => r.mlbam_id===pick); if (!tpl) continue;
+        g.sp_source = 'replaced';
+        const base = tpl.base_gs || 7;
+        SPS.push({...tpl, ...gameFields(g), sp_source:'projected', k_bonus:+(kBonusFor(g, base)).toFixed(2), exp_pts:+(base * gameFactor(g) + kBonusFor(g, base)).toFixed(2), two_start:false, live:true});
+        (byGame[g.gamePk]||[]).forEach(row => { if (row.team===team){ row.sp_name = tpl.name; row.sp_source = 'projected'; } else { row.opp_sp_name = tpl.name; row.opp_sp_source = 'projected'; } });
+        const info = pitcherInfo(pick);
+        SHD.filter(r => r.gamePk===g.gamePk && r.team!==team).forEach(r => { if (r.opp_sp_source==='listed') return; r.opp_sp = tpl.name; r.opp_sp_source = 'projected'; if (info){ r.opp_sp_throws = info.throws || r.opp_sp_throws; const f = spFactor(info.xwoba); if (r.f_sp){ r.mult = +(r.mult / r.f_sp * f).toFixed(3); r.exp_pts = +(r.base_rate * r.pa_g * r.mult).toFixed(2); } r.f_sp = +f.toFixed(3); r.sp_xwoba = +info.xwoba.toFixed(3); r.sp_k = info.k; r.sp_pitching_plus = info.pp; } });
+      }
+    }
+  }
+
   async function refreshSchedule(){
     const j = await getJSON(`${API}/schedule?sportId=1&startDate=${SD.meta.start}&endDate=${SD.meta.end}&hydrate=probablePitcher,linescore`);
-    let changed = 0;
+    let changed = 0; const posted = [];
     for (const d of j.dates||[]) for (const g of d.games){
       const st = g.status?.detailedState || ''; const ls = g.linescore || {};
       gameState[g.gamePk] = { state: st, inning: ls.currentInning, half: ls.inningState, home: ls.teams?.home?.runs, away: ls.teams?.away?.runs, live: /In Progress|Delayed|Suspended/.test(st), final: /Final|Completed|Game Over/.test(st), ppd: /Postponed|Cancelled/.test(st) };
@@ -39,20 +82,24 @@
           if (info){ r.opp_sp_throws = info.throws || r.opp_sp_throws; const f = spFactor(info.xwoba); if (r.f_sp){ r.mult = +(r.mult / r.f_sp * f).toFixed(3); r.exp_pts = +(r.base_rate * r.pa_g * r.mult).toFixed(2); } r.f_sp = +f.toFixed(3); r.sp_xwoba = +info.xwoba.toFixed(3); r.sp_k = info.k; r.sp_pitching_plus = info.pp; }
         });
         // pitcher starts: replace a projected starter with the posted one
-        const rows = SPS.filter(r => r.gamePk===g.gamePk && r.team===teamName);
-        const have = rows.find(r => r.name===pp.fullName);
+        const rows = SPS.filter(r => r.gamePk===g.gamePk && r.team===teamName && r.sp_source!=='replaced');
+        const have = rows.find(r => r.mlbam_id===pp.id || r.name===pp.fullName);
         if (!have){
           const proj = rows.find(r => r.sp_source==='projected');
           if (proj){
             proj.sp_source = 'replaced';
-            if (info){ const base = ((info.pts_gs||7) * Math.min(info.GS||0, 20) + 7 * 10) / (Math.min(info.GS||0, 20) + 10);
-              const owner = (PPROJ[pp.id]||{}).owner || 'FA';
-              SPS.push({...proj, mlbam_id: pp.id, name: pp.fullName, throws: info.throws, owner, sp_source:'listed', base_gs:+base.toFixed(2), pts_gs_2026: info.pts_gs, GS: info.GS, pitching_plus: info.pp, k_percent: info.k, role:'starter', n_starts: info.GS, exp_pts: +(base * proj.f_opp * proj.f_park * proj.f_wx * proj.f_home + (proj.k_bonus||0)).toFixed(2), two_start: false, pl_tier: null, cbs: null, active: 1, live: true});
+            const tpl = SPS.find(r => r.mlbam_id===pp.id) || null;   // his own row elsewhere this week, if any (keeps his rate, tiers, owner)
+            if (info || tpl){
+              const base = tpl ? tpl.base_gs : ((info.pts_gs||7) * Math.min(info.GS||0, 20) + 7 * 10) / (Math.min(info.GS||0, 20) + 10);
+              const owner = tpl ? tpl.owner : ((PPROJ[pp.id]||{}).owner || 'FA');
+              SPS.push({...(tpl||{}), ...gameFields(proj), mlbam_id: pp.id, name: pp.fullName, throws: (tpl&&tpl.throws)||(info&&info.throws)||proj.throws, owner, sp_source:'listed', base_gs:+base.toFixed(2), pts_gs_2026: tpl?tpl.pts_gs_2026:info.pts_gs, GS: tpl?tpl.GS:info.GS, pitching_plus: tpl?tpl.pitching_plus:info.pp, k_percent: tpl?tpl.k_percent:info.k, role: tpl?tpl.role:'starter', n_starts: tpl?tpl.n_starts:info.GS, k_bonus: +(kBonusFor(proj, base)).toFixed(2), exp_pts: +(base * gameFactor(proj) + kBonusFor(proj, base)).toFixed(2), two_start: false, pl_tier: tpl?tpl.pl_tier:null, pl_note: tpl?tpl.pl_note:null, cbs: tpl?tpl.cbs:null, active: 1, live: true});
+              posted.push({team: teamName, date: proj.date, id: pp.id});
             }
           }
-        } else if (have.sp_source!=='listed'){ have.sp_source = 'listed'; }
+        } else { if (have.sp_source!=='listed') have.sp_source = 'listed'; posted.push({team: teamName, date: have.date, id: pp.id}); }
       }
     }
+    reprojectClubs(posted);
     // recompute two-start flags and week totals for pitchers
     const cnt = {}; SPS.filter(r=>r.sp_source!=='replaced').forEach(r => cnt[r.mlbam_id] = (cnt[r.mlbam_id]||0)+1);
     const wk = {}; SPS.filter(r=>r.sp_source!=='replaced').forEach(r => wk[r.mlbam_id] = (wk[r.mlbam_id]||0)+r.exp_pts);

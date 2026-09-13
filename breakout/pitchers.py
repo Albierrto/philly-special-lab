@@ -254,7 +254,8 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
     cur["proj_pts_gs"] = cur["proj_pts_gs_raw"] + 0.5 * cur["age_step"]
     hist = d[d["season"].isin([season - 2, season - 1, season])].groupby("mlbam_id")["GS"].mean()
     base_gs = 0.6 * cur["GS"] + 0.4 * cur["mlbam_id"].map(hist).fillna(cur["GS"])
-    dur = (1 - 0.001 * cur["il_days_3yr"].clip(0, 250)) * np.where(cur["age"] >= 34, 0.93, 1.0)
+    ilw = cur["il_days_w"] if "il_days_w" in cur.columns else cur["il_days_3yr"]
+    dur = (1 - 0.001 * ilw.clip(0, 250)) * np.where(cur["age"] >= 34, 0.93, 1.0)
     cur["proj_GS"] = (base_gs * dur).clip(12, 32).round(0); cur["durability"] = dur.round(3)
     cur["proj_pts"] = (cur["proj_pts_gs"] * cur["proj_GS"]).round(0)
     cur["proj_rank"] = cur["proj_pts"].rank(ascending=False).astype(int)

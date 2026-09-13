@@ -71,6 +71,12 @@ def curve(real: pd.DataFrame, n_picks: int = 180) -> dict:
 
 
 def draft_slots() -> list[dict]:
+    """Next year's fixed draft order. Preferred source: data/fantrax/draft_slots_<next>.csv, built by fantrax_api from the
+    regular-season standings (9th-12th place pick 1-4 in that order, then 8th ... 1st). Fallback: last year's order."""
+    nxt = C.DATA / "fantrax" / f"draft_slots_{C.CURRENT_SEASON + 1}.csv"
+    if nxt.exists():
+        df = pd.read_csv(nxt)
+        return [dict(team=r.team, abbrev=r.abbrev, slot=int(r.slot), source="standings") for r in df.itertuples()]
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text())
     names = cfg.get("fantasy_team_abbrevs", {}); inv = {re.sub(r"\s*\(.*\)$", "", v).strip(): k for k, v in names.items() if v not in ("?", "Free Agent", "Waivers")}
     order = cfg.get("draft_order_2026", [])

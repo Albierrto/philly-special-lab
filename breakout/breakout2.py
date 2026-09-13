@@ -61,11 +61,12 @@ def prepare(ps_x: pd.DataFrame, prospects: pd.DataFrame | None = None, injuries:
     d = add_rates(ps_x)
     d = career_context(d)
     if injuries is not None:
-        d = d.merge(injuries[["mlbam_id", "season", "il_days", "il_stints", "il_days_3yr", "il_60", "il_reasons"]], on=["mlbam_id", "season"], how="left")
-        for c in ("il_days", "il_stints", "il_days_3yr", "il_60"):
+        d = d.merge(injuries[["mlbam_id", "season", "il_days", "il_stints", "il_days_3yr", "il_60", "il_reasons"] + (["il_days_w"] if "il_days_w" in injuries.columns else [])], on=["mlbam_id", "season"], how="left")
+        if "il_days_w" not in d.columns: d["il_days_w"] = d["il_days_3yr"]
+        for c in ("il_days", "il_stints", "il_days_3yr", "il_60", "il_days_w"):
             d[c] = d[c].fillna(0)
     else:
-        d["il_days"] = 0; d["il_days_3yr"] = 0; d["il_stints"] = 0; d["il_60"] = 0
+        d["il_days"] = 0; d["il_days_3yr"] = 0; d["il_stints"] = 0; d["il_60"] = 0; d["il_days_w"] = 0
     # playing-time availability (game logs): PA pace per 162 while on the roster, late call-ups, games share
     ap = DATA / "availability.parquet"
     if ap.exists():
@@ -117,8 +118,15 @@ def project_v2(d: pd.DataFrame, season: int) -> pd.DataFrame:
     curve = aging_curve(d)
     cur = d[(d["season"] == season) & (d["PA"] >= 100)].copy()
     cur["proj_rate_raw"] = model.predict(cur[MODEL_FEATURES])
+    # the skills model only sees this season; a hitter's own recent track record adds real signal (leave-one-season-out
+    # r 0.49 -> 0.52, MAE 0.0935 -> 0.0909 at a 25% weight). Track = PA-weighted pts/PA over the last three seasons
+    # (150+ PA each), this year counted in full, last year 60%, two years ago 30%.
+    hist3 = d[d["season"].between(season - 2, season) & (d["PA"] >= 150)].copy()
+    hist3["w"] = hist3["season"].map({season: 1.0, season - 1: 0.6, season - 2: 0.3}) * hist3["PA"]
+    track = (hist3["pts_pa"] * hist3["w"]).groupby(hist3["mlbam_id"]).sum() / hist3["w"].groupby(hist3["mlbam_id"]).sum()
+    cur["track_rate"] = cur["mlbam_id"].map(track).fillna(cur["pts_pa"])
     cur["age_step"] = age_adjustment(curve, cur["age"] + 1)         # step from next-season age (what the year does to him)
-    cur["proj_rate"] = cur["proj_rate_raw"] + 0.5 * cur["age_step"]  # half weight: the boosted model already sees age
+    cur["proj_rate"] = 0.75 * cur["proj_rate_raw"] + 0.25 * cur["track_rate"] + 0.5 * cur["age_step"]  # half weight: the boosted model already sees age
     # PA expectation from pace while on the roster (late call-ups and IL time do not count as "didn't play"), falling back to raw PA
     pace_col = "pa_pace_162" if "pa_pace_162" in d.columns else None
     if pace_col:
@@ -132,7 +140,8 @@ def project_v2(d: pd.DataFrame, season: int) -> pd.DataFrame:
         hist = d[d["season"].isin([season - 2, season - 1, season]) & (d["PA"] >= 150)].groupby("mlbam_id")["PA"].mean()
         base_pa = 0.6 * cur["PA"] + 0.4 * cur["mlbam_id"].map(hist).fillna(cur["PA"])
     # durability: heavy recent IL history trims expected PA; age over 33 trims a bit more
-    dur = (1 - 0.0008 * cur["il_days_3yr"].clip(0, 250)) * np.where(cur["age"] >= 33, 0.95, 1.0)
+    ilw = cur["il_days_w"] if "il_days_w" in cur.columns else cur["il_days_3yr"]   # recency-weighted IL days: an ACL two years ago counts 30%, this year's hamstring in full
+    dur = (1 - 0.0008 * ilw.clip(0, 250)) * np.where(cur["age"] >= 33, 0.95, 1.0)
     cur["proj_PA"] = (base_pa * dur).clip(200, 700).round(0)
     cur["durability"] = dur.round(3)
     cur["proj_pts"] = (cur["proj_rate"] * cur["proj_PA"]).round(0)

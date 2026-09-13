@@ -198,7 +198,14 @@ def weather(games: pd.DataFrame, ven: pd.DataFrame) -> pd.DataFrame:
             pop = float(np.nanmax(h["precipitation_probability"][sl])) if h.get("precipitation_probability") else np.nan
             rows.append(dict(gamePk=pk, local_start=lt.strftime("%a %m/%d %I:%M %p"), temp_f=round(temp, 0), wind_mph=round(ws, 0), wind_dir=wd, precip_prob=pop))
         time.sleep(0.2)
-    return pd.DataFrame(rows)
+    cols = ["gamePk", "local_start", "temp_f", "wind_mph", "wind_dir", "precip_prob"]
+    if not rows:   # forecast service unreachable: still return the frame shape so the build runs (the site fetches weather live anyway)
+        g2 = games.drop_duplicates("gamePk")[["gamePk", "gameDate", "venue_id"]].merge(ven, on="venue_id", how="left")
+        for r in g2.itertuples():
+            try: lt = datetime.fromisoformat(r.gameDate.replace("Z", "+00:00")).astimezone(ZoneInfo(getattr(r, "tz", None) or "America/New_York")); ls = lt.strftime("%a %m/%d %I:%M %p")
+            except Exception: ls = None
+            rows.append(dict(gamePk=r.gamePk, local_start=ls, temp_f=np.nan, wind_mph=np.nan, wind_dir=np.nan, precip_prob=np.nan))
+    return pd.DataFrame(rows, columns=cols)
 
 
 def wind_component(wind_from_deg, azimuth_deg):

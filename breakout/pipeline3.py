@@ -71,7 +71,7 @@ def main(argv=None):
     inj = injury_features(seasons); pf = prospect_features(ps, a.season)
     d = prepare(league_fit(lpar(expected_points(sc, scoring), league["positions"], teams), scoring), pf, inj)
     curve = aging_curve(d); cv_proj = cross_validate(d); cv_bi = cross_validate_bi(d)
-    cur = breakout_index(d, a.season).merge(project_v2(d, a.season)[["mlbam_id", "proj_rate_raw", "age_step", "proj_rate", "proj_PA", "durability",
+    cur = breakout_index(d, a.season).merge(project_v2(d, a.season)[["mlbam_id", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability",
                                                                     "proj_pts", "proj_pts_600", "proj_rank", "proj_rank_600"]], on="mlbam_id", how="left")
     owners = pd.read_csv(C.DATA / "fantrax" / f"hitters_{a.season}.csv")[["player", "owner", "mlb"]]; owners["nkey"] = owners["player"].apply(key)
     cur = attach_owner(cur, owners)
@@ -93,8 +93,8 @@ def main(argv=None):
     # ---------------------------------------------------------------- pitchers
     print("[2/9] pitchers")
     pp = PT.pitcher_seasons(seasons)
-    pp = pp.merge(inj[["mlbam_id", "season", "il_days", "il_stints", "il_days_3yr", "il_60", "il_reasons"]], on=["mlbam_id", "season"], how="left")
-    for c in ("il_days", "il_stints", "il_days_3yr", "il_60"): pp[c] = pp[c].fillna(0)
+    pp = pp.merge(inj[["mlbam_id", "season", "il_days", "il_stints", "il_days_3yr", "il_60", "il_reasons", "il_days_w"]], on=["mlbam_id", "season"], how="left")
+    for c in ("il_days", "il_stints", "il_days_3yr", "il_60", "il_days_w"): pp[c] = pp[c].fillna(0)
     pp = PT.career_context(PT.fit_pitching_plus(PT.proxies(pp)))
     coef = pp.attrs.get("pitching_plus_coef", {})
     cv_pit = PT.cross_validate(pp)
@@ -152,7 +152,7 @@ def main(argv=None):
                   presets=PRESETS, generated=pd.Timestamp.today().strftime("%Y-%m-%d"), my_abbrev=a.my_abbrev, my_team=a.my_team,
                   hitter_keepers=hk, pitcher_keepers=pk, real_keepers=recs(real_k, ["player", "team", "slot"]), pitching_plus_coef={k: float(v) for k, v in coef.items()}),
         seasons=recs(d[d["PA"] >= 50], P2.EXPLORER_COLS, columnar=True),
-        projections=recs(kv, ["mlbam_id", "BI", "proj_rate_raw", "age_step", "proj_rate", "proj_PA", "durability", "proj_pts", "proj_pts_600", "proj_rank",
+        projections=recs(kv, ["mlbam_id", "BI", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability", "il_days_w", "proj_pts", "proj_pts_600", "proj_rank",
                               "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as"], columnar=True),
         pool=recs(pool, ["mlbam_id", "name", "pool_rank", "proj_pts", "proj_rank", "owner", "KSV"]),
         drafts=recs(dv, ["season", "overall", "round", "pick", "team", "player", "pos", "mlb", "PA", "pts", "final_hitter_rank", "adp_hitter_rank", "exp_pts",

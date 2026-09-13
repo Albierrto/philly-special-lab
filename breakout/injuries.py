@@ -75,10 +75,11 @@ def injury_features(seasons) -> pd.DataFrame:
     for pid, d in g.groupby("mlbam_id"):
         d = d.set_index("season").reindex(range(min(seasons), max(seasons) + 1)).fillna({"il_stints": 0, "il_days": 0, "il_60": 0})
         d["il_days_3yr"] = d["il_days"].rolling(3, min_periods=1).sum()
+        d["il_days_w"] = d["il_days"] + 0.6 * d["il_days"].shift(1).fillna(0) + 0.3 * d["il_days"].shift(2).fillna(0)  # recency-weighted: this year counts in full, last year 60%, two years ago 30%
         d["il_stints_3yr"] = d["il_stints"].rolling(3, min_periods=1).sum()
         d["mlbam_id"] = pid
         full.append(d.reset_index().rename(columns={"index": "season"}))
     out = pd.concat(full, ignore_index=True)
     out = out[out["il_stints"].notna()]
     out["il_reasons"] = out["il_reasons"].fillna("")
-    return out[["mlbam_id", "season", "il_stints", "il_days", "il_60", "il_reasons", "il_days_3yr", "il_stints_3yr"]]
+    return out[["mlbam_id", "season", "il_stints", "il_days", "il_60", "il_reasons", "il_days_3yr", "il_stints_3yr", "il_days_w"]]
