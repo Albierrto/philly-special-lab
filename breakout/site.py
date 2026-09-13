@@ -24,10 +24,15 @@ on:
         default: "false"
 permissions:
   contents: write
+  pages: write
+  id-token: write
 concurrency: refresh
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -47,9 +52,45 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/availability data/injuries
+          git add -A site output
+          [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
+      # publish the site folder to GitHub Pages (a commit made by the workflow does not trigger other workflows)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deployment
+        uses: actions/deploy-pages@v4
+'''
+
+PAGES_WORKFLOW = r'''name: pages
+# Publishes ./site to GitHub Pages whenever the site changes on main (and on demand). Settings -> Pages -> Source must be "GitHub Actions".
+on:
+  push:
+    branches: [main]
+    paths: ["site/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deployment
+        uses: actions/deploy-pages@v4
 '''
 
 README = r'''# Philly Special Lab
@@ -73,10 +114,10 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 
 1. Create a GitHub account if you do not have one, then a new repository (public is fine; the data is public data).
 2. Upload this whole folder (drag and drop on the repo page works: "Add file → Upload files"), or `git push` it.
-3. Repository **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: main, folder: /site**. Save.
-4. Your site is at `https://<your-username>.github.io/<repo-name>/` within a minute or two. Share that link.
-5. **Settings → Actions → General → Workflow permissions → Read and write** so the daily refresh can commit.
-   The refresh runs on its own every morning; the Actions tab shows each run.
+3. Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+4. **Settings → Actions → General → Workflow permissions → Read and write** so the daily refresh can commit.
+5. Actions tab → **pages** → Run workflow. Your site is at `https://<your-username>.github.io/<repo-name>/` a minute later. Share that link.
+   The daily refresh republishes it every morning; the Actions tab shows each run.
 
 Fantrax ownership (who owns whom) cannot be pulled by the daily job because it needs your Fantrax login; it is refreshed
 from the CSVs in `data/fantrax/` whenever you update them (ask Claude to re-export them from your Chrome session, or
@@ -132,7 +173,7 @@ def build(default_team: str):
     shutil.copy(Path(__file__).with_name("site_live.js"), site / "live.js")
     (site / ".nojekyll").write_text("")
     # repo scaffolding
-    wf = ROOT / ".github" / "workflows"; wf.mkdir(parents=True, exist_ok=True); (wf / "refresh.yml").write_text(WORKFLOW)
+    wf = ROOT / ".github" / "workflows"; wf.mkdir(parents=True, exist_ok=True); (wf / "refresh.yml").write_text(WORKFLOW); (wf / "pages.yml").write_text(PAGES_WORKFLOW)
     (ROOT / "README.md").write_text(README); (ROOT / "requirements.txt").write_text(REQS); (ROOT / ".gitignore").write_text(GITIGNORE)
     print("site ->", site, "index", round((site / "index.html").stat().st_size / 1e6, 2), "MB; data",
           round(sum(p.stat().st_size for p in (site / "data").iterdir()) / 1e6, 2), "MB")
