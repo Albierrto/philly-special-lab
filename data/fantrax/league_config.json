@@ -88,14 +88,14 @@
     "GLIZZY": "The Greatest Glizzy Guzzlers",
     "MMM": "Midwest MooseKnuckle Mafia",
     "BAMBI": "The Great Bambi",
-    "CJF": "?",
-    "Dan": "?",
+    "CJF": "The Real Doctor",
+    "Dan": "Some Ting Wong",
     "CH": "Charlie Hustle",
     "CS": "City to the Shore",
-    "LTTA": "Let's try this again",
+    "LTTA": "Let’s try this again",
     "GK": "Gotham Knights",
-    "THALER": "?",
-    "Dpf": "?",
+    "THALER": "The Chosen Juan",
+    "Dpf": "Baseball Phanatic",
     "FA": "Free Agent",
     "W (Sun)": "Waivers"
   },
@@ -125,5 +125,118 @@
       "Bryan Woo",
       "Shohei Ohtani"
     ]
-  }
+  },
+  "standings_2026": [
+    {
+      "rank": 1,
+      "team": "Basketball",
+      "abbrev": "BB",
+      "W": 19,
+      "L": 2,
+      "points_for": 9224.0
+    },
+    {
+      "rank": 2,
+      "team": "City to the Shore",
+      "abbrev": "CS",
+      "W": 14,
+      "L": 7,
+      "points_for": 8436.33
+    },
+    {
+      "rank": 3,
+      "team": "Midwest MooseKnuckle Mafia",
+      "abbrev": "MMM",
+      "W": 13,
+      "L": 8,
+      "points_for": 8575.33
+    },
+    {
+      "rank": 4,
+      "team": "The Great Bambi",
+      "abbrev": "BAMBI",
+      "W": 12,
+      "L": 9,
+      "points_for": 8040.67
+    },
+    {
+      "rank": 5,
+      "team": "Gotham Knights",
+      "abbrev": "GK",
+      "W": 12,
+      "L": 9,
+      "points_for": 7780.34
+    },
+    {
+      "rank": 6,
+      "team": "Charlie Hustle",
+      "abbrev": "CH",
+      "W": 12,
+      "L": 9,
+      "points_for": 7770.67
+    },
+    {
+      "rank": 7,
+      "team": "The Greatest Glizzy Guzzlers",
+      "abbrev": "GLIZZY",
+      "W": 10,
+      "L": 11,
+      "points_for": 8029.0
+    },
+    {
+      "rank": 8,
+      "team": "Let’s try this again",
+      "abbrev": "LTTA",
+      "W": 9,
+      "L": 12,
+      "points_for": 8070.0
+    },
+    {
+      "rank": 9,
+      "team": "The Chosen Juan",
+      "abbrev": "THALER",
+      "W": 8,
+      "L": 13,
+      "points_for": 7231.33
+    },
+    {
+      "rank": 10,
+      "team": "Some Ting Wong",
+      "abbrev": "Dan",
+      "W": 8,
+      "L": 13,
+      "points_for": 7024.66
+    },
+    {
+      "rank": 11,
+      "team": "Baseball Phanatic",
+      "abbrev": "Dpf",
+      "W": 5,
+      "L": 16,
+      "points_for": 7548.0
+    },
+    {
+      "rank": 12,
+      "team": "The Real Doctor",
+      "abbrev": "CJF",
+      "W": 4,
+      "L": 17,
+      "points_for": 7303.66
+    }
+  ],
+  "draft_order_2027": [
+    "The Chosen Juan",
+    "Some Ting Wong",
+    "Baseball Phanatic",
+    "The Real Doctor",
+    "Let’s try this again",
+    "The Greatest Glizzy Guzzlers",
+    "Charlie Hustle",
+    "Gotham Knights",
+    "The Great Bambi",
+    "Midwest MooseKnuckle Mafia",
+    "City to the Shore",
+    "Basketball"
+  ],
+  "draft_order_rule": "bottom4_then_reverse"
 }
