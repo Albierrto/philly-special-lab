@@ -19,10 +19,10 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 
 1. Create a GitHub account if you do not have one, then a new repository (public is fine; the data is public data).
 2. Upload this whole folder (drag and drop on the repo page works: "Add file → Upload files"), or `git push` it.
-3. Repository **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: main, folder: /site**. Save.
-4. Your site is at `https://<your-username>.github.io/<repo-name>/` within a minute or two. Share that link.
-5. **Settings → Actions → General → Workflow permissions → Read and write** so the daily refresh can commit.
-   The refresh runs on its own every morning; the Actions tab shows each run.
+3. Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+4. **Settings → Actions → General → Workflow permissions → Read and write** so the daily refresh can commit.
+5. Actions tab → **pages** → Run workflow. Your site is at `https://<your-username>.github.io/<repo-name>/` a minute later. Share that link.
+   The daily refresh republishes it every morning; the Actions tab shows each run.
 
 Fantrax ownership (who owns whom) cannot be pulled by the daily job because it needs your Fantrax login; it is refreshed
 from the CSVs in `data/fantrax/` whenever you update them (ask Claude to re-export them from your Chrome session, or
