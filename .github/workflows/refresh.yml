@@ -26,6 +26,8 @@ jobs:
       - name: Full model rebuild (manual only)
         if: ${{ github.event.inputs.full == 'true' }}
         run: python -m breakout.pipeline3
+      - name: Fantrax rosters, standings and draft order (read-only, official API)
+        run: python -m breakout.fantrax_api
       - name: This week's streamers (schedule, probables, rosters, weather, splits)
         run: python -m breakout.pipeline_streamers
       - name: Assemble the site
@@ -37,7 +39,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output
+          git add -A site output data/fantrax
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
