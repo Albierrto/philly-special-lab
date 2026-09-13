@@ -1,0 +1,26 @@
+name: bootstrap
+# One-time helper: unpacks the lab-bootstrap-*.zip archives uploaded through the GitHub web UI into the repo tree,
+# then removes the archives. Run it from the Actions tab ("Run workflow"). Harmless to re-run; safe to delete afterwards.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack the uploaded archives
+        run: |
+          set -e
+          ls lab-bootstrap-*.zip
+          for z in lab-bootstrap-*.zip; do unzip -oq "$z"; done
+          rm -f lab-bootstrap-*.zip
+          ls -la
+      - name: Commit the tree
+        run: |
+          git config user.name "lab-bot"
+          git config user.email "lab-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack the lab: site, models, streamers, data" || echo "nothing to commit"
+          git push
