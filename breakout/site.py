@@ -163,13 +163,14 @@ def build(default_team: str):
     (site / "data" / "lab.js").write_text("window.__LAB__=" + json.dumps(data, separators=(",", ":")) + ";", encoding="utf-8")
     (site / "data" / "streamers.js").write_text("window.__STREAM__=" + json.dumps(stream, separators=(",", ":")) + ";", encoding="utf-8")
     # site index: data comes from the two script files; live layer after boot
-    html = tpl.replace('<script id="data" type="application/json">__DATA__</script>', '<script src="data/lab.js"></script>\n<script src="data/streamers.js"></script>')
+    ver = str(s["meta"].get("generated", "")).replace(" ", "T").replace(":", "")  # cache-buster: browsers fetch fresh data after every build
+    html = tpl.replace('<script id="data" type="application/json">__DATA__</script>', f'<script src="data/lab.js?v={ver}"></script>\n<script src="data/streamers.js?v={ver}"></script>')
     html = html.replace("const D = JSON.parse(document.getElementById('data').textContent);", "const D = window.__LAB__; D.streamers = window.__STREAM__;")
     html = html.replace("<title>Philly Special Hitter Lab</title>", "<title>Philly Special Lab</title>")
     page = ("<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
             "<meta name=\"description\" content=\"Philly Special fantasy baseball lab: lineups, streamers, keepers, breakouts and prospect cards in the league's points.\">\n"
             "<link rel=\"icon\" href=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 4h24v12L16 30 4 16z' fill='%23E5484D'/%3E%3Cpath d='M8 8h16v7l-8 10-8-10z' fill='%23fff' opacity='.92'/%3E%3C/svg%3E\">\n"
-            "<style>body{margin:0;color-scheme:dark light}img{max-width:100%}[hidden]{display:none!important}</style>\n</head>\n<body>\n" + html + "\n<script src=\"live.js\"></script>\n</body>\n</html>\n")
+            "<style>body{margin:0;color-scheme:dark light}img{max-width:100%}[hidden]{display:none!important}</style>\n</head>\n<body>\n" + html + f"\n<script src=\"live.js?v={ver}\"></script>\n</body>\n</html>\n")
     (site / "index.html").write_text(page, encoding="utf-8")
     shutil.copy(Path(__file__).with_name("site_live.js"), site / "live.js")
     (site / ".nojekyll").write_text("")
