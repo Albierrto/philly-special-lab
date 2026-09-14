@@ -1,6 +1,6 @@
 gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,home,opp_id,opp,sp_id,sp_name,sp_source,opp_sp_id,opp_sp_name,opp_sp_source
-824386,2026-09-14,2026-09-14T22:40:00Z,Scheduled,5,Progressive Field,night,N,114,Cleveland Guardians,True,145,Chicago White Sox,668909.0,Gavin Williams,listed,656794.0,Sean Newcomb,listed
-824386,2026-09-14,2026-09-14T22:40:00Z,Scheduled,5,Progressive Field,night,N,145,Chicago White Sox,False,114,Cleveland Guardians,656794.0,Sean Newcomb,listed,668909.0,Gavin Williams,listed
+824386,2026-09-14,2026-09-14T22:40:00Z,Pre-Game,5,Progressive Field,night,N,114,Cleveland Guardians,True,145,Chicago White Sox,668909.0,Gavin Williams,listed,656794.0,Sean Newcomb,listed
+824386,2026-09-14,2026-09-14T22:40:00Z,Pre-Game,5,Progressive Field,night,N,145,Chicago White Sox,False,114,Cleveland Guardians,656794.0,Sean Newcomb,listed,668909.0,Gavin Williams,listed
 824465,2026-09-14,2026-09-14T22:40:00Z,Scheduled,2602,Great American Ball Park,night,N,113,Cincinnati Reds,True,119,Los Angeles Dodgers,666157.0,Nick Lodolo,listed,669373.0,Tarik Skubal,listed
 824465,2026-09-14,2026-09-14T22:40:00Z,Scheduled,2602,Great American Ball Park,night,N,119,Los Angeles Dodgers,False,113,Cincinnati Reds,669373.0,Tarik Skubal,listed,666157.0,Nick Lodolo,listed
 822765,2026-09-14,2026-09-14T23:07:00Z,Scheduled,14,Rogers Centre,night,N,141,Toronto Blue Jays,True,116,Detroit Tigers,667755.0,José Soriano,listed,675512.0,Troy Melton,listed
