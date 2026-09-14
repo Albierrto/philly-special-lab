@@ -55,7 +55,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax
+          git add -A site output data/fantrax data/statcast
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
@@ -164,7 +164,7 @@ def build(default_team: str):
     data["meta"]["default_team"] = default_team
     s = ownership.stamp_streamers(json.loads((C.OUT / "streamers" / "streamers.json").read_text()))
     stream = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
-                  park_factors=s["park_factors"], venues=s.get("venues", []))
+                  park_factors=s["park_factors"], venues=s.get("venues", []), logs=s.get("logs", {}))
     (site / "data" / "lab.js").write_text("window.__LAB__=" + json.dumps(data, separators=(",", ":")) + ";", encoding="utf-8")
     (site / "data" / "streamers.js").write_text("window.__STREAM__=" + json.dumps(stream, separators=(",", ":")) + ";", encoding="utf-8")
     # site index: data comes from the two script files; live layer after boot

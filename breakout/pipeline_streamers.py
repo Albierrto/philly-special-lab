@@ -97,10 +97,13 @@ def main(argv=None):
     pp = pp.merge(logs, on="mlbam_id", how="left")
     logs_prev = ST.starter_logs(sorted(sp_ids), 2025, asof=a.asof).rename(columns={"n_starts": "n_starts_prev", "pts_start": "pts_start_prev"})[["mlbam_id", "n_starts_prev", "pts_start_prev"]]
     pp = pp.merge(logs_prev, on="mlbam_id", how="left")
-    # last 30 days of Statcast: is he throwing harder and missing more bats than his own season line?
-    stuff = ST.recent_stuff(sorted(sp_ids), asof.isoformat())
+    # last 30 days of Statcast against his own season, counting only the games he started
+    sdates = {int(r.mlbam_id): (r.start_dates or []) for r in logs.itertuples() if isinstance(getattr(r, "start_dates", None), (list, tuple))}
+    stuff = ST.recent_stuff(sorted(sp_ids), asof.isoformat(), sdates)
     pp = pp.merge(stuff, on="mlbam_id", how="left")
-    if len(stuff): print(f"  recent stuff for {int(stuff['pitches_30'].notna().sum())} starters (velo, whiff, CSW over the last 30 days)")
+    if len(stuff):
+        npi = int(stuff["new_pitch"].notna().sum()) if "new_pitch" in stuff.columns else 0
+        print(f"  recent stuff for {int(stuff['pitches_30'].notna().sum())} starters (starts only); {npi} adding a new pitch")
     tsp = ST.team_splits(tm["team_id"].tolist())
     print(f"  {len(sp_ids)} starters this week ({len(missing)} not in the SP table), team splits {len(tsp)}")
 
@@ -139,7 +142,11 @@ def main(argv=None):
     hd.to_csv(out / "hitter_days.csv", index=False); hw.to_csv(out / "hitter_week.csv", index=False); ps.to_csv(out / "pitcher_starts.csv", index=False)
     two = ps[ps["two_start"]].drop_duplicates("mlbam_id").sort_values("week_pts", ascending=False)
     two.to_csv(out / "two_start_pitchers.csv", index=False)
-    payload = dict(meta=dict(asof=asof.isoformat(), start=start, end=end, generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), lg_woba=ST.LG_WOBA, lg_k=ST.LG_K,
+    print("  game logs")
+    hl = ST.hitter_logs(sorted({int(x) for x in hd["mlbam_id"].unique()}))
+    pl = {str(int(r.mlbam_id)): r.recent for r in logs.itertuples() if isinstance(getattr(r, "recent", None), list) and r.recent}
+    print(f"  {len(hl)} hitter logs, {len(pl)} pitcher logs")
+    payload = dict(logs=dict(h=hl, p=pl), meta=dict(asof=asof.isoformat(), start=start, end=end, generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), lg_woba=ST.LG_WOBA, lg_k=ST.LG_K,
                              listed=int((sch.drop_duplicates("gamePk").sp_source == "listed").sum()), games=int(sch.gamePk.nunique())),
                    games=json.loads(sch.drop_duplicates(["gamePk", "team_id"]).merge(wx, on="gamePk", how="left").to_json(orient="records")),
                    hitter_days=json.loads(hd.to_json(orient="records")), hitter_week=json.loads(hw.to_json(orient="records")),

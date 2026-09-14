@@ -248,9 +248,7 @@ def team_splits(team_ids) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def player_splits(ids, group="hitting", start30=None, end30=None) -> pd.DataFrame:
-    rows = []
-    for pid in ids:
+def _split_row(pid, group, start30, end30) -> dict:
         params = dict(stats="statSplits,byDateRange,season", group=group, season=2026, sitCodes="vl,vr")
         if start30: params.update(startDate=start30, endDate=end30)
         j = _get(f"{API}/people/{int(pid)}/stats", **params)
@@ -266,7 +264,15 @@ def player_splits(ids, group="hitting", start30=None, end30=None) -> pd.DataFram
                     if group == "pitching": rec["gs_30"] = s["stat"].get("gamesStarted", 0); rec["ip_30"] = s["stat"].get("inningsPitched")
                 elif nm == "season" and "woba_season" not in rec:
                     rec["woba_season"] = w; rec["pa_season"] = pa; rec["k_season"] = k; rec["g_season"] = s["stat"].get("gamesPlayed", 0)
-        rows.append(rec); time.sleep(0.08)
+        return rec
+
+
+def player_splits(ids, group="hitting", start30=None, end30=None, workers: int = 12) -> pd.DataFrame:
+    """L/R splits, last-30-days and season lines for a list of players. Threaded: 500 hitters used to take two and a half
+    minutes one at a time, which was most of the pipeline's running time."""
+    ids = [int(i) for i in ids]
+    with ThreadPoolExecutor(workers) as ex:
+        rows = list(ex.map(lambda p: _split_row(p, group, start30, end30), ids))
     return pd.DataFrame(rows)
 
 
@@ -290,7 +296,12 @@ def _log_row(pid: int, season: int, W: dict, asof: str | None) -> dict:
     relief_after = sum(1 for s in sp if s["stat"].get("gamesStarted") != 1 and last_start and str(s.get("date"))[:10] > last_start)
     cut = (date.fromisoformat(asof) - timedelta(days=30)).isoformat() if asof else None
     starts_30 = sum(1 for s in starts if cut and str(s.get("date"))[:10] >= cut)
+    recent = [dict(date=str(x.get("date"))[:10], opp=((x.get("opponent") or {}).get("abbreviation") or (x.get("opponent") or {}).get("name")),
+                   home=(x.get("isHome") if x.get("isHome") is not None else None), ip=round(_ip(x["stat"].get("inningsPitched", 0)), 1),
+                   K=x["stat"].get("strikeOuts", 0), BB=x["stat"].get("baseOnBalls", 0), H=x["stat"].get("hits", 0), ER=x["stat"].get("earnedRuns", 0),
+                   gs=int(x["stat"].get("gamesStarted") == 1), pts=round(pts_of(x["stat"]), 1)) for x in sp[-12:]]
     return dict(mlbam_id=int(pid), n_starts=n, g_total=len(sp), n_relief=len(sp) - n,
+                start_dates=[str(x.get("date"))[:10] for x in starts], recent=recent,
                 pts_start=(sum(pts) / n if n else np.nan), ip_start=(sum(_ip(s["stat"].get("inningsPitched", 0)) for s in starts) / n if n else np.nan),
                 last5_pts=(sum(pts[-5:]) / len(pts[-5:]) if n else np.nan), last3_pts=(sum(pts[-3:]) / len(pts[-3:]) if n else np.nan),
                 k_start=(sum(s["stat"].get("strikeOuts", 0) for s in starts) / n if n else np.nan),
@@ -314,33 +325,101 @@ SWING = WHIFF + ("foul", "foul_bunt", "hit_into_play", "hit_into_play_score", "h
 FASTBALL = ("FF", "SI", "FC", "FA")
 
 
+COLS_P = ["game_date", "pitcher", "pitch_type", "release_speed", "description"]
+
+
 def _pitches(ids, gt: str, lt: str) -> pd.DataFrame:
     q = "".join(f"&pitchers_lookup%5B%5D={int(i)}" for i in ids)
     u = ("https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfGT=R%7C&hfSea=2026%7C&player_type=pitcher"
          f"{q}&game_date_gt={gt}&game_date_lt={lt}&type=details")
-    cols = ["game_date", "pitcher", "pitch_type", "release_speed", "description"]
     for attempt in range(3):
         try:
             r = _S.get(u, timeout=240)
             if r.ok and len(r.content) > 200:
-                return pd.read_csv(io.StringIO(r.content.decode()), low_memory=False, usecols=lambda c: c in cols)
+                return pd.read_csv(io.StringIO(r.content.decode()), low_memory=False, usecols=lambda c: c in COLS_P)
         except Exception:
             pass
         time.sleep(4 + 4 * attempt)
-    return pd.DataFrame(columns=cols)
+    return pd.DataFrame(columns=COLS_P)
 
 
-def recent_stuff(ids, end: str, days: int = 30, group: int = 40) -> pd.DataFrame:
-    """Last-30-days Statcast form per pitcher: fastball velocity, CSW% (called strikes + whiffs per pitch) and whiff rate.
-    Season-long leaderboard numbers cannot see a mid-season velo jump; this is what PitcherList reads week to week."""
-    gt = (date.fromisoformat(end) - timedelta(days=days)).isoformat()
-    ids = sorted({int(i) for i in ids}); frames = []
-    for i in range(0, len(ids), group):
-        d = _pitches(ids[i:i + group], gt, end)
-        if len(d): frames.append(d)
-    if not frames: return pd.DataFrame(columns=["mlbam_id", "velo_30", "csw_30", "whiff_30", "pitches_30"])
-    d = pd.concat(frames, ignore_index=True)
-    return stuff_features(d).rename(columns={"pitcher": "mlbam_id"})
+PITCH_CACHE = DATA / "statcast" / "pitches"
+SEASON_OPEN = "2026-03-18"
+
+
+def pitch_cache(ids, end: str, group: int = 80) -> pd.DataFrame:
+    """Every pitch these starters have thrown this season, cached one week at a time under data/statcast/pitches.
+
+    A finished week is never re-downloaded; only the week in progress is, and only the pitchers a cached week has never
+    been asked about are fetched for it. So the first build pays for the season (about twelve minutes) and every build
+    after it pays for one partial week (about thirty seconds), which is what the daily job actually costs."""
+    PITCH_CACHE.mkdir(parents=True, exist_ok=True)
+    ids = sorted({int(i) for i in ids}); end_d = date.fromisoformat(end)
+    weeks = []; d0 = date.fromisoformat(SEASON_OPEN)
+    while d0 <= end_d:
+        d1 = min(d0 + timedelta(days=6), end_d)
+        weeks.append((d0.isoformat(), d1.isoformat())); d0 = d1 + timedelta(days=1)
+    def grab(who, gt, lt):
+        parts = [c for i in range(0, len(who), group) for c in [_pitches(who[i:i + group], gt, lt)] if len(c)]
+        return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame(columns=COLS_P)
+    frames = []; full = 0; topup = 0
+    for gt, lt in weeks:
+        f = PITCH_CACHE / f"{gt}.parquet"; fi = PITCH_CACHE / f"{gt}.ids"
+        done = lt < end                       # a week that has finished never changes again
+        if f.exists() and done:
+            d = pd.read_parquet(f)
+            asked = set(json.loads(fi.read_text())) if fi.exists() else set(d["pitcher"].astype(int))
+            missing = sorted(set(ids) - asked)
+            missing = [i for i in missing if i not in set(d["pitcher"].astype(int))]
+            if missing:                        # a starter the cache has never been asked about: fetch only him
+                add = grab(missing, gt, lt)
+                if len(add): d = pd.concat([d, add], ignore_index=True)
+                d.to_parquet(f, index=False); fi.write_text(json.dumps(sorted(asked | set(ids)))); topup += 1
+            frames.append(d); continue
+        d = grab(ids, gt, lt)
+        d.to_parquet(f, index=False); fi.write_text(json.dumps(ids)); full += 1
+        frames.append(d)
+    out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if len(out):
+        out["game_date"] = pd.to_datetime(out["game_date"])
+        out = out[out["pitcher"].isin(ids)]   # each week holds each pitcher exactly once, so no dedupe (two identical-looking pitches in one game are two pitches)
+    print(f"  statcast cache: {len(weeks)} weeks ({full} downloaded, {topup} topped up, {len(weeks)-full-topup} reused), {len(out):,} pitches")
+    return out
+
+
+def recent_stuff(ids, end: str, start_dates: dict | None = None, days: int = 30) -> pd.DataFrame:
+    """Velocity, CSW% and whiff rate over the last 30 days against the same pitcher's season, **counting only his starts**
+    when we know which games those were. Relief outings are a different animal (one inning, max effort), so mixing them
+    into a starter's baseline hides exactly the change this is meant to catch.
+
+    Also flags a pitch he is throwing now and was not throwing earlier in the year."""
+    d = pitch_cache(ids, end)
+    if not len(d): return pd.DataFrame(columns=["mlbam_id", "velo_30", "csw_30", "whiff_30", "pitches_30"])
+    if start_dates:
+        keys = {(int(p), pd.Timestamp(x)) for p, ds in start_dates.items() for x in ds}
+        st = pd.Series(list(zip(d["pitcher"].astype(int), d["game_date"])), index=d.index).isin(keys)
+        if st.sum() > 0.3 * len(d): d = d[st]     # only trust the filter if it keeps most of the data
+    cut = pd.Timestamp(date.fromisoformat(end) - timedelta(days=days))
+    recent = stuff_features(d[d["game_date"] >= cut]).rename(columns={"pitcher": "mlbam_id"})
+    season = stuff_features(d).rename(columns={"pitcher": "mlbam_id"}).rename(columns={"velo_30": "velo_st", "csw_30": "csw_st", "whiff_30": "whiff_st", "pitches_30": "pitches_st"})
+    out = season.merge(recent, on="mlbam_id", how="left")
+    out["dvelo"] = (out["velo_30"] - out["velo_st"]).clip(-4, 4)
+    out["dcsw"] = (out["csw_30"] - out["csw_st"]).clip(-12, 12)
+    out["dwhiff"] = (out["whiff_30"] - out["whiff_st"]).clip(-15, 15)
+    out = out.merge(new_pitches(d, cut), on="mlbam_id", how="left")
+    return out
+
+
+def new_pitches(d: pd.DataFrame, cut) -> pd.DataFrame:
+    """Pitch types making up 4%+ of his last 30 days that were under 1% before: a genuinely new offering."""
+    rows = []
+    for pid, g in d.groupby("pitcher"):
+        new_, old = g[g["game_date"] >= cut], g[g["game_date"] < cut]
+        if len(new_) < 100 or len(old) < 200: rows.append(dict(mlbam_id=int(pid), new_pitch=None)); continue
+        un, uo = new_["pitch_type"].value_counts(normalize=True), old["pitch_type"].value_counts(normalize=True)
+        got = [f"{t} {un[t]*100:.0f}%" for t in un.index if un[t] >= 0.04 and uo.get(t, 0) < 0.01]
+        rows.append(dict(mlbam_id=int(pid), new_pitch=", ".join(got) or None))
+    return pd.DataFrame(rows) if rows else pd.DataFrame(columns=["mlbam_id", "new_pitch"])
 
 
 def stuff_features(d: pd.DataFrame) -> pd.DataFrame:
@@ -358,6 +437,33 @@ def stuff_features(d: pd.DataFrame) -> pd.DataFrame:
         "pitches_30": g.size(),
     }).reset_index()
     return out
+
+
+HIT_W = dict(x1b=2, x2b=3, x3b=4, hr=5, r=1, rbi=1, bb=1, hbp=1, sb=3)
+
+
+def _hit_log(pid: int, season: int, n: int) -> dict:
+    j = _get(f"{API}/people/{int(pid)}/stats", stats="gameLog", group="hitting", season=season)
+    sp = (j.get("stats") or [{}])[0].get("splits", [])
+    sp = sorted(sp, key=lambda x: str(x.get("date") or ""))[-n:]
+    out = []
+    for x in sp:
+        st = x["stat"]; h = st.get("hits", 0); d = st.get("doubles", 0); t = st.get("triples", 0); hr = st.get("homeRuns", 0)
+        pts = (HIT_W["x1b"] * (h - d - t - hr) + HIT_W["x2b"] * d + HIT_W["x3b"] * t + HIT_W["hr"] * hr + HIT_W["r"] * st.get("runs", 0)
+               + HIT_W["rbi"] * st.get("rbi", 0) + HIT_W["bb"] * st.get("baseOnBalls", 0) + HIT_W["hbp"] * st.get("hitByPitch", 0)
+               + HIT_W["sb"] * st.get("stolenBases", 0))
+        out.append(dict(date=str(x.get("date"))[:10], opp=((x.get("opponent") or {}).get("abbreviation") or (x.get("opponent") or {}).get("name")),
+                        home=x.get("isHome"), PA=st.get("plateAppearances", 0), AB=st.get("atBats", 0), H=h, HR=hr, R=st.get("runs", 0),
+                        RBI=st.get("rbi", 0), BB=st.get("baseOnBalls", 0), K=st.get("strikeOuts", 0), SB=st.get("stolenBases", 0), pts=round(pts, 1)))
+    return dict(mlbam_id=int(pid), recent=out)
+
+
+def hitter_logs(ids, season=2026, n=12, workers: int = 12) -> dict:
+    """Last `n` games per hitter, scored in the league's points. What the page shows when you open a player."""
+    ids = [int(i) for i in ids]
+    with ThreadPoolExecutor(workers) as ex:
+        rows = list(ex.map(lambda p: _hit_log(p, season, n), ids))
+    return {str(r["mlbam_id"]): r["recent"] for r in rows if r["recent"]}
 
 
 def bullpen_moved(logs: pd.DataFrame, asof: str | None = None, gap_days: int = 12) -> set:
@@ -433,15 +539,18 @@ def hitter_matchups(games: pd.DataFrame, hitters: pd.DataFrame, hsplits: pd.Data
     return pd.DataFrame(rows)
 
 
-# Points in a neutral matchup for one start, fitted on 3,113 real 2026 starts (predicting each start from what was known
+# Points in a neutral matchup for one start, fitted on 3,212 real 2026 starts (predicting each start from what was known
 # before it, five-fold by pitcher so a pitcher never trains and tests together, non-negative weights).
-#   r 0.361, MAE 4.51 — against r 0.315, MAE 4.67 for the old "season rate blended with the model, shrunk toward 7.0".
-# What it says: a starter's own fantasy scoring rate adds nothing once you know his stuff and how deep he goes, and
-# recent RESULTS are worse than the season line (last three starts alone: r 0.241 vs 0.288 for season to date). Recent
-# STUFF is the part that carries: velocity and whiffs against his own season baseline.
-BASE = dict(b0=-14.382, pplus=0.1710, ip_mix=1.2414, dwhiff=0.0835, dvelo=0.1542)
+#   r 0.367, MAE 4.48 — against r 0.315, MAE 4.67 for the old "season rate blended with the model, shrunk toward 7.0".
+# What it says:
+#  - a starter's own fantasy scoring rate adds nothing once you know his stuff and how deep he goes;
+#  - recent RESULTS are worse than the season line (last three starts alone: r 0.241 vs 0.288 for season to date);
+#  - recent STUFF does carry, but only measured over his STARTS: velocity is worth 0.84 points a start per mph that way
+#    against 0.15 when relief outings are mixed in, because a reliever's max-effort inning is not his starting velocity;
+#  - starts-only SKILL levels (CSW, K-BB, velo over his starts) predict worse than season Pitching+ across every
+#    appearance (r 0.303 vs 0.364), so the level term stays season-long and only the trend is filtered to starts.
+BASE = dict(b0=-14.53, pplus=0.1701, ip_mix=1.2689, dcsw=0.0659, dvelo=0.8417)
 SKILL_RATE = (0.1936, -9.980)   # Pitching+ -> points per start, the anchor a thin sample is shrunk toward
-VELO_OFFSET = 0.34              # my most-thrown-fastball average vs the season leaderboard's fb_velo
 LG_IP_GS = 5.2
 
 
@@ -453,9 +562,9 @@ def _base_rate(p: pd.DataFrame) -> pd.DataFrame:
     # thin samples lean on the league's length rather than on three starts of noise
     p["ip_mix"] = (ip_mix * n + LG_IP_GS * 3) / (n + 3)
     pplus = p["pitching_plus"]
-    p["dvelo"] = (p.get("velo_30", pd.Series(np.nan, index=p.index)) + VELO_OFFSET - p.get("fb_velo", pd.Series(np.nan, index=p.index))).clip(-3, 3)
-    p["dwhiff"] = (p.get("whiff_30", pd.Series(np.nan, index=p.index)) - p.get("whiff_percent", pd.Series(np.nan, index=p.index))).clip(-12, 12)
-    base = BASE["b0"] + BASE["pplus"] * pplus + BASE["ip_mix"] * p["ip_mix"] + BASE["dwhiff"] * p["dwhiff"].fillna(0) + BASE["dvelo"] * p["dvelo"].fillna(0)
+    for c in ("dvelo", "dcsw", "dwhiff"):
+        if c not in p.columns: p[c] = np.nan
+    base = BASE["b0"] + BASE["pplus"] * pplus + BASE["ip_mix"] * p["ip_mix"] + BASE["dcsw"] * p["dcsw"].fillna(0) + BASE["dvelo"] * p["dvelo"].fillna(0)
     # no Savant line (a rookie under the 50-IP cutoff): his own rate, shrunk toward whatever skills we do have
     anchor = np.where(pplus.notna(), SKILL_RATE[0] * pplus + SKILL_RATE[1], 7.0)
     shrunk = (this_rate.fillna(7.0) * n + anchor * 8) / (n + 8)
@@ -501,6 +610,9 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
                          dwhiff=(round(float(sp["dwhiff"]), 1) if pd.notna(sp.get("dwhiff")) else np.nan), csw_30=(round(float(sp["csw_30"]), 1) if pd.notna(sp.get("csw_30")) else np.nan),
                          last3_pts=(round(float(sp["last3_pts"]), 1) if pd.notna(sp.get("last3_pts")) else np.nan), ip_start_3=(round(float(sp["ip_start_3"]), 1) if pd.notna(sp.get("ip_start_3")) else np.nan),
                          relief_after_start=int(sp.get("relief_after_start") or 0), days_since_start=(int(sp["days_since_start"]) if pd.notna(sp.get("days_since_start")) else np.nan),
+                         dcsw=(round(float(sp["dcsw"]), 1) if pd.notna(sp.get("dcsw")) else np.nan), velo_st=(round(float(sp["velo_st"]), 1) if pd.notna(sp.get("velo_st")) else np.nan),
+                         csw_st=(round(float(sp["csw_st"]), 1) if pd.notna(sp.get("csw_st")) else np.nan), whiff_st=(round(float(sp["whiff_st"]), 1) if pd.notna(sp.get("whiff_st")) else np.nan),
+                         new_pitch=(sp.get("new_pitch") if isinstance(sp.get("new_pitch"), str) else None),
                          pitching_plus=sp.get("pitching_plus"), stuff_plus=sp.get("stuff_plus"), xera=sp.get("xera"), k_percent=sp.get("k_percent"),
                          woba_30=sp.get("woba_30"), gs_30=sp.get("gs_30"), role=sp.get("role"), ip_gs=(round(float(sp["ip_start"]), 1) if pd.notna(sp.get("ip_start")) else np.nan), n_starts=(int(sp["n_starts"]) if pd.notna(sp.get("n_starts")) else 0), last5_pts=(round(float(sp["last5_pts"]), 1) if pd.notna(sp.get("last5_pts")) else np.nan), f_opp=round(oppf, 3), f_park=round(parkf, 3), f_wx=round(wxf, 3), f_home=homef, k_bonus=round(kbonus, 2), exp_pts=round(exp, 2)))
     out = pd.DataFrame(rows)
