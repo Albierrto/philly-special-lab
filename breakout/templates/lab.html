@@ -999,7 +999,7 @@ function whyList(r){ const out = []; const add = (v, txt) => { if(v==null) retur
   if (r.home) out.push({pc:2, txt:'home'}); return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
 function whyChips(r, n=3){ return `<span class="why" style="display:inline-flex;flex-wrap:wrap;gap:4px">${whyList(r).slice(0,n).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')}</span>`; }
 function whyListP(r){ const out = []; const add = (v, txt) => { if(v==null) return; const pc = Math.round((v-1)*100); if(Math.abs(pc) < 2) return; out.push({pc, txt:`${txt} ${pc>0?'+':''}${pc}%`}); };
-  add(r.f_opp, `vs ${abbrOf(r.opp)} bats`); add(r.f_park!=null ? Math.sqrt(r.f_park) : null, 'park'); add(r.f_wx!=null ? Math.sqrt(r.f_wx) : null, 'weather'); if (r.k_bonus) out.push({pc: Math.round(100*r.k_bonus/Math.max(1,r.base_gs||7)), txt:`K bonus +${r.k_bonus.toFixed(1)}`}); if (r.home) out.push({pc:2, txt:'home'}); return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
+  add(r.f_opp, `vs ${abbrOf(r.opp)} bats`); add(r.f_park!=null ? Math.sqrt(r.f_park) : null, 'park'); add(r.f_wx!=null ? Math.sqrt(r.f_wx) : null, 'weather'); if (r.k_bonus) out.push({pc: Math.round(100*r.k_bonus/Math.max(1,r.base_gs||7)), txt:`K bonus ${r.k_bonus>=0?'+':''}${r.k_bonus.toFixed(1)}`}); if (r.home) out.push({pc:2, txt:'home'}); return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
 function whyChipsP(r, n=3){ return `<span class="why" style="display:inline-flex;flex-wrap:wrap;gap:4px">${whyListP(r).slice(0,n).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')}</span>`; }
 function spTag(name, src){ return name ? `${esc(name)}${src==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}` : '<span class="hint">TBD</span>'; }
 function wxCell(r){ if(r.temp_f==null) return r.roof && r.roof!=='Open' ? '<span class="hint">roof</span>' : ''; const w = r.wind_out==null?'':(r.wind_out>=0?'out ':'in ')+Math.abs(r.wind_out).toFixed(0); return `${Math.round(r.temp_f)}° · ${w}${r.precip_prob>=50?` · <span class="pill w">${Math.round(r.precip_prob)}% rain</span>`:''}`; }
@@ -1193,7 +1193,7 @@ const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f
 function renderDash(){
   const V = VAL || computeValues();
   const today = localISO(); const dates = [...new Set(SHD.map(r=>r.date))].sort(); const day = dates.find(d=>d>=today) || dates[0];
-  $('#dash-asof').textContent = SD ? `Built ${SD.meta.generated}` : `Built ${D.meta.generated}`;
+  $('#dash-asof').textContent = (SD ? `Built ${SD.meta.generated}` : `Built ${D.meta.generated}`) + (D.meta.owners_synced ? ` · Fantrax rosters synced ${fmtSync(D.meta.owners_synced)} (refreshes every morning)` : '');
   const rowH = (r, val, sub2, extra='') => `<div class="row" data-h="${r.mlbam_id}">${ava(r.name, r.team_abbr||r.team, 32)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
   const rowP = (r, val, sub2, extra='') => `<div class="row" data-p="${r.mlbam_id}">${ava(r.name, r.team, 32)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
   const tierP = t => t ? `<span class="pill ${t==='lock'?'r':t==='clear keep'?'g':t==='marginal'?'w':'n'}">${esc(t)}</span>` : '';
@@ -1289,6 +1289,7 @@ const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['stre
 
 // ---------- today: the lineup to set, with reasons
 const tstate = { day: null };
+const fmtSync = iso => { const d = new Date(/Z$|[+-]\d\d:?\d\d$/.test(iso)?iso:iso.replace(' ','T')+'Z'); return isNaN(d) ? iso : d.toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}); };
 const localISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
 function dayWord(d){ const t = localISO(); const tm = new Date(new Date(t+'T12:00:00').getTime()+864e5).toISOString().slice(0,10); return d===t ? 'Today' : d===tm ? 'Tomorrow' : dayLabel(d); }
 function renderToday(){
@@ -1307,7 +1308,7 @@ function renderToday(){
   const mine = SHD.filter(r=>r.owner===MY && r.active!==0 && r.date===day);
   const lu = bestLineup(mine); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
   const posted = mine.filter(r=>r.lineup!=null).length;
-  $('#today-sub').textContent = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster · ${tot.toFixed(1)} expected points${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.`;
+  $('#today-sub').textContent = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster · ${tot.toFixed(1)} expected points${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}`;
   const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)}</div><div class="mu">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} · ${esc(r.local_start||'')} ${stateChip(r.gamePk)}</div><div class="why">${whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>'}</div></div><div class="exp">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`
                               : `<div class="slotrow open"><div class="slot">${sl}</div><span class="ava" style="--tc:var(--panel3)">–</span><div><div class="nm">Open spot</div><div class="mu">nobody eligible on your roster with a game</div></div><div class="exp">0.0<small>expected</small></div></div>`;
   const ORDER = {C:0,'1B':1,'2B':2,'3B':3,SS:4,OF:5,UT:6}; const luShow = lu.slice().sort((a,b)=>ORDER[a[0]]-ORDER[b[0]]);
