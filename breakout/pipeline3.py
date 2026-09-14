@@ -8,6 +8,7 @@ from . import config as C
 from . import pipeline2 as P2
 from .adp_value import score_seasons
 from .breakout import cross_validate
+from . import breakout2 as B2
 from .breakout2 import prepare, cross_validate_bi, breakout_index, project_v2
 from .formulas import PRESETS, aging_curve, expected_points, lpar, league_fit
 from .injuries import injury_features
@@ -80,6 +81,13 @@ def main(argv=None):
     real_k = pd.read_csv(kfile) if kfile.exists() else pd.DataFrame(columns=["player", "team", "slot"])
     real_k["nkey"] = real_k["player"].apply(key)
     pitcher_keeper_keys = set(real_k[real_k["slot"] == "pitcher"]["nkey"])
+    # who a breakout number is meaningful for at all (see breakout2.breakout_status)
+    d["bo_status"] = B2.breakout_status(d)
+    cur = cur.merge(d.loc[d["season"] == a.season, ["mlbam_id", "bo_status", "prior_best_pa", "jump_vs_prior", "prior_top90"]], on="mlbam_id", how="left")
+    n_bo = int((d.loc[d["season"] == a.season, "bo_status"] == "broke_out").sum())
+    print(f"  breakout status: {n_bo} broke out in {a.season}; "
+          f"{int((d.loc[d['season']==a.season,'bo_status']=='established').sum())} established; "
+          f"{int((d.loc[d['season']==a.season,'bo_status']=='candidate').sum())} still candidates")
     kv = keeper_values(cur.dropna(subset=["proj_pts"]), hk, teams)
     kv["kept_2026_as"] = kv["nkey"].map(dict(zip(real_k["nkey"], real_k["slot"]))).fillna("")
     kv_h = kv[~kv["nkey"].isin(pitcher_keeper_keys)]
@@ -153,7 +161,7 @@ def main(argv=None):
                   hitter_keepers=hk, pitcher_keepers=pk, real_keepers=recs(real_k, ["player", "team", "slot"]), pitching_plus_coef={k: float(v) for k, v in coef.items()}, pitcher_proj_coef=pcoef),
         seasons=recs(d[d["PA"] >= 50], P2.EXPLORER_COLS, columnar=True),
         projections=recs(kv, ["mlbam_id", "BI", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability", "il_days_w", "proj_pts", "proj_pts_600", "proj_rank",
-                              "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as"], columnar=True),
+                              "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as", "bo_status"], columnar=True),
         pool=recs(pool, ["mlbam_id", "name", "pool_rank", "proj_pts", "proj_rank", "owner", "KSV"]),
         drafts=recs(dv, ["season", "overall", "round", "pick", "team", "player", "pos", "mlb", "PA", "pts", "final_hitter_rank", "adp_hitter_rank", "exp_pts",
                          "pts_over_exp", "hitter_pick", "exp_pts_slot", "pts_over_slot", "beat", "mine"]),

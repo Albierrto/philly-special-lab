@@ -27,12 +27,17 @@ JUMP = 0.08
 BI_FEATURES = ["xwoba", "xiso", "xba", "barrel_batted_rate", "hard_hit_percent", "avg_best_speed", "xwobacon",
                "k_percent", "bb_percent", "oz_swing_percent", "whiff_percent", "iz_contact_percent", "swing_take_run_value",
                "sprint_speed", "sb_per600", "avg_swing_speed", "fast_swing_rate", "ideal_angle_rate", "age", "pts_pa", "PA",
-               "xLP_pa", "luck_pa", "career_best_pa", "gap_to_best", "seasons_200", "career_PA", "il_days", "il_days_3yr",
+               "xLP_pa", "luck_pa", "career_best_pa", "gap_to_best", "prior_best_pa", "jump_vs_prior", "prior_seasons_200",
+               "seasons_200", "career_PA", "il_days", "il_days_3yr",
                "yoy_k_change", "yoy_barrel_change", "yoy_bat_speed_change"]
 
 
 def career_context(d: pd.DataFrame) -> pd.DataFrame:
-    """Career-best pts/PA (200+ PA seasons) through season t, seasons played, career PA, yoy skill changes."""
+    """Career-best pts/PA (200+ PA seasons) through season t, seasons played, career PA, yoy skill changes.
+
+    Also the same three measured strictly BEFORE season t. career_best_pa includes the current year, so gap_to_best is
+    almost always 0 and says nothing; prior_best_pa is what the player had actually shown when the season began, which
+    is what makes "did he break out THIS year" answerable at all."""
     d = d.sort_values(["mlbam_id", "season"]).copy()
     d["_rate200"] = np.where(d["PA"] >= 200, d["pts_pa"], np.nan)
     g = d.groupby("mlbam_id")
@@ -40,6 +45,12 @@ def career_context(d: pd.DataFrame) -> pd.DataFrame:
     d["seasons_200"] = g["_rate200"].transform(lambda s: s.notna().cumsum())
     d["career_PA"] = g["PA"].cumsum()
     d["gap_to_best"] = d["pts_pa"] - d["career_best_pa"]
+    # strictly prior: what he had shown before this season started
+    d["prior_best_pa"] = g["_rate200"].transform(lambda s: s.shift(1).cummax())
+    d["prior_seasons_200"] = g["_rate200"].transform(lambda s: s.shift(1).notna().cumsum())
+    rk = d["final_hitter_rank"] if "final_hitter_rank" in d.columns else pd.Series(np.nan, index=d.index)
+    d["prior_top90"] = d.assign(_rk=rk).groupby("mlbam_id")["_rk"].transform(lambda s: (s.shift(1) <= 90).cumsum() > 0)
+    d["jump_vs_prior"] = d["pts_pa"] - d["prior_best_pa"].fillna(np.minimum(d["pts_pa"], 0.35))
     for col, new in [("k_percent", "yoy_k_change"), ("barrel_batted_rate", "yoy_barrel_change"), ("avg_swing_speed", "yoy_bat_speed_change")]:
         prev = g[col].shift(1); prev_pa = g["PA"].shift(1)
         d[new] = np.where(prev_pa >= 150, d[col] - prev, np.nan)
@@ -55,6 +66,31 @@ def _pairs(d: pd.DataFrame, min_pa=150) -> pd.DataFrame:
     base = np.where(m["seasons_200"] == 0, np.minimum(m["pts_pa"], 0.35), base)   # rookies: their small sample or a low prior
     m["breakout_next"] = ((m["next_pts_pa"] >= base + JUMP) & (m["next_PA"] >= 350) & (m["next_rank"] <= 90)).astype(int)
     return m
+
+
+def breakout_status(d: pd.DataFrame, min_pa: int = 100, age_max: float = 28.0) -> pd.Series:
+    """Who a breakout number is even meaningful for, in this season's row.
+
+    A percentage next to Aaron Judge is noise: he cannot enter new territory, he has been there for six years. And a
+    percentage next to Sal Stewart is backwards — his jump already happened, in this season, and the number is quietly
+    asking whether he will do it AGAIN. Four states instead:
+
+        broke_out   he cleared the bar this season: beat his prior best by JUMP, 350+ PA, top-90 finish, and had never
+                    finished top-90 before. 17 hitters in 2026 — Stewart, Jordan Walker, Jensen, Vargas, McGonigle.
+        established he has finished top-90 in a season before this one. Nothing to break out of.
+        candidate   neither, young enough that a jump is still plausible. This is the only group with a percentage.
+        thin        too few plate appearances to say anything.
+    """
+    base = d["prior_best_pa"].fillna(np.minimum(d["pts_pa"], 0.35))
+    rk = d["final_hitter_rank"] if "final_hitter_rank" in d.columns else pd.Series(np.nan, index=d.index)
+    broke = (d["pts_pa"] >= base + JUMP) & (d["PA"] >= 350) & (rk <= 90) & (~d["prior_top90"].fillna(False))
+    est = d["prior_top90"].fillna(False)
+    out = pd.Series("candidate", index=d.index)
+    out[est] = "established"
+    out[broke] = "broke_out"
+    out[d["PA"] < min_pa] = "thin"
+    out[(out == "candidate") & (d["age"] > age_max)] = "established"   # past the aging curve, a first leap is not coming
+    return out
 
 
 def prepare(ps_x: pd.DataFrame, prospects: pd.DataFrame | None = None, injuries: pd.DataFrame | None = None) -> pd.DataFrame:

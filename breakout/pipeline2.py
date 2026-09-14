@@ -113,7 +113,7 @@ EXPLORER_COLS = ["mlbam_id", "name", "season", "age", "elig", "team_abbr", "bats
                  "fast_swing_rate", "ideal_angle_rate", "squared_up_swing", "blasts_swing", "attack_angle", "oz_swing_percent",
                  "whiff_percent", "iz_contact_percent", "z_swing_percent", "swing_take_run_value", "pull_percent", "flyballs_percent",
                  "groundballs_percent", "linedrives_percent", "sprint_speed", "il_days", "il_stints", "il_days_3yr", "il_60", "il_reasons",
-                 "career_best_pa", "gap_to_best", "seasons_200", "career_PA", "prospect_status", "pipeline_rank", "PAS"]
+                 "career_best_pa", "prior_best_pa", "jump_vs_prior", "prior_seasons_200", "prior_top90", "bo_status", "gap_to_best", "seasons_200", "career_PA", "prospect_status", "pipeline_rank", "PAS"]
 
 
 def write_explorer(d, cur, kv, pool, dv, pros, curve, cv_proj, cv_bi, keepers, pcurve, league, a, out):
