@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       full:
-        description: "Rebuild the season models too (slow, ~25 min)"
+        description: "Rebuild the season models too (re-downloads MLB/Savant/MiLB caches, ~2-3 min)"
         default: "false"
 permissions:
   contents: write
@@ -34,7 +34,7 @@ jobs:
       # runs itself every Monday morning, and still on demand with full=true.
       - name: Full model rebuild (Mondays, or on demand)
         if: ${{ github.event.inputs.full == 'true' || github.event.schedule == '17 8 * * 1' }}
-        timeout-minutes: 180
+        timeout-minutes: 60     # it takes ~2 min from a cold runner; this is only a runaway guard
         run: python -m breakout.pipeline3
       # The two lists no API gives us. One Anthropic API call with web search reads this week's PitcherList tiers and
       # Scott White's CBS columns and writes a validated CSV; without the secret it prints one line and does nothing,
