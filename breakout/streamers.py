@@ -551,9 +551,19 @@ def hitter_matchups(games: pd.DataFrame, hitters: pd.DataFrame, hsplits: pd.Data
     W = dict(sp_power=0.6, park_power=1.0, temp_per_deg=0.003, wind_per_mph=0.004, home=1.02, form_power=0.5, platoon_power=1.0)
     if weights: W.update(weights)
     h = hitters.merge(hsplits, on="mlbam_id", how="left")
-    # baseline rate: half actual pts/PA, half expected (xLP) pts/PA, shrunk to league mean by PA
+    # baseline rate: half actual pts/PA, half expected (xLP) pts/PA, shrunk to the league mean by PA.
+    #
+    # Both the prior and the shrinkage were wrong until 2026-09-14, and in opposite directions.
+    #   prior: hardcoded 0.90 against a real league rate of 0.963 this season — every hitter 7% low.
+    #   k: 250, when regressing rest-of-season rate on prior rate over 44,107 hitter-games implies a k near 950,
+    #      and remarkably flat across sample sizes: 20-80 PA slope 0.057 (k 972), 80-150 slope 0.130 (k 844),
+    #      150-300 slope 0.178 (k 934), 300-600 slope 0.237 (k 1112).
+    # The practical effect is that a thin hot sample carried far too much: hitters under 150 PA sitting on 1.29 points
+    # per PA went on to hit 0.969, barely above league average, while the model had them at 0.98 and climbing.
     base_rate = 0.5 * h["pts_pa"].fillna(h["xLP_pa"]) + 0.5 * h["xLP_pa"].fillna(h["pts_pa"])
-    h["base_rate"] = shrink(base_rate, h["PA"], 0.90, 250)
+    lg_rate = float(np.nansum(base_rate * h["PA"]) / np.nansum(np.where(base_rate.notna(), h["PA"], np.nan))) if h["PA"].notna().any() else 0.963
+    if not np.isfinite(lg_rate) or not (0.7 < lg_rate < 1.3): lg_rate = 0.963
+    h["base_rate"] = shrink(base_rate, h["PA"], lg_rate, 900)
     h["pa_g"] = shrink(h["pa_30"] / h["g_30"].replace(0, np.nan), h["g_30"], (h["PA"] / h["G"].replace(0, np.nan)).fillna(3.8), 10)
     h["form"] = (shrink(h["woba_30"], h["pa_30"], h["woba_season"].fillna(LG_WOBA), 100) / h["woba_season"].fillna(LG_WOBA).clip(0.2, 0.5)).clip(0.8, 1.2)
     # platoon: hitter's wOBA vs L / vs R relative to his overall, shrunk
