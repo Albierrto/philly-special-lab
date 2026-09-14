@@ -93,7 +93,25 @@ def recent_starters(end: str, days: int = 16) -> pd.DataFrame:
     return sch.sort_values("gameDate")[["date", "gameDate", "team_id", "team", "sp_id", "sp_name"]]
 
 
-def project_rotations(sch: pd.DataFrame, recent: pd.DataFrame, min_apps: int = 2, regular_ids=None, active_ids=None, exclude_ids=None) -> pd.DataFrame:
+ROTATION_MIN = 5    # clubs run five or six starters; a shorter projected cycle manufactures second starts
+REST_DAYS = 6       # default days between two starts by the same arm. 93% of 2026 starters turn on a six-day median,
+                    # not five — six-man rotations and extra rest are the norm now, and assuming five invents two-start weeks.
+
+
+def rest_days(logs: pd.DataFrame, default: int = REST_DAYS, lo: int = 5, hi: int = 7) -> dict:
+    """Each arm's own turn, from the gaps between his starts this season. Tampa give Griffin Jax six or seven days;
+    projecting him on five is what put a second start on his week that was never going to happen."""
+    out = {}
+    for r in logs.itertuples():
+        ds = sorted(getattr(r, "start_dates", None) or [])
+        if len(ds) < 5: continue
+        gaps = [(date.fromisoformat(b) - date.fromisoformat(a)).days for a, b in zip(ds, ds[1:])]
+        gaps = [g for g in gaps if 3 <= g <= 9]          # ignore IL gaps and doubleheader oddities
+        if len(gaps) >= 4: out[int(r.mlbam_id)] = int(min(hi, max(lo, round(float(np.median(gaps))))))
+    return out
+
+
+def project_rotations(sch: pd.DataFrame, recent: pd.DataFrame, min_apps: int = 2, regular_ids=None, active_ids=None, exclude_ids=None, rest=None) -> pd.DataFrame:
     """Fill sp_id/sp_name for games without a listed probable by cycling each team's recent rotation order.
     A pitcher counts as a rotation member if he started at least `min_apps` times in the look-back window or is a
     regular starter on the season (regular_ids); this keeps openers and one-off spot starters out of the cycle."""
@@ -114,21 +132,29 @@ def project_rotations(sch: pd.DataFrame, recent: pd.DataFrame, min_apps: int = 2
                 order.append((pid, nm))
         counts = rec["sp_id"].value_counts()
         regs = [(p, n) for p, n in order if counts.get(p, 0) >= min_apps or p in regular_ids][:6]
-        if len(regs) < 3:
-            regs = order[:5]
-        rot = list(reversed(regs))  # oldest -> most recent
+        # a club's rotation is five or six deep. If the filters leave fewer than five, top up from the arms that have
+        # actually been taking turns, most recent first — otherwise the cycle is too short and it hands somebody a second
+        # start he was never going to make (Houston lost Miguel Ullola, one start in the window and no season line, and
+        # the four-man cycle that was left gave Cristian Javier a phantom 9/20).
+        if len(regs) < ROTATION_MIN:
+            have = {p for p, _ in regs}
+            for p, n in order:
+                if p not in have:
+                    regs.append((p, n)); have.add(p)
+                if len(regs) >= ROTATION_MIN: break
+        rot = list(reversed(regs[:6]))  # oldest -> most recent
         ids = [r[0] for r in rot]
         last = rot[-1][0]
         idx = ids.index(last)
-        # last start date per arm (from the look-back window, then from listed/projected starts as we go): nobody starts twice
-        # inside four days, so a doubleheader or a thin rotation cannot put Dylan Cease on back-to-back days
+        # last start date per arm (from the look-back window, then from listed/projected starts as we go). A modern
+        # rotation turns every five days; projecting a man on four would invent two-start weeks nobody is going to get.
         known = {}
         for pid, d in zip(rec["sp_id"], rec["date"]): known.setdefault(pid, []).append(str(d)[:10])
         for gi in grp.index:   # starts already on the board this week (posted probables, or picks kept from an earlier pass), past AND future
             if pd.notna(sch.at[gi, "sp_id"]): known.setdefault(sch.at[gi, "sp_id"], []).append(str(sch.at[gi, "date"])[:10])
         def rested(pid, day):
-            d0 = date.fromisoformat(str(day)[:10])
-            return all(abs((d0 - date.fromisoformat(d)).days) >= 4 for d in known.get(pid, []))
+            d0 = date.fromisoformat(str(day)[:10]); need = (rest or {}).get(int(pid), REST_DAYS)
+            return all(abs((d0 - date.fromisoformat(d)).days) >= need for d in known.get(pid, []))
         for gi in grp.index:
             day = sch.at[gi, "date"]
             if pd.notna(sch.at[gi, "sp_id"]):

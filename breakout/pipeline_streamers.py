@@ -34,9 +34,9 @@ def main(argv=None):
     # posted probable still overrides it, because the schedule is the truth when MLB has published it.
     cand = sorted({int(x) for x in rec["sp_id"].dropna()} | {int(x) for x in regular})
     logs_all = ST.starter_logs(cand, 2026, asof=a.asof)
-    moved = ST.bullpen_moved(logs_all, a.asof)
-    print(f"  {len(moved)} arms out of a rotation (last outing in relief, or no start in 12 days)")
-    sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | moved)
+    moved = ST.bullpen_moved(logs_all, a.asof); rest = ST.rest_days(logs_all)
+    print(f"  {len(moved)} arms out of a rotation (last outing in relief, or no start in 12 days); own turn known for {len(rest)}")
+    sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | moved, rest=rest)
     # opponent's starter on each row
     opp = sch[["gamePk", "team_id", "sp_id", "sp_name", "sp_source"]].rename(columns={"team_id": "opp_id", "sp_id": "opp_sp_id", "sp_name": "opp_sp_name", "sp_source": "opp_sp_source"})
     sch = sch.merge(opp, on=["gamePk", "opp_id"], how="left")
@@ -109,10 +109,13 @@ def main(argv=None):
     print(f"  {len(sp_ids)} starters this week ({len(missing)} not in the SP table), team splits {len(tsp)}")
 
     # second pass on rotations: game logs know who is really an opener (IP per start < 3.8) or a swingman (< 3 starts)
-    bad = set(logs[(logs["n_starts"] < 3) | (logs["ip_start"] < 3.8)]["mlbam_id"])
+    # true openers and bulk guys only. "Fewer than three starts" used to land here too, which threw out September
+    # call-ups who are genuinely taking a rotation turn (Miguel Ullola), shortened the cycle and handed the arm in front
+    # of them a second start he was never getting.
+    bad = set(logs[((logs["ip_start"] < 3.8) & (logs["n_starts"] >= 2)) | (logs["n_starts"] < 1)]["mlbam_id"])
     if bad:
         sch.loc[(sch["sp_source"] == "projected") & (sch["sp_id"].isin(bad)), ["sp_id", "sp_name", "sp_source"]] = [np.nan, None, None]
-        sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | bad | moved)
+        sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | bad | moved, rest=rest)
         opp = sch[["gamePk", "team_id", "sp_id", "sp_name", "sp_source"]].rename(columns={"team_id": "opp_id", "sp_id": "opp_sp_id", "sp_name": "opp_sp_name", "sp_source": "opp_sp_source"})
         sch = sch.drop(columns=["opp_sp_id", "opp_sp_name", "opp_sp_source"]).merge(opp, on=["gamePk", "opp_id"], how="left")
         new_ids = set(sch["sp_id"].dropna().astype(int)) - set(pp["mlbam_id"])
