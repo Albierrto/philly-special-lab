@@ -22,7 +22,8 @@ on:
     # 6:17 am / 12:17 pm / 6:17 pm Eastern — a pickup is live within about six hours instead of up to a day.
     - cron: "17 10 * * *"
     - cron: "17 16 * * *"
-    - cron: "17 22 * * *" 
+    - cron: "17 22 * * *"
+    - cron: "17 8 * * 1"      # Mondays: the same refresh, but rebuild the season models first (see below)
   workflow_dispatch:
     inputs:
       full:
@@ -44,8 +45,12 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11", cache: "pip" }
       - run: pip install -r requirements.txt
-      - name: Full model rebuild (manual only)
-        if: ${{ github.event.inputs.full == 'true' }}
+      # Projections, Breakout Index, keeper values and prospect cards come from here, and they used to move only when
+      # someone remembered to run this by hand — so keeper and trade calls were being made off frozen models. Now it
+      # runs itself every Monday morning, and still on demand with full=true.
+      - name: Full model rebuild (Mondays, or on demand)
+        if: ${{ github.event.inputs.full == 'true' || github.event.schedule == '17 8 * * 1' }}
+        timeout-minutes: 180
         run: python -m breakout.pipeline3
       - name: Fantrax rosters, standings and draft order (read-only, official API)
         run: python -m breakout.fantrax_api

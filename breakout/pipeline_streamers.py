@@ -146,7 +146,23 @@ def main(argv=None):
     ps = ps.drop(columns=["nkey"]); hd = hd.drop(columns=["nkey"])
     hd["active"] = hd["mlbam_id"].isin(active); hd["status"] = hd["mlbam_id"].map(status).fillna("not on 40-man")
     ps["active"] = ps["mlbam_id"].isin(active); ps["status"] = ps["mlbam_id"].map(status).fillna("not on 40-man")
-    print(f"  inactive hitters with games: {hd[~hd.active].mlbam_id.nunique()}; inactive projected starters: {ps[~ps.active].mlbam_id.nunique()}")
+    # MLB's 40-man feed lags the club's own paperwork: Ty France was reinstated and playable in Fantrax on 9/14 while
+    # statsapi still returned "Paternity List", which benched him all week. Fantrax is the system of record for this
+    # league, so for a rostered player its slot wins: anything but the injured/minors slots means he can be started.
+    fx = OW.owners(2026); fxr = getattr(fx, "rows", None)
+    playable = set()
+    if fxr is not None and len(fxr):
+        ok = fxr[~fxr["status"].astype(str).str.upper().isin(["INJURED_RESERVE", "MINORS"])]
+        playable = set(ok["nkey"].astype(str))
+    for df in (hd, ps):
+        over = (~df["active"]) & df["name"].map(lambda n: key(n) in playable)
+        if over.any():
+            df.loc[over, "status"] = df.loc[over, "status"].astype(str) + " (cleared in Fantrax)"
+            df.loc[over, "active"] = True
+    n_over = int(hd.loc[hd["status"].astype(str).str.contains("cleared in Fantrax"), "mlbam_id"].nunique()
+                 + ps.loc[ps["status"].astype(str).str.contains("cleared in Fantrax"), "mlbam_id"].nunique())
+    print(f"  inactive hitters with games: {hd[~hd.active].mlbam_id.nunique()}; inactive projected starters: {ps[~ps.active].mlbam_id.nunique()}"
+          + (f"; {n_over} cleared in Fantrax ahead of MLB's feed" if n_over else ""))
     # weekly hitter aggregate
     hw = hd[hd["active"]].groupby(["mlbam_id", "name", "team", "bats", "elig", "owner"], dropna=False).agg(games=("gamePk", "nunique"), week_pts=("exp_pts", "sum"), avg_mult=("mult", "mean"),
                                                                                              base_rate=("base_rate", "first"), pa_g=("pa_g", "first"), woba_30=("woba_30", "first"), pa_30=("pa_30", "first")).reset_index()
