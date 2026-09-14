@@ -265,8 +265,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   .search{max-width:none;min-width:0} .search input[type="search"]{padding-left:30px} .brand small{display:none} .brand b{font-size:18px} .topbar{gap:8px;padding:0 10px} h1{font-size:28px}
   .row{grid-template-columns:auto minmax(0,1fr) auto} .row .sub{white-space:normal}
 }
-.lockb{font:600 10px/1 var(--font-b);letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink3);cursor:pointer;vertical-align:middle}
-.lockb:hover{border-color:var(--ink3);color:var(--ink)}
+.lockb{font:600 10px/1 var(--font-b);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;vertical-align:middle;margin-left:4px}
+.lockb:hover{background:var(--accent);color:#fff}
 .lockb.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .finder{margin:0 0 18px}
 .deal{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px;background:var(--panel);cursor:pointer}
@@ -1190,7 +1190,6 @@ function renderStreamers(){
   if(!tSG) tSG = table('t-sgames', gcols, grows, {sort:'date', dir:1}); else tSG.setRows(grows);
   renderMyWeek(); if (typeof renderToday==='function' && VAL) renderToday();
 }
-const SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','UT','UT'];
 // ---------- your own calls beat the model's. Kept per day, in this browser, so a lock for today does not follow you to Friday.
 let LOCKS = (()=>{ try{ return JSON.parse(localStorage.getItem('lab-locks')||'{}') || {}; }catch(e){ return {}; } })();
 const lockKey = (date, id) => `${date}|${id}`;
@@ -1202,18 +1201,55 @@ function clearLocks(date){ Object.keys(LOCKS).forEach(k=>{ if(k.startsWith(date+
   try{ localStorage.setItem('lab-locks', JSON.stringify(LOCKS)); }catch(e){} }
 const eligIn = (r, s) => s==='UT' || (r.elig||'').split('/').includes(s);
 
-function bestLineup(rows, date){ // greedy: fill scarce slots first by expected points, after your own locks are honoured
-  const used = new Set(); const out = []; const day = date || (rows[0] && rows[0].date);
-  const order = ['C','SS','2B','3B','1B','OF','OF','OF','UT','UT'];
-  rows = rows.filter(r => r.lineup!==0 && lockOf(day, r.mlbam_id)!=='bench');
-  // forced starters take a slot first, scarcest position they qualify for, so a lock never costs you a spot it did not have to
-  const forced = rows.filter(r=>lockOf(day, r.mlbam_id)==='start').sort((a,b)=>b.exp_pts-a.exp_pts);
-  const slots = order.map(s=>({s, r:null}));
-  for (const f of forced){ const slot = slots.find(x=>!x.r && eligIn(f, x.s)); if(slot){ slot.r = f; used.add(f.mlbam_id); } }
-  for (const x of slots){ if(x.r) continue;
-    const cand = rows.filter(r=>!used.has(r.mlbam_id) && eligIn(r, x.s)).sort((a,b)=>b.exp_pts-a.exp_pts)[0];
-    if(cand){ used.add(cand.mlbam_id); x.r = cand; } }
-  for (const x of slots) out.push([x.s, x.r]);
+// Assignment problem, not greedy. Filling C, SS, 2B, 3B, 1B, OF, OF, OF, UT, UT in order and taking the best eligible
+// man each time makes locally good choices that block better ones: on 9/17 it sat Seager, put Lowe at UT and left Tatis
+// at 2B with an OF slot open, when Tatis is OF eligible and moving him frees 2B for Seager. This solves all ten slots
+// together (Jonker-Volgenant, O(n^3), trivial at this size) so the ten that play are the ten with the most points.
+function _assign(cost, n, m){            // minimise; returns col -> row (1-indexed, 0 = unassigned)
+  const INF = Infinity;
+  const u = new Array(n+1).fill(0), v = new Array(m+1).fill(0), p = new Array(m+1).fill(0), way = new Array(m+1).fill(0);
+  for (let i=1; i<=n; i++){
+    p[0] = i; let j0 = 0;
+    const minv = new Array(m+1).fill(INF), used = new Array(m+1).fill(false);
+    do {
+      used[j0] = true; const i0 = p[j0]; let delta = INF, j1 = 0;
+      for (let j=1; j<=m; j++) if(!used[j]){
+        const cur = cost[i0][j] - u[i0] - v[j];
+        if (cur < minv[j]){ minv[j] = cur; way[j] = j0; }
+        if (minv[j] < delta){ delta = minv[j]; j1 = j; }
+      }
+      for (let j=0; j<=m; j++){ if (used[j]){ u[p[j]] += delta; v[j] -= delta; } else minv[j] -= delta; }
+      j0 = j1;
+    } while (p[j0] !== 0);
+    do { const j1 = way[j0]; p[j0] = p[j1]; j0 = j1; } while (j0);
+  }
+  return p;
+}
+const SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','UT','UT'];   // display order; the solver does not care
+function bestLineup(rows, date){
+  const day = date || (rows[0] && rows[0].date);
+  const cand = rows.filter(r => r.lineup !== 0 && lockOf(day, r.mlbam_id) !== 'bench');
+  const n = SLOTS.length, P = cand.length, m = P + n;     // n dummy columns so a slot can always sit empty at no cost
+  const BIG = 1e7, LOCK_BONUS = 1e5;
+  const cost = Array.from({length:n+1}, ()=>new Array(m+1).fill(0));
+  for (let i=1; i<=n; i++){
+    const sl = SLOTS[i-1];
+    for (let j=1; j<=P; j++){
+      const r = cand[j-1];
+      if (!eligIn(r, sl)) { cost[i][j] = BIG; continue; }
+      // a man you locked in must be placed, so his value is made unbeatable rather than merely large
+      cost[i][j] = -(r.exp_pts + (lockOf(day, r.mlbam_id) === 'start' ? LOCK_BONUS : 0));
+    }
+    for (let j=P+1; j<=m; j++) cost[i][j] = 0;            // empty slot
+  }
+  const col = _assign(cost, n, m);
+  const out = SLOTS.map(sl => [sl, null]);
+  for (let j=1; j<=m; j++){
+    const i = col[j];
+    if (!i || j > P) continue;
+    if (cost[i][j] >= BIG) continue;                       // never seat an ineligible man
+    out[i-1][1] = cand[j-1];
+  }
   return out;
 }
 function renderMyWeek(){
@@ -1472,9 +1508,15 @@ function renderToday(){
   const mine = SHD.filter(r=>r.owner===MY && r.active!==0 && r.date===day);
   const lu = bestLineup(mine, day); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
   const posted = mine.filter(r=>r.lineup!=null).length;
-  $('#today-sub').textContent = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster · ${tot.toFixed(1)} expected points${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}`;
-  const lockBtn = (r, where) => { const st = lockOf(day, r.mlbam_id);
-    return `<button class="lockb${st?' on':''}" data-lock="${r.mlbam_id}" data-want="${where==='lineup' ? (st==='start'?'':'start') : (st==='bench'?'':'bench')}" title="${st==='start'?'locked into your lineup — click to let the model decide again':st==='bench'?'benched by you — click to let the model decide again':where==='lineup'?'lock him into the lineup so the model cannot move him':'bench him for today whatever the model says'}">${st==='start'?'locked':st==='bench'?'benched':where==='lineup'?'lock':'bench'}</button>`; };
+  const nLockNow = locksOn(day);
+  $('#today-sub').innerHTML = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster · ${tot.toFixed(1)} expected points${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}
+    <b style="display:block;margin-top:4px;color:var(--ink2);font-weight:500">This is a recommendation — <span class="lockb" style="pointer-events:none">lock in</span> or <span class="lockb" style="pointer-events:none">sit</span> anyone and the rest re-solves around your call${nLockNow?`. ${nLockNow} override${nLockNow>1?'s':''} set for ${dayWord(day).toLowerCase()}`:''}.</b>`;
+  const btn = (id, want, on, label, tip) => `<button class="lockb${on?' on':''}" data-lock="${id}" data-want="${want}" title="${esc(tip)}">${label}</button>`;
+  const lockBtn = (r, where) => { const st = lockOf(day, r.mlbam_id), id = r.mlbam_id;
+    return where === 'lineup'
+      ? btn(id, st==='start'?'':'start', st==='start', st==='start'?'locked in':'lock in', st==='start'?'you locked him in — click to let the model decide again':'keep him in the lineup whatever the model wants')
+        + btn(id, st==='bench'?'':'bench', st==='bench', 'sit', 'take him out of today\u2019s lineup')
+      : btn(id, st==='start'?'':'start', st==='start', st==='start'?'locked in':'start him', 'put him in today\u2019s lineup whatever the model wants'); };
   const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)} ${lockBtn(r,'lineup')}</div><div class="mu">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} · ${esc(r.local_start||'')} ${stateChip(r.gamePk)}</div><div class="why">${whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>'}</div></div><div class="exp">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`
                               : `<div class="slotrow open"><div class="slot">${sl}</div><span class="ava" style="--tc:var(--panel3)">–</span><div><div class="nm">Open spot</div><div class="mu">nobody eligible on your roster with a game</div></div><div class="exp">0.0<small>expected</small></div></div>`;
   const ORDER = {C:0,'1B':1,'2B':2,'3B':3,SS:4,OF:5,UT:6}; const luShow = lu.slice().sort((a,b)=>ORDER[a[0]]-ORDER[b[0]]);
@@ -1491,7 +1533,7 @@ function renderToday(){
     if (r.active===0) why = `not active (${r.status||'IL / minors'})`; else if (!d) why = 'no game'; else if (d.lineup===0) why = 'not in the posted lineup'; else { const slots = (d.elig||'').split('/'); const beaten = lu.filter(([sl,x])=>x && (slots.includes(sl)||sl==='UT')).map(([sl,x])=>x.exp_pts); const best = beaten.length?Math.min(...beaten):null; why = best!=null ? `${d.exp_pts.toFixed(1)} vs ${best.toFixed(1)} for the weakest starter at his positions` : 'no open spot at his positions'; if (whyList(d)[0] && whyList(d)[0].pc<0) why += ` · ${whyList(d)[0].txt}`; }
     return {r, d, why, exp}; }).sort((a,b)=>(b.exp??-1)-(a.exp??-1));
   const nLock = locksOn(day);
-  cards += `<div class="dcard w6 bench"><h3>Bench <small>and why they sit</small>${nLock?`<button class="go small" id="clear-locks" style="float:right;margin:0">reset my ${nLock} override${nLock>1?'s':''}</button>`:''}</h3><div class="rowlist">${bench.map(({r,d,why,exp})=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${d?' '+lineupPill(d):''}${d&&d.lineup!==0?' '+lockBtn(r,'bench').replace(`data-want="bench"`,`data-want="${lockOf(day,r.mlbam_id)==='bench'?'':'start'}"`).replace('>bench<','>start him<'):''}</div><div class="sub">${esc(why)}</div></div><div class="val">${exp!=null?exp.toFixed(1):'–'}<small>expected</small></div></div>`).join('')||'<p class="hint">Everyone with a game is in the lineup.</p>'}</div></div>`;
+  cards += `<div class="dcard w6 bench"><h3>Bench <small>and why they sit</small>${nLock?`<button class="go small" id="clear-locks" style="float:right;margin:0">reset my ${nLock} override${nLock>1?'s':''}</button>`:''}</h3><div class="rowlist">${bench.map(({r,d,why,exp})=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${d?' '+lineupPill(d):''}${d&&d.lineup!==0?' '+lockBtn(r,'bench'):''}</div><div class="sub">${esc(why)}</div></div><div class="val">${exp!=null?exp.toFixed(1):'–'}<small>expected</small></div></div>`).join('')||'<p class="hint">Everyone with a game is in the lineup.</p>'}</div></div>`;
   // waiver upgrades for today
   const fa = SHD.filter(r=>r.date===day && isFA(r.owner) && r.active!==0 && r.lineup!==0);
   const ups = []; for (const [sl,r] of lu){ const need = r ? r.exp_pts + 0.4 : 0; const c = fa.filter(x=>(sl==='UT'||(x.elig||'').split('/').includes(sl)) && x.exp_pts>need).sort((a,b)=>b.exp_pts-a.exp_pts)[0]; if(c && !ups.some(u=>u.c.mlbam_id===c.mlbam_id)) ups.push({sl, r, c}); }
