@@ -10,7 +10,8 @@ Everything is a transparent multiplier on a baseline rate, so the weights can be
     pitcher start pts = base pts/GS x opponent(wOBA vs hand) x park x weather x home  + K bonus(opponent K% vs hand)
 """
 from __future__ import annotations
-import json, math, time
+import io, json, math, time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, date
 from zoneinfo import ZoneInfo
 import numpy as np
@@ -273,23 +274,100 @@ def _ip(v):
     a, _, b = str(v).partition("."); return int(a or 0) + int(b or 0) / 3
 
 
-def starter_logs(ids, season=2026, weights=None) -> pd.DataFrame:
-    """Starts-only line per pitcher from MLB game logs: starts, points per start in league scoring, IP per start, last-5 form."""
+def _log_row(pid: int, season: int, W: dict, asof: str | None) -> dict:
+    j = _get(f"{API}/people/{int(pid)}/stats", stats="gameLog", group="pitching", season=season)
+    sp = (j.get("stats") or [{}])[0].get("splits", [])
+    sp = sorted(sp, key=lambda s: str(s.get("date") or ""))
+    def pts_of(st):
+        ip = _ip(st.get("inningsPitched", 0)); er = st.get("earnedRuns", 0)
+        return (W["IP"] * ip + W["K"] * st.get("strikeOuts", 0) + W["ER"] * er + W["QS"] * (1 if ip >= 6 and er <= 3 else 0)
+                + W["CG"] * st.get("completeGames", 0) + W["SHO"] * st.get("shutouts", 0) + W["BS"] * st.get("blownSaves", 0))
+    starts = [s for s in sp if s["stat"].get("gamesStarted") == 1]
+    pts = [pts_of(s["stat"]) for s in starts]; n = len(starts)
+    last_start = str(starts[-1].get("date"))[:10] if n else None
+    last_app = str(sp[-1].get("date"))[:10] if sp else None
+    # appearances out of the bullpen since his last start: the plain signal that a starter has been moved
+    relief_after = sum(1 for s in sp if s["stat"].get("gamesStarted") != 1 and last_start and str(s.get("date"))[:10] > last_start)
+    cut = (date.fromisoformat(asof) - timedelta(days=30)).isoformat() if asof else None
+    starts_30 = sum(1 for s in starts if cut and str(s.get("date"))[:10] >= cut)
+    return dict(mlbam_id=int(pid), n_starts=n, g_total=len(sp), n_relief=len(sp) - n,
+                pts_start=(sum(pts) / n if n else np.nan), ip_start=(sum(_ip(s["stat"].get("inningsPitched", 0)) for s in starts) / n if n else np.nan),
+                last5_pts=(sum(pts[-5:]) / len(pts[-5:]) if n else np.nan), last3_pts=(sum(pts[-3:]) / len(pts[-3:]) if n else np.nan),
+                k_start=(sum(s["stat"].get("strikeOuts", 0) for s in starts) / n if n else np.nan),
+                ip_start_3=(np.mean([_ip(s["stat"].get("inningsPitched", 0)) for s in starts[-3:]]) if n else np.nan),
+                last_start=last_start, last_app=last_app, relief_after_start=relief_after, starts_30=starts_30,
+                days_since_start=((date.fromisoformat(asof) - date.fromisoformat(last_start)).days if (asof and last_start) else np.nan))
+
+
+def starter_logs(ids, season=2026, weights=None, asof: str | None = None, workers: int = 10) -> pd.DataFrame:
+    """Starts-only line per pitcher from MLB game logs: points per start, IP per start, recent form, and the role signals
+    (relief appearances since his last start, days since his last start, starts in the last 30 days)."""
     W = dict(IP=1, K=1, ER=-1, QS=4, CG=10, SHO=8, BS=-3); W.update(weights or {})
-    rows = []
-    for pid in ids:
-        j = _get(f"{API}/people/{int(pid)}/stats", stats="gameLog", group="pitching", season=season)
-        sp = (j.get("stats") or [{}])[0].get("splits", [])
-        starts = [s for s in sp if s["stat"].get("gamesStarted") == 1]
-        pts = []
-        for s in starts:
-            st = s["stat"]; ip = _ip(st.get("inningsPitched", 0)); er = st.get("earnedRuns", 0)
-            pts.append(W["IP"] * ip + W["K"] * st.get("strikeOuts", 0) + W["ER"] * er + W["QS"] * (1 if ip >= 6 and er <= 3 else 0) + W["CG"] * st.get("completeGames", 0) + W["SHO"] * st.get("shutouts", 0) + W["BS"] * st.get("blownSaves", 0))
-        n = len(starts)
-        rows.append(dict(mlbam_id=int(pid), n_starts=n, g_total=len(sp), pts_start=(sum(pts) / n if n else np.nan), ip_start=(sum(_ip(s["stat"].get("inningsPitched", 0)) for s in starts) / n if n else np.nan),
-                         last5_pts=(sum(pts[-5:]) / len(pts[-5:]) if n else np.nan), k_start=(sum(s["stat"].get("strikeOuts", 0) for s in starts) / n if n else np.nan)))
-        time.sleep(0.06)
+    ids = [int(i) for i in ids]
+    with ThreadPoolExecutor(workers) as ex:
+        rows = list(ex.map(lambda p: _log_row(p, season, W, asof), ids))
     return pd.DataFrame(rows)
+
+
+WHIFF = ("swinging_strike", "swinging_strike_blocked", "foul_tip", "missed_bunt")
+SWING = WHIFF + ("foul", "foul_bunt", "hit_into_play", "hit_into_play_score", "hit_into_play_no_out")
+FASTBALL = ("FF", "SI", "FC", "FA")
+
+
+def _pitches(ids, gt: str, lt: str) -> pd.DataFrame:
+    q = "".join(f"&pitchers_lookup%5B%5D={int(i)}" for i in ids)
+    u = ("https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfGT=R%7C&hfSea=2026%7C&player_type=pitcher"
+         f"{q}&game_date_gt={gt}&game_date_lt={lt}&type=details")
+    cols = ["game_date", "pitcher", "pitch_type", "release_speed", "description"]
+    for attempt in range(3):
+        try:
+            r = _S.get(u, timeout=240)
+            if r.ok and len(r.content) > 200:
+                return pd.read_csv(io.StringIO(r.content.decode()), low_memory=False, usecols=lambda c: c in cols)
+        except Exception:
+            pass
+        time.sleep(4 + 4 * attempt)
+    return pd.DataFrame(columns=cols)
+
+
+def recent_stuff(ids, end: str, days: int = 30, group: int = 40) -> pd.DataFrame:
+    """Last-30-days Statcast form per pitcher: fastball velocity, CSW% (called strikes + whiffs per pitch) and whiff rate.
+    Season-long leaderboard numbers cannot see a mid-season velo jump; this is what PitcherList reads week to week."""
+    gt = (date.fromisoformat(end) - timedelta(days=days)).isoformat()
+    ids = sorted({int(i) for i in ids}); frames = []
+    for i in range(0, len(ids), group):
+        d = _pitches(ids[i:i + group], gt, end)
+        if len(d): frames.append(d)
+    if not frames: return pd.DataFrame(columns=["mlbam_id", "velo_30", "csw_30", "whiff_30", "pitches_30"])
+    d = pd.concat(frames, ignore_index=True)
+    return stuff_features(d).rename(columns={"pitcher": "mlbam_id"})
+
+
+def stuff_features(d: pd.DataFrame) -> pd.DataFrame:
+    """Per-pitcher velocity / CSW / whiff from a frame of pitches (used live and in the backtest)."""
+    d = d.copy(); d["is_fb"] = d["pitch_type"].isin(FASTBALL)
+    fb = d[d["is_fb"]]
+    # his own most-thrown fastball, so a pitcher who mixes four-seam and sinker is measured on one of them
+    top = fb.groupby(["pitcher", "pitch_type"]).size().reset_index(name="n").sort_values("n", ascending=False).drop_duplicates("pitcher")
+    velo = fb.merge(top[["pitcher", "pitch_type"]], on=["pitcher", "pitch_type"]).groupby("pitcher")["release_speed"].mean()
+    g = d.groupby("pitcher")
+    out = pd.DataFrame({
+        "velo_30": velo,
+        "csw_30": 100 * g["description"].apply(lambda s: s.isin(WHIFF + ("called_strike",)).mean()),
+        "whiff_30": 100 * g["description"].apply(lambda s: s.isin(WHIFF).sum() / max(1, s.isin(SWING).sum())),
+        "pitches_30": g.size(),
+    }).reset_index()
+    return out
+
+
+def bullpen_moved(logs: pd.DataFrame, asof: str | None = None, gap_days: int = 12) -> set:
+    """Starters who are not in a rotation any more: their most recent outing was in relief, or they have not started in
+    almost two turns. A listed probable always overrides this — it only stops the model from inventing a start."""
+    if not len(logs): return set()
+    d = logs.copy()
+    moved = d["relief_after_start"].fillna(0) > 0
+    stale = d["days_since_start"].fillna(0) >= gap_days
+    return set(d.loc[moved | stale, "mlbam_id"].astype(int))
 
 
 # ---------------------------------------------------------------- scoring
@@ -355,22 +433,43 @@ def hitter_matchups(games: pd.DataFrame, hitters: pd.DataFrame, hsplits: pd.Data
     return pd.DataFrame(rows)
 
 
+# Points in a neutral matchup for one start, fitted on 3,113 real 2026 starts (predicting each start from what was known
+# before it, five-fold by pitcher so a pitcher never trains and tests together, non-negative weights).
+#   r 0.361, MAE 4.51 — against r 0.315, MAE 4.67 for the old "season rate blended with the model, shrunk toward 7.0".
+# What it says: a starter's own fantasy scoring rate adds nothing once you know his stuff and how deep he goes, and
+# recent RESULTS are worse than the season line (last three starts alone: r 0.241 vs 0.288 for season to date). Recent
+# STUFF is the part that carries: velocity and whiffs against his own season baseline.
+BASE = dict(b0=-14.382, pplus=0.1710, ip_mix=1.2414, dwhiff=0.0835, dvelo=0.1542)
+SKILL_RATE = (0.1936, -9.980)   # Pitching+ -> points per start, the anchor a thin sample is shrunk toward
+VELO_OFFSET = 0.34              # my most-thrown-fastball average vs the season leaderboard's fb_velo
+LG_IP_GS = 5.2
+
+
+def _base_rate(p: pd.DataFrame) -> pd.DataFrame:
+    """Expected points in a neutral matchup, per start."""
+    this_rate = p["pts_start"].fillna(p["pts_gs"]); n = p["n_starts"].fillna(p["GS"]).fillna(0)
+    ip_season = p["ip_start"].fillna(p["IP"] / p["GS"].replace(0, np.nan))
+    ip_mix = (0.5 * ip_season.fillna(LG_IP_GS) + 0.5 * p.get("ip_start_3", ip_season).fillna(ip_season).fillna(LG_IP_GS))
+    # thin samples lean on the league's length rather than on three starts of noise
+    p["ip_mix"] = (ip_mix * n + LG_IP_GS * 3) / (n + 3)
+    pplus = p["pitching_plus"]
+    p["dvelo"] = (p.get("velo_30", pd.Series(np.nan, index=p.index)) + VELO_OFFSET - p.get("fb_velo", pd.Series(np.nan, index=p.index))).clip(-3, 3)
+    p["dwhiff"] = (p.get("whiff_30", pd.Series(np.nan, index=p.index)) - p.get("whiff_percent", pd.Series(np.nan, index=p.index))).clip(-12, 12)
+    base = BASE["b0"] + BASE["pplus"] * pplus + BASE["ip_mix"] * p["ip_mix"] + BASE["dwhiff"] * p["dwhiff"].fillna(0) + BASE["dvelo"] * p["dvelo"].fillna(0)
+    # no Savant line (a rookie under the 50-IP cutoff): his own rate, shrunk toward whatever skills we do have
+    anchor = np.where(pplus.notna(), SKILL_RATE[0] * pplus + SKILL_RATE[1], 7.0)
+    shrunk = (this_rate.fillna(7.0) * n + anchor * 8) / (n + 8)
+    p["base_gs"] = np.where(pplus.notna(), base, 0.935 * shrunk + 0.558)
+    return p
+
+
 def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.DataFrame, tsplits: pd.DataFrame, pf: pd.DataFrame, wx: pd.DataFrame, ven: pd.DataFrame,
                    weights: dict | None = None) -> pd.DataFrame:
     W = dict(opp_per_woba=2.5, park_power=0.5, wx_power=0.5, home=1.03, k_weight=1.0)
     if weights: W.update(weights)
     p = pitchers.merge(psplits, on="mlbam_id", how="left")
-    # base rate: this season's pts/GS blended with the model's rate, shrunk toward a replacement-level 7.0 with the prior season's
-    # starts counting as extra sample (a pitcher with 8 GS in 2026 and 25 last year is not a 8-GS unknown)
-    # starts-only rates from game logs (relief innings are excluded, so swingmen are not inflated)
-    this_rate = p["pts_start"].fillna(p["pts_gs"]); this_n = p["n_starts"].fillna(p["GS"]).fillna(0)
-    prior_rate = p["pts_start_prev"].fillna(p["pts_gs_prev"]).fillna(7.0); prior_n = p["n_starts_prev"].fillna(p["GS_prev"]).fillna(0).clip(0, 20)
-    model = p["proj_pts_gs_raw"]
-    blend = np.where(model.notna(), 0.6 * this_rate.fillna(7.0) + 0.4 * model.fillna(7.0), this_rate.fillna(7.0))
-    p["base_gs"] = (blend * this_n + prior_rate * prior_n + 7.0 * 10) / (this_n + prior_n + 10)
-    # recent form nudges the base a little (last five starts vs season)
-    form = (p["last5_pts"] - this_rate).fillna(0).clip(-3, 3)
-    p["base_gs"] = p["base_gs"] + 0.25 * form
+    p = _base_rate(p)
+    this_n = p["n_starts"].fillna(p["GS"]).fillna(0)
     p["k_per_gs"] = shrink(p["k_start"].fillna(p["K"] / p["GS"].replace(0, np.nan)), this_n, 5.0, 10)
     ip_gs = p["ip_start"].fillna(p["IP"] / p["GS"].replace(0, np.nan))
     p["role"] = np.where(this_n < 3, "spot/relief", np.where(ip_gs < 3.8, "opener/bulk", "starter"))
@@ -397,6 +496,11 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
                          sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
                          wind_out=round(wind_c, 1), precip_prob=(float(w["precip_prob"]) if w is not None else np.nan), local_start=(w["local_start"] if w is not None else None),
                          base_gs=round(float(sp["base_gs"]), 2), pts_gs_2026=round(float(sp["pts_gs"]), 2) if pd.notna(sp.get("pts_gs")) else np.nan, GS=int(sp["GS"]) if pd.notna(sp.get("GS")) else 0,
+                         ip_mix=(round(float(sp["ip_mix"]), 2) if pd.notna(sp.get("ip_mix")) else np.nan), velo_30=(round(float(sp["velo_30"]), 1) if pd.notna(sp.get("velo_30")) else np.nan),
+                         dvelo=(round(float(sp["dvelo"]), 1) if pd.notna(sp.get("dvelo")) else np.nan), whiff_30=(round(float(sp["whiff_30"]), 1) if pd.notna(sp.get("whiff_30")) else np.nan),
+                         dwhiff=(round(float(sp["dwhiff"]), 1) if pd.notna(sp.get("dwhiff")) else np.nan), csw_30=(round(float(sp["csw_30"]), 1) if pd.notna(sp.get("csw_30")) else np.nan),
+                         last3_pts=(round(float(sp["last3_pts"]), 1) if pd.notna(sp.get("last3_pts")) else np.nan), ip_start_3=(round(float(sp["ip_start_3"]), 1) if pd.notna(sp.get("ip_start_3")) else np.nan),
+                         relief_after_start=int(sp.get("relief_after_start") or 0), days_since_start=(int(sp["days_since_start"]) if pd.notna(sp.get("days_since_start")) else np.nan),
                          pitching_plus=sp.get("pitching_plus"), stuff_plus=sp.get("stuff_plus"), xera=sp.get("xera"), k_percent=sp.get("k_percent"),
                          woba_30=sp.get("woba_30"), gs_30=sp.get("gs_30"), role=sp.get("role"), ip_gs=(round(float(sp["ip_start"]), 1) if pd.notna(sp.get("ip_start")) else np.nan), n_starts=(int(sp["n_starts"]) if pd.notna(sp.get("n_starts")) else 0), last5_pts=(round(float(sp["last5_pts"]), 1) if pd.notna(sp.get("last5_pts")) else np.nan), f_opp=round(oppf, 3), f_park=round(parkf, 3), f_wx=round(wxf, 3), f_home=homef, k_bonus=round(kbonus, 2), exp_pts=round(exp, 2)))
     out = pd.DataFrame(rows)

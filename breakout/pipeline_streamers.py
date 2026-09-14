@@ -28,7 +28,14 @@ def main(argv=None):
     regular = set(s26[(s26["GS"] >= 5) & (s26["IP"] / s26["GS"] >= 4.0)]["mlbam_id"])
     openers = set(s26[(s26["GS"] >= 3) & (s26["IP"] / s26["GS"] < 3.8)]["mlbam_id"])
     active, status = ST.active_rosters(tm["team_id"].tolist())
-    sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers)
+    # who is actually still in a rotation: game logs say whether a starter's last outing was in relief (Kyle Harrison,
+    # 9/12) or whether he has not started in almost two turns. Those arms are kept out of the projected rotations; a
+    # posted probable still overrides it, because the schedule is the truth when MLB has published it.
+    cand = sorted({int(x) for x in rec["sp_id"].dropna()} | {int(x) for x in regular})
+    logs_all = ST.starter_logs(cand, 2026, asof=a.asof)
+    moved = ST.bullpen_moved(logs_all, a.asof)
+    print(f"  {len(moved)} arms out of a rotation (last outing in relief, or no start in 12 days)")
+    sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | moved)
     # opponent's starter on each row
     opp = sch[["gamePk", "team_id", "sp_id", "sp_name", "sp_source"]].rename(columns={"team_id": "opp_id", "sp_id": "opp_sp_id", "sp_name": "opp_sp_name", "sp_source": "opp_sp_source"})
     sch = sch.merge(opp, on=["gamePk", "opp_id"], how="left")
@@ -84,9 +91,16 @@ def main(argv=None):
     for c in ("pts_gs", "GS", "K", "BF", "IP", "xwoba", "k_percent", "pitching_plus", "stuff_plus", "xera", "proj_pts_gs_raw", "pts_gs_prev", "GS_prev"):
         if c not in pp.columns: pp[c] = np.nan
     psp = ST.player_splits(sorted(sp_ids), "pitching", d30, asof.isoformat())
-    logs = ST.starter_logs(sorted(sp_ids), 2026); pp = pp.merge(logs, on="mlbam_id", how="left")
-    logs_prev = ST.starter_logs(sorted(sp_ids), 2025).rename(columns={"n_starts": "n_starts_prev", "pts_start": "pts_start_prev"})[["mlbam_id", "n_starts_prev", "pts_start_prev"]]
+    logs = logs_all[logs_all["mlbam_id"].isin(sp_ids)]
+    extra_ids = sorted(sp_ids - set(logs["mlbam_id"]))
+    if extra_ids: logs = pd.concat([logs, ST.starter_logs(extra_ids, 2026, asof=a.asof)], ignore_index=True)
+    pp = pp.merge(logs, on="mlbam_id", how="left")
+    logs_prev = ST.starter_logs(sorted(sp_ids), 2025, asof=a.asof).rename(columns={"n_starts": "n_starts_prev", "pts_start": "pts_start_prev"})[["mlbam_id", "n_starts_prev", "pts_start_prev"]]
     pp = pp.merge(logs_prev, on="mlbam_id", how="left")
+    # last 30 days of Statcast: is he throwing harder and missing more bats than his own season line?
+    stuff = ST.recent_stuff(sorted(sp_ids), asof.isoformat())
+    pp = pp.merge(stuff, on="mlbam_id", how="left")
+    if len(stuff): print(f"  recent stuff for {int(stuff['pitches_30'].notna().sum())} starters (velo, whiff, CSW over the last 30 days)")
     tsp = ST.team_splits(tm["team_id"].tolist())
     print(f"  {len(sp_ids)} starters this week ({len(missing)} not in the SP table), team splits {len(tsp)}")
 
@@ -94,7 +108,7 @@ def main(argv=None):
     bad = set(logs[(logs["n_starts"] < 3) | (logs["ip_start"] < 3.8)]["mlbam_id"])
     if bad:
         sch.loc[(sch["sp_source"] == "projected") & (sch["sp_id"].isin(bad)), ["sp_id", "sp_name", "sp_source"]] = [np.nan, None, None]
-        sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | bad)
+        sch = ST.project_rotations(sch, rec, regular_ids=regular, active_ids=active, exclude_ids=openers | bad | moved)
         opp = sch[["gamePk", "team_id", "sp_id", "sp_name", "sp_source"]].rename(columns={"team_id": "opp_id", "sp_id": "opp_sp_id", "sp_name": "opp_sp_name", "sp_source": "opp_sp_source"})
         sch = sch.drop(columns=["opp_sp_id", "opp_sp_name", "opp_sp_source"]).merge(opp, on=["gamePk", "opp_id"], how="left")
         new_ids = set(sch["sp_id"].dropna().astype(int)) - set(pp["mlbam_id"])
