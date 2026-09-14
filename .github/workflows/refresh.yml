@@ -36,6 +36,13 @@ jobs:
         if: ${{ github.event.inputs.full == 'true' || github.event.schedule == '17 8 * * 1' }}
         timeout-minutes: 180
         run: python -m breakout.pipeline3
+      # The two lists no API gives us. One Anthropic API call with web search reads this week's PitcherList tiers and
+      # Scott White's CBS columns and writes a validated CSV; without the secret it prints one line and does nothing,
+      # and a list that fails validation is thrown away rather than published, so this can never fail the build.
+      - name: Analyst lists (PitcherList tiers, CBS sleepers and two-starts)
+        continue-on-error: true
+        env: { ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}" }
+        run: python -m breakout.analyst_lists
       - name: Fantrax rosters, standings and draft order (read-only, official API)
         run: python -m breakout.fantrax_api
       - name: This week's streamers (schedule, probables, rosters, weather, splits)
@@ -49,7 +56,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast
+          git add -A site output data/fantrax data/statcast data/reference
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
