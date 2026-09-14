@@ -27,6 +27,9 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 Fantrax rosters (who owns whom, IR/minors status), standings and next year's draft order are pulled every morning through
 Fantrax's official read-only API (`python -m breakout.fantrax_api`, no login needed because the league allows API reads).
 Nothing in this repo can touch a roster, make a claim, propose a trade or post in the league.
+Ownership everywhere on the site (Today, My team, keepers, trades, streamers) comes from that morning's sync
+(`breakout/ownership.py` stamps it on top of the projection tables at build time), so a drop or a pickup shows up the
+next morning, or right away if you run the **refresh** workflow by hand. The My team page shows the sync time.
 
 ## Run it locally
 
