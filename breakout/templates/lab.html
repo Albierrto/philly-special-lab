@@ -138,6 +138,19 @@ td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font
 .row .val small{display:block;font-weight:400;color:var(--ink3);font-size:11px}
 .ava{width:32px;height:32px;border-radius:50%;background:var(--tc,var(--panel3));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:12px;letter-spacing:.02em;flex:0 0 auto;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:10px 0}
+.ptsband{display:flex;align-items:flex-end;gap:clamp(10px,3vw,26px);flex-wrap:wrap;padding:14px 16px;margin:12px 0 4px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.ptsband .big{font-family:var(--font-d);font-size:clamp(30px,6vw,42px);line-height:1;font-weight:700}
+.ptsband .big small{display:block;font-family:var(--font);font-size:12px;font-weight:500;color:var(--ink2);letter-spacing:.02em;text-transform:uppercase;margin-top:5px}
+.ptsband .sp{font-family:var(--font-d);font-size:19px;line-height:1}
+.ptsband .sp small{display:block;font-family:var(--font);font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.02em;margin-top:4px}
+.ptsband .sp em{font-style:normal;color:var(--ink3);font-size:13px}
+details.sec{border-top:1px solid var(--line);margin:0}
+details.sec>summary{cursor:pointer;list-style:none;padding:11px 2px;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px;user-select:none}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::before{content:'▸';color:var(--ink3);font-size:12px;transition:transform .12s}
+details.sec[open]>summary::before{transform:rotate(90deg)}
+details.sec>summary small{color:var(--ink3);font-weight:400}
+details.sec>div.secbody{padding:2px 0 16px}
 .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 .kpi b{display:block;font-family:var(--font-d);font-size:24px;font-weight:700;line-height:1}
 .kpi span{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
@@ -885,25 +898,39 @@ function renderWts(){
 function refreshAll(){ rescore(); prescore(); buildPct(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); }
 
 // ---------- player card
+// how many points he has actually put up in this league — the first thing anyone wants when they open a player
+function ptsBand(id, kind, seasonPts, rank, extra){
+  const L = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)] || {}; const su = L.s || {};
+  const per = kind==='p' ? (su.pts_start!=null ? [su.pts_start, 'per start'] : null)
+                         : (su.g ? [+(su.pts/su.g).toFixed(1), 'per game'] : null);
+  const win = (d) => su['pts'+d]==null ? '' : `<div class="sp">${su['pts'+d]}<small>last ${d} days <em>${su['g'+d]||0} g</em></small></div>`;
+  const tot = su.pts!=null ? su.pts : (seasonPts!=null ? Math.round(seasonPts) : null);
+  if (tot==null) return '';
+  return `<div class="ptsband"><div class="big">${tot}<small>${CUR} fantasy points</small></div>
+    ${per?`<div class="sp">${per[0]}<small>${per[1]} <em>${su.g||0} ${kind==='p'?'g':'g'}</em></small></div>`:''}
+    ${win(7)}${win(30)}
+    ${rank?`<div class="sp">#${rank}<small>${kind==='p'?'among starters':'among hitters'}</small></div>`:''}
+    ${extra||''}</div>`;
+}
+const sec = (title, body, open=false, note='') => body ? `<details class="sec"${open?' open':''}><summary>${title}${note?` <small>${note}</small>`:''}</summary><div class="secbody">${body}</div></details>` : '';
 const kp = (l,v)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
 function showCard(html){ $('#card-body').innerHTML = html; $('#overlay').classList.add('open'); $('#card').classList.add('open'); $('#card-close').focus(); $('#card').scrollTop = 0; }
 // ---------- recent games (MLB game logs, scored in the league's points)
 const LOGS = () => (D.streamers && D.streamers.logs) || {};
 function gameLog(id, kind){
-  const rows = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)];
+  const L = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)]; const rows = L && L.r;
   if (!rows || !rows.length) return '';
   const last = rows.slice().reverse();
-  const avg = last.reduce((a,r)=>a+(r.pts||0),0)/last.length;
   const head = kind==='p'
     ? ['Date','Opp','','IP','K','BB','H','ER','Pts']
     : ['Date','Opp','','PA','H','HR','R','RBI','BB','K','SB','Pts'];
   const cell = r => kind==='p'
     ? [dayLabel(r.date), esc(abbrOf(r.opp)||''), r.gs? '' : '<span class="pill n" title="relief appearance">relief</span>', r.ip, r.K, r.BB, r.H, r.ER, `<b>${r.pts}</b>`]
     : [dayLabel(r.date), esc(abbrOf(r.opp)||''), r.home===false?'@':'', r.PA, r.H, r.HR, r.R, r.RBI, r.BB, r.K, r.SB, `<b>${r.pts}</b>`];
-  return `<h3>Recent games <small class="hint">last ${last.length}, in this league's points · ${avg.toFixed(1)} per game</small></h3>
-    <div class="tblwrap" style="max-height:320px"><table><thead><tr>${head.map((h,i)=>`<th class="${i<3?'l':''}">${h}</th>`).join('')}</tr></thead><tbody>${
+  return `<div class="tblwrap" style="max-height:340px"><table><thead><tr>${head.map((h,i)=>`<th class="${i<3?'l':''}">${h}</th>`).join('')}</tr></thead><tbody>${
       last.map(r=>`<tr>${cell(r).map((v,i)=>`<td class="${i<3?'l':''}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
+const logCount = (id, kind) => { const L = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)]; return (L && L.r && L.r.length) || 0; };
 function openCard(id){
   const hist = BY_ID[id], pros = PROS_BY_ID[id], phist = PBY_ID[id];
   if(!hist && !pros && !phist) return;
@@ -925,22 +952,24 @@ function hitterSection(id, sub=false){
   const cols = [{k:'season',l:'Yr',f:'int'},{k:'age',l:'Age',f:'1'},{k:'team_abbr',l:'Tm',t:'txt'},{k:'PA',l:'PA',f:'int'},{k:'pts_c',l:'Pts',f:'0'},{k:'pts_pa_c',l:'/PA',f:'3'},{k:'rank_c',l:'Rk',f:'int'},{k:'adp_hitter_rank',l:'ADP rk',f:'int'},{k:'over_c',l:'Beat ADP by',f:'0'},{k:'xLP_c',l:'Deserved',f:'0'},{k:'luck_c',l:'Luck',f:'0'},{k:'HR',l:'HR',f:'int'},{k:'SB',l:'SB',f:'int'},{k:'xwoba',l:'xwOBA',f:'3'},{k:'barrel_batted_rate',l:'Barrel %',f:'1'},{k:'avg_swing_speed',l:'Bat',f:'1'},{k:'k_percent',l:'K%',f:'1'},{k:'bb_percent',l:'BB%',f:'1'},{k:'sprint_speed',l:'Spr',f:'1'},{k:'il_days',l:'IL d',f:'int'}];
   const rowsHtml = hist.map(r=>`<tr>${cols.map(c=>`<td class="${c.t==='txt'?'l':''}" style="${cellStyle(CI[c.k]||{dir:0}, r.season, r[c.k])}">${fmt(c, r[c.k])}</td>`).join('')}</tr>`).join('');
   const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
-  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('2027 rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / 600 PA', p.proj_pts_600??'–')}${kp('2027 PA', p.proj_PA??'–')}${kp('Keeper value', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('Keeper value', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const pj2 = p ? `<div class="kpis">${kp('2027 rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / 600 PA', p.proj_pts_600??'–')}${kp('2027 PA', p.proj_PA??'–')}${kp('Keeper value (2nd)', p.KSV_2nd==null?'–':(p.KSV_2nd>=0?'+':'')+p.KSV_2nd)}</div>` : '';
   const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `${esc(last.elig||'')} · ${esc(last.team_abbr||'')} · bats ${esc(last.bats||'?')} · age ${last.age} · owner ${esc(last.owner||'–')}${last.prospect_status?' · '+esc(last.prospect_status):''}${last.pipeline_rank?' · Pipeline #'+last.pipeline_rank:''}`;
   const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips);
   return `${head}<div class="card-body">
-    <div class="kpis">${kp(CUR+' pts', Math.round(last.pts_c))}${kp('Rank', '#'+last.rank_c)}${kp('Above repl.', Math.round(last.LPAR_c))}${kp('Beat slot by', last.over_c==null?'–':(last.over_c>=0?'+':'')+Math.round(last.over_c))}${kp('Luck', last.luck_c==null?'–':(last.luck_c>=0?'+':'')+Math.round(last.luck_c))}${pj}</div>
-    ${last.avail_games!=null?`<p class="hint" style="margin:4px 0 8px"><b>Playing time ${last.season}:</b> first game ${esc(last.first_game||'')}${last.days_late>21?` (${last.days_late} days after opening day, a late call-up)`:''} · played ${last.G} of ${Math.round(last.avail_games)} games he was available for${last.il_games_in_window?` (${Math.round(last.il_games_in_window)} team games lost to the IL)`:''} · pace <b>${Math.round(last.pa_pace_162)} PA</b> per 162. Raw PA understates a late call-up or an injured player; the projection uses this pace.</p>`:''}
-    <h3>Savant-style percentiles, ${last.season} (hitters with 200+ PA)</h3>
-    <div class="grid2">${[['xwoba','xwOBA',v=>v.toFixed(3)],['xba','xBA',v=>v.toFixed(3)],['xslg','xSLG',v=>v.toFixed(3)],['avg_best_speed','EV50',v=>v.toFixed(1)],['barrel_batted_rate','Barrel%',v=>v.toFixed(1)+'%'],['hard_hit_percent','Hard-hit%',v=>v.toFixed(1)+'%'],['avg_swing_speed','Bat speed',v=>v.toFixed(1)],['squared_up_swing','Squared-up%',v=>v.toFixed(1)+'%'],['k_percent','K%',v=>v.toFixed(1)+'%'],['bb_percent','BB%',v=>v.toFixed(1)+'%'],['oz_swing_percent','Chase%',v=>v.toFixed(1)+'%'],['whiff_percent','Whiff%',v=>v.toFixed(1)+'%'],['sprint_speed','Sprint',v=>v.toFixed(1)],['xLP_c','Deserved pts',v=>Math.round(v)]].map(([k,l,f])=>{ const c=CI[k]||{dir:1,k}; let q=pct(last.season,k,last[k]); if(q!=null&&c.dir<0) q=1-q; return slider(l,last[k],q,f); }).join('')}</div>
-    <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3>
-    <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
-    <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
-    ${gameLog(id, 'h')}
-    <h3>Injured list</h3><p class="hint">${il}</p>
-    ${p ? `<h3>2027 projection: ${p.proj_pts} points</h3><p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is three parts the skills model (${p.proj_rate_raw?.toFixed(2)}, from this year's contact quality, discipline and speed; hitters this productive usually give some back) and one part his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'}), then ${(p.age_step??0)>=0?'nudged up':'nudged down'} ${Math.abs(0.5*(p.age_step??0)).toFixed(2)} for his age. Playing time starts from his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and is trimmed ${Math.round((1-(p.durability??1))*100)}% for injury history${p.il_days_w!=null?` (${Math.round(p.il_days_w)} weighted IL days: this year in full, last year 60%, two years ago 30%)`:''}${last.age>=32?' and age':''}. Breakout % ${p.BI} = chance 2027 is a new career level.</p>` : ''}</div>`;
+    ${ptsBand(id, 'h', last.pts_c, last.rank_c)}
+    <div class="kpis">${kp('Above repl.', Math.round(last.LPAR_c))}${kp('Luck', last.luck_c==null?'–':(last.luck_c>=0?'+':'')+Math.round(last.luck_c))}${pj}</div>
+    ${sec('Recent games', gameLog(id, 'h'), true, `last ${logCount(id,'h')} · this league's points`)}
+    ${sec('Season by season', `<div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`)}
+    ${sec('Skills and percentiles', `
+    <div class="grid2">${[['xwoba','xwOBA',v=>v.toFixed(3)],['xba','xBA',v=>v.toFixed(3)],['xslg','xSLG',v=>v.toFixed(3)],['avg_best_speed','EV50',v=>v.toFixed(1)],['barrel_batted_rate','Barrel%',v=>v.toFixed(1)+'%'],['hard_hit_percent','Hard-hit%',v=>v.toFixed(1)+'%'],['avg_swing_speed','Bat speed',v=>v.toFixed(1)],['squared_up_swing','Squared-up%',v=>v.toFixed(1)+'%'],['k_percent','K%',v=>v.toFixed(1)+'%'],['bb_percent','BB%',v=>v.toFixed(1)+'%'],['oz_swing_percent','Chase%',v=>v.toFixed(1)+'%'],['whiff_percent','Whiff%',v=>v.toFixed(1)+'%'],['sprint_speed','Sprint',v=>v.toFixed(1)],['xLP_c','Deserved pts',v=>Math.round(v)]].map(([k,l,f])=>{ const c=CI[k]||{dir:1,k}; let q=pct(last.season,k,last[k]); if(q!=null&&c.dir<0) q=1-q; return slider(l,last[k],q,f); }).join('')}</div>`, false, 'vs hitters with 200+ PA')}
+    ${sec('Trends', `
+    <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>`, false, `${yrs[0]}–${yrs[yrs.length-1]}`)}
+    ${sec('Playing time and injuries', `${last.avail_games!=null?`<p class="hint" style="margin:4px 0 8px"><b>Playing time ${last.season}:</b> first game ${esc(last.first_game||'')}${last.days_late>21?` (${last.days_late} days after opening day, a late call-up)`:''} · played ${last.G} of ${Math.round(last.avail_games)} games he was available for${last.il_games_in_window?` (${Math.round(last.il_games_in_window)} team games lost to the IL)`:''} · pace <b>${Math.round(last.pa_pace_162)} PA</b> per 162. Raw PA understates a late call-up or an injured player; the projection uses this pace.</p>`:''}<p class="hint">${il}</p>`)}
+    ${sec('2027 projection', `${pj2}${p ? `<p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is three parts the skills model (${p.proj_rate_raw?.toFixed(2)}, from this year's contact quality, discipline and speed; hitters this productive usually give some back) and one part his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'}), then ${(p.age_step??0)>=0?'nudged up':'nudged down'} ${Math.abs(0.5*(p.age_step??0)).toFixed(2)} for his age. Playing time starts from his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and is trimmed ${Math.round((1-(p.durability??1))*100)}% for injury history${p.il_days_w!=null?` (${Math.round(p.il_days_w)} weighted IL days: this year in full, last year 60%, two years ago 30%)`:''}${last.age>=32?' and age':''}. Breakout % ${p.BI} = chance 2027 is a new career level.</p>` : ''}`)}
+  </div>`;
 }
 
 // ---------- prospect card (TJStats-style)
@@ -971,20 +1000,22 @@ function pitcherSection(id, sub){
   const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
   const sl = [['pitching_plus','Pitching+',v=>v.toFixed(1)],['stuff_plus','Stuff+',v=>v.toFixed(1)],['location_plus','Location+',v=>v.toFixed(1)],['k_percent','K%',v=>v.toFixed(1)+'%'],['bb_percent','BB% (low good)',v=>v.toFixed(1)+'%'],['xera','xERA (low good)',v=>v.toFixed(2)],['whiff_percent','Whiff%',v=>v.toFixed(1)+'%'],['z_swing_miss_percent','In-zone miss%',v=>v.toFixed(1)+'%'],['oz_swing_percent','Chase%',v=>v.toFixed(1)+'%'],['edge_percent','Edge%',v=>v.toFixed(1)+'%'],['meatball_percent','Meatball% (low good)',v=>v.toFixed(1)+'%'],['f_strike_percent','First-strike%',v=>v.toFixed(1)+'%'],['groundballs_percent','GB%',v=>v.toFixed(1)+'%'],['hard_hit_percent','Hard-hit% agn (low good)',v=>v.toFixed(1)+'%'],['barrel_batted_rate','Barrel% agn (low good)',v=>v.toFixed(1)+'%'],['fb_velo','Fastball velo',v=>v.toFixed(1)],['movement_uniqueness','Movement uniqueness',v=>v.toFixed(2)],['arsenal_putaway','Put-away%',v=>v.toFixed(1)+'%']];
   const sliders = sl.map(([k,l,f])=>{ const c=PCI[k]||{dir:1}; let q=pct(last.season,k,last[k],PPCT); if(q!=null&&c.dir<0) q=1-q; return slider(l,last[k],q,f); }).join('');
-  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('2027 SP rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / start', p.proj_pts_gs??'–')}${kp('2027 starts', p.proj_GS??'–')}${(p.proj_pts_hitting||0)>0?kp('+ hitting', Math.round(p.proj_pts_hitting)):''}${kp('Keeper value', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('Keeper value', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const pj2 = p ? `<div class="kpis">${kp('2027 SP rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / start', p.proj_pts_gs??'–')}${kp('2027 starts', p.proj_GS??'–')}${(p.proj_pts_hitting||0)>0?kp('+ hitting', Math.round(p.proj_pts_hitting)):''}</div>` : '';
   const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `SP · ${esc(last.throws||'')}HP · ${esc(last.team||'')} · age ${last.age} · owner ${esc(last.owner||'–')}`;
   const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips);
   return `${head}<div class="card-body">
-    <div class="kpis">${kp(CUR+' pts', Math.round(last.pts_c))}${kp('SP rank', '#'+last.rank_c)}${kp('Pts/GS', (last.pts_gs_c??0).toFixed(1))}${kp('Pitching+', last.pitching_plus?.toFixed(0)??'–')}${kp('Stuff+', last.stuff_plus?.toFixed(0)??'–')}${kp('Location+', last.location_plus?.toFixed(0)??'–')}${pj}</div>
-    <h3>Arsenal ${last.season}</h3><p class="hint">${esc(last.arsenal_desc||'no arsenal table (fewer than 50 IP or pre-2021)')}${last.best_pitch?` · best pitch by run value: <b>${esc(last.best_pitch)}</b> (${(last.best_pitch_whiff??0).toFixed(1)}% whiff) · ${last.n_plus_pitches??0} plus pitch${last.n_plus_pitches===1?'':'es'} · ${last.n_pitches_10??0} pitches thrown 10%+`:''}</p>
-    <h3>Savant-style percentiles, ${last.season} (starters with 15+ GS)</h3><div class="grid2">${sliders}</div>
-    <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3><div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
-    <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
-    ${gameLog(id, 'p')}
-    <h3>Injured list</h3><p class="hint">${il}</p>
-    ${p ? `<h3>2027 projection</h3><p class="hint"><b>${p.proj_pts_gs?.toFixed(2)} points per start × ${p.proj_GS} starts → ${p.proj_pts} pts.</b> The rate is ${p.proj_pts_gs_raw?.toFixed(2)} as a 27-year-old (three parts his Pitching+ skills, one part his last three seasons per start) ${(p.age_step??0)>=0?'plus':'minus'} ${Math.abs(p.age_step??0).toFixed(2)} for age ${Math.round(last.age+1)}. Starts come from this year's ${last.GS}, last year's and his age, × ${p.durability} for recent IL time${last.age>=34?' and being 34+':''}${(p.proj_pts_hitting||0)>0?` pitching + ${Math.round(p.proj_pts_hitting)} hitting = ${Math.round(p.proj_pts_total)} for a pitcher-slot keeper`:''}. Breakout % ${p.BI} = chance 2027 is a new career level in points per start.</p>` : ''}</div>`;
+    ${ptsBand(id, 'p', last.pts_c, last.rank_c)}
+    <div class="kpis">${kp('Pitching+', last.pitching_plus?.toFixed(0)??'–')}${kp('Stuff+', last.stuff_plus?.toFixed(0)??'–')}${kp('Location+', last.location_plus?.toFixed(0)??'–')}${pj}</div>
+    ${sec('Recent games', gameLog(id, 'p'), true, `last ${logCount(id,'p')} · this league's points`)}
+    ${sec('Season by season', `<div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`)}
+    ${sec('Arsenal and percentiles', `<p class="hint">${esc(last.arsenal_desc||'no arsenal table (fewer than 50 IP or pre-2021)')}${last.best_pitch?` · best pitch by run value: <b>${esc(last.best_pitch)}</b> (${(last.best_pitch_whiff??0).toFixed(1)}% whiff) · ${last.n_plus_pitches??0} plus pitch${last.n_plus_pitches===1?'':'es'} · ${last.n_pitches_10??0} pitches thrown 10%+`:''}</p><div class="grid2">${sliders}</div>`, false, `${last.season}`)}
+    ${sec('Trends', `<div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>`, false, `${yrs[0]}–${yrs[yrs.length-1]}`)}
+    ${sec('Injured list', `<p class="hint">${il}</p>`)}
+    ${sec('2027 projection', `${pj2}${p ? `<p class="hint"><b>${p.proj_pts_gs?.toFixed(2)} points per start × ${p.proj_GS} starts → ${p.proj_pts} pts.</b> The rate is ${p.proj_pts_gs_raw?.toFixed(2)} as a 27-year-old (three parts his Pitching+ skills, one part his last three seasons per start) ${(p.age_step??0)>=0?'plus':'minus'} ${Math.abs(p.age_step??0).toFixed(2)} for age ${Math.round(last.age+1)}. Starts come from this year's ${last.GS}, last year's and his age, × ${p.durability} for recent IL time${last.age>=34?' and being 34+':''}${(p.proj_pts_hitting||0)>0?` pitching + ${Math.round(p.proj_pts_hitting)} hitting = ${Math.round(p.proj_pts_total)} for a pitcher-slot keeper`:''}. Breakout % ${p.BI} = chance 2027 is a new career level in points per start.</p>` : ''}`)}
+  </div>`;
 }
 $('#overlay').addEventListener('click', closeCard); $('#card-close').addEventListener('click', closeCard); document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCard(); });
 function closeCard(){ $('#overlay').classList.remove('open'); $('#card').classList.remove('open'); }
