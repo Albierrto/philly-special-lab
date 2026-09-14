@@ -542,16 +542,30 @@ proj pts = proj pts/GS × proj GS;   two-way: keeper value = pitching proj + hit
 f_SP = clip(SP xwOBA / league xwOBA, 0.75, 1.3), regressed to league over 300 batters faced;  f_platoon from his wOBA vs L / vs R (regressed);  f_park = Savant runs factor by batter side / 100
 f_weather = clip(1 + 0.003 × (temp − 70), 0.94, 1.06) × clip(1 + 0.004 × wind-out mph, 0.92, 1.08), 1.0 under a roof;  f_form from 30-day wOBA (regressed)
 pitcher exp pts = base pts/GS × f_opp × f_park^0.5 × f_weather^0.5 × f_home + K bonus from the opponent's K% vs that hand
+   f_opp = 1 − 3.5·(opponent wOBA vs his hand − .312), capped at ±30%;  K bonus = 0.85 · his K per start · (opponent K% / .222 − 1)
+   those two strengths were checked against the same 3,072 starts: a .020 swing in the opponent's wOBA is worth 0.71
+   points, three points of opponent K% 0.56, and home 0.60 (most of which the park factor already carries)
 
-base pts/GS = −14.53 + 0.170·Pitching+ + 1.269·IP-mix + 0.066·ΔCSW + 0.842·Δvelo
+base pts/GS = 0.27 + 0.110·Pitching+ + 1.203·IP-mix + 0.039·ΔCSW + 0.808·Δvelo − 26.70·xwOBA against
    IP-mix = half his innings per start this season, half his last three starts (shrunk toward 5.2 IP on a thin sample)
    ΔCSW, Δvelo = called-strikes-plus-whiffs per pitch, and fastball velocity, over the last 30 days against his own
       season — both measured over the games he STARTED, because a reliever's one max-effort inning is not his starting
       velocity. Filtering the trend to starts is worth a lot: velocity carries 0.84 points a start per mph that way,
       against 0.15 when relief outings are mixed in.
-   fitted on 3,212 real 2026 starts, each predicted from what was known before it, five-fold by pitcher: r 0.367, MAE 4.48
-   (the formula this replaced — season rate blended with the model and shrunk toward 7.0 — scored r 0.315, MAE 4.67)
+   fitted on 3,072 real 2026 starts, each predicted from what was known before it, five-fold by pitcher
    a starter with no Savant line falls back to his own starts-only rate shrunk toward what his Pitching+ implies
+
+Which of the metrics analysts name actually predict THIS league's points, one at a time, against the next start:
+   Pitching+ .332   xwOBA against .327   Stuff+ .320   strikeouts per start .291   his own points per start .294
+   K−BB% .260   K% .247   IP per start .229   SwStr% .227   CSW% .212   whiff% .205   ERA .197   BB% .105
+Two of those readings are specific to this league. Strikeouts per START beat K% (.291 vs .247), because a strikeout is
+worth a point here rather than propping up a rate. And BB% barely registers, because there is no walk penalty at all —
+a walk only costs through the baserunner and the shorter outing. K−BB% is the analysts' simple workhorse and it does
+beat K% here, but contact quality beats both: xwOBA against earned a place in the formula, while strikeouts per start,
+quality-start rate and K−BB% all took a zero weight once Pitching+ and innings were already in.
+
+End to end, against the same 3,072 starts with the matchup multipliers applied: r 0.380, MAE 4.49, against r 0.375 and
+4.50 for the version before contact quality went in, and r 0.315 / 4.67 for the original season-rate blend.
 
 Two things were tried and left out because they made it worse. Recent RESULTS: predicting the next start from the last
 three starts alone scores r 0.241, worse than the season-to-date rate's 0.288, and a regression given both puts almost
@@ -590,8 +604,8 @@ rotations entirely — a posted probable still overrides it.</div></details>
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T0345"></script>
-<script src="data/streamers.js?v=20260914T0345"></script>
+<script src="data/lab.js?v=20260914T0402"></script>
+<script src="data/streamers.js?v=20260914T0402"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1563,6 +1577,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T0345"></script>
+<script src="live.js?v=20260914T0402"></script>
 </body>
 </html>
