@@ -5,6 +5,10 @@ __pycache__/
 data/milb_statcast/
 data/mlb/
 data/savant/
+# the arsenal leaderboards are hand-downloaded from Savant and have no fetch path in the code, so unlike every other
+# cache here they cannot rebuild themselves on a fresh runner — they have to travel with the repo
+!data/savant/arsenal/
+!data/savant/arsenal/*.csv
 data/milb/
 data/injuries/transactions_*.json
 # generated pages (the site/ folder is the one that is served)
