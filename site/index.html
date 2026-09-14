@@ -645,8 +645,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T1618"></script>
-<script src="data/streamers.js?v=20260914T1618"></script>
+<script src="data/lab.js?v=20260914T1657"></script>
+<script src="data/streamers.js?v=20260914T1657"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -681,7 +681,10 @@ const PEVENTS = ['IP','K','ER','QS','CG','SHO','BS','W','L','SV','HLD','H','BB',
 const PPRESETS = { philly_special: {...D.meta.pitching_scoring}, espn_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:2,L:-2,SV:5}, yahoo_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-5,SV:5,HLD:2}, cbs_points: {IP:3,K:1,ER:-1,H:-1,BB:-1,W:7,L:-5,SV:7,QS:3}, fantrax_default: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-3,SV:6,HLD:3,QS:3,CG:5,SHO:5} };
 let PW = {...PPRESETS.philly_special};
 function prescore(){
-  for (const r of PROWS){ let p = 0; for (const e of PEVENTS){ const wt = +PW[e]||0; if(wt) p += wt*(r[e]||0); } r.pts_c = p; r.pts_gs_c = r.GS ? p/r.GS : null; r.pts_ip_c = r.IP ? p/r.IP : null; }
+  for (const r of PROWS){ let p = 0; for (const e of PEVENTS){ const wt = +PW[e]||0; if(wt) p += wt*(r[e]||0); } r.pts_c = p;
+    // season totals cannot separate a start from a relief outing, so points-over-starts is only meaningful for a man who
+    // mostly started: a reliever with one spot start showed 143 a start. Blank rather than wrong.
+    const share = r.G ? r.GS / r.G : 1; r.pts_gs_c = (r.GS && share >= 0.7) ? p/r.GS : null; r.pts_ip_c = r.IP ? p/r.IP : null; }
   for (const s of PSEASONS){
     const pool = PROWS.filter(r=>r.season===s);
     // roto (W, K, SV, ERA, WHIP) among the top TEAMS*PSTART*1.4 by IP
@@ -1139,6 +1142,7 @@ function whyListP(r){ const out = []; const add = (v, txt) => { if(v==null) retu
   if (r.dwhiff!=null && Math.abs(r.dwhiff)>=2) out.push({pc: r.dwhiff>0?5:-5, txt:`whiffs ${r.dwhiff>0?'+':''}${r.dwhiff.toFixed(0)}%`});
   if (r.ip_start_3!=null && r.ip_gs!=null && Math.abs(r.ip_start_3-r.ip_gs)>=0.6) out.push({pc: r.ip_start_3>r.ip_gs?4:-4, txt:`${r.ip_start_3.toFixed(1)} IP last 3`});
   if (r.new_pitch) out.push({pc:7, txt:`new pitch: ${r.new_pitch}`});
+  if (r.n_relief >= 5) out.push({pc:0, txt:`${r.n_relief} relief apps not counted`});
   // the opponent's bat stays on its season split, but a club whose strikeout rate has moved usually changed personnel
   if (r.opp_k_move!=null && Math.abs(r.opp_k_move)>=0.06) out.push({pc: Math.round(100*r.opp_k_move/2), txt:`${abbrOf(r.opp)} Ks ${r.opp_k_move>0?'up':'down'} ${Math.abs(Math.round(r.opp_k_move*100))}% lately`});
   return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
@@ -1184,7 +1188,7 @@ function renderStreamers(){
   const pOk = o => sstate.pavail==='FA' ? isFA(o) : sstate.pavail==='mine' ? o===MY : true;
   let prow = SPS.filter(r => r.sp_source!=='replaced' && r.active!==0 && pOk(r.owner) && (sstate.allroles || goodRole(r) || r.owner===MY) && (!sstate.two || r.two_start) && (sstate.day==='week' || r.date===sstate.day));
   const pcols = [{k:'date',l:'Day',render:v=>dayLabel(v),left:true},{k:'name',l:'Pitcher',t:'name'},{k:'owner',l:'Owner',t:'txt'},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(abbrOf(v))} ${stateChip(r.gamePk)}`,left:true},{k:'sp_source',l:'',render:v=>v==='projected'?'<span class="pill n" title="projected from rotation order">P</span>':'<span class="pill g">listed</span>'},{k:'exp_pts',l:'Expected pts',f:'2'},{k:'why',l:'Why',render:(v,r)=>whyChipsP(r,3),left:true},{k:'pl_tier',l:'PitcherList 9/8',render:(v,r)=>tierPillP(v)+(r.pl_note?` <span class="hint" title="${esc(r.pl_note)}">ⓘ</span>`:''),left:true},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'two_start',l:'Two-start',render:v=>v?'<span class="pill b">2</span>':''},{k:'week_pts',l:'Week expected',f:'1'},{k:'last5_pts',l:'Last 5 starts',f:'1'},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'local_start',l:'First pitch',t:'txt'}];
-  if (sstate.more) pcols.splice(7,0,{k:'role',l:'Role',t:'txt'},{k:'n_starts',l:'Starts',f:'int'},{k:'ip_gs',l:'IP / start',f:'1'},{k:'base_gs',l:'Pts / start',f:'2'},{k:'opp_woba_vs_hand',l:'Lineup wOBA',f:'3'},{k:'opp_k_vs_hand',l:'Lineup K%',render:v=>v==null?'':(100*v).toFixed(1)},{k:'park_runs',l:'Park',f:'int'},{k:'f_opp',l:'× Lineup',f:'3'},{k:'f_park',l:'× Park',f:'3'},{k:'f_wx',l:'× Weather',f:'3'},{k:'k_bonus',l:'K bonus',f:'2'},{k:'pitching_plus',l:'Pitching+',f:'1'},{k:'xera',l:'xERA',f:'2'},{k:'pts_gs_2026',l:'2026 pts / start',f:'2'},{k:'GS',l:'GS',f:'int'},{k:'team',l:'Team',t:'txt'});
+  if (sstate.more) pcols.splice(7,0,{k:'role',l:'Role',t:'txt'},{k:'n_starts',l:'Starts',f:'int'},{k:'ip_gs',l:'IP / start',f:'1'},{k:'base_gs',l:'Pts / start',f:'2'},{k:'opp_woba_vs_hand',l:'Lineup wOBA',f:'3'},{k:'opp_k_vs_hand',l:'Lineup K%',render:v=>v==null?'':(100*v).toFixed(1)},{k:'park_runs',l:'Park',f:'int'},{k:'f_opp',l:'× Lineup',f:'3'},{k:'f_park',l:'× Park',f:'3'},{k:'f_wx',l:'× Weather',f:'3'},{k:'k_bonus',l:'K bonus',f:'2'},{k:'pitching_plus',l:'Pitching+',f:'1'},{k:'xera',l:'xERA',f:'2'},{k:'pts_gs_2026',l:'2026 pts / start',f:'2',title:'his own points per start this year, counting STARTS ONLY \u2014 relief outings are excluded, so a swingman is not credited with his bullpen work divided by his start count'},{k:'n_relief',l:'Relief apps',f:'int',title:'appearances out of the bullpen, not counted in points per start'},{k:'GS',l:'GS',f:'int'},{k:'team',l:'Team',t:'txt'});
   $('#s-pcount').textContent = `${prow.length} starts`;
   if(!tSP) tSP = table('t-sp', pcols, prow, {sort:'exp_pts', card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); else { tSP.setCols(pcols); tSP.setRows(prow); }
   // games table
@@ -1830,6 +1834,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T1618"></script>
+<script src="live.js?v=20260914T1657"></script>
 </body>
 </html>
