@@ -696,7 +696,16 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
         rows.append(dict(mlbam_id=g["sp_id"], name=g["sp_name"], team=g["team"], throws=sp.get("throws"), owner=sp.get("owner"), date=g["date"], gamePk=g["gamePk"], home=g["home"], opp=g["opp"], venue=g["venue"],
                          sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), opp_k_move=round(kmv, 3), park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
                          wind_out=round(wind_c, 1), precip_prob=(float(w["precip_prob"]) if w is not None else np.nan), local_start=(w["local_start"] if w is not None else None),
-                         base_gs=round(float(sp["base_gs"]), 2), pts_gs_2026=round(float(sp["pts_gs"]), 2) if pd.notna(sp.get("pts_gs")) else np.nan, GS=int(sp["GS"]) if pd.notna(sp.get("GS")) else 0,
+                         base_gs=round(float(sp["base_gs"]), 2),
+                         # STARTS ONLY. pts_gs is season points over games started, which for a swingman divides his
+                         # relief points by his start count: Ian Seymour showed 17.0 a start on 14 starts and 44
+                         # appearances when his actual starts-only rate was 10.7, and the model (which already used
+                         # pts_start) looked wrong next to a number that was itself wrong.
+                         pts_gs_2026=(round(float(sp["pts_start"]), 2) if pd.notna(sp.get("pts_start"))
+                                      else (round(float(sp["pts_gs"]), 2) if pd.notna(sp.get("pts_gs")) else np.nan)),
+                         pts_all_gs=(round(float(sp["pts_gs"]), 2) if pd.notna(sp.get("pts_gs")) else np.nan),
+                         n_relief=(int(sp["n_relief"]) if pd.notna(sp.get("n_relief")) else 0),
+                         GS=int(sp["GS"]) if pd.notna(sp.get("GS")) else 0,
                          ip_mix=(round(float(sp["ip_mix"]), 2) if pd.notna(sp.get("ip_mix")) else np.nan), velo_30=(round(float(sp["velo_30"]), 1) if pd.notna(sp.get("velo_30")) else np.nan),
                          dvelo=(round(float(sp["dvelo"]), 1) if pd.notna(sp.get("dvelo")) else np.nan), whiff_30=(round(float(sp["whiff_30"]), 1) if pd.notna(sp.get("whiff_30")) else np.nan),
                          dwhiff=(round(float(sp["dwhiff"]), 1) if pd.notna(sp.get("dwhiff")) else np.nan), csw_30=(round(float(sp["csw_30"]), 1) if pd.notna(sp.get("csw_30")) else np.nan),
