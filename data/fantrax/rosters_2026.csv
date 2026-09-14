@@ -71,7 +71,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04qk8,CJ Abrams,WSH,SS,SS,RESERVE,BAMBI,The Great Bambi
 06n8y,Eli Willits,WSH,SS,SS,MINORS,BAMBI,The Great Bambi
 060pm,Wyatt Langford,TEX,LF,UT,ACTIVE,BAMBI,The Great Bambi
-05rcf,Joshua Baez,STL,RF,UT,RESERVE,BAMBI,The Great Bambi
+05rcf,Joshua Baez,STL,RF,OF,ACTIVE,BAMBI,The Great Bambi
 04q2n,Adley Rutschman,BOS,C,UT,ACTIVE,BAMBI,The Great Bambi
 03dbm,Logan Webb,SF,SP,SP,RESERVE,BAMBI,The Great Bambi
 05t9v,Jonathan Aranda,TB,1B,1B,RESERVE,BAMBI,The Great Bambi
@@ -80,29 +80,29 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05uc4,Troy Melton,DET,RP,SP,ACTIVE,BAMBI,The Great Bambi
 05m1e,Jackson Chourio,MIL,CF,UT,RESERVE,BAMBI,The Great Bambi
 041rf,Shane Bieber,TOR,SP,SP,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
-03btv,Sandy Alcantara,MIA,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
+03btv,Sandy Alcantara,MIA,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05mru,Thomas Saggese,STL,2B,2B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 02mwm,Matt Olson,ATL,1B,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-04y44,Josh Jung,TEX,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+04y44,Josh Jung,TEX,3B,3B,RESERVE,MMM,Midwest MooseKnuckle Mafia
 05gx4,Dillon Dingler,DET,C,C,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-04355,Yordan Alvarez,HOU,LF,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+04355,Yordan Alvarez,HOU,LF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
 03qyv,Jake McCarthy,COL,LF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05ynb,Liam Hicks,TB,C,C,RESERVE,MMM,Midwest MooseKnuckle Mafia
-03pir,Kyle Tucker,LAD,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
+03pir,Kyle Tucker,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01uca,Chris Sale,ATL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 061yu,Jacob Misiorowski,MIL,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 01spo,Gerrit Cole,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-03e5m,Bryan Reynolds,PIT,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-061zv,Josue De Paula,LAD,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
+03e5m,Bryan Reynolds,PIT,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
+061zv,Josue De Paula,LAD,RF,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 045qo,Jazz Chisholm Jr.,NYY,2B,2B,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
-01ub6,Jose Ramirez,CLE,3B,3B,RESERVE,MMM,Midwest MooseKnuckle Mafia
+01ub6,Jose Ramirez,CLE,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 04ps7,Joe Ryan,MIN,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01cgo,Freddie Freeman,LAD,1B,1B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05144,Hunter Brown,HOU,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 02z0s,Aaron Judge,NYY,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05u6q,Cam Schlittler,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05udp,Elly De La Cruz,CIN,SS,SS,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-02hjp,Jacob deGrom,TEX,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+02hjp,Jacob deGrom,TEX,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 05ub0,Zack Gelof,ATH,2B,2B,ACTIVE,LTTA,Let’s try this again
 03oh0,Willson Contreras,BOS,1B,1B,INJURED_RESERVE,LTTA,Let’s try this again
 04ppi,Kody Clemens,MIN,1B,UT,ACTIVE,LTTA,Let’s try this again
@@ -287,11 +287,11 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ahe,Curtis Mead,BOS,1B,3B,INJURED_RESERVE,GK,Gotham Knights
 050w9,Gunnar Henderson,BAL,SS,SS,ACTIVE,GK,Gotham Knights
 05vy5,Carter Jensen,KC,C,C,RESERVE,BB,Basketball
+05yb0,T.J. Rumfield,COL,1B,UT,ACTIVE,BB,Basketball
 066eo,Cole Carrigg,COL,CF,OF,ACTIVE,BB,Basketball
 03whq,Ty France,SD,1B,1B,ACTIVE,BB,Basketball
 03qjy,Brandon Lowe,PIT,2B,2B,RESERVE,BB,Basketball
 02btx,Tyler Glasnow,LAD,SP,SP,ACTIVE,BB,Basketball
-0317o,Jeff McNeil,ATH,2B,1B,RESERVE,BB,Basketball
 051ui,Jacob Lopez,ATH,SP,SP,RESERVE,BB,Basketball
 04ak5,Trevor Rogers,BAL,SP,SP,ACTIVE,BB,Basketball
 06gwk,Payton Tolle,BOS,RP,SP,ACTIVE,BB,Basketball
@@ -301,7 +301,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04fhb,Julio Rodriguez,SEA,CF,OF,ACTIVE,BB,Basketball
 04lgp,Bobby Witt Jr.,KC,SS,SS,ACTIVE,BB,Basketball
 04n0m,Logan Gilbert,SEA,SP,SP,ACTIVE,BB,Basketball
-05rat,James Wood,WSH,LF,UT,ACTIVE,BB,Basketball
+05rat,James Wood,WSH,LF,OF,RESERVE,BB,Basketball
 05u9o,Sal Stewart,CIN,1B,3B,ACTIVE,BB,Basketball
 03df2,Dylan Cease,TOR,SP,SP,ACTIVE,BB,Basketball
 05rcw,Leo Bernal,STL,C,C,ACTIVE,BB,Basketball
