@@ -116,17 +116,35 @@ def project_rotations(sch: pd.DataFrame, recent: pd.DataFrame, min_apps: int = 2
         if len(regs) < 3:
             regs = order[:5]
         rot = list(reversed(regs))  # oldest -> most recent
+        ids = [r[0] for r in rot]
         last = rot[-1][0]
-        idx = [r[0] for r in rot].index(last)
+        idx = ids.index(last)
+        # last start date per arm (from the look-back window, then from listed/projected starts as we go): nobody starts twice
+        # inside four days, so a doubleheader or a thin rotation cannot put Dylan Cease on back-to-back days
+        known = {}
+        for pid, d in zip(rec["sp_id"], rec["date"]): known.setdefault(pid, []).append(str(d)[:10])
+        for gi in grp.index:   # starts already on the board this week (posted probables, or picks kept from an earlier pass), past AND future
+            if pd.notna(sch.at[gi, "sp_id"]): known.setdefault(sch.at[gi, "sp_id"], []).append(str(sch.at[gi, "date"])[:10])
+        def rested(pid, day):
+            d0 = date.fromisoformat(str(day)[:10])
+            return all(abs((d0 - date.fromisoformat(d)).days) >= 4 for d in known.get(pid, []))
         for gi in grp.index:
+            day = sch.at[gi, "date"]
             if pd.notna(sch.at[gi, "sp_id"]):
                 # a listed probable resets the cycle position if he is in the rotation
                 pid = sch.at[gi, "sp_id"]
-                if pid in [r[0] for r in rot]:
-                    idx = [r[0] for r in rot].index(pid)
+                if pid in ids:
+                    idx = ids.index(pid)
                 continue
-            idx = (idx + 1) % len(rot)
-            sch.at[gi, "sp_id"], sch.at[gi, "sp_name"], sch.at[gi, "sp_source"] = rot[idx][0], rot[idx][1], "projected"
+            pick = None
+            for k in range(1, len(rot) + 1):
+                cand = rot[(idx + k) % len(rot)]
+                if rested(cand[0], day):
+                    pick, idx = cand, (idx + k) % len(rot); break
+            if pick is None:
+                continue  # everyone pitched in the last four days (spot start / opener day): leave the game TBD
+            known.setdefault(pick[0], []).append(str(day)[:10])
+            sch.at[gi, "sp_id"], sch.at[gi, "sp_name"], sch.at[gi, "sp_source"] = pick[0], pick[1], "projected"
     return sch
 
 
