@@ -9,7 +9,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 696100,Hunter Goodman,Colorado Rockies,R,C,CJF,7,35.5,1.207,1.008,4.17,0.2740845070422535,71.0,8
 694249,Cole Carrigg,Colorado Rockies,S,OF,BB,7,34.6,1.226,0.983,4.1,0.25271028037383175,108.0,9
 800543,Josue De Paula,Los Angeles Dodgers,L,OF,MMM,7,33.8,1.282,0.961,3.92,0.5509090909090909,11.0,10
-701398,Sal Stewart,Cincinnati Reds,R,1B/3B,BB,7,33.3,1.078,1.021,4.32,0.35183333333333333,121.0,11
+701398,Sal Stewart,Cincinnati Reds,R,1B/3B,BB,7,33.3,1.077,1.021,4.32,0.35183333333333333,121.0,11
 687263,Zach Neto,Los Angeles Angels,R,SS,LTTA,7,33.2,1.084,0.979,4.48,0.39678571428571424,112.0,12
 691718,Pete Crow-Armstrong,Chicago Cubs,L,OF,GLIZZY,6,33.0,1.078,1.104,4.62,0.4183870967741935,126.0,13
 668227,Randy Arozarena,Seattle Mariners,R,OF,GLIZZY,6,32.8,1.171,1.026,4.55,0.3969354838709677,125.0,14
@@ -39,7 +39,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 699302,Héctor Rodríguez,Cincinnati Reds,L,OF,FA,7,30.2,1.15,0.952,3.94,0.3390217391304348,92.0,38
 571970,Max Muncy,Los Angeles Dodgers,L,3B,Dpf,7,30.1,1.133,0.988,3.84,0.3973913043478261,93.0,39
 663656,Kyle Tucker,Los Angeles Dodgers,L,OF,MMM,7,29.5,1.082,0.967,4.02,0.2769,100.0,40
-668715,Spencer Steer,Cincinnati Reds,R,1B/OF,CJF,7,29.5,1.107,0.971,3.92,,,41
+668715,Spencer Steer,Cincinnati Reds,R,1B/OF,CJF,7,29.4,1.106,0.971,3.92,,,41
 686527,Dominic Canzone,Seattle Mariners,L,OF,GK,6,29.3,1.159,0.995,4.24,0.3270940170940171,117.0,42
 665019,Kody Clemens,Minnesota Twins,L,1B/2B/OF,LTTA,7,29.3,1.042,0.994,4.04,0.40326732673267324,101.0,43
 668709,JJ Bleday,Cincinnati Reds,L,OF,THALER,7,29.3,1.064,0.973,4.04,0.27794642857142854,112.0,44
@@ -86,7 +86,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 656941,Kyle Schwarber,Philadelphia Phillies,L,UT,CS,6,26.8,0.966,1.007,4.59,0.29080645161290325,125.0,85
 691406,Junior Caminero,Tampa Bay Rays,R,3B,BAMBI,6,26.8,1.021,1.01,4.33,0.3422033898305084,121.0,86
 703520,Brett Bateman,Toronto Blue Jays,L,OF,THALER,6,26.6,0.991,0.968,4.63,0.3856880733944954,111.0,87
-682877,Juan Brito,Cincinnati Reds,S,2B,FA,7,26.6,1.157,0.962,3.41,0.4423076923076923,26.0,88
+682877,Juan Brito,Cincinnati Reds,S,2B,FA,7,26.6,1.156,0.962,3.41,0.4423076923076923,26.0,88
 808959,Munetaka Murakami,Chicago White Sox,L,1B,CJF,7,26.6,0.888,0.978,4.38,0.24434426229508197,123.0,89
 592450,Aaron Judge,New York Yankees,R,OF,MMM,6,26.6,1.054,1.022,4.12,0.185,18.0,90
 669257,Will Smith,Los Angeles Dodgers,R,C,LTTA,7,26.5,1.115,0.98,3.47,0.3184615384615384,39.0,91
@@ -210,7 +210,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 683766,Christian Koss,San Francisco Giants,R,3B/SS,FA,6,21.2,1.094,0.936,3.44,0.33082474226804126,101.0,209
 645277,Ozzie Albies,Atlanta Braves,S,2B,Dpf,6,21.2,0.922,0.923,4.14,0.2413913043478261,115.0,210
 687637,Dylan Beavers,Baltimore Orioles,L,OF,FA,6,21.2,1.06,0.963,3.45,0.33279569892473115,94.0,211
-624431,Jose Trevino,Cincinnati Reds,R,C,FA,7,21.2,1.009,0.942,3.19,0.1746808510638298,47.0,212
+624431,Jose Trevino,Cincinnati Reds,R,C,FA,7,21.2,1.01,0.942,3.19,0.1746808510638298,47.0,212
 682987,Spencer Jones,New York Yankees,L,OF,BB,6,21.0,0.995,0.999,3.52,0.3963917525773196,98.0,213
 621020,Dansby Swanson,Chicago Cubs,R,SS,Dan,6,21.0,1.017,0.985,3.5,,0.0,214
 664770,Nathan Lukes,Toronto Blue Jays,L,OF,FA,6,21.0,0.999,0.942,3.72,0.34543478260869565,94.0,215
