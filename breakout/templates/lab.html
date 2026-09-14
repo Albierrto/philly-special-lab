@@ -565,7 +565,17 @@ offered the fit drops the starts-only version entirely. Relief innings add sampl
 noise — it is the trend, not the level, that has to be filtered to starts.
 
 A pitcher whose last outing came out of the bullpen, or who has not started in twelve days, is left out of the projected
-rotations entirely — a posted probable still overrides it.</div></details>
+rotations entirely — a posted probable still overrides it.
+
+Where a game has no posted probable the rotation is cycled forward from who actually started recently, with two rules
+that decide whether anyone gets a second start in the week:
+   each club keeps at least five arms in the cycle (a shorter one manufactures second starts for whoever is in front)
+   an arm is only projected once he has had HIS OWN turn — the median gap between his starts this season, floored at
+      five days and capped at seven. Across 2026 starts the gap was six days half the time, five days a third of the
+      time and four days or fewer 0.4% of the time, so a man is never projected on four days' rest and the arms a club
+      gives extra rest are not squeezed in early.
+   if no arm on the roster has had his turn, the game is left TBD rather than guessed. Hitters facing a TBD starter get
+      a neutral opposing-pitcher factor, and the live layer fills the name in as soon as MLB posts it.</div></details>
 
   <h3>Data</h3>
   <p>Baseball Savant custom leaderboards (hitters and pitchers, 2021-2026), Savant pitch-arsenal and movement tables, Savant minor-league Statcast search per prospect (2025-2026); MLB Stats API season hitting, fielding and pitching, game logs, schedules, rosters and transactions (IL) 2021-2026, minor-league hitting AAA–A 2024-2026; MLB Pipeline top 100; FantasyPros composite ADP archive 2021-2026; Open-Meteo forecasts; this league's Fantrax rules, drafts, keepers and player tables (read-only). Grand slams, cycles, no-hitters and perfect games are the only scored events not in public feeds.</p>
