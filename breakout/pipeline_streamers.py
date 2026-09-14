@@ -126,7 +126,8 @@ def main(argv=None):
         print(f"  rotation second pass removed {len(bad)} openers/swingmen; {len(new_ids)} new starters not in table")
     print("[5/7] matchups")
     hd = ST.hitter_matchups(sch, hs, hsp, pp, psp, pf, wx, ven)
-    ps = ST.pitcher_starts(sch, pp, psp, tsp, pf, wx, ven, tform=tfm)
+    lstr = ST.lineup_strength(hs, hsp)
+    ps = ST.pitcher_starts(sch, pp, psp, tsp, pf, wx, ven, tform=tfm, lstr=lstr)
     # reference lists: whatever the newest file of each kind is, so a refreshed list drops in without a code change
     pl, pl_as = REF.newest("pitcherlist_tiers", ["pitcher", "team", "tier", "note"])
     cbs, cbs_as = REF.newest("cbs_week", ["player", "list", "tier_or_rank", "note"])

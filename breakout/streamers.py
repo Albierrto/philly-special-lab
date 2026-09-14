@@ -653,8 +653,33 @@ def _base_rate(p: pd.DataFrame) -> pd.DataFrame:
     return p
 
 
+def lineup_strength(hitters: pd.DataFrame, hsplits: pd.DataFrame, min_pa_split: int = 30) -> dict:
+    """Each club's wOBA against a hand, weighted by the plate appearances its hitters are ACTUALLY taking now.
+
+    A club's season split mixes in plate appearances from players who have since been traded, hurt or sent down. This
+    re-weights the same season splits by who is playing, which separates "the personnel changed" from "they have been
+    hot", the distinction that made strikeout-rate recency work and wOBA recency fail.
+
+    DISPLAY ONLY. Measured on 3,072 starts it does not predict better than the club's season split (r .3783 vs .3782,
+    paired MAE +0.002 with a CI straddling zero), there is no gain in the tail where the shift is largest, and none in
+    September when rosters churn. So it is shown, not applied — a big gap is worth a human knowing about, and Bort can
+    act on it with the lineup controls. Do not wire this into exp_pts without a fresh test that actually passes."""
+    h = hitters.merge(hsplits, on="mlbam_id", how="left")
+    if "pa_30" not in h.columns or "team_id" not in h.columns: return {}
+    out = {}
+    for tid, g in h.groupby("team_id"):
+        for hand in ("vl", "vr"):
+            w, pa = g.get(f"woba_{hand}"), g.get(f"pa_{hand}")
+            if w is None or pa is None: continue
+            use = g[w.notna() & (pa.fillna(0) >= min_pa_split) & (g["pa_30"].fillna(0) > 0)]
+            if not len(use): continue
+            wt = use["pa_30"].astype(float)
+            out[(int(tid), hand)] = float((use[f"woba_{hand}"].astype(float) * wt).sum() / wt.sum())
+    return out
+
+
 def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.DataFrame, tsplits: pd.DataFrame, pf: pd.DataFrame, wx: pd.DataFrame, ven: pd.DataFrame,
-                   weights: dict | None = None, tform: pd.DataFrame | None = None) -> pd.DataFrame:
+                   weights: dict | None = None, tform: pd.DataFrame | None = None, lstr: dict | None = None) -> pd.DataFrame:
     # matchup strengths checked against 3,072 real 2026 starts (below): the opponent's bat plays bigger than 2.5 implied
     # and the strikeout bonus slightly smaller. Home stays at 1.03 because the park factor already carries most of it.
     # k_move_w: how much of a club's recent strikeout-rate movement to carry. Half, from team_form's note above -
@@ -678,6 +703,9 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
         key_t = (g["opp_id"], hand); tw = float(ts.loc[key_t]["t_woba"]) if key_t in ts.index else LG_WOBA; tk = float(ts.loc[key_t]["t_k"]) if key_t in ts.index else LG_K
         # the club's bat stays on the season split (recency there is pure noise); its strikeout rate gets a half-weight
         # nudge for how the last 30 days compare with the rest of its season
+        # who is actually taking the opponent's plate appearances, against the club's season split. Shown, never applied.
+        lw = (lstr or {}).get((int(g["opp_id"]), hand))
+        lshift = round(lw - tw, 4) if lw is not None else np.nan
         kmv = 0.0
         if tfi is not None and g["opp_id"] in tfi.index:
             m = tfi.loc[g["opp_id"]]["k_move"]
@@ -694,7 +722,8 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
         kbonus = W["k_weight"] * float(sp["k_per_gs"]) * (tk / LG_K - 1)
         exp = float(sp["base_gs"]) * oppf * parkf * wxf * homef + kbonus
         rows.append(dict(mlbam_id=g["sp_id"], name=g["sp_name"], team=g["team"], throws=sp.get("throws"), owner=sp.get("owner"), date=g["date"], gamePk=g["gamePk"], home=g["home"], opp=g["opp"], venue=g["venue"],
-                         sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), opp_k_move=round(kmv, 3), park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
+                         sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), opp_k_move=round(kmv, 3),
+                         opp_lineup_woba=(round(lw, 3) if lw is not None else np.nan), opp_lineup_shift=lshift, park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
                          wind_out=round(wind_c, 1), precip_prob=(float(w["precip_prob"]) if w is not None else np.nan), local_start=(w["local_start"] if w is not None else None),
                          base_gs=round(float(sp["base_gs"]), 2),
                          # STARTS ONLY. pts_gs is season points over games started, which for a swingman divides his
