@@ -362,12 +362,16 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 </section>
 
 <section role="tabpanel" id="tab-breakouts">
-  <h2>2027 breakout candidates</h2>
-  <p class="lede"><b>Breakout %</b> is the model's chance that 2027 is <b>new territory</b> for the hitter: a career-best points-per-PA rate (at least 0.08 above his previous best), 350+ plate appearances and a top-90 finish. It reads his Statcast skills, deserved-vs-actual points, career track, age and injury history, and it was trained on every 2021→2022 through 2025→2026 pair. A star who has already peaked cannot score high here by design. <b>2027 projection</b> is the separate points forecast.</p>
+  <h2>Breakouts</h2>
+  <p class="lede">A breakout is <b>new territory for that hitter</b>: a career-best points-per-PA rate, at least 0.08 above his previous best, over 350+ plate appearances and a top-90 finish. Two different questions live on this page, and mixing them was what made it useless. <b>Who already did it</b> is history — those men are not candidates any more, their jump has happened and the level they are at now is the level to judge them on. <b>Who might do it next</b> is the forecast, and it only applies to hitters who have not already been a top-90 bat and are young enough that a first leap is still ahead of them. An established star gets no percentage here, because the question does not apply to him.</p>
+  <h3 id="bo-done-h"></h3>
+  <p class="hint" id="bo-done-note"></p>
+  <div class="tblwrap" style="max-height:44vh"><table id="t-broke"></table></div>
+  <h3 style="margin-top:22px">Breakout candidates for <span id="bo-year"></span></h3>
   <div class="filters">
     <label>Pool <span class="seg" role="group"><button aria-pressed="true" data-bpool="all">All</button><button aria-pressed="false" data-bpool="ft">400+ PA</button><button aria-pressed="false" data-bpool="pt">&lt;400 PA</button></span></label>
     <label>Availability <select id="b-avail"><option value="">everyone</option><option value="FA">free agents in my league</option><option value="notkept">not a likely keeper</option><option value="mine">my roster</option></select></label>
-    <label>Max age <input type="number" id="b-agemax" value="34" min="18" max="45"></label>
+    <label>Max age <input type="number" id="b-agemax" value="28" min="18" max="45"></label>
     <label>Min BI <input type="number" id="b-minbi" value="0" min="0" max="100"></label>
     <span class="count" id="b-count"></span>
   </div>
@@ -645,8 +649,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T1833"></script>
-<script src="data/streamers.js?v=20260914T1833"></script>
+<script src="data/lab.js?v=20260914T1920"></script>
+<script src="data/streamers.js?v=20260914T1920"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -741,7 +745,8 @@ const TERMS = [
  {k:'luck', name:'Luck', what:"Points minus deserved points. Positive: his hits fell in more than they should have (sell high). Negative: he was robbed (buy low)."},
  {k:'LPAR', name:'Points above replacement', also:'LPAR, Above repl.', what:"Points above the best free agent you could plug in at his position. It is how a shortstop and a first baseman get compared fairly."},
  {k:'over', name:'Beat draft slot by', also:'vs ADP', what:"How many more points he produced than the typical hitter drafted where he was drafted that year (market ADP)."},
- {k:'BI', name:'Breakout %', also:'BI, Breakout Index', what:"The model's chance that next season is a new career-best level for him: points per PA at least 0.08 above his previous best, with 350+ PA and a top-90 finish. Reads Statcast skills, deserved-vs-actual points, age, career track and injuries.", ex:"A 25-year-old at 30% is a strong buy; a 33-year-old star shows 2% because he has already peaked."},
+ {k:'BI', name:'Breakout %', also:'BI, Breakout Index', what:"The model's chance that next season is new territory for THIS hitter: a career-best points-per-PA rate at least 0.08 above his previous best, over 350+ plate appearances, finishing top-90. It is only shown for hitters it applies to \u2014 someone who has already been a top-90 bat, or who already made his jump this season, gets a dash instead, because the question does not apply to him. See the Breakouts tab for who already broke out and who might be next.", ex:"Cam Smith at 62 has never had a big season and the skills say one is coming; Aaron Judge gets a dash, not a 4, because he has been in new territory for six years."},
+
  {k:'proj', name:'2027 projection', also:'Proj, Proj pts', what:"Expected points next year: his rate (three parts skills model, one part his own last three seasons, moved a step along the aging curve) times the plate appearances or starts he can be expected to get, trimmed for recent injury history.", ex:"Acuña: an elite 1.03 pts/PA but 582 PA after three injury-shortened years, so 600 points and 48th, not top-10."},
  {k:'proj600', name:'2027 per 600 PA', also:'Proj/600', what:"The projection scaled to a full 600 plate appearances, so a part-timer's rate can be compared with a regular's."},
  {k:'pace', name:'PA pace', what:"Plate appearances per 162 team games while he was on the active roster. A late call-up or an injured month does not count against him."},
@@ -795,7 +800,7 @@ const COLS = [
   {k:'sprint_speed',l:'Sprint',g:'Speed',f:'1',dir:1,def:true},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_pa',l:'Career best /PA',g:'Career',f:'3',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'3',dir:1},{k:'seasons_200',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_PA',l:'Career PA',g:'Career',f:'int',dir:0},{k:'pipeline_rank',l:'Pipeline',g:'Career',f:'int',dir:-1},{k:'PAS',l:'Prospect score',g:'Career',f:'1',dir:1},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',f:'1',dir:1,def:true},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 COLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const CI = Object.fromEntries(COLS.map(c=>[c.k,c]));
@@ -812,7 +817,7 @@ const PCOLS = [
   {k:'fb_velo',l:'FB velo',g:'Arsenal',f:'1',dir:1,def:true},{k:'movement_uniqueness',l:'Mvmt uniq',g:'Arsenal',f:'2',dir:1},{k:'n_pitches_10',l:'# pitches',g:'Arsenal',f:'int',dir:1},{k:'arsenal_whiff',l:'Ars whiff',g:'Arsenal',f:'1',dir:1},{k:'arsenal_putaway',l:'Put-away',g:'Arsenal',f:'1',dir:1},{k:'arsenal_rv100',l:'Ars RV/100',g:'Arsenal',f:'2',dir:1},{k:'best_pitch',l:'Best',g:'Arsenal',t:'txt',def:true},{k:'best_pitch_whiff',l:'Best whiff',g:'Arsenal',f:'1',dir:1},{k:'n_plus_pitches',l:'Plus pitches',g:'Arsenal',f:'int',dir:1},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_gs',l:'Career best /GS',g:'Career',f:'1',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'1',dir:1},{k:'seasons_10gs',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_GS',l:'Career GS',g:'Career',f:'int',dir:0},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',f:'1',dir:1,def:true},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 PCOLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const PCI = Object.fromEntries(PCOLS.map(c=>[c.k,c]));
@@ -1057,13 +1062,35 @@ function closeCard(){ $('#overlay').classList.remove('open'); $('#card').classLi
 
 // ---------- breakouts tab
 let bpool='all', tBreak;
+let tBroke;
 function renderBreak(){
+  const cur = ROWS.filter(r=>r.season===CUR);
+  $('#bo-year').textContent = CUR+1;
+  // 1. who already did it this season — history, not a forecast
+  const done = cur.filter(r=>boStatus(r)==='broke_out').sort((a,b)=>b.pts_c-a.pts_c);
+  $('#bo-done-h').textContent = `Broke out in ${CUR} — ${done.length} hitters`;
+  $('#bo-done-note').innerHTML = `They cleared the bar this season, so they are no longer candidates: the jump has happened and what matters now is holding the new level. <b>Jump</b> is how far this year beat their previous best (a blank previous best means they had never had a 200-PA season).`;
+  const dcols = [CI.name, CI.age, CI.owner, CI.PA, {k:'pts_c',l:`${CUR} pts`,f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1},
+    {k:'pts_pa_c',l:`${CUR} pts / PA`,f:'3',dir:1},
+    {k:'prior_best_pa',l:'Previous best / PA',f:'3',dir:1,title:'his best rate in any earlier season of 200+ PA'},
+    {k:'jump_vs_prior',l:'Jump',f:'3',dir:1,title:'how far this season beat that previous best'},
+    {k:'luck_c',l:'Luck',f:'0',dir:-1,title:'actual minus deserved points — a big positive means the jump is partly batted-ball luck'},
+    {k:'proj_pts',l:`${CUR+1} proj`,f:'0',dir:1}, CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.k_percent];
+  if(!tBroke) tBroke = table('t-broke', dcols, done, {sort:'pts_c', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBroke.setCols(dcols); tBroke.setRows(done); }
+
+  // 2. who might do it next — the only group a percentage applies to
   const avail = $('#b-avail').value, agemax = +$('#b-agemax').value||99, minbi = +$('#b-minbi').value||0;
-  let rows = ROWS.filter(r=>r.season===CUR && r.BI!=null && r.PA>=100 && r.age<=agemax && r.BI>=minbi);
+  let rows = cur.filter(r=>boShow(r) && r.BI!=null && r.age<=agemax && r.BI>=minbi);
   if (bpool==='ft') rows = rows.filter(r=>r.PA>=400); if (bpool==='pt') rows = rows.filter(r=>r.PA<400);
   if (avail==='FA') rows = rows.filter(r=>r.owner==='FA'||r.owner==='W (Sun)'); if (avail==='notkept') rows = rows.filter(r=>!r.likely_kept); if (avail==='mine') rows = rows.filter(r=>r.owner===MY);
-  $('#b-count').textContent = `${rows.length} hitters`;
-  const cols = [CI.name, CI.age, CI.owner, CI.PA, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'career_best_pa',l:'Career best / PA',f:'3',dir:1}, {k:'pts_pa_c',l:'2026 pts / PA',f:'3',dir:1}, {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'proj_pts_600',l:'2027 / 600',f:'0',dir:1}, CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'3',dir:1}];
+  const est = cur.filter(r=>boStatus(r)==='established').length;
+  $('#b-count').textContent = `${rows.length} candidates · ${done.length} already broke out · ${est} established and not shown`;
+  const cols = [CI.name, CI.age, CI.owner, CI.PA, {k:'pts_c',l:`${CUR} pts`,f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1},
+    {k:'pts_pa_c',l:`${CUR} pts / PA`,f:'3',dir:1},
+    {k:'prior_best_pa',l:'Previous best / PA',f:'3',dir:1,title:'his best rate in any earlier season of 200+ PA; blank means he has never had one'},
+    {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1},
+    {k:'proj_pts',l:`${CUR+1} proj`,f:'0',dir:1}, {k:'proj_rank',l:`${CUR+1} rank`,f:'int',dir:-1}, {k:'proj_pts_600',l:`${CUR+1} / 600`,f:'0',dir:1},
+    CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr];
   if (!tBreak) tBreak = table('t-break', cols, rows, {sort:'BI', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBreak.setCols(cols); tBreak.setRows(rows); }
 }
 $$('[data-bpool]').forEach(b=>b.addEventListener('click',()=>{ bpool=b.dataset.bpool; $$('[data-bpool]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBreak(); }));
@@ -1279,6 +1306,19 @@ function renderMyWeek(){
   $('#s-mine').innerHTML = h;
 }
 
+// ---------- a breakout number only means something for a player who has one left in him
+// A percentage beside Aaron Judge is noise (he cannot enter new territory, he has lived there six years) and a
+// percentage beside Sal Stewart is backwards (his jump already happened this season, so the number is quietly asking
+// whether he will do it again). bo_status comes from breakout2.breakout_status.
+const BO = { broke_out:'broke out in 2026', established:'established', candidate:'candidate', thin:'too few PA' };
+const boStatus = r => r.bo_status || (r.PA != null && r.PA < 100 ? 'thin' : 'candidate');
+const boShow = r => boStatus(r) === 'candidate';
+const biOf = r => boShow(r) ? r.BI : null;
+const boPill = r => { const st = boStatus(r);
+  return st==='broke_out' ? `<span class="pill g" title="he cleared the bar this season: beat his previous best by 0.08 points per PA or more, with 350+ plate appearances and a top-90 finish, having never finished top-90 before">broke out ${CUR}</span>`
+    : st==='established' ? `<span class="pill n" title="already a top-90 hitter in a season before this one, or past the age where a first leap happens — there is nothing left to break out of">established</span>`
+    : st==='thin' ? `<span class="pill n" title="under 100 plate appearances this season">too few PA</span>` : ''; };
+
 // ---------- keepers tab
 let tK, tPool, tKY, tPK, tPPool;
 const tierPill = v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':v==='surplus'?'b':'n'}">${v}</span>`;
@@ -1410,7 +1450,7 @@ function renderDash(){
     const faP = SPS.filter(r=>isFA(r.owner)&&r.active!==0&&r.sp_source!=='replaced'&&goodRole(r)).sort((a,b)=>b.exp_pts-a.exp_pts).slice(0,6);
     cards += `<div class="dcard w6"><h3>Best waiver bats this week <small>free agents</small></h3><div class="rowlist">${faH.map(r=>rowH(r, `${r.week.toFixed(1)}<small>${r.g} games</small>`, `${esc(r.elig||'')} · ${esc(abbrOf(r.team))} · 30-day wOBA ${r.woba_30!=null?r.woba_30.toFixed(3):'–'}`)).join('')}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
     cards += `<div class="dcard w6"><h3>Best waiver starts this week <small>free agents</small></h3><div class="rowlist">${faP.map(r=>rowP(r, `${r.exp_pts.toFixed(1)}<small>${dayWord(r.date)}${r.two_start?' · 2-start':''}</small>`, `${r.home?'vs':'@'} ${esc(abbrOf(r.opp))}${r.sp_source==='projected'?' (P)':''}${r.pl_tier?' · PL: '+esc(r.pl_tier):''}${r.cbs?' · CBS '+esc(r.cbs):''}`)).join('')}</div><button class="go" data-go="streamers">Pitcher slate →</button></div>`;
-    const bo = ROWS.filter(r=>r.season===CUR && r.BI!=null && r.PA>=150 && r.age<=30).sort((a,b)=>b.BI-a.BI).slice(0,6);
+    const bo = ROWS.filter(r=>r.season===CUR && boShow(r) && r.BI!=null && r.PA>=150).sort((a,b)=>b.BI-a.BI).slice(0,6);
     cards += `<div class="dcard w6"><h3>Breakout watch <small>chance of a new career level in 2027</small></h3><div class="rowlist">${bo.map(r=>rowH(r, `${r.BI.toFixed(0)}%<small>breakout</small>`, `${esc(r.elig||'')} · age ${r.age} · ${Math.round(r.pts_c)} pts · ${isFA(r.owner)?'free agent':esc(r.owner)}`)).join('')}</div><button class="go" data-go="breakouts">Full breakout board →</button></div>`;
     $('#dash').innerHTML = cards;
     $$('#dash .row[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h))); $$('#dash .row[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
@@ -1880,6 +1920,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T1833"></script>
+<script src="live.js?v=20260914T1920"></script>
 </body>
 </html>
