@@ -275,6 +275,16 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   .search{max-width:none;min-width:0} .search input[type="search"]{padding-left:30px} .brand small{display:none} .brand b{font-size:18px} .topbar{gap:8px;padding:0 10px} h1{font-size:28px}
   .row{grid-template-columns:auto minmax(0,1fr) auto} .row .sub{white-space:normal}
 }
+.finder{margin:0 0 18px}
+.deal{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px;background:var(--panel);cursor:pointer}
+.deal:hover{border-color:var(--ink3);background:var(--panel2)}
+.deal .legs{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;min-width:0}
+.deal .leg{display:flex;gap:6px;align-items:center;font-size:13.5px;min-width:0}
+.deal .leg b{font-weight:600}
+.deal .arrow{color:var(--ink3);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-family:var(--font-b);font-weight:600}
+.deal .num{text-align:right;white-space:nowrap;font-family:var(--font-d);font-size:15px;line-height:1.15}
+.deal .num small{display:block;font-family:var(--font-b);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
+.deal .why{grid-column:1/-1;font-size:11.5px;line-height:1.4;color:var(--ink3);margin-top:1px}
 </style>
 
 <header class="topbar">
@@ -310,6 +320,11 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
     <li><b>Team effect</b>: we rebuild each team's best keeper group (5 hitters + 2 pitchers) before and after the trade. A sixth good hitter is only worth what he adds over the fifth one he pushes out; a player who would not be kept is worth nothing for next year because he goes back into the draft.</li>
     <li><b>Draft picks</b> are valued from two halves: what the 2027 board says is left at that pick after every team's likely keepers are removed, and what picks at that slot have actually returned in this league's 2024–2026 drafts. The draft is fixed order (no snake), so a team's round-2 pick is the same slot as its round-1 pick, 12 picks later. Slots come from the final regular-season standings: 9th–12th place pick 1–4 in that order, then 8th down to 1st.</li>
     <li><b>Right now</b> mode also adds each hitter's and pitcher's expected points for the rest of this week, from the Streamers model.</li></ul></details></div>
+  <div class="finder">
+    <div class="pagehead" style="margin:0 0 8px"><div><h3 style="margin:0">Deals worth proposing</h3><p class="hint" style="margin:2px 0 0;text-transform:none;font-family:var(--font-b);font-weight:400;letter-spacing:0">Every one-for-one between your roster and the other eleven, plus a pick where one is needed to balance it. Only deals that leave <b>both</b> keeper groups better off are shown, because those are the only ones anyone accepts. Click one to load it into the analyzer.</p></div>
+      <div class="seg" role="group" id="find-mode"><button aria-pressed="true" data-fmode="both">Both sides gain</button><button aria-pressed="false" data-fmode="me">Best for me</button></div></div>
+    <div id="findlist"></div>
+  </div>
   <div class="trade" id="trade"></div>
   <h3 style="margin-top:22px">Draft pick values, 2027 <span class="hint" style="text-transform:none;font-family:var(--font-b);font-weight:400;letter-spacing:0">in points above replacement · fixed order, no snake</span></h3>
   <p class="lede" id="picks-lede"></p>
@@ -404,7 +419,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 
 <section role="tabpanel" id="tab-keepers">
   <h2>Keepers and the 2027 draft pool</h2>
-  <p class="lede">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. <b>Keeper value</b> = a player's projected 2027 points minus what the best hitter (or pitcher) still on the board at a first-round pick would give you. Positive means keeping him beats drafting; <b>lock</b> is 120+ for hitters and 80+ for pitchers. The draft pool assumes every team keeps its highest keeper values. Ohtani counts as a <b>pitcher</b> keeper here, so his bat is added to his pitcher value and he is left off the hitter board.</p>
+  <p class="lede">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b> — points above replacement over 2027 in full, 2028 at 60% and 2029 at 35% — because a keeper can be kept again, so two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is the old single-season number, kept as a cross-check. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p>
   <div class="filters"><label>Team <select id="k-owner"></select></label><span class="hint" id="k-real"></span></div>
   <div class="grid2">
     <div>
@@ -627,8 +642,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T0506"></script>
-<script src="data/streamers.js?v=20260914T0506"></script>
+<script src="data/lab.js?v=20260914T0532"></script>
+<script src="data/streamers.js?v=20260914T0532"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -724,7 +739,9 @@ const TERMS = [
  {k:'proj', name:'2027 projection', also:'Proj, Proj pts', what:"Expected points next year: his rate (three parts skills model, one part his own last three seasons, moved a step along the aging curve) times the plate appearances or starts he can be expected to get, trimmed for recent injury history.", ex:"Acuña: an elite 1.03 pts/PA but 582 PA after three injury-shortened years, so 600 points and 48th, not top-10."},
  {k:'proj600', name:'2027 per 600 PA', also:'Proj/600', what:"The projection scaled to a full 600 plate appearances, so a part-timer's rate can be compared with a regular's."},
  {k:'pace', name:'PA pace', what:"Plate appearances per 162 team games while he was on the active roster. A late call-up or an injured month does not count against him."},
- {k:'KSV', name:'Keeper value', also:'KSV, Keeper Surplus Value', what:"Projected 2027 points minus what the best player still on the draft board at a first-round pick would give you. Positive = keeping him beats drafting. Lock is 120+ for hitters, 80+ for pitchers.", ex:"Kurtz at +280 means he projects 280 points better than the best hitter anyone could draft in round one."},
+ {k:'KSV', name:'Keeper value (2027 only)', also:'KSV, Keeper Surplus Value', what:"Projected 2027 points minus what the best player still on the draft board at a first-round pick would give you, for that one season and with no aging. A useful sanity check, but it is no longer what decides who a team keeps — see Keep vs draft.", ex:"Kurtz at +280 means he projects 280 points better than the best hitter anyone could draft in round one."},
+ {k:'DV', name:'Multi-year value', also:'DV, three-year value', what:"Points above replacement over the next three seasons: 2027 in full, 2028 at 60%, 2029 at 35%, aged along the hitter or pitcher curve. This is the number that decides each team's keeper group, because a keeper can be kept again the following year, so a 34-year-old and a 24-year-old with the same 2027 projection are not worth the same slot.", ex:"Trea Turner and Geraldo Perdomo project within a few points for 2027, but Perdomo's three-year value is 246 to Turner's 182, so Perdomo takes the slot."},
+ {k:'KV', name:'Keep vs draft', also:'KV_c', what:"Multi-year value minus what that team's own first-round pick is worth to them. Positive means a keeper slot beats simply drafting the best man left; negative means let him go back in the pool and take the pick. It is on the same three-year scale as everything on the Trades page, so the verdict here and the keep pill can never disagree.", ex:"A hitter at +180 is worth keeping by about a first-round pick and a half."},
  {k:'PAR', name:'Points above replacement, 2027', also:'PAR', what:"Projected 2027 points minus a replacement-level player (the best bat or arm you could get off waivers). The unit the trade analyzer and the draft pick values use."},
  {k:'dyn', name:'Keeper value, multi-year', what:"Used by the trade analyzer: points above replacement for 2027 in full, plus 60% of 2028 and 35% of 2029, aging the player each year along the league's own aging curve."},
  {k:'pick', name:'Draft pick value', what:"What a pick is worth in points above replacement: half from what the 2027 board says is left at that pick after every team's likely keepers, half from what picks at that slot actually returned in this league's 2024–2026 drafts."},
@@ -754,7 +771,7 @@ const TERMS = [
   {k:'verdict', name:'Verdict (lock / clear keep / marginal / surplus / let go)', also:'Keep, Tier', what:"The keeper value in words. Lock: keep him, no debate. Clear keep: keep him unless a better one is available. Marginal: barely better than what you would draft. Surplus: worth keeping, but the team already has its 5 hitters or 2 pitchers ahead of him, so he is a trade chip. Let go: draft instead."},
 ];
 const TERM = Object.fromEntries(TERMS.map(t=>[t.k,t]));
-const COL_TERM = {pts_c:'pts', pts:'pts', pts_pa_c:'pts_pa', pts_gs_c:'pts_gs', pts_gs_2026:'pts_gs', base_gs:'pts_gs', xLP_c:'xLP', luck_c:'luck', LPAR_c:'LPAR', over_c:'over', BI:'BI', proj_pts:'proj', tot_c:'proj', proj_pts_total:'proj', proj_pts_gs:'pts_gs', proj_pts_600:'proj600', pa_pace_162:'pace', KSV:'KSV', KSV_c:'KSV', KSV2_c:'KSV', KSV_2nd:'KSV', PAR_c:'PAR', exp_pts:'exp', week_pts:'exp', mult:'nudge', avg_mult:'nudge', f_sp:'nudge', f_platoon:'nudge', f_park:'nudge', f_wx:'nudge', f_form:'nudge', f_opp:'nudge', PAS:'PAS', stuff_plus:'stuff', location_plus:'loc', pitching_plus:'pplus', xwoba:'xwoba', sp_xwoba:'xwoba', xera:'xera', barrel_batted_rate:'brl', avg_best_speed:'ev50', avg_swing_speed:'bat', k_percent:'kbb', bb_percent:'kbb', il_days_3yr:'il', park_runs:'park', park_hr:'park', wind_out:'wind', pl_tier:'tier', cbs:'cbs', lineup:'lineup', keep_tier:'verdict', tier_c:'verdict', sp_source:'P'};
+const COL_TERM = {pts_c:'pts', pts:'pts', pts_pa_c:'pts_pa', pts_gs_c:'pts_gs', pts_gs_2026:'pts_gs', base_gs:'pts_gs', xLP_c:'xLP', luck_c:'luck', LPAR_c:'LPAR', over_c:'over', BI:'BI', proj_pts:'proj', tot_c:'proj', proj_pts_total:'proj', proj_pts_gs:'pts_gs', proj_pts_600:'proj600', pa_pace_162:'pace', KSV:'KSV', KSV_c:'KSV', KSV2_c:'KSV', KSV_2nd:'KSV', DV_c:'DV', KV_c:'KV', PAR_c:'PAR', exp_pts:'exp', week_pts:'exp', mult:'nudge', avg_mult:'nudge', f_sp:'nudge', f_platoon:'nudge', f_park:'nudge', f_wx:'nudge', f_form:'nudge', f_opp:'nudge', PAS:'PAS', stuff_plus:'stuff', location_plus:'loc', pitching_plus:'pplus', xwoba:'xwoba', sp_xwoba:'xwoba', xera:'xera', barrel_batted_rate:'brl', avg_best_speed:'ev50', avg_swing_speed:'bat', k_percent:'kbb', bb_percent:'kbb', il_days_3yr:'il', park_runs:'park', park_hr:'park', wind_out:'wind', pl_tier:'tier', cbs:'cbs', lineup:'lineup', keep_tier:'verdict', tier_c:'verdict', sp_source:'P'};
 const colTitle = c => c.title || (COL_TERM[c.k] && TERM[COL_TERM[c.k]] ? TERM[COL_TERM[c.k]].name + ': ' + TERM[COL_TERM[c.k]].what : (c.g||''));
 const RELABEL = {pts_c:'Points', pts_pa_c:'Pts / PA', pts_gs_c:'Pts / start', LPAR_c:'Above repl.', xLP_c:'Deserved', luck_c:'Luck', over_c:'Beat slot by', BI:'Breakout %', proj_pts:'2027 proj', proj_rank:'2027 rank', proj_pts_600:'2027 / 600', proj_PA:'2027 PA', proj_pts_gs:'2027 / start', proj_GS:'2027 starts', proj_pts_total:'2027 incl. bat', KSV:'Keeper value', keep_tier:'Verdict', PAS:'Prospect score', pa_pace_162:'PA pace', il_days_3yr:'IL days 3y', barrel_batted_rate:'Barrel %', avg_best_speed:'EV50', avg_swing_speed:'Bat speed', rank_c:'Rank', roto_c:'Roto z', k_minus_bb:'K−BB %', xera:'xERA'};
 function renderGlossary(){ $('#glossary').innerHTML = TERMS.map(t=>`<div class="gterm"><b>${esc(t.name)}</b>${t.also?`<div class="also">also shown as: ${esc(t.also)}</div>`:''}<p>${esc(t.what)}</p>${t.ex?`<div class="ex">Example: ${esc(t.ex)}</div>`:''}</div>`).join(''); }
@@ -1199,39 +1216,24 @@ function renderMyWeek(){
 let tK, tPool, tKY, tPK, tPPool;
 const tierPill = v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':v==='surplus'?'b':'n'}">${v}</span>`;
 function renderKeepers(){
-  const cur = ROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
-  // players your team kept in a PITCHER slot (Ohtani) are not hitter-slot candidates for that team
-  const pitcherSlot = new Set(REAL_K.filter(k=>k.slot==='pitcher').map(k=>nk(k.player)));
-  // recompute KSV under current settings: pool replacement = (HKEEP*TEAMS + 12)th projected
-  const sorted = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts); const nkh = HKEEP*TEAMS; const r1 = sorted[Math.min(nkh+TEAMS-1, sorted.length-1)]?.proj_pts ?? 0; const r2 = sorted[Math.min(nkh+2*TEAMS-1, sorted.length-1)]?.proj_pts ?? 0;
-  cur.forEach(r=>{ r.KSV_c = Math.round(r.proj_pts - r1); r.KSV2_c = Math.round(r.proj_pts - r2); r.tier_c = r.KSV_c>=120?'lock':r.KSV_c>=40?'clear keep':r.KSV_c>0?'marginal':'let go'; r.pslot = r.owner===HOME_ABBR && pitcherSlot.has(nk(r.name)); });
-  // likely kept: each owner's top-HKEEP by KSV (pitcher-slot two-way players excluded from the hitter board)
-  const byOwner = {}; cur.forEach(r=>{ if(r.owner && r.owner!=='FA' && r.owner!=='W (Sun)' && !r.pslot) (byOwner[r.owner] ||= []).push(r); });
-  const kept = new Set(); Object.values(byOwner).forEach(a=>a.sort((x,y)=>y.KSV_c-x.KSV_c).slice(0,HKEEP).forEach(r=>kept.add(r.mlbam_id)));
-  cur.forEach(r=>r.kept_c = kept.has(r.mlbam_id) || r.pslot);
-  const owners = Object.keys(byOwner).sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
+  const V = computeValues(); const cur = V.cur, pc = V.pc;
+  const byOwner = V.byO, pByOwner = V.pByO;
+  const owners = [...new Set([...Object.keys(byOwner), ...Object.keys(pByOwner)])].sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
   $('#k-real').textContent = sel.value===HOME_ABBR && MY===HOME_ABBR && REAL_K.length ? `Your real 2026 keepers: ${REAL_K.filter(k=>k.slot==='hitter').map(k=>k.player).join(', ')} (hitters); ${REAL_K.filter(k=>k.slot==='pitcher').map(k=>k.player).join(', ')} (pitchers). Boards below are the 2027 recommendation.` : '';
   // beyond the team's keeper slots a positive value is a trade chip, not a keeper: label it surplus
-  const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.KSV_c-x.KSV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP && r.KSV_c>0) ? 'surplus' : r.tier_c}));
-  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'KSV_c',l:'Keeper value',render:signed}, {k:'KSV2_c',l:'Keeper value (2nd)',render:signed}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
+  const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
+  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 (2027 in full, 2028 at 60%, 2029 at 35%) — this is what decides the keeper order, because a keeper can be kept again'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left'}, {k:'KSV_c',l:'2027 only',render:signed,title:'projected 2027 points above the first-round draft alternative, one season, no aging'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
   if(!tK) tK = table('t-kboard', kcols, board, {sort:'team_rank', dir:1, color:true}); else tK.setRows(board);
   const n = +$('#p-n').value||50;
-  const pool = sorted.filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
+  const pool = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
   const pcols = [{k:'pool_rank',l:'#',f:'int'}, CI.name, CI.age, CI.owner, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.xwoba, CI.k_percent, CI.sprint_speed, CI.il_days_3yr];
   if(!tPool) { tPool = table('t-pool', pcols, pool, {sort:'pool_rank', dir:1, limit:n, color:true, rowClass:x=>x.owner===MY?'mine':''}); $('#p-n').addEventListener('change', renderKeepers); } else { tPool.setRows(pool.slice(0,n)); }
-  // ---- pitchers: value for a pitcher-slot keeper = pitching projection + hitting projection (two-way)
-  const pc = PROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
-  pc.forEach(r=>{ r.tot_c = (r.proj_pts||0) + (r.proj_pts_hitting||0); });
-  const psorted = pc.slice().sort((a,b)=>b.tot_c-a.tot_c); const nkp = PKEEP*TEAMS; const p1 = psorted[Math.min(nkp+TEAMS-1, psorted.length-1)]?.tot_c ?? 0; const p2 = psorted[Math.min(nkp+2*TEAMS-1, psorted.length-1)]?.tot_c ?? 0;
-  pc.forEach(r=>{ r.KSV_c = Math.round(r.tot_c - p1); r.KSV2_c = Math.round(r.tot_c - p2); r.tier_c = r.KSV_c>=80?'lock':r.KSV_c>=25?'clear keep':r.KSV_c>0?'marginal':'let go'; });
-  const pByOwner = {}; pc.forEach(r=>{ if(r.owner && r.owner!=='FA' && r.owner!=='W (Sun)') (pByOwner[r.owner] ||= []).push(r); });
-  const pkept = new Set(); Object.values(pByOwner).forEach(a=>a.sort((x,y)=>y.KSV_c-x.KSV_c).slice(0,PKEEP).forEach(r=>pkept.add(r.mlbam_id)));
-  pc.forEach(r=>r.kept_c = pkept.has(r.mlbam_id));
-  const pboard = (pByOwner[sel.value]||[]).slice().sort((x,y)=>y.KSV_c-x.KSV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>PKEEP && r.KSV_c>0) ? 'surplus' : r.tier_c}));
-  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'KSV_c',l:'Keeper value',render:signed}, {k:'KSV2_c',l:'Keeper value (2nd)',render:signed}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
+  // ---- pitchers: a pitcher-slot keeper is worth his arm over a replacement arm plus, for a two-way player, his bat
+  const pboard = (pByOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>PKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
+  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 — what decides the keeper order'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s first-round pick is worth to them'}, {k:'KSV_c',l:'2027 only',render:signed}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
   if(!tPK) tPK = table('t-pkboard', pkcols, pboard, {sort:'team_rank', dir:1, color:true, pct:PPCT, ci:PCI, card:openPitcherCard}); else tPK.setRows(pboard);
   const pn = +$('#pp-n').value||50;
-  const ppool = psorted.filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
+  const ppool = pc.slice().sort((a,b)=>b.tot_c-a.tot_c).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
   const ppcols = [{k:'pool_rank',l:'#',f:'int'}, PCI.name, PCI.age, PCI.owner, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.stuff_plus, PCI.xera, PCI.il_days_3yr];
   if(!tPPool) { tPPool = table('t-ppool', ppcols, ppool, {sort:'pool_rank', dir:1, limit:pn, color:true, pct:PPCT, ci:PCI, card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); $('#pp-n').addEventListener('change', renderKeepers); } else { tPPool.setRows(ppool.slice(0,pn)); }
   const yrs = Object.keys(D.keepers); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
@@ -1328,7 +1330,7 @@ function renderDash(){
   const rowP = (r, val, sub2, extra='') => `<div class="row" data-p="${r.mlbam_id}">${ava(r.name, r.team, 32)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
   const tierP = t => t ? `<span class="pill ${t==='lock'?'r':t==='clear keep'?'g':t==='marginal'?'w':t==='surplus'?'b':'n'}">${esc(t)}</span>` : '';
   // worth more than the draft pool but outside this team's five and two: a trade chip, not a keeper
-  const tierOf = (c, kept) => (!kept && c.KSV_c > 0) ? 'surplus' : c.tier_c;
+  const tierOf = (c, kept) => (!kept && c.KV_c > 0) ? 'surplus' : c.tier_c;
   let cards = '';
   if (!MY){
     $('#dash-title').textContent = 'League'; $('#dash-sub').textContent = 'Pick your team in the top bar (or on the Today page) for your roster, keepers and trade targets. Below: the league at a glance.';
@@ -1382,14 +1384,11 @@ function renderDash(){
   // keeper picture
   const bubbleH = tp.h.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(HKEEP, HKEEP+2), bubbleP = tp.p.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(PKEEP, PKEEP+1);
   cards += `<div class="dcard w6"><h3>Your keepers for 2027 <small>the model's five and two, and who is on the bubble</small></h3><div class="rowlist">${ks.hs.map((r,i)=>rowH(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `${i+1}. ${esc(r.elig||'')} · age ${r.age} · 2027 proj ${Math.round(r.proj_pts)} · ${esc(r.tier_c||'')}${r.kept_2026_as&&MY===HOME_ABBR?' · kept 2026':''}`)).join('')}${ks.ps.map((r,i)=>rowP(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `P${i+1}. SP · age ${r.age} · 2027 proj ${Math.round(r.tot_c??r.proj_pts)} · ${esc(r.tier_c||'')}`)).join('')}</div>${bubbleH.length||bubbleP.length?`<p class="hint" style="margin-top:8px">Next in line: ${[...bubbleH.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)})`), ...bubbleP.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)}, SP)`)].join(', ')}.</p>`:''}<button class="go" data-go="keepers">Full keeper boards →</button></div>`;
-  // trade targets: would enter your keeper group; cheapest are the ones their own team would not keep
-  const fifthH = ks.hs.length>=HKEEP ? ks.hs[ks.hs.length-1].DV_c : 0, secondP = ks.ps.length>=PKEEP ? ks.ps[ks.ps.length-1].DV_c : 0;
-  const owners = [...new Set([...V.cur.map(r=>r.owner), ...V.pc.map(r=>r.owner)].filter(o=>o && !isFA(o) && o!==MY))];
-  const theirKeep = {}; owners.forEach(o=>{ const t = teamPlayers(o); const k = keeperSet(t.h, t.p); theirKeep[o] = new Set([...k.hs.map(r=>'h'+r.mlbam_id), ...k.ps.map(r=>'p'+r.mlbam_id)]); });
-  const tH = V.cur.filter(r=>r.owner && !isFA(r.owner) && r.owner!==MY && r.DV_c > fifthH + 10).map(r=>({r, kind:'h', gain: r.DV_c - fifthH, cheap: !theirKeep[r.owner].has('h'+r.mlbam_id)}));
-  const tP = V.pc.filter(r=>r.owner && !isFA(r.owner) && r.owner!==MY && r.DV_c > secondP + 10).map(r=>({r, kind:'p', gain: r.DV_c - secondP, cheap: !theirKeep[r.owner].has('p'+r.mlbam_id)}));
-  const targets = [...tH, ...tP].sort((a,b)=>(b.cheap-a.cheap)||(b.gain-a.gain)).slice(0,8);
-  cards += `<div class="dcard w6"><h3>Trade targets <small>would upgrade your keeper group; "cheap" = his own team would not keep him</small></h3><div class="rowlist">${targets.map(({r,kind,gain,cheap})=>(kind==='h'?rowH:rowP)(r, `${signed(gain)}<small>to your keepers</small>`, `${kind==='h'?esc(r.elig||''):'SP'} · age ${r.age} · owner ${esc(r.owner)} · 2027 proj ${Math.round(kind==='h'?r.proj_pts:(r.tot_c??r.proj_pts))}`, cheap?' <span class="pill g">cheap</span>':' <span class="pill n">their keeper</span>')).join('')||'<p class="hint">Nobody on another roster beats your keeper group by 10 or more.</p>'}</div><button class="go" data-go="trades">Open the trade analyzer →</button></div>`;
+  // trade targets: the same search the Trades page runs, so the card proposes real deals rather than naming players
+  // with no price on them. Only deals that leave both keeper groups better off survive.
+  const deals = findDeals(MY).slice(0,4);
+  const dealLeg = arr => arr.map(a=>a.type==='pick' ? `${a.year} round ${a.round}` : a.r.name).join(' + ');
+  cards += `<div class="dcard w6"><h3>Trades worth proposing <small>both keeper groups end up better off</small></h3><div class="rowlist">${deals.map(d=>`<div class="row"><div class="nm" style="min-width:0"><b>${esc(dealLeg(d.give))}</b> <span style="color:var(--ink3)">→</span> ${esc(dealLeg(d.get))}<span class="sub">with ${esc(teamLabel(d.t).replace(/ \(.*\)$/,''))}</span></div><div class="v">${signed(Math.round(d.me))}<small>you · them ${signed(Math.round(d.them))}</small></div></div>`).join('')||'<p class="hint">Nothing clears the bar on both sides right now.</p>'}</div><button class="go" data-go="trades">Open the trade analyzer →</button></div>`;
   // sell high / buy low
   const sell = hRows.filter(x=>x.c.luck_c!=null && x.c.luck_c>=40).sort((a,b)=>b.c.luck_c-a.c.luck_c).slice(0,4);
   const buy = V.cur.filter(r=>r.owner!==MY && r.luck_c!=null && r.luck_c<=-40 && r.PA>=300 && r.age<=31).sort((a,b)=>a.luck_c-b.luck_c).slice(0,5);
@@ -1505,8 +1504,22 @@ const ROSTERED_H = 13, ROSTERED_P = 7;
 const HAGE = Object.fromEntries((D.aging||[]).map(a=>[a.age, a.yoy_delta])); const PAGE = Object.fromEntries((D.pitcher_aging||[]).map(a=>[a.age, a.yoy_delta]));
 const ageStep = (tbl, age) => { const ks = Object.keys(tbl).map(Number); if(!ks.length) return 0; const a = Math.max(Math.min(age, Math.max(...ks)), Math.min(...ks)); return tbl[a] ?? 0; };
 let VAL = null;
+// Everything that does not depend on who is kept. Split out of renderKeepers so the keeper set can be decided once,
+// after values exist, instead of each page deciding for itself — which is how the Keepers tab and My team came to
+// disagree about four keeper slots (the single-season number favours the older player, the three-year number the younger).
+function prepScores(){
+  const cur = ROWS.filter(r=>r.season===CUR && r.proj_pts!=null), pc = PROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
+  const sorted = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts); const nkh = HKEEP*TEAMS;
+  const r1 = sorted[Math.min(nkh+TEAMS-1, sorted.length-1)]?.proj_pts ?? 0, r2 = sorted[Math.min(nkh+2*TEAMS-1, sorted.length-1)]?.proj_pts ?? 0;
+  cur.forEach(r=>{ r.KSV_c = Math.round(r.proj_pts - r1); r.KSV2_c = Math.round(r.proj_pts - r2); });
+  pc.forEach(r=>{ r.tot_c = (r.proj_pts||0) + (r.proj_pts_hitting||0); });
+  const psorted = pc.slice().sort((a,b)=>b.tot_c-a.tot_c); const nkp = PKEEP*TEAMS;
+  const p1 = psorted[Math.min(nkp+TEAMS-1, psorted.length-1)]?.tot_c ?? 0, p2 = psorted[Math.min(nkp+2*TEAMS-1, psorted.length-1)]?.tot_c ?? 0;
+  pc.forEach(r=>{ r.KSV_c = Math.round(r.tot_c - p1); r.KSV2_c = Math.round(r.tot_c - p2); });
+  return {cur, pc, sorted, psorted};
+}
 function computeValues(){
-  const cur = ROWS.filter(r=>r.season===CUR && r.proj_pts!=null); const pc = PROWS.filter(r=>r.season===CUR && r.proj_pts!=null);
+  const {cur, pc} = prepScores();
   const hs = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts), ps = pc.slice().sort((a,b)=>(b.tot_c??b.proj_pts)-(a.tot_c??a.proj_pts));
   const replH = hs[Math.min(TEAMS*ROSTERED_H-1, hs.length-1)]?.proj_pts ?? 0, replP = (ps[Math.min(TEAMS*ROSTERED_P-1, ps.length-1)]?.tot_c) ?? 0;
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
@@ -1519,6 +1532,17 @@ function computeValues(){
     const hr = hit>0 ? cur.find(x=>x.mlbam_id===r.mlbam_id) : null;
     r.PAR_c = (r.proj_pts - replP) + (hr ? hr.PAR_c : 0); r.PAR28_c = (pg28*gs28 - replP) + (hr ? hr.PAR28_c : 0); r.PAR29_c = (pg29*gs29 - replP) + (hr ? hr.PAR29_c : 0);
     r.DV_c = r.PAR_c + 0.6*Math.max(0,r.PAR28_c) + 0.35*Math.max(0,r.PAR29_c); }
+  // ---- the one keeper set, decided here and read everywhere (Keepers tab, My team, Trades, the draft pool).
+  // Pitchers first, so a two-way player who earns a pitcher slot stops competing for a hitter slot on that same team —
+  // and that now applies to all twelve rosters, not only the one whose real 2026 keeper slots we happen to know.
+  const byO = {}, pByO = {}; const own = r => r.owner && !isFA(r.owner);
+  pc.forEach(r=>{ if(own(r)) (pByO[r.owner] ||= []).push(r); });
+  const kept = new Set();
+  Object.values(pByO).forEach(a=>a.sort((x,y)=>y.DV_c-x.DV_c).slice(0,PKEEP).forEach(r=>kept.add('p'+r.mlbam_id)));
+  cur.forEach(r=>{ r.pslot = kept.has('p'+r.mlbam_id); if(own(r) && !r.pslot) (byO[r.owner] ||= []).push(r); });
+  Object.values(byO).forEach(a=>a.sort((x,y)=>y.DV_c-x.DV_c).slice(0,HKEEP).forEach(r=>kept.add('h'+r.mlbam_id)));
+  cur.forEach(r=>r.kept_c = kept.has('h'+r.mlbam_id) || r.pslot);
+  pc.forEach(r=>r.kept_c = kept.has('p'+r.mlbam_id));
   const avail = [...cur.filter(r=>!r.kept_c).map(r=>({id:r.mlbam_id,name:r.name,kind:'h',par:r.PAR_c,dv:r.DV_c,elig:r.elig})), ...pc.filter(r=>!r.kept_c).map(r=>({id:r.mlbam_id,name:r.name,kind:'p',par:r.PAR_c,dv:r.DV_c,elig:'SP'}))].sort((a,b)=>b.par-a.par);
   const hist = D.pick_hist||{}; const hk = Object.keys(hist).map(Number); const hmax = hk.length?Math.max(...hk):0;
   // a drafted player can be kept afterwards, so a pick is worth the same three-year value a player is; the league's own
@@ -1527,7 +1551,15 @@ function computeValues(){
   const picks = [null]; for (let k=1; k<=TEAMS*15; k++){ const model = Math.max(0, avail[k-1]?.par ?? 0), mdv = Math.max(0, avail[k-1]?.dv ?? 0); const h = +(hist[Math.min(k, hmax)] ?? 0);
     picks[k] = {k, round: Math.floor((k-1)/TEAMS)+1, slot: ((k-1)%TEAMS)+1, model:+model.toFixed(1), hist:+h.toFixed(1), model_dv:+mdv.toFixed(1), hist_dv:+(h*RAT).toFixed(1),
                 value:+(0.5*mdv + 0.5*h*RAT).toFixed(1), value_1yr:+(0.5*model + 0.5*h).toFixed(1), best: avail[k-1]?.name||'', bestKind: avail[k-1]?.kind}; }
-  VAL = {cur, pc, replH, replP, avail, picks, dvRatio:+RAT.toFixed(2)};
+  VAL = {cur, pc, replH, replP, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
+  // ---- keep-or-draft: what a keeper slot is worth over spending that team's first pick on the best man left.
+  // One number on the three-year scale, so the verdict on the Keepers tab cannot contradict the keep pill beside it.
+  const first = {}; Object.keys({...byO, ...pByO}).forEach(o=>{
+    const hs = (byO[o]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).slice(0,HKEEP), ps = (pByO[o]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).slice(0,PKEEP);
+    first[o] = pickFit({type:'pick', team:o, round:1, year:CUR+1}, hs, ps); });
+  const tier = (kv, f) => kv >= f ? 'lock' : kv >= 0.3*f ? 'clear keep' : kv > 0 ? 'marginal' : 'let go';
+  [...cur, ...pc].forEach(r=>{ const f = first[r.owner]; if(f==null){ r.KV_c = null; r.tier_c = ''; return; }
+    r.KV_c = Math.round(r.DV_c - f); r.tier_c = tier(r.KV_c, Math.max(20, f)); });
   return VAL;
 }
 // draft slots per team (fixed order, no snake). Default: last year's order; editable.
@@ -1610,6 +1642,101 @@ function sideEval(team, out, inn){
   const mktIn = mv(inn), mktOut = mv(out);
   return {before, after, keeperDelta, picksIn, picksOut, rosIn, rosOut, total, keptAfter, keptBefore, mktIn, mktOut, mkt: mktIn - mktOut};
 }
+// ---------- trade finder: search the league for deals both sides would actually take
+// The analyzer answers "is this trade good"; this answers "which trade should I offer". Same scoring, so the two can
+// never disagree: a roster's gain is the change in its best HKEEP hitters + PKEEP pitchers, with picks valued to that
+// roster (see pickFit). bestMarket is deliberately not used here — it is a per-asset league scan and far too slow to
+// run inside a search over thousands of pairs.
+let FIND_MODE = 'both';
+function teamRosters(){ const V = VAL || computeValues(); const m = {};
+  V.cur.forEach(r=>{ if(r.owner && !isFA(r.owner) && !r.pslot) ((m[r.owner] ||= {h:[],p:[]}).h).push(r); });
+  V.pc.forEach(r=>{ if(r.owner && !isFA(r.owner)) ((m[r.owner] ||= {h:[],p:[]}).p).push(r); });
+  return m; }
+function evalSwap(rost, out, inn, full){
+  const before = keeperSet(rost.h, rost.p);
+  const oid = new Set(out.filter(a=>a.type!=='pick').map(a=>a.type+a.id));
+  const h = rost.h.filter(r=>!oid.has('h'+r.mlbam_id)), p = rost.p.filter(r=>!oid.has('p'+r.mlbam_id));
+  inn.forEach(a=>{ if(a.type!=='pick') (a.type==='h'?h:p).push(a.r); });
+  const after = keeperSet(h, p);
+  const pin = inn.reduce((x,a)=>x + (a.type==='pick' ? pickFit(a, after.hs, after.ps) : 0), 0);
+  const pout = out.reduce((x,a)=>x + (a.type==='pick' ? pickFit(a, before.hs, before.ps) : 0), 0);
+  const v = +(after.v - before.v + pin - pout).toFixed(1);
+  return full ? {v, kept: new Set([...after.hs.map(r=>'h'+r.mlbam_id), ...after.ps.map(r=>'p'+r.mlbam_id)]), cut:{h: after.hs.length>=HKEEP?after.hs[HKEEP-1].DV_c:0, p: after.ps.length>=PKEEP?after.ps[PKEEP-1].DV_c:0}} : v; }
+// a player coming back has to actually make the receiving team's keeper group, or he is a throw-in dressed as a return
+const lands = (rost, out, inn) => { const e = evalSwap(rost, out, inn, true);
+  return inn.every(a=>a.type==='pick' || e.kept.has(a.type+a.id)) ? e.v : null; };
+const dealName = a => a.type==='pick' ? `${a.year} R${a.round}` : a.r.name;
+function findDeals(me){
+  const V = VAL || computeValues(); const R = teamRosters(); const mine = R[me]; if(!mine) return [];
+  const others = Object.keys(R).filter(t=>t!==me);
+  const players = t => [...R[t].h.filter(r=>r.DV_c>0).map(r=>({type:'h', id:r.mlbam_id, r})), ...R[t].p.filter(r=>r.DV_c>0).map(r=>({type:'p', id:r.mlbam_id, r}))];
+  const picksOf = t => Array.from({length:10}, (_,i)=>({type:'pick', team:t, round:i+1, year:CUR+1}));
+  const cutOf = ro => { const k = keeperSet(ro.h, ro.p); return {h: k.hs.length>=HKEEP?k.hs[HKEEP-1].DV_c:0, p: k.ps.length>=PKEEP?k.ps[PKEEP-1].DV_c:0}; };
+  const myP = players(me), myPicks = picksOf(me), myCut = cutOf(mine), out = [];
+  for (const t of others){
+    const th = R[t], theirP = players(t), theirPicks = picksOf(t);
+    // Only pair players each side would actually want. A man who adds nothing to the roster receiving him is a throw-in,
+    // and pairing him produced identical "Kurtz for Springer + a 1st" / "Kurtz for Contreras + a 1st" proposals that were
+    // really just "Kurtz for a 1st" — which the player-for-pick pass below already covers, honestly.
+    // loose bound first (a man far below the cut cannot reach it even after someone leaves), exact test after
+    const near = (cand, cut) => cand.filter(x=>x.r.DV_c > 0.5*(x.type==='h'?cut.h:cut.p));
+    const wantMe = near(theirP, myCut), wantThem = near(myP, cutOf(th));
+    for (const a of wantThem) for (const b of wantMe){
+      let g1 = lands(mine, [a], [b]), g2 = lands(th, [b], [a]);
+      let extra = null, side = '';
+      if (g1 != null && g2 != null && (g1 > 0 !== g2 > 0)){ // one side is short: the smallest pick from the team ahead that fixes it
+        const ahead = g1 > g2, pool = ahead ? myPicks : theirPicks;
+        for (let i = pool.length - 1; i >= 0; i--){ const pk = pool[i];
+          const n1 = lands(mine, ahead ? [a, pk] : [a], ahead ? [b] : [b, pk]), n2 = lands(th, ahead ? [b] : [b, pk], ahead ? [a, pk] : [a]);
+          if (n1 > 0 && n2 > 0){ g1 = n1; g2 = n2; extra = pk; side = ahead ? 'me' : 'them'; break; } }
+      }
+      if (!(g1 > 0) || !(g2 > 0)) continue;
+      out.push({t, give: side==='me' ? [a, extra] : [a], get: side==='them' ? [b, extra] : [b], me:g1, them:g2});
+    }
+    for (const a of wantThem) for (const pk of theirPicks){ const g1 = evalSwap(mine, [a], [pk]), g2 = lands(th, [pk], [a]); if (g1 > 0 && g2 > 0) out.push({t, give:[a], get:[pk], me:g1, them:g2}); }
+    for (const b of wantMe) for (const pk of myPicks){ const g1 = lands(mine, [pk], [b]), g2 = evalSwap(th, [b], [pk]); if (g1 > 0 && g2 > 0) out.push({t, give:[pk], get:[b], me:g1, them:g2}); }
+  }
+  // A deal where they gain three times what you do still passes "both gain", but it is not one to open with, and a thin
+  // edge on a player you would have kept is the first thing model error erases. Hold the default list to a real share.
+  const list = FIND_MODE==='me' ? out : out.filter(d=>d.me >= 0.3 * d.them);
+  const key = FIND_MODE==='me' ? (d=>d.me) : (d=>Math.min(d.me, d.them));
+  list.sort((x,y)=>key(y)-key(x));
+  const seen = {}, byTeam = {}, picked = [];
+  for (const d of list){
+    const gk = d.give.map(a=>a.type+(a.id||a.round)).join('+'), tk = d.get.map(a=>a.type+(a.id||a.round)).join('+');
+    if ((seen[gk]||0) >= 2 || (seen[tk]||0) >= 2 || (byTeam[d.t]||0) >= 2) continue;
+    seen[gk] = (seen[gk]||0)+1; seen[tk] = (seen[tk]||0)+1; byTeam[d.t] = (byTeam[d.t]||0)+1; picked.push(d);
+    if (picked.length >= 8) break; }
+  return picked; }
+function renderFinder(){
+  const me = tr.a, list = findDeals(me); const nMe = teamLabel(me).replace(/ \(.*\)$/,'');
+  const leg = (arr, dir) => `<span class="leg"><span class="arrow">${dir}</span>${arr.map(a=>a.type==='pick'
+      ? `<b>${a.year} round ${a.round}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
+  const give = arr => leg(arr, 'send'), get = arr => leg(arr, 'get');
+  const why = d => { const bits = [];
+    const surp = d.give.filter(a=>a.type!=='pick' && !VAL.kept.has(a.type+a.id)).map(a=>lastName(a.r.name));
+    const keep = d.give.filter(a=>a.type!=='pick' && VAL.kept.has(a.type+a.id)).map(a=>lastName(a.r.name));
+    const theirSurp = d.get.filter(a=>a.type!=='pick' && !VAL.kept.has(a.type+a.id)).map(a=>lastName(a.r.name));
+    if (surp.length) bits.push(`${surp.join(' and ')} sits outside your keeper group, so he goes back in the pool at the deadline and is worth nothing to you — full value to them`);
+    if (keep.length) bits.push(`${keep.join(' and ')} is one of your keepers, and the return still beats holding him`);
+    if (theirSurp.length) bits.push(`${theirSurp.join(' and ')} is outside theirs, which is why they will let him go`);
+    const pk = d.get.find(a=>a.type==='pick'); if (pk){ const b = VAL.picks[Math.min(pickOverall(pk.team, pk.round), VAL.picks.length-1)];
+      if (b?.best) bits.push(`that pick is around #${b.k} on the 2027 board, where the best man left today is ${b.best}`); }
+    return bits.length ? bits.join('; ') + '.' : 'both keeper groups come out ahead.'; };
+  const pvp = list.filter(d=>d.give.every(a=>a.type!=='pick') && d.get.every(a=>a.type!=='pick')).length;
+  const R = teamRosters(); const myK = keeperSet(R[me].h, R[me].p);
+  const myCut = myK.hs.length>=HKEEP ? myK.hs[HKEEP-1].DV_c : 0;
+  const above = (VAL.cur||[]).filter(r=>r.owner && !isFA(r.owner) && r.owner!==me && !r.pslot && r.DV_c > myCut).length;
+  const note = list.length && !pvp
+    ? `<p class="hint" style="margin:0 0 8px">No player-for-player deal clears the bar: only ${above} hitter${above===1?'':'s'} on another roster ${above===1?'beats':'beat'} your fifth keeper (${Math.round(myCut)}), and each is his own team's keeper, so nobody sells him at a price you would pay. Converting a spare into a pick is the trade that is actually available to you.</p>` : '';
+  $('#findlist').innerHTML = note + (list.length ? list.map((d,i)=>`<div class="deal" data-i="${i}"><div class="legs">${give(d.give)}${get(d.get)}<span class="leg" style="color:var(--ink3)">with ${esc(teamLabel(d.t).replace(/ \(.*\)$/,''))}</span></div><div class="num">${signed(Math.round(d.me))} <small>${esc(nMe)}</small>${signed(Math.round(d.them))} <small>them</small></div><div class="why">${esc(why(d))}</div></div>`).join('')
+    : `<p class="hint">No one-for-one leaves both keeper groups better off right now. That usually means ${esc(nMe)} has no surplus the other rosters have room for — try the analyzer below with a pick attached.</p>`);
+  $$('#findlist .deal').forEach(el=>el.addEventListener('click',()=>{ const d = list[+el.dataset.i];
+    tr.b = d.t; tr.give.a = d.give.map(a=>a.type==='pick'?{type:'pick',team:a.team,round:a.round,year:a.year}:{type:a.type,id:a.id});
+    tr.give.b = d.get.map(a=>a.type==='pick'?{type:'pick',team:a.team,round:a.round,year:a.year}:{type:a.type,id:a.id});
+    renderTrade(); $('#trade').scrollIntoView({behavior:'smooth', block:'start'}); }));
+}
+$$('[data-fmode]').forEach(b=>b.addEventListener('click',()=>{ FIND_MODE=b.dataset.fmode; $$('[data-fmode]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderFinder(); }));
 function renderTrade(){
   const V = VAL || computeValues(); const owners = [...new Set([...V.cur.map(r=>r.owner), ...V.pc.map(r=>r.owner)].filter(o=>o && !isFA(o)))].sort();
   if (!tr.a || !owners.includes(tr.a)) tr.a = owners.includes(MY) ? MY : owners[0]; if (!tr.b || !owners.includes(tr.b) || tr.b===tr.a) tr.b = owners.find(o=>o!==tr.a);
@@ -1654,7 +1781,7 @@ function renderTrade(){
   }
   const ledger = (name, ev) => `<table><tbody><tr><td class="l" title="change in this team's best ${HKEEP} hitters and ${PKEEP} pitchers — a player they cannot keep is worth nothing here">Keeper group (${HKEEP}H + ${PKEEP}P)</td><td>${signed(ev.keeperDelta)}</td></tr><tr><td class="l" title="whoever they draft is on the roster all of ${CUR+1} whether or not he is kept, so a pick always carries that year; the later years count only if he would crack their keeper group">Draft picks received − given</td><td>${signed(ev.picksIn - ev.picksOut)}</td></tr>${tr.mode==='now'?`<tr><td class="l">Rest of this week</td><td>${signed(ev.rosIn - ev.rosOut)}</td></tr>`:''}<tr class="tot"><td class="l">Net to ${esc(poss(name))} roster</td><td>${signed(ev.total)}</td></tr><tr><td class="l" style="padding-top:12px" title="the most any of the 12 rosters would gain by adding what they gave up">Open market: given up</td><td style="padding-top:12px">${ev.mktOut?'−'+Math.round(ev.mktOut):'0'}</td></tr><tr><td class="l" title="the most any of the 12 rosters would gain by adding what they received">Open market: received</td><td>${ev.mktIn?'+'+Math.round(ev.mktIn):'0'}</td></tr><tr class="tot"><td class="l" title="not what this trade does for them — what these assets are worth to the team best set up to use them">Market value, ${esc(name)}</td><td>${signed(Math.round(ev.mkt))}</td></tr></tbody></table>`;
   $('#trade').innerHTML = side('a', tr.a, tr.b) + side('b', tr.b, tr.a) + `<div class="verdict"><h3>Verdict</h3><div class="big ${cls}">${esc(verdict)}</div>${sub?`<p class="hint" style="margin:6px 0 0">${sub}</p>`:''}<div class="ledger"><div>${ledger(nA, evA)}</div><div>${ledger(nB, evB)}</div></div><p class="hint" style="margin-top:8px">Everything is in points above replacement over the next three seasons (${CUR+1} in full, ${CUR+2} at 60%, ${CUR+3} at 35%). <b>Net to the roster</b> is the headline and the only number that scores the trade: what it does to that team's best ${HKEEP} hitters + ${PKEEP} pitchers, plus picks. A player the team cannot keep returns to the draft pool at the keeper deadline, so he is worth nothing there; a pick is worth the ${CUR+1} value of whoever is taken with it in every case, because the 15 rounds fill the 22-man roster, and the later years on top only when that player would crack their keeper group. <b>Market value</b> answers a different question — what these assets would be worth to the team in the league best set up to use them — so it is the check on whether you are selling a surplus star cheap, not a verdict on the trade. When the two disagree, that gap <i>is</i> the trade: move a player you cannot keep to the team that has a slot for him, and charge for it. ${MY?`${esc(teamLabel(MY).replace(/ \(.*\)$/,''))} is you`:'pick your team in the top bar'}. Draft slots for 2027 follow the league rule (9th–12th place pick 1–4, then 8th down to 1st) from the final regular-season standings; edit them below if the league changes them.</p></div>`;
-  $('#tr-a').addEventListener('change', e=>{ tr.a = e.target.value; tr.give.a = []; if(tr.b===tr.a) tr.b = owners.find(o=>o!==tr.a); renderTrade(); });
+  $('#tr-a').addEventListener('change', e=>{ tr.a = e.target.value; tr.give.a = []; if(tr.b===tr.a) tr.b = owners.find(o=>o!==tr.a); renderTrade(); renderFinder(); });
   $('#tr-b').addEventListener('change', e=>{ tr.b = e.target.value; tr.give.b = []; if(tr.a===tr.b) tr.a = owners.find(o=>o!==tr.b); renderTrade(); });
   $$('#trade .x').forEach(b=>b.addEventListener('click',()=>{ tr.give[b.dataset.side].splice(+b.dataset.i,1); renderTrade(); }));
   $$('#trade .tr-addpick').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.side; const team = k==='a'?tr.a:tr.b; const round = +$(`.tr-round[data-side="${k}"]`).value, year = +$(`.tr-year[data-side="${k}"]`).value; if(!tr.give[k].some(a=>a.type==='pick'&&a.round===round&&a.year===year)) tr.give[k].push({type:'pick', team, round, year}); renderTrade(); }));
@@ -1666,13 +1793,13 @@ function renderTrade(){
   });
 }
 $$('[data-tmode]').forEach(b=>b.addEventListener('click',()=>{ tr.mode=b.dataset.tmode; $$('[data-tmode]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderTrade(); }));
-function renderValues(){ computeValues(); renderPicks(); renderTrade(); }
+function renderValues(){ computeValues(); renderPicks(); renderTrade(); renderFinder(); }
 
 // ---------- tabs + boot
 buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T0506"></script>
+<script src="live.js?v=20260914T0532"></script>
 </body>
 </html>
