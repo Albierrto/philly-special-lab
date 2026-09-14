@@ -48,6 +48,7 @@ def mlb_pitching(year: int) -> pd.DataFrame:
                      f"&playerPool=all&limit=1000&offset={offset}&hydrate=person")
                 st = _S.get(u, timeout=120).json()["stats"][0]; sp = st.get("splits", []); out += sp; offset += len(sp)
                 if not sp or offset >= st.get("totalSplits", 0): break
+            p.parent.mkdir(parents=True, exist_ok=True)     # a fresh CI runner has no data/mlb cache at all
             p.write_text(json.dumps(out))
         return json.loads(p.read_text())
     rows = {}
@@ -93,7 +94,8 @@ def savant_pitchers(year: int) -> pd.DataFrame:
     if not p.exists():
         u = (f"https://baseballsavant.mlb.com/leaderboard/custom?year={year}&type=pitcher&filter=&min=50&selections=xwoba"
              f"&chart=false&x=xwoba&y=xwoba&r=no&chartType=beeswarm&sort=xwoba&sortDir=asc")
-        h = _S.get(u, timeout=120).text; i = h.find("var data = ["); j = h.find("];", i); p.write_text(h[i + 11:j + 1])
+        h = _S.get(u, timeout=120).text; i = h.find("var data = ["); j = h.find("];", i)
+        p.parent.mkdir(parents=True, exist_ok=True); p.write_text(h[i + 11:j + 1])
     df = pd.DataFrame(json.loads(p.read_text()))
     keep = [c for c in SAV_P if c in df.columns]
     df = df[["player_id"] + keep].rename(columns={"player_id": "mlbam_id", "pa": "pa_savant", "pitch_hand": "throws_sv"})
