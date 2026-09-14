@@ -274,6 +274,35 @@ def team_splits(team_ids) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def team_form(team_ids, season: int = 2026, days: int = 30, asof=None, workers: int = 10) -> pd.DataFrame:
+    """Each club's strikeout rate over the trailing `days`, against its rate over everything before that window.
+
+    Measured over 2,924 real 2026 starts: a club's strikeout rate PERSISTS month to month (r 0.43 between one 25-game
+    block and the next) while its wOBA does not at all (r -0.01). That is why recency helps here and did not for the
+    bat: a hot month at the plate is noise, but a lineup that has started striking out more usually has actually
+    changed - a call-up, an injury to a contact bat, a September roster. Residual on this movement is +2.19 points per
+    start per unit of relative move (t 2.11), and refitting on April-July alone gives 2.10, so it is stable.
+    It is a small correction - a one-sd move is 0.22 points - and it is applied at half strength for that reason."""
+    from concurrent.futures import ThreadPoolExecutor
+    end = pd.Timestamp(asof or pd.Timestamp.today().normalize())
+    def one(tid):
+        j = _get(f"{API}/teams/{int(tid)}/stats", stats="gameLog", group="hitting", season=season)
+        rows = []
+        for st in j.get("stats", []):
+            for g in st.get("splits", []):
+                d = g.get("date"); k = g["stat"].get("strikeOuts", 0); pa = g["stat"].get("plateAppearances", 0)
+                if d and pa: rows.append((pd.Timestamp(d), float(k), float(pa)))
+        if not rows: return dict(team_id=int(tid), k_move=np.nan, k_30=np.nan, pa_30=0.0)
+        g = pd.DataFrame(rows, columns=["date", "k", "pa"]).sort_values("date")
+        g = g[g["date"] < end]
+        recent, prior = g[g["date"] >= end - pd.Timedelta(days=days)], g[g["date"] < end - pd.Timedelta(days=days)]
+        if recent["pa"].sum() < 200 or prior["pa"].sum() < 200: return dict(team_id=int(tid), k_move=np.nan, k_30=np.nan, pa_30=float(recent["pa"].sum()))
+        kr, kp = recent["k"].sum() / recent["pa"].sum(), prior["k"].sum() / prior["pa"].sum()
+        return dict(team_id=int(tid), k_move=float(np.clip(kr / kp - 1, -0.35, 0.35)), k_30=kr, pa_30=float(recent["pa"].sum()))
+    with ThreadPoolExecutor(workers) as ex:
+        return pd.DataFrame(list(ex.map(one, [int(t) for t in team_ids])))
+
+
 def _split_row(pid, group, start30, end30) -> dict:
         params = dict(stats="statSplits,byDateRange,season", group=group, season=2026, sitCodes="vl,vr")
         if start30: params.update(startDate=start30, endDate=end30)
@@ -625,11 +654,14 @@ def _base_rate(p: pd.DataFrame) -> pd.DataFrame:
 
 
 def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.DataFrame, tsplits: pd.DataFrame, pf: pd.DataFrame, wx: pd.DataFrame, ven: pd.DataFrame,
-                   weights: dict | None = None) -> pd.DataFrame:
+                   weights: dict | None = None, tform: pd.DataFrame | None = None) -> pd.DataFrame:
     # matchup strengths checked against 3,072 real 2026 starts (below): the opponent's bat plays bigger than 2.5 implied
     # and the strikeout bonus slightly smaller. Home stays at 1.03 because the park factor already carries most of it.
-    W = dict(opp_per_woba=3.5, park_power=0.5, wx_power=0.5, home=1.03, k_weight=0.85)
+    # k_move_w: how much of a club's recent strikeout-rate movement to carry. Half, from team_form's note above -
+    # 0.5 was the best of 0.25/0.5/0.75/1.0 both in sample (r .3939 vs .3921) and out of it, and full weight overshoots.
+    W = dict(opp_per_woba=3.5, park_power=0.5, wx_power=0.5, home=1.03, k_weight=0.85, k_move_w=0.5)
     if weights: W.update(weights)
+    tfi = tform.set_index("team_id") if tform is not None and len(tform) else None
     p = pitchers.merge(psplits, on="mlbam_id", how="left")
     p = _base_rate(p)
     this_n = p["n_starts"].fillna(p["GS"]).fillna(0)
@@ -644,6 +676,12 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
             continue
         sp = pidx.loc[g["sp_id"]]; hand = "vl" if (sp.get("throws") == "L") else "vr"
         key_t = (g["opp_id"], hand); tw = float(ts.loc[key_t]["t_woba"]) if key_t in ts.index else LG_WOBA; tk = float(ts.loc[key_t]["t_k"]) if key_t in ts.index else LG_K
+        # the club's bat stays on the season split (recency there is pure noise); its strikeout rate gets a half-weight
+        # nudge for how the last 30 days compare with the rest of its season
+        kmv = 0.0
+        if tfi is not None and g["opp_id"] in tfi.index:
+            m = tfi.loc[g["opp_id"]]["k_move"]
+            if pd.notna(m): kmv = float(m); tk = tk * (1 + W["k_move_w"] * kmv)
         oppf = float(np.clip(1 - W["opp_per_woba"] * (tw - LG_WOBA), 0.7, 1.3))
         park = pfa.loc[(g["venue_id"], "All")]["pf_runs"] / 100 if (g["venue_id"], "All") in pfa.index else 1.0
         parkf = float((1 / park) ** W["park_power"])
@@ -656,7 +694,7 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
         kbonus = W["k_weight"] * float(sp["k_per_gs"]) * (tk / LG_K - 1)
         exp = float(sp["base_gs"]) * oppf * parkf * wxf * homef + kbonus
         rows.append(dict(mlbam_id=g["sp_id"], name=g["sp_name"], team=g["team"], throws=sp.get("throws"), owner=sp.get("owner"), date=g["date"], gamePk=g["gamePk"], home=g["home"], opp=g["opp"], venue=g["venue"],
-                         sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
+                         sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), opp_k_move=round(kmv, 3), park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
                          wind_out=round(wind_c, 1), precip_prob=(float(w["precip_prob"]) if w is not None else np.nan), local_start=(w["local_start"] if w is not None else None),
                          base_gs=round(float(sp["base_gs"]), 2), pts_gs_2026=round(float(sp["pts_gs"]), 2) if pd.notna(sp.get("pts_gs")) else np.nan, GS=int(sp["GS"]) if pd.notna(sp.get("GS")) else 0,
                          ip_mix=(round(float(sp["ip_mix"]), 2) if pd.notna(sp.get("ip_mix")) else np.nan), velo_30=(round(float(sp["velo_30"]), 1) if pd.notna(sp.get("velo_30")) else np.nan),

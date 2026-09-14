@@ -106,7 +106,11 @@ def main(argv=None):
         npi = int(stuff["new_pitch"].notna().sum()) if "new_pitch" in stuff.columns else 0
         print(f"  recent stuff for {int(stuff['pitches_30'].notna().sum())} starters (starts only); {npi} adding a new pitch")
     tsp = ST.team_splits(tm["team_id"].tolist())
-    print(f"  {len(sp_ids)} starters this week ({len(missing)} not in the SP table), team splits {len(tsp)}")
+    tfm = ST.team_form(tm["team_id"].tolist(), asof=asof)
+    mv = tfm["k_move"].dropna()
+    print(f"  {len(sp_ids)} starters this week ({len(missing)} not in the SP table), team splits {len(tsp)}, "
+          f"strikeout-rate movement for {len(mv)} clubs (range {mv.min():+.1%} to {mv.max():+.1%})" if len(mv) else
+          f"  {len(sp_ids)} starters this week ({len(missing)} not in the SP table), team splits {len(tsp)}")
 
     # second pass on rotations: game logs know who is really an opener (IP per start < 3.8) or a swingman (< 3 starts)
     # true openers and bulk guys only. "Fewer than three starts" used to land here too, which threw out September
@@ -122,7 +126,7 @@ def main(argv=None):
         print(f"  rotation second pass removed {len(bad)} openers/swingmen; {len(new_ids)} new starters not in table")
     print("[5/7] matchups")
     hd = ST.hitter_matchups(sch, hs, hsp, pp, psp, pf, wx, ven)
-    ps = ST.pitcher_starts(sch, pp, psp, tsp, pf, wx, ven)
+    ps = ST.pitcher_starts(sch, pp, psp, tsp, pf, wx, ven, tform=tfm)
     # reference lists: whatever the newest file of each kind is, so a refreshed list drops in without a code change
     pl, pl_as = REF.newest("pitcherlist_tiers", ["pitcher", "team", "tier", "note"])
     cbs, cbs_as = REF.newest("cbs_week", ["player", "list", "tier_or_rank", "note"])
