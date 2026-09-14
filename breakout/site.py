@@ -52,6 +52,13 @@ jobs:
         if: ${{ github.event.inputs.full == 'true' || github.event.schedule == '17 8 * * 1' }}
         timeout-minutes: 180
         run: python -m breakout.pipeline3
+      # The two lists no API gives us. One Anthropic API call with web search reads this week's PitcherList tiers and
+      # Scott White's CBS columns and writes a validated CSV; without the secret it prints one line and does nothing,
+      # and a list that fails validation is thrown away rather than published, so this can never fail the build.
+      - name: Analyst lists (PitcherList tiers, CBS sleepers and two-starts)
+        continue-on-error: true
+        env: { ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}" }
+        run: python -m breakout.analyst_lists
       - name: Fantrax rosters, standings and draft order (read-only, official API)
         run: python -m breakout.fantrax_api
       - name: This week's streamers (schedule, probables, rosters, weather, splits)
@@ -65,7 +72,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast
+          git add -A site output data/fantrax data/statcast data/reference
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           git push
@@ -130,7 +137,24 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 3. Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 4. **Settings → Actions → General → Workflow permissions → Read and write** so the daily refresh can commit.
 5. Actions tab → **pages** → Run workflow. Your site is at `https://<your-username>.github.io/<repo-name>/` a minute later. Share that link.
-   The daily refresh republishes it every morning; the Actions tab shows each run.
+   The refresh runs three times a day and republishes it; the Actions tab shows each run.
+6. Optional, for the two analyst lists: **Settings → Secrets and variables → Actions → New repository secret**, name
+   `ANTHROPIC_API_KEY`, value a key from console.anthropic.com. With it, the refresh reads this week's PitcherList
+   tiers and Scott White's CBS columns itself (one call a week, web search on) and drops a validated CSV in
+   `data/reference/`. Without it that step prints one line and does nothing, and the site simply leaves those columns
+   blank — nothing else changes.
+
+## What runs by itself
+
+| | when (UTC) |
+|---|---|
+| Fantrax rosters, IL, standings, draft order; streamers, probables, splits, park, weather | 10:17, 16:17, 22:17 |
+| Season models: projections, Breakout Index, keeper values, prospect cards | Mondays 08:17 |
+| Analyst lists, if `ANTHROPIC_API_KEY` is set | with each refresh, fetched only when what is on file has aged |
+| Posted lineups, live probables, scores, first-pitch weather | in the browser, every 10 minutes |
+
+Not on the hour on purpose: GitHub sheds scheduled runs at `:00` under load, and a single 10:00 slot silently never
+fired at all, which left the site a day behind on ownership without anything saying so.
 
 Fantrax rosters (who owns whom, IR/minors status), standings and next year's draft order are pulled every morning through
 Fantrax's official read-only API (`python -m breakout.fantrax_api`, no login needed because the league allows API reads).
