@@ -17,7 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = r'''name: refresh
 on:
   schedule:
-    - cron: "0 10 * * *"      # every day 10:00 UTC (6 am Eastern) — new probables, rosters, forecasts
+    # three times a day, and deliberately NOT on the hour: GitHub sheds scheduled runs at :00 under load, and the
+    # single 10:00 slot silently never fired at all on 2026-09-14, leaving the site a day behind on ownership.
+    # 6:17 am / 12:17 pm / 6:17 pm Eastern — a pickup is live within about six hours instead of up to a day.
+    - cron: "17 10 * * *"
+    - cron: "17 16 * * *"
+    - cron: "17 22 * * *" 
   workflow_dispatch:
     inputs:
       full:
