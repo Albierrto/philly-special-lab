@@ -322,12 +322,15 @@ def _log_row(pid: int, season: int, W: dict, asof: str | None) -> dict:
     relief_after = sum(1 for s in sp if s["stat"].get("gamesStarted") != 1 and last_start and str(s.get("date"))[:10] > last_start)
     cut = (date.fromisoformat(asof) - timedelta(days=30)).isoformat() if asof else None
     starts_30 = sum(1 for s in starts if cut and str(s.get("date"))[:10] >= cut)
-    recent = [dict(date=str(x.get("date"))[:10], opp=((x.get("opponent") or {}).get("abbreviation") or (x.get("opponent") or {}).get("name")),
-                   home=(x.get("isHome") if x.get("isHome") is not None else None), ip=round(_ip(x["stat"].get("inningsPitched", 0)), 1),
-                   K=x["stat"].get("strikeOuts", 0), BB=x["stat"].get("baseOnBalls", 0), H=x["stat"].get("hits", 0), ER=x["stat"].get("earnedRuns", 0),
-                   gs=int(x["stat"].get("gamesStarted") == 1), pts=round(pts_of(x["stat"]), 1)) for x in sp[-12:]]
+    allg = [dict(date=str(x.get("date"))[:10], opp=((x.get("opponent") or {}).get("abbreviation") or (x.get("opponent") or {}).get("name")),
+                 home=(x.get("isHome") if x.get("isHome") is not None else None), ip=round(_ip(x["stat"].get("inningsPitched", 0)), 1),
+                 K=x["stat"].get("strikeOuts", 0), BB=x["stat"].get("baseOnBalls", 0), H=x["stat"].get("hits", 0), ER=x["stat"].get("earnedRuns", 0),
+                 gs=int(x["stat"].get("gamesStarted") == 1), pts=round(pts_of(x["stat"]), 1)) for x in sp]
+    recent = allg[-10:]
+    summary = rolling(allg, asof); summary["starts"] = n
+    summary["pts_start"] = round(sum(p for p in pts) / n, 1) if n else None
     return dict(mlbam_id=int(pid), n_starts=n, g_total=len(sp), n_relief=len(sp) - n,
-                start_dates=[str(x.get("date"))[:10] for x in starts], recent=recent,
+                start_dates=[str(x.get("date"))[:10] for x in starts], recent=recent, summary=summary,
                 pts_start=(sum(pts) / n if n else np.nan), ip_start=(sum(_ip(s["stat"].get("inningsPitched", 0)) for s in starts) / n if n else np.nan),
                 last5_pts=(sum(pts[-5:]) / len(pts[-5:]) if n else np.nan), last3_pts=(sum(pts[-3:]) / len(pts[-3:]) if n else np.nan),
                 k_start=(sum(s["stat"].get("strikeOuts", 0) for s in starts) / n if n else np.nan),
@@ -468,10 +471,21 @@ def stuff_features(d: pd.DataFrame) -> pd.DataFrame:
 HIT_W = dict(x1b=2, x2b=3, x3b=4, hr=5, r=1, rbi=1, bb=1, hbp=1, sb=3)
 
 
-def _hit_log(pid: int, season: int, n: int) -> dict:
+def rolling(games: list[dict], asof: str | None) -> dict:
+    """League points over the season and over the last 7 / 14 / 30 days, with the games that made them."""
+    out = dict(pts=round(sum(g["pts"] for g in games), 1), g=len(games))
+    if not asof: return out
+    a = date.fromisoformat(asof)
+    for d in (7, 14, 30):
+        cut = (a - timedelta(days=d)).isoformat()
+        w = [g for g in games if g["date"] >= cut]
+        out[f"pts{d}"] = round(sum(g["pts"] for g in w), 1); out[f"g{d}"] = len(w)
+    return out
+
+
+def _hit_log(pid: int, season: int, n: int, asof: str | None) -> dict:
     j = _get(f"{API}/people/{int(pid)}/stats", stats="gameLog", group="hitting", season=season)
-    sp = (j.get("stats") or [{}])[0].get("splits", [])
-    sp = sorted(sp, key=lambda x: str(x.get("date") or ""))[-n:]
+    sp = sorted((j.get("stats") or [{}])[0].get("splits", []), key=lambda x: str(x.get("date") or ""))
     out = []
     for x in sp:
         st = x["stat"]; h = st.get("hits", 0); d = st.get("doubles", 0); t = st.get("triples", 0); hr = st.get("homeRuns", 0)
@@ -481,15 +495,15 @@ def _hit_log(pid: int, season: int, n: int) -> dict:
         out.append(dict(date=str(x.get("date"))[:10], opp=((x.get("opponent") or {}).get("abbreviation") or (x.get("opponent") or {}).get("name")),
                         home=x.get("isHome"), PA=st.get("plateAppearances", 0), AB=st.get("atBats", 0), H=h, HR=hr, R=st.get("runs", 0),
                         RBI=st.get("rbi", 0), BB=st.get("baseOnBalls", 0), K=st.get("strikeOuts", 0), SB=st.get("stolenBases", 0), pts=round(pts, 1)))
-    return dict(mlbam_id=int(pid), recent=out)
+    return dict(mlbam_id=int(pid), recent=out[-n:], summary=rolling(out, asof))
 
 
-def hitter_logs(ids, season=2026, n=12, workers: int = 12) -> dict:
-    """Last `n` games per hitter, scored in the league's points. What the page shows when you open a player."""
+def hitter_logs(ids, season=2026, n=10, asof: str | None = None, workers: int = 12) -> dict:
+    """Last `n` games per hitter plus his league-points totals — what the page leads with when you open a player."""
     ids = [int(i) for i in ids]
     with ThreadPoolExecutor(workers) as ex:
-        rows = list(ex.map(lambda p: _hit_log(p, season, n), ids))
-    return {str(r["mlbam_id"]): r["recent"] for r in rows if r["recent"]}
+        rows = list(ex.map(lambda p: _hit_log(p, season, n, asof), ids))
+    return {str(r["mlbam_id"]): dict(r=r["recent"], s=r["summary"]) for r in rows if r["recent"]}
 
 
 def bullpen_moved(logs: pd.DataFrame, asof: str | None = None, gap_days: int = 12) -> set:

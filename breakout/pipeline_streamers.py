@@ -155,8 +155,9 @@ def main(argv=None):
     two = ps[ps["two_start"]].drop_duplicates("mlbam_id").sort_values("week_pts", ascending=False)
     two.to_csv(out / "two_start_pitchers.csv", index=False)
     print("  game logs")
-    hl = ST.hitter_logs(sorted({int(x) for x in hd["mlbam_id"].unique()}))
-    pl_logs = {str(int(r.mlbam_id)): r.recent for r in logs.itertuples() if isinstance(getattr(r, "recent", None), list) and r.recent}
+    hl = ST.hitter_logs(sorted({int(x) for x in hd["mlbam_id"].unique()}), asof=a.asof)
+    pl_logs = {str(int(r.mlbam_id)): dict(r=r.recent, s=(r.summary if isinstance(getattr(r, "summary", None), dict) else {}))
+               for r in logs.itertuples() if isinstance(getattr(r, "recent", None), list) and r.recent}
     print(f"  {len(hl)} hitter logs, {len(pl_logs)} pitcher logs")
     payload = dict(logs=dict(h=hl, p=pl_logs), meta=dict(pitcherlist_asof=pl_as, cbs_asof=cbs_as, asof=asof.isoformat(), start=start, end=end, generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), lg_woba=ST.LG_WOBA, lg_k=ST.LG_K,
                              listed=int((sch.drop_duplicates("gamePk").sp_source == "listed").sum()), games=int(sch.gamePk.nunique())),
