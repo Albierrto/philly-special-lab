@@ -604,8 +604,8 @@ rotations entirely — a posted probable still overrides it.</div></details>
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T0402"></script>
-<script src="data/streamers.js?v=20260914T0402"></script>
+<script src="data/lab.js?v=20260914T0425"></script>
+<script src="data/streamers.js?v=20260914T0425"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1080,9 +1080,17 @@ function whyListP(r){ const out = []; const add = (v, txt) => { if(v==null) retu
 function whyChipsP(r, n=3){ return `<span class="why" style="display:inline-flex;flex-wrap:wrap;gap:4px">${whyListP(r).slice(0,n).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')}</span>`; }
 function spTag(name, src){ return name ? `${esc(name)}${src==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}` : '<span class="hint">TBD</span>'; }
 function wxCell(r){ if(r.temp_f==null) return r.roof && r.roof!=='Open' ? '<span class="hint">roof</span>' : ''; const w = r.wind_out==null?'':(r.wind_out>=0?'out ':'in ')+Math.abs(r.wind_out).toFixed(0); return `${Math.round(r.temp_f)}° · ${w}${r.precip_prob>=50?` · <span class="pill w">${Math.round(r.precip_prob)}% rain</span>`:''}`; }
+// the two hand-written lists: say how old each one is, because they are the only thing here that is not refreshed by an API
+function refNote(m){
+  const bits = [];
+  if (m.pitcherlist_asof) bits.push(`PitcherList tiers from ${dayLabel(m.pitcherlist_asof)}`);
+  if (m.cbs_asof) bits.push(`CBS lists from ${dayLabel(m.cbs_asof)}`);
+  if (!bits.length) return ' <span class="pill w" title="the weekly analyst lists are missing or more than nine days old, so the tier and sleeper columns are blank">no analyst lists this week</span>';
+  return ` <span class="hint">${bits.join(' · ')}.</span>`;
+}
 function renderStreamers(){
   if(!SD){ $('#s-lede').textContent = 'No streamer data in this build.'; return; }
-  const m = SD.meta; $('#s-lede').innerHTML = `<b>${dayLabel(m.start)} – ${dayLabel(m.end)}</b>. Who to pick up and who to start, game by game: every hitter's and pitcher's expected points for each matchup, from the posted or projected starter, the park, the weather at first pitch and lefty/righty splits. ${m.listed} of ${m.games} games have a posted probable (the rest are projected from each rotation). Free-agent status is the Fantrax table as of ${esc(m.asof)}; injured, minor-league and off-40-man players are hidden.`;
+  const m = SD.meta; $('#s-lede').innerHTML = `<b>${dayLabel(m.start)} – ${dayLabel(m.end)}</b>. Who to pick up and who to start, game by game: every hitter's and pitcher's expected points for each matchup, from the posted or projected starter, the park, the weather at first pitch and lefty/righty splits. ${m.listed} of ${m.games} games have a posted probable (the rest are projected from each rotation). Free-agent status is the Fantrax table as of ${esc(m.asof)}; injured, minor-league and off-40-man players are hidden.${refNote(m)}`;
   const days = [...new Set(SHD.map(r=>r.date))].sort();
   if(!$('#s-day').options.length){ $('#s-day').innerHTML = '<option value="week">whole week</option>' + days.map(d=>`<option value="${d}">${dayLabel(d)}</option>`).join(''); $('#s-day').addEventListener('change', e=>{ sstate.day=e.target.value; renderStreamers(); });
     $('#s-avail').addEventListener('change', e=>{ sstate.avail=e.target.value; renderStreamers(); }); $('#s-listed').addEventListener('change', e=>{ sstate.listed=e.target.checked; renderStreamers(); }); $('#s-more').addEventListener('change', e=>{ sstate.more=e.target.checked; renderStreamers(); });
@@ -1577,6 +1585,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T0402"></script>
+<script src="live.js?v=20260914T0425"></script>
 </body>
 </html>
