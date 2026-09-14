@@ -549,7 +549,17 @@ def hitter_matchups(games: pd.DataFrame, hitters: pd.DataFrame, hsplits: pd.Data
 #    against 0.15 when relief outings are mixed in, because a reliever's max-effort inning is not his starting velocity;
 #  - starts-only SKILL levels (CSW, K-BB, velo over his starts) predict worse than season Pitching+ across every
 #    appearance (r 0.303 vs 0.364), so the level term stays season-long and only the trend is filtered to starts.
-BASE = dict(b0=-14.53, pplus=0.1701, ip_mix=1.2689, dcsw=0.0659, dvelo=0.8417)
+#
+# Which of the metrics analysts actually name predict THIS league's points, one at a time against the next start:
+#   Pitching+ .332 | xwOBA against .327 | Stuff+ .320 | strikeouts per start .291 | his own points per start .294
+#   K-BB% .260 | K% .247 | IP per start .229 | SwStr% .227 | CSW% .212 | whiff% .205 | ERA .197 | BB% .105
+# Two league-specific readings of that list: strikeouts per START beat K% (.291 vs .247) because this league pays a
+# point per strikeout rather than rewarding a rate, and BB% barely registers because there is no walk penalty at all —
+# walks only cost through baserunners and shortened outings. K-BB% is the analysts' simple workhorse and it does beat
+# K% here, but a blend with contact quality beats both: adding xwOBA to the ridge is what earned its place, while
+# strikeouts per start, quality-start rate and K-BB% all took a zero weight once Pitching+ and innings were in.
+BASE = dict(b0=0.27, pplus=0.1096, ip_mix=1.2026, dcsw=0.0390, dvelo=0.8078, xwoba=-26.698)
+LG_XWOBA_AGAINST = 0.312
 SKILL_RATE = (0.1936, -9.980)   # Pitching+ -> points per start, the anchor a thin sample is shrunk toward
 LG_IP_GS = 5.2
 
@@ -564,7 +574,9 @@ def _base_rate(p: pd.DataFrame) -> pd.DataFrame:
     pplus = p["pitching_plus"]
     for c in ("dvelo", "dcsw", "dwhiff"):
         if c not in p.columns: p[c] = np.nan
-    base = BASE["b0"] + BASE["pplus"] * pplus + BASE["ip_mix"] * p["ip_mix"] + BASE["dcsw"] * p["dcsw"].fillna(0) + BASE["dvelo"] * p["dvelo"].fillna(0)
+    xw = p["xwoba"].fillna(LG_XWOBA_AGAINST) if "xwoba" in p.columns else pd.Series(LG_XWOBA_AGAINST, index=p.index)
+    base = (BASE["b0"] + BASE["pplus"] * pplus + BASE["ip_mix"] * p["ip_mix"] + BASE["dcsw"] * p["dcsw"].fillna(0)
+            + BASE["dvelo"] * p["dvelo"].fillna(0) + BASE["xwoba"] * xw)
     # no Savant line (a rookie under the 50-IP cutoff): his own rate, shrunk toward whatever skills we do have
     anchor = np.where(pplus.notna(), SKILL_RATE[0] * pplus + SKILL_RATE[1], 7.0)
     shrunk = (this_rate.fillna(7.0) * n + anchor * 8) / (n + 8)
@@ -574,7 +586,9 @@ def _base_rate(p: pd.DataFrame) -> pd.DataFrame:
 
 def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.DataFrame, tsplits: pd.DataFrame, pf: pd.DataFrame, wx: pd.DataFrame, ven: pd.DataFrame,
                    weights: dict | None = None) -> pd.DataFrame:
-    W = dict(opp_per_woba=2.5, park_power=0.5, wx_power=0.5, home=1.03, k_weight=1.0)
+    # matchup strengths checked against 3,072 real 2026 starts (below): the opponent's bat plays bigger than 2.5 implied
+    # and the strikeout bonus slightly smaller. Home stays at 1.03 because the park factor already carries most of it.
+    W = dict(opp_per_woba=3.5, park_power=0.5, wx_power=0.5, home=1.03, k_weight=0.85)
     if weights: W.update(weights)
     p = pitchers.merge(psplits, on="mlbam_id", how="left")
     p = _base_rate(p)
@@ -614,6 +628,8 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
                          csw_st=(round(float(sp["csw_st"]), 1) if pd.notna(sp.get("csw_st")) else np.nan), whiff_st=(round(float(sp["whiff_st"]), 1) if pd.notna(sp.get("whiff_st")) else np.nan),
                          new_pitch=(sp.get("new_pitch") if isinstance(sp.get("new_pitch"), str) else None),
                          pitching_plus=sp.get("pitching_plus"), stuff_plus=sp.get("stuff_plus"), xera=sp.get("xera"), k_percent=sp.get("k_percent"),
+                         xwoba_against=(round(float(sp["xwoba"]), 3) if pd.notna(sp.get("xwoba")) else np.nan),
+                         k_start=(round(float(sp["k_start"]), 1) if pd.notna(sp.get("k_start")) else np.nan),
                          woba_30=sp.get("woba_30"), gs_30=sp.get("gs_30"), role=sp.get("role"), ip_gs=(round(float(sp["ip_start"]), 1) if pd.notna(sp.get("ip_start")) else np.nan), n_starts=(int(sp["n_starts"]) if pd.notna(sp.get("n_starts")) else 0), last5_pts=(round(float(sp["last5_pts"]), 1) if pd.notna(sp.get("last5_pts")) else np.nan), f_opp=round(oppf, 3), f_park=round(parkf, 3), f_wx=round(wxf, 3), f_home=homef, k_bonus=round(kbonus, 2), exp_pts=round(exp, 2)))
     out = pd.DataFrame(rows)
     if len(out):
