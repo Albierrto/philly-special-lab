@@ -9,6 +9,7 @@ from . import config as C
 from . import streamers as ST
 from .names import key
 from . import ownership as OW
+from . import reference as REF
 
 
 def main(argv=None):
@@ -119,15 +120,23 @@ def main(argv=None):
     print("[5/7] matchups")
     hd = ST.hitter_matchups(sch, hs, hsp, pp, psp, pf, wx, ven)
     ps = ST.pitcher_starts(sch, pp, psp, tsp, pf, wx, ven)
-    # reference lists (PitcherList 9/8 tiers, CBS Week 26 lists) by normalized name
-    ref = C.DATA / "reference"
-    pl = pd.read_csv(ref / "pitcherlist_tiers_2026-09-08.csv"); pl["nkey"] = pl["pitcher"].apply(key)
-    cbs = pd.read_csv(ref / "cbs_week26_2026-09-14.csv"); cbs["nkey"] = cbs["player"].apply(key)
-    ps["nkey"] = ps["name"].apply(key); ps = ps.merge(pl[["nkey", "tier", "note"]].rename(columns={"tier": "pl_tier", "note": "pl_note"}).drop_duplicates("nkey"), on="nkey", how="left")
-    cbs_p = cbs[cbs["list"] != "sleeper_hitter"].groupby("nkey").apply(lambda g: "; ".join(f"{'sleeper #' if r['list']=='sleeper_pitcher' else '2-start: '}{r['tier_or_rank']}" for _, r in g.iterrows())).rename("cbs")
-    ps = ps.merge(cbs_p, on="nkey", how="left").drop(columns=["nkey"])
-    hd["nkey"] = hd["name"].apply(key); cbs_h = cbs[cbs["list"] == "sleeper_hitter"].set_index("nkey")["tier_or_rank"].astype(str).radd("sleeper #").rename("cbs")
-    hd = hd.merge(cbs_h, on="nkey", how="left").drop(columns=["nkey"])
+    # reference lists: whatever the newest file of each kind is, so a refreshed list drops in without a code change
+    pl, pl_as = REF.newest("pitcherlist_tiers", ["pitcher", "team", "tier", "note"])
+    cbs, cbs_as = REF.newest("cbs_week", ["player", "list", "tier_or_rank", "note"])
+    pl["nkey"] = pl["pitcher"].apply(key) if len(pl) else pd.Series(dtype=object)
+    cbs["nkey"] = cbs["player"].apply(key) if len(cbs) else pd.Series(dtype=object)
+    print(f"  reference lists: PitcherList {pl_as or 'missing'} ({len(pl)} arms), CBS {cbs_as or 'missing'} ({len(cbs)} players)")
+    ps["nkey"] = ps["name"].apply(key)
+    ps = ps.merge(pl[["nkey", "tier", "note"]].rename(columns={"tier": "pl_tier", "note": "pl_note"}).drop_duplicates("nkey"), on="nkey", how="left") if len(pl) else ps.assign(pl_tier=None, pl_note=None)
+    hd["nkey"] = hd["name"].apply(key)
+    if len(cbs):
+        cbs_p = cbs[cbs["list"] != "sleeper_hitter"].groupby("nkey").apply(lambda g: "; ".join(f"{'sleeper #' if r['list']=='sleeper_pitcher' else '2-start: '}{r['tier_or_rank']}" for _, r in g.iterrows())).rename("cbs")
+        ps = ps.merge(cbs_p, on="nkey", how="left")
+        cbs_h = cbs[cbs["list"] == "sleeper_hitter"].set_index("nkey")["tier_or_rank"].astype(str).radd("sleeper #").rename("cbs")
+        hd = hd.merge(cbs_h, on="nkey", how="left")
+    else:
+        ps["cbs"] = None; hd["cbs"] = None
+    ps = ps.drop(columns=["nkey"]); hd = hd.drop(columns=["nkey"])
     hd["active"] = hd["mlbam_id"].isin(active); hd["status"] = hd["mlbam_id"].map(status).fillna("not on 40-man")
     ps["active"] = ps["mlbam_id"].isin(active); ps["status"] = ps["mlbam_id"].map(status).fillna("not on 40-man")
     print(f"  inactive hitters with games: {hd[~hd.active].mlbam_id.nunique()}; inactive projected starters: {ps[~ps.active].mlbam_id.nunique()}")
@@ -144,9 +153,9 @@ def main(argv=None):
     two.to_csv(out / "two_start_pitchers.csv", index=False)
     print("  game logs")
     hl = ST.hitter_logs(sorted({int(x) for x in hd["mlbam_id"].unique()}))
-    pl = {str(int(r.mlbam_id)): r.recent for r in logs.itertuples() if isinstance(getattr(r, "recent", None), list) and r.recent}
-    print(f"  {len(hl)} hitter logs, {len(pl)} pitcher logs")
-    payload = dict(logs=dict(h=hl, p=pl), meta=dict(asof=asof.isoformat(), start=start, end=end, generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), lg_woba=ST.LG_WOBA, lg_k=ST.LG_K,
+    pl_logs = {str(int(r.mlbam_id)): r.recent for r in logs.itertuples() if isinstance(getattr(r, "recent", None), list) and r.recent}
+    print(f"  {len(hl)} hitter logs, {len(pl_logs)} pitcher logs")
+    payload = dict(logs=dict(h=hl, p=pl_logs), meta=dict(pitcherlist_asof=pl_as, cbs_asof=cbs_as, asof=asof.isoformat(), start=start, end=end, generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"), lg_woba=ST.LG_WOBA, lg_k=ST.LG_K,
                              listed=int((sch.drop_duplicates("gamePk").sp_source == "listed").sum()), games=int(sch.gamePk.nunique())),
                    games=json.loads(sch.drop_duplicates(["gamePk", "team_id"]).merge(wx, on="gamePk", how="left").to_json(orient="records")),
                    hitter_days=json.loads(hd.to_json(orient="records")), hitter_week=json.loads(hw.to_json(orient="records")),
