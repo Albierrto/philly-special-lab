@@ -9,8 +9,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823575,2026-09-14,2026-09-14T23:10:00Z,Pre-Game,3289,Citi Field,night,N,110,Baltimore Orioles,False,121,New York Mets,687064.0,Brandon Young,listed,804636.0,Jonah Tong,listed
 823656,2026-09-14,2026-09-14T23:40:00Z,Scheduled,3312,Target Field,night,N,142,Minnesota Twins,True,147,New York Yankees,665152.0,Dean Kremer,listed,701542.0,Will Warren,listed
 823656,2026-09-14,2026-09-14T23:40:00Z,Scheduled,3312,Target Field,night,N,147,New York Yankees,False,142,Minnesota Twins,701542.0,Will Warren,listed,665152.0,Dean Kremer,listed
-824629,2026-09-14,2026-09-14T23:40:00Z,Scheduled,17,Wrigley Field,night,N,112,Chicago Cubs,True,144,Atlanta Braves,656849.0,David Peterson,listed,625643.0,Reynaldo López,listed
-824629,2026-09-14,2026-09-14T23:40:00Z,Scheduled,17,Wrigley Field,night,N,144,Atlanta Braves,False,112,Chicago Cubs,625643.0,Reynaldo López,listed,656849.0,David Peterson,listed
+824629,2026-09-14,2026-09-14T23:40:00Z,Pre-Game,17,Wrigley Field,night,N,112,Chicago Cubs,True,144,Atlanta Braves,656849.0,David Peterson,listed,625643.0,Reynaldo López,listed
+824629,2026-09-14,2026-09-14T23:40:00Z,Pre-Game,17,Wrigley Field,night,N,144,Atlanta Braves,False,112,Chicago Cubs,625643.0,Reynaldo López,listed,656849.0,David Peterson,listed
 823006,2026-09-14,2026-09-14T23:45:00Z,Pre-Game,2889,Busch Stadium,night,N,138,St. Louis Cardinals,True,137,San Francisco Giants,687273.0,Quinn Mathews,listed,694738.0,Landen Roupp,listed
 823006,2026-09-14,2026-09-14T23:45:00Z,Pre-Game,2889,Busch Stadium,night,N,137,San Francisco Giants,False,138,St. Louis Cardinals,694738.0,Landen Roupp,listed,687273.0,Quinn Mathews,listed
 824308,2026-09-14,2026-09-15T00:40:00Z,Pre-Game,19,Coors Field,night,N,115,Colorado Rockies,True,135,San Diego Padres,608372.0,Tomoyuki Sugano,listed,663554.0,Casey Mize,listed

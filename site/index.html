@@ -126,6 +126,7 @@ tbody tr:hover td{background-color:var(--panel2)}
 tbody tr:hover td.sticky{background:var(--panel2)}
 tr.mine td.sticky{background:var(--mine)} tr.mine td.sticky .sub{color:var(--mine-ink)}
 td.name{font-weight:600;cursor:pointer}
+@media (max-width:900px){ th.opt,td.opt{display:none} }   /* columns worth dropping before a phone has to scroll sideways */
 td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font-family:var(--font-b)}
 .pill{display:inline-block;padding:0 7px;border-radius:4px;font-size:12px;font-weight:600;font-family:var(--font-b);line-height:20px;white-space:nowrap}
 .pill.g{background:rgba(76,194,122,.18);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.18);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.18);color:var(--cold)} .pill.w{background:rgba(232,176,75,.18);color:var(--warn)} .pill.n{background:var(--panel3);color:var(--ink2)} td.name.noclick,.row.noclick{cursor:default;opacity:.75}
@@ -364,11 +365,11 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 <section role="tabpanel" id="tab-breakouts">
   <h2>Breakouts</h2>
   <p class="lede">A breakout is <b>new territory for that hitter</b>: a career-best points-per-PA rate, at least 0.08 above his previous best, over 350+ plate appearances and a top-90 finish. Two different questions live on this page, and mixing them was what made it useless. <b>Who already did it</b> is history — those men are not candidates any more, their jump has happened and the level they are at now is the level to judge them on. <b>Who might do it next</b> is the forecast, and it only applies to hitters who have not already been a top-90 bat and are young enough that a first leap is still ahead of them. An established star gets no percentage here, because the question does not apply to him.</p>
-  <h3 id="bo-done-h"></h3>
-  <p class="hint" id="bo-done-note"></p>
+  <div class="pagehead"><div><h3 id="bo-done-h" style="margin:0 0 2px"></h3><p class="hint" id="bo-done-note" style="max-width:88ch"></p></div><div class="seg" role="group" id="b-view"><button aria-pressed="true" data-bview="simple">Simple</button><button aria-pressed="false" data-bview="all">All stats</button></div></div>
   <div class="tblwrap" style="max-height:44vh"><table id="t-broke"></table></div>
   <h3 style="margin-top:22px">Breakout candidates for <span id="bo-year"></span></h3>
   <div class="filters">
+    <input type="search" id="b-q" placeholder="Search name" aria-label="Search name">
     <label>Pool <span class="seg" role="group"><button aria-pressed="true" data-bpool="all">All</button><button aria-pressed="false" data-bpool="ft">400+ PA</button><button aria-pressed="false" data-bpool="pt">&lt;400 PA</button></span></label>
     <label>Availability <select id="b-avail"><option value="">everyone</option><option value="FA">free agents in my league</option><option value="notkept">not a likely keeper</option><option value="mine">my roster</option></select></label>
     <label>Max age <input type="number" id="b-agemax" value="28" min="18" max="45"></label>
@@ -649,8 +650,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T1931"></script>
-<script src="data/streamers.js?v=20260914T1931"></script>
+<script src="data/lab.js?v=20260914T1947"></script>
+<script src="data/streamers.js?v=20260914T1947"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -848,13 +849,13 @@ function table(id, cols, rows, opts={}){
     let r = rows.slice();
     if (sortKey) r.sort((a,b)=>{ const x=a[sortKey], y=b[sortKey]; if(x==null||x==='') return 1; if(y==null||y==='') return -1; return (typeof x==='number'? x-y : String(x).localeCompare(String(y)))*dir; });
     if (opts.limit) r = r.slice(0, opts.limit);
-    let h = '<thead><tr>' + cols.map(c=>`<th class="${c.left||c.t==='name'||c.t==='txt'?'l':''} ${c.sticky?'sticky':''} ${(c.title||COL_TERM[c.k])?'hasterm':''}" data-k="${c.k}" ${sortKey===c.k?`aria-sort="${dir<0?'descending':'ascending'}"`:''} title="${esc(colTitle(c))}">${c.l}</th>`).join('') + '</tr></thead><tbody>';
+    let h = '<thead><tr>' + cols.map(c=>`<th class="${c.left||c.t==='name'||c.t==='txt'?'l':''} ${c.sticky?'sticky':''} ${c.opt?'opt':''} ${(c.title||COL_TERM[c.k])?'hasterm':''}" data-k="${c.k}" ${sortKey===c.k?`aria-sort="${dir<0?'descending':'ascending'}"`:''} title="${esc(colTitle(c))}">${c.l}</th>`).join('') + '</tr></thead><tbody>';
     for (const x of r){
       h += `<tr class="${opts.rowClass?opts.rowClass(x):''}">` + cols.map(c=>{
         if (c.t==='name') return `<td class="l name sticky" data-id="${x.mlbam_id||''}">${esc(x[c.k])}${x.kept_2026_as&&MY===HOME_ABBR?` <span class="pill ${x.kept_2026_as==='pitcher'?'b':'w'}" title="your real 2026 keeper (${x.kept_2026_as} slot)">K'26 ${x.kept_2026_as==='pitcher'?'P':'H'}</span>`:''}<span class="sub">${esc(x.elig||x.pos||'')}${x.team_abbr?' · '+esc(x.team_abbr):''}</span></td>`;
         if (c.render) return `<td class="${c.left?'l':''}">${c.render(x[c.k], x)}</td>`;
         const st = opts.color ? cellStyle(c, x.season, x[c.k], opts.pct||PCT) : '';
-        return `<td class="${c.t==='txt'?'l':''}" style="${st}">${fmt(c, x[c.k])}</td>`;
+        return `<td class="${c.t==='txt'?'l':''} ${c.opt?'opt':''}" style="${st}">${fmt(c, x[c.k])}</td>`;
       }).join('') + '</tr>';
     }
     el.innerHTML = h + '</tbody>';
@@ -1063,6 +1064,13 @@ function closeCard(){ $('#overlay').classList.remove('open'); $('#card').classLi
 // ---------- breakouts tab
 let bpool='all', tBreak;
 let tBroke;
+// Twenty-two columns of Statcast on a 169-row table is a wall, not a tool. Simple shows the eight that answer
+// "should I care about him", All stats is one click away, and the name column stays pinned while you scroll either way.
+let bview = 'simple';
+const BO_SIMPLE_DONE = ['name','age','owner','PA','pts_c','rank_c','prior_best_pa','jump_vs_prior','proj_pts'];
+const BO_SIMPLE_CAND = ['name','age','owner','PA','pts_c','BI','proj_pts','proj_rank','KSV'];
+const BO_OPT = ['PA','proj_rank','rank_c'];   // dropped under 900px so the phone view is seven columns, not nine
+const bcols = (cols, keep) => bview==='all' ? cols : cols.filter(c=>keep.includes(c.k)).map(c=>BO_OPT.includes(c.k)?{...c,opt:true}:c);
 function renderBreak(){
   const cur = ROWS.filter(r=>r.season===CUR);
   $('#bo-year').textContent = CUR+1;
@@ -1076,11 +1084,12 @@ function renderBreak(){
     {k:'jump_vs_prior',l:'Jump',f:'3',dir:1,title:'how far this season beat that previous best'},
     {k:'luck_c',l:'Luck',f:'0',dir:-1,title:'actual minus deserved points — a big positive means the jump is partly batted-ball luck'},
     {k:'proj_pts',l:`${CUR+1} proj`,f:'0',dir:1}, CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.k_percent];
-  if(!tBroke) tBroke = table('t-broke', dcols, done, {sort:'pts_c', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBroke.setCols(dcols); tBroke.setRows(done); }
+  const dshow = bcols(dcols, BO_SIMPLE_DONE);
+  if(!tBroke) tBroke = table('t-broke', dshow, done, {sort:'pts_c', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBroke.setCols(dshow); tBroke.setRows(done); }
 
   // 2. who might do it next — the only group a percentage applies to
-  const avail = $('#b-avail').value, agemax = +$('#b-agemax').value||99, minbi = +$('#b-minbi').value||0;
-  let rows = cur.filter(r=>boShow(r) && r.BI!=null && r.age<=agemax && r.BI>=minbi);
+  const avail = $('#b-avail').value, agemax = +$('#b-agemax').value||99, minbi = +$('#b-minbi').value||0, bq = $('#b-q').value.trim().toLowerCase();
+  let rows = cur.filter(r=>boShow(r) && r.BI!=null && r.age<=agemax && r.BI>=minbi && (!bq || r.name.toLowerCase().includes(bq)));
   if (bpool==='ft') rows = rows.filter(r=>r.PA>=400); if (bpool==='pt') rows = rows.filter(r=>r.PA<400);
   if (avail==='FA') rows = rows.filter(r=>r.owner==='FA'||r.owner==='W (Sun)'); if (avail==='notkept') rows = rows.filter(r=>!r.likely_kept); if (avail==='mine') rows = rows.filter(r=>r.owner===MY);
   const est = cur.filter(r=>boStatus(r)==='established').length;
@@ -1091,10 +1100,12 @@ function renderBreak(){
     {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1},
     {k:'proj_pts',l:`${CUR+1} proj`,f:'0',dir:1}, {k:'proj_rank',l:`${CUR+1} rank`,f:'int',dir:-1}, {k:'proj_pts_600',l:`${CUR+1} / 600`,f:'0',dir:1},
     CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr];
-  if (!tBreak) tBreak = table('t-break', cols, rows, {sort:'BI', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBreak.setCols(cols); tBreak.setRows(rows); }
+  const cshow = bcols(cols, BO_SIMPLE_CAND);
+  if (!tBreak) tBreak = table('t-break', cshow, rows, {sort:'BI', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBreak.setCols(cshow); tBreak.setRows(rows); }
 }
 $$('[data-bpool]').forEach(b=>b.addEventListener('click',()=>{ bpool=b.dataset.bpool; $$('[data-bpool]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBreak(); }));
-['#b-avail','#b-agemax','#b-minbi'].forEach(s=>$(s).addEventListener('input', renderBreak));
+['#b-avail','#b-agemax','#b-minbi','#b-q'].forEach(s=>$(s).addEventListener('input', renderBreak));
+$$('[data-bview]').forEach(b=>b.addEventListener('click',()=>{ bview=b.dataset.bview; $$('[data-bview]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBreak(); }));
 
 // ---------- pitchers tab
 const pstate = { view:'explore', season: CUR, mings: 10, agemin: 18, agemax: 45, owner: '', q: '', rf: [] };
@@ -1920,6 +1931,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T1931"></script>
+<script src="live.js?v=20260914T1947"></script>
 </body>
 </html>
