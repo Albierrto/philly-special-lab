@@ -6,10 +6,10 @@ Live pieces (posted probables, lineups, scores, first-pitch weather) are fetched
 Open-Meteo, which both allow cross-origin requests; the models and ownership tables come from the daily build.
 """
 from __future__ import annotations
-import argparse, json, shutil, sys
+import argparse, json, shutil, sys, time
 from pathlib import Path
 from . import config as C
-from . import picks
+from . import picks, ownership
 from .assemble import HD_COLS, PS_COLS, G_COLS, columnar
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,6 +125,9 @@ Breakout Index, keeper values, prospect cards) — do that after the season or w
 Fantrax rosters (who owns whom, IR/minors status), standings and next year's draft order are pulled every morning through
 Fantrax's official read-only API (`python -m breakout.fantrax_api`, no login needed because the league allows API reads).
 Nothing in this repo can touch a roster, make a claim, propose a trade or post in the league.
+Ownership everywhere on the site (Today, My team, keepers, trades, streamers) comes from that morning's sync
+(`breakout/ownership.py` stamps it on top of the projection tables at build time), so a drop or a pickup shows up the
+next morning, or right away if you run the **refresh** workflow by hand. The My team page shows the sync time.
 
 ## Run it locally
 
@@ -156,16 +159,16 @@ output/*/philly_special*.html
 def build(default_team: str):
     site = ROOT / "site"; (site / "data").mkdir(parents=True, exist_ok=True)
     tpl = (C.OUT / "v4" / "explorer_template.html").read_text(encoding="utf-8")
-    data = picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text()))
+    data = ownership.apply(picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text())))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
     data["meta"]["default_team"] = default_team
-    s = json.loads((C.OUT / "streamers" / "streamers.json").read_text())
+    s = ownership.stamp_streamers(json.loads((C.OUT / "streamers" / "streamers.json").read_text()))
     stream = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
                   park_factors=s["park_factors"], venues=s.get("venues", []))
     (site / "data" / "lab.js").write_text("window.__LAB__=" + json.dumps(data, separators=(",", ":")) + ";", encoding="utf-8")
     (site / "data" / "streamers.js").write_text("window.__STREAM__=" + json.dumps(stream, separators=(",", ":")) + ";", encoding="utf-8")
     # site index: data comes from the two script files; live layer after boot
-    ver = str(s["meta"].get("generated", "")).replace(" ", "T").replace(":", "")  # cache-buster: browsers fetch fresh data after every build
+    ver = time.strftime("%Y%m%dT%H%M")  # cache-buster: browsers fetch fresh data after every build
     html = tpl.replace('<script id="data" type="application/json">__DATA__</script>', f'<script src="data/lab.js?v={ver}"></script>\n<script src="data/streamers.js?v={ver}"></script>')
     html = html.replace("const D = JSON.parse(document.getElementById('data').textContent);", "const D = window.__LAB__; D.streamers = window.__STREAM__;")
     html = html.replace("<title>Philly Special Hitter Lab</title>", "<title>Philly Special Lab</title>")

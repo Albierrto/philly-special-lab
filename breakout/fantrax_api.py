@@ -116,7 +116,9 @@ def sync(season: int | None = None) -> dict:
     cfg["fantasy_team_abbrevs"] = names; cfg[f"standings_{season}"] = st[["rank", "team", "abbrev", "W", "L", "points_for"]].to_dict(orient="records")
     cfg[f"draft_order_{season + 1}"] = slots["team"].tolist(); cfg["draft_order_rule"] = DRAFT_RULE
     cfg_p.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
-    return dict(teams=len(tm), rostered=len(ro), standings=len(st), synced=time.strftime("%Y-%m-%d %H:%M"))
+    res = dict(teams=len(tm), rostered=len(ro), standings=len(st), synced_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), season=season)
+    (out / "sync_meta.json").write_text(json.dumps(res, indent=2))
+    return res
 
 
 def main(argv=None):

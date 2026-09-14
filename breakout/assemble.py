@@ -3,7 +3,7 @@ from __future__ import annotations
 import json, sys
 import pandas as pd
 from . import config as C
-from . import picks
+from . import picks, ownership
 
 HD_COLS = ["mlbam_id", "name", "team", "bats", "elig", "owner", "date", "gamePk", "home", "opp", "opp_sp", "opp_sp_throws", "opp_sp_source", "sp_xwoba", "sp_k", "sp_pitching_plus",
            "park_runs", "park_hr", "temp_f", "wind_mph", "wind_out", "precip_prob", "roof", "local_start", "base_rate", "pa_g", "f_sp", "f_park", "f_wx", "f_platoon", "f_form", "mult", "exp_pts", "woba_30", "pa_30", "active", "status", "cbs"]
@@ -21,10 +21,10 @@ def columnar(rows, cols):
 
 
 def main(argv=None):
-    tpl = (C.OUT / "v4" / "explorer_template.html") if (C.OUT / "v4" / "explorer_template.html").exists() else (C.OUT / "v3" / "explorer_template.html"); data = picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text()))
+    tpl = (C.OUT / "v4" / "explorer_template.html") if (C.OUT / "v4" / "explorer_template.html").exists() else (C.OUT / "v3" / "explorer_template.html"); data = ownership.apply(picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text())))
     sp = C.OUT / "streamers" / "streamers.json"
     if sp.exists():
-        s = json.loads(sp.read_text())
+        s = ownership.stamp_streamers(json.loads(sp.read_text()))
         data["streamers"] = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
                                  park_factors=s["park_factors"], venues=s.get("venues", []))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})

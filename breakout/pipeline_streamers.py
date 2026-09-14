@@ -8,7 +8,7 @@ import pandas as pd
 from . import config as C
 from . import streamers as ST
 from .names import key
-from .pipeline3 import attach_owner
+from . import ownership as OW
 
 
 def main(argv=None):
@@ -44,9 +44,9 @@ def main(argv=None):
     # players below the projection cutoff (PA<100) still matter as streamers: pull from the full seasons file
     full = pd.read_csv(C.OUT / "v2" / "hitter_seasons_full.csv"); full = full[(full["season"] == 2026) & (full["PA"] >= a.min_pa)]
     extra = full[~full["mlbam_id"].isin(hs["mlbam_id"])][["mlbam_id", "name", "bats", "team", "team_abbr", "PA", "G", "pts_pa", "xLP_pa", "elig", "sprint_speed", "xwoba", "k_percent"]].copy()
-    owners = pd.read_csv(C.DATA / "fantrax" / "hitters_2026.csv")[["player", "owner", "mlb"]]; owners["nkey"] = owners["player"].apply(key)
-    extra["nkey"] = extra["name"].apply(key); extra = attach_owner(extra, owners).drop(columns=["nkey", "team_abbr"]); hs = pd.concat([hs, extra], ignore_index=True)
-    hs["owner"] = hs["owner"].fillna("FA")
+    extra = extra.drop(columns=["team_abbr"]); hs = pd.concat([hs, extra], ignore_index=True)
+    # ownership always comes from this morning's Fantrax sync, never from the (older) projection table
+    ow = OW.owners(); hs = OW.stamp(hs, "name", ow=ow)
     hs = hs.merge(tm[["team_id", "name"]].rename(columns={"name": "team"}), on="team", how="left")
     # traded players carry team = "multi": resolve the current club from the API
     multi = hs[hs["team_id"].isna()]["mlbam_id"].tolist()
@@ -62,16 +62,16 @@ def main(argv=None):
     ppall = pd.read_csv(C.OUT / "v3" / "pitcher_seasons_full.csv"); pp = ppall[ppall["season"] == 2026].copy()
     prev = ppall[ppall["season"] == 2025][["mlbam_id", "pts_gs", "GS"]].rename(columns={"pts_gs": "pts_gs_prev", "GS": "GS_prev"})
     pp = pp.merge(prev, on="mlbam_id", how="left")
-    pj = pd.read_csv(C.OUT / "v3" / "pitcher_projections_2027.csv")[["mlbam_id", "proj_pts_gs_raw", "owner"]]
+    pj = pd.read_csv(C.OUT / "v3" / "pitcher_projections_2027.csv")[["mlbam_id", "proj_pts_gs_raw"]]
     pp = pp.merge(pj, on="mlbam_id", how="left")
-    powners = pd.read_csv(C.DATA / "fantrax" / "pitchers_2026.csv"); pown = dict(zip(powners["player"].apply(key), powners["owner"]))
-    pp["owner"] = pp["owner"].fillna(pp["name"].apply(lambda n: pown.get(key(n), "FA")))
     sp_ids = set(sch["sp_id"].dropna().astype(int))
     # starters this week that are not in the SP table (spot starters, openers): minimal rows
     missing = sp_ids - set(pp["mlbam_id"])
     if missing:
         add = sch[sch["sp_id"].isin(missing)].drop_duplicates("sp_id")[["sp_id", "sp_name"]].rename(columns={"sp_id": "mlbam_id", "sp_name": "name"})
-        add["owner"] = add["name"].apply(lambda n: pown.get(key(n), "FA")); pp = pd.concat([pp, add], ignore_index=True)
+        pp = pd.concat([pp, add], ignore_index=True)
+    pp = OW.stamp(pp, "name", ow=ow)   # Fantrax sync wins here too
+    print(f"  owners as of the Fantrax sync {ow.synced} ({ow.n} rostered)")
     for c in ("pts_gs", "GS", "K", "BF", "IP", "xwoba", "k_percent", "pitching_plus", "stuff_plus", "xera", "proj_pts_gs_raw", "pts_gs_prev", "GS_prev"):
         if c not in pp.columns: pp[c] = np.nan
     psp = ST.player_splits(sorted(sp_ids), "pitching", d30, asof.isoformat())
