@@ -533,16 +533,22 @@ f_SP = clip(SP xwOBA / league xwOBA, 0.75, 1.3), regressed to league over 300 ba
 f_weather = clip(1 + 0.003 × (temp − 70), 0.94, 1.06) × clip(1 + 0.004 × wind-out mph, 0.92, 1.08), 1.0 under a roof;  f_form from 30-day wOBA (regressed)
 pitcher exp pts = base pts/GS × f_opp × f_park^0.5 × f_weather^0.5 × f_home + K bonus from the opponent's K% vs that hand
 
-base pts/GS = −14.38 + 0.171·Pitching+ + 1.241·IP-mix + 0.084·Δwhiff + 0.154·Δvelo
+base pts/GS = −14.53 + 0.170·Pitching+ + 1.269·IP-mix + 0.066·ΔCSW + 0.842·Δvelo
    IP-mix = half his innings per start this season, half his last three starts (shrunk toward 5.2 IP on a thin sample)
-   Δwhiff = whiff rate over the last 30 days − his season whiff rate;  Δvelo = fastball velocity over the last 30 days − his season average
-   fitted on 3,113 real 2026 starts, each predicted from what was known before it, five-fold by pitcher: r 0.361, MAE 4.51
+   ΔCSW, Δvelo = called-strikes-plus-whiffs per pitch, and fastball velocity, over the last 30 days against his own
+      season — both measured over the games he STARTED, because a reliever's one max-effort inning is not his starting
+      velocity. Filtering the trend to starts is worth a lot: velocity carries 0.84 points a start per mph that way,
+      against 0.15 when relief outings are mixed in.
+   fitted on 3,212 real 2026 starts, each predicted from what was known before it, five-fold by pitcher: r 0.367, MAE 4.48
    (the formula this replaced — season rate blended with the model and shrunk toward 7.0 — scored r 0.315, MAE 4.67)
    a starter with no Savant line falls back to his own starts-only rate shrunk toward what his Pitching+ implies
 
-Recent RESULTS are deliberately not in it. Predicting the next start from the last three starts alone scores r 0.241,
-worse than the season-to-date rate's 0.288, and a regression given both puts almost no weight on the recent one. What
-changes week to week and does carry: how deep he is going, how hard he is throwing and how many bats he is missing.
+Two things were tried and left out because they made it worse. Recent RESULTS: predicting the next start from the last
+three starts alone scores r 0.241, worse than the season-to-date rate's 0.288, and a regression given both puts almost
+no weight on the recent one. Starts-only SKILL LEVELS: rebuilding the level term from his CSW, K−BB% and velocity over
+his starts alone scores r 0.303 against 0.364 for season-long Pitching+ across every appearance, and when both are
+offered the fit drops the starts-only version entirely. Relief innings add sample to a pitcher's stuff rather than
+noise — it is the trend, not the level, that has to be filtered to starts.
 
 A pitcher whose last outing came out of the bullpen, or who has not started in twelve days, is left out of the projected
 rotations entirely — a posted probable still overrides it.</div></details>
@@ -857,6 +863,23 @@ function refreshAll(){ rescore(); prescore(); buildPct(); renderExplorer(); rend
 // ---------- player card
 const kp = (l,v)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
 function showCard(html){ $('#card-body').innerHTML = html; $('#overlay').classList.add('open'); $('#card').classList.add('open'); $('#card-close').focus(); $('#card').scrollTop = 0; }
+// ---------- recent games (MLB game logs, scored in the league's points)
+const LOGS = () => (D.streamers && D.streamers.logs) || {};
+function gameLog(id, kind){
+  const rows = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)];
+  if (!rows || !rows.length) return '';
+  const last = rows.slice().reverse();
+  const avg = last.reduce((a,r)=>a+(r.pts||0),0)/last.length;
+  const head = kind==='p'
+    ? ['Date','Opp','','IP','K','BB','H','ER','Pts']
+    : ['Date','Opp','','PA','H','HR','R','RBI','BB','K','SB','Pts'];
+  const cell = r => kind==='p'
+    ? [dayLabel(r.date), esc(abbrOf(r.opp)||''), r.gs? '' : '<span class="pill n" title="relief appearance">relief</span>', r.ip, r.K, r.BB, r.H, r.ER, `<b>${r.pts}</b>`]
+    : [dayLabel(r.date), esc(abbrOf(r.opp)||''), r.home===false?'@':'', r.PA, r.H, r.HR, r.R, r.RBI, r.BB, r.K, r.SB, `<b>${r.pts}</b>`];
+  return `<h3>Recent games <small class="hint">last ${last.length}, in this league's points · ${avg.toFixed(1)} per game</small></h3>
+    <div class="tblwrap" style="max-height:320px"><table><thead><tr>${head.map((h,i)=>`<th class="${i<3?'l':''}">${h}</th>`).join('')}</tr></thead><tbody>${
+      last.map(r=>`<tr>${cell(r).map((v,i)=>`<td class="${i<3?'l':''}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
 function openCard(id){
   const hist = BY_ID[id], pros = PROS_BY_ID[id], phist = PBY_ID[id];
   if(!hist && !pros && !phist) return;
@@ -891,6 +914,7 @@ function hitterSection(id, sub=false){
     <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3>
     <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
     <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    ${gameLog(id, 'h')}
     <h3>Injured list</h3><p class="hint">${il}</p>
     ${p ? `<h3>2027 projection: ${p.proj_pts} points</h3><p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is three parts the skills model (${p.proj_rate_raw?.toFixed(2)}, from this year's contact quality, discipline and speed; hitters this productive usually give some back) and one part his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'}), then ${(p.age_step??0)>=0?'nudged up':'nudged down'} ${Math.abs(0.5*(p.age_step??0)).toFixed(2)} for his age. Playing time starts from his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and is trimmed ${Math.round((1-(p.durability??1))*100)}% for injury history${p.il_days_w!=null?` (${Math.round(p.il_days_w)} weighted IL days: this year in full, last year 60%, two years ago 30%)`:''}${last.age>=32?' and age':''}. Breakout % ${p.BI} = chance 2027 is a new career level.</p>` : ''}</div>`;
 }
@@ -934,6 +958,7 @@ function pitcherSection(id, sub){
     <h3>Savant-style percentiles, ${last.season} (starters with 15+ GS)</h3><div class="grid2">${sliders}</div>
     <h3>Trends ${yrs[0]}–${yrs[yrs.length-1]}</h3><div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>
     <h3>Season by season</h3><div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    ${gameLog(id, 'p')}
     <h3>Injured list</h3><p class="hint">${il}</p>
     ${p ? `<h3>2027 projection</h3><p class="hint"><b>${p.proj_pts_gs?.toFixed(2)} points per start × ${p.proj_GS} starts → ${p.proj_pts} pts.</b> The rate is ${p.proj_pts_gs_raw?.toFixed(2)} as a 27-year-old (three parts his Pitching+ skills, one part his last three seasons per start) ${(p.age_step??0)>=0?'plus':'minus'} ${Math.abs(p.age_step??0).toFixed(2)} for age ${Math.round(last.age+1)}. Starts come from this year's ${last.GS}, last year's and his age, × ${p.durability} for recent IL time${last.age>=34?' and being 34+':''}${(p.proj_pts_hitting||0)>0?` pitching + ${Math.round(p.proj_pts_hitting)} hitting = ${Math.round(p.proj_pts_total)} for a pitcher-slot keeper`:''}. Breakout % ${p.BI} = chance 2027 is a new career level in points per start.</p>` : ''}</div>`;
 }
@@ -1025,6 +1050,7 @@ function whyListP(r){ const out = []; const add = (v, txt) => { if(v==null) retu
   if (r.dvelo!=null && Math.abs(r.dvelo)>=0.4) out.push({pc: r.dvelo>0?6:-6, txt:`velo ${r.dvelo>0?'+':''}${r.dvelo.toFixed(1)} mph`});
   if (r.dwhiff!=null && Math.abs(r.dwhiff)>=2) out.push({pc: r.dwhiff>0?5:-5, txt:`whiffs ${r.dwhiff>0?'+':''}${r.dwhiff.toFixed(0)}%`});
   if (r.ip_start_3!=null && r.ip_gs!=null && Math.abs(r.ip_start_3-r.ip_gs)>=0.6) out.push({pc: r.ip_start_3>r.ip_gs?4:-4, txt:`${r.ip_start_3.toFixed(1)} IP last 3`});
+  if (r.new_pitch) out.push({pc:7, txt:`new pitch: ${r.new_pitch}`});
   return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
 function whyChipsP(r, n=3){ return `<span class="why" style="display:inline-flex;flex-wrap:wrap;gap:4px">${whyListP(r).slice(0,n).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')}</span>`; }
 function spTag(name, src){ return name ? `${esc(name)}${src==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}` : '<span class="hint">TBD</span>'; }
