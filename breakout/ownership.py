@@ -24,7 +24,7 @@ class Owners:
         self.dup = set(ro.loc[ro["nkey"].duplicated(keep=False), "nkey"])
         self.uniq = {r.nkey: r.owner for r in ro[~ro["nkey"].isin(self.dup)].itertuples()}
         self.by_club = {(r.nkey, str(r.mlb).upper()): r.owner for r in ro.itertuples()}
-        self.synced = synced; self.n = len(ro)
+        self.synced = synced; self.n = len(ro); self.rows = ro
 
     def get(self, name: str, club: str | None = None, default: str = "FA", ambiguous: bool = False) -> str:
         """Owner of `name`. `club` (MLB abbreviation) breaks ties when Fantrax rosters two players with the same name, and
@@ -42,7 +42,10 @@ def owners(season: int | None = None) -> Owners:
     season = season or C.CURRENT_SEASON; d = C.DATA / "fantrax"
     p = d / f"rosters_{season}.csv"
     if not p.exists(): p = d / f"hitters_{season}.csv"          # same content, older layout
-    ro = pd.read_csv(p)[["player", "mlb", "owner"]]
+    ro = pd.read_csv(p)
+    for c in ("pos", "slot", "status"):
+        if c not in ro.columns: ro[c] = None
+    ro = ro[["player", "mlb", "owner", "pos", "slot", "status"]].copy(); ro["mlb"] = ro["mlb"].fillna("")
     meta = d / "sync_meta.json"   # written by fantrax_api.sync(); fall back to the file's modification time
     synced = json.loads(meta.read_text()).get("synced_utc") if meta.exists() else None
     synced = synced or dt.datetime.fromtimestamp(p.stat().st_mtime, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -124,6 +127,16 @@ def apply(data: dict, ow: Owners | None = None) -> dict:
                 new = ow.get(r["name"])
                 if new != r.get("owner"): changed += 1
                 r["owner"] = new
+    # the full Fantrax rosters (313 rows), each tied to the ids the tables know, so a team page can list everyone,
+    # including a stashed prospect the models have no MLB line for
+    h_by = {}; p_by = {}
+    for pid, (nm, _) in hn.items(): h_by.setdefault(key(nm), pid)
+    for pid, (nm, _) in pn.items(): p_by.setdefault(key(nm), pid)
+    for r in data.get("prospects", []) or []:
+        if r.get("name") and r.get("mlbam_id") is not None: h_by.setdefault(key(r["name"]), r["mlbam_id"])
+    ro = ow.rows.astype(object).where(ow.rows.notna(), None)   # no NaN in the JSON
+    data["rosters"] = [dict(player=r.player, mlb=r.mlb, pos=r.pos, slot=r.slot, status=r.status, owner=r.owner,
+                            h_id=h_by.get(key(r.player)), p_id=p_by.get(key(r.player))) for r in ro.itertuples()]
     meta["owners_synced"] = ow.synced; meta["owners_changed"] = changed; data["meta"] = meta
     return data
 

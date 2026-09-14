@@ -47,6 +47,15 @@ def main(argv=None):
     extra = extra.drop(columns=["team_abbr"]); hs = pd.concat([hs, extra], ignore_index=True)
     # ownership always comes from this morning's Fantrax sync, never from the (older) projection table
     ow = OW.owners(); hs = OW.stamp(hs, "name", ow=ow)
+    # anyone on a Fantrax roster belongs in the tables whatever his playing time: a September call-up a manager just picked
+    # up (Leo Bernal, 49 PA) has to show in his own lineup even though he is far below the streamer cutoff
+    rostered = {k: o for k, o in zip(ow.rows["player"].apply(key), ow.rows["owner"])}
+    fullall = pd.read_csv(C.OUT / "v2" / "hitter_seasons_full.csv"); fullall = fullall[fullall["season"] == 2026]
+    thin = fullall[~fullall["mlbam_id"].isin(hs["mlbam_id"]) & fullall["name"].apply(lambda n: key(n) in rostered)].copy()
+    if len(thin):
+        thin = thin[["mlbam_id", "name", "bats", "team", "PA", "G", "pts_pa", "xLP_pa", "elig", "sprint_speed", "xwoba", "k_percent"]]
+        thin["owner"] = thin["name"].apply(lambda n: rostered.get(key(n), "FA")); hs = pd.concat([hs, thin], ignore_index=True)
+        print(f"  + {len(thin)} rostered hitters below the {a.min_pa}-PA cutoff: {', '.join(thin['name'].head(8))}")
     hs = hs.merge(tm[["team_id", "name"]].rename(columns={"name": "team"}), on="team", how="left")
     # traded players carry team = "multi": resolve the current club from the API
     multi = hs[hs["team_id"].isna()]["mlbam_id"].tolist()

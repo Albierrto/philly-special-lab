@@ -241,23 +241,56 @@ def breakout_index(d: pd.DataFrame, season: int):
     return cur, pd.DataFrame(cv)
 
 
+NEUTRAL_AGE = 27       # the rate projection is quoted "as a 27-year-old"; age_step is the difference from that
+LATE_DECLINE = 0.15    # extra points per start lost for every year past 34 (the survivor sample cannot see collapses)
+LATE_FROM = 34
+
+
+def track3(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
+    """GS-weighted points per start over the last three seasons (this year in full, last year 60%, two ago 30%)."""
+    dd = d[(d["is_sp"]) & (d["GS"] >= 1)][["mlbam_id", "season", "GS", "pts_gs"]].rename(columns={"season": "s_h"})
+    m = rows[["mlbam_id", "season", "pts_gs"]].reset_index().merge(dd, on="mlbam_id", suffixes=("", "_h"))
+    m = m[(m["s_h"] <= m["season"]) & (m["s_h"] >= m["season"] - 2)]
+    m["w"] = m["GS"] * (m["season"] - m["s_h"]).map({0: 1.0, 1: 0.6, 2: 0.3})
+    t = (m["pts_gs_h"] * m["w"]).groupby(m["index"]).sum() / m["w"].groupby(m["index"]).sum()
+    return pd.Series(rows.index.map(t), index=rows.index).fillna(rows["pts_gs"])
+
+
 def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
+    """Points per start = ridge(skills, track record, age) fitted to next-year points per start, times projected starts.
+
+    skills   = the Pitching+ inputs (Stuff+, Location+, xERA, K−BB%) already fitted to next-year pts/GS in fit_pitching_plus
+    track    = GS-weighted pts/GS over the last three seasons (1 / 0.6 / 0.3)
+    age      = linear (about −0.05 pts/GS per year) plus LATE_DECLINE per year past 34
+    Leave-one-season-out this beats the boosted model in four folds of five (r 0.50–0.67 vs 0.42–0.63) and, being three
+    terms, cannot rate a bad year above a good one the way the boosted model did (Anthony Kay over Shota Imanaga).
+    Projected starts = ridge(GS, last year's GS, age) fitted to next-year GS (no prior season counts as 0), times a
+    durability factor for recent IL days and age 34+."""
     pr = _pairs(d)
-    m = HistGradientBoostingRegressor(max_depth=3, learning_rate=0.05, max_iter=300, min_samples_leaf=15, l2_regularization=1.0, random_state=7)
-    m.fit(pr[PITCH_FEATURES], pr["next_pts_gs"])
-    # pitcher aging: delta method on pts/GS
+    pr["track3"] = track3(d, pr); pr["skills"] = pr["pitching_plus_raw"].fillna(pr["track3"]) if "pitching_plus_raw" in pr.columns else pr["track3"]
+    X = np.c_[pr["skills"], pr["track3"], pr["age"]]
+    rr = Ridge(alpha=1.0).fit(X, pr["next_pts_gs"]); b_sk, b_tr, b_age = rr.coef_; b0 = rr.intercept_
+    # descriptive aging curve for the chart: delta method on pts/GS
     pp = pr.copy(); pp["age_i"] = pp["age"].round().astype(int); pp["delta"] = pp["next_pts_gs"] - pp["pts_gs"]
     ag = pp.groupby("age_i")["delta"].mean().rolling(3, center=True, min_periods=1).mean()
     cur = d[(d["season"] == season) & (d["is_sp"]) & (d["GS"] >= 5)].copy()
-    cur["proj_pts_gs_raw"] = m.predict(cur[PITCH_FEATURES])
-    cur["age_step"] = (cur["age"] + 1).round().clip(ag.index.min(), ag.index.max()).astype(int).map(ag).fillna(0)
-    cur["proj_pts_gs"] = cur["proj_pts_gs_raw"] + 0.5 * cur["age_step"]
-    hist = d[d["season"].isin([season - 2, season - 1, season])].groupby("mlbam_id")["GS"].mean()
-    base_gs = 0.6 * cur["GS"] + 0.4 * cur["mlbam_id"].map(hist).fillna(cur["GS"])
-    ilw = cur["il_days_w"] if "il_days_w" in cur.columns else cur["il_days_3yr"]
-    dur = (1 - 0.001 * ilw.clip(0, 250)) * np.where(cur["age"] >= 34, 0.93, 1.0)
-    cur["proj_GS"] = (base_gs * dur).clip(12, 32).round(0); cur["durability"] = dur.round(3)
+    cur["track3"] = track3(d, cur); cur["skills"] = cur["pitching_plus_raw"].fillna(cur["track3"]) if "pitching_plus_raw" in cur.columns else cur["track3"]
+    cur["proj_pts_gs_raw"] = b0 + b_sk * cur["skills"] + b_tr * cur["track3"] + b_age * NEUTRAL_AGE
+    cur["age_step"] = b_age * (cur["age"] - NEUTRAL_AGE) - LATE_DECLINE * (cur["age"] + 1 - LATE_FROM).clip(lower=0)
+    cur["proj_pts_gs"] = cur["proj_pts_gs_raw"] + cur["age_step"]
+    # starts: ridge on this year's GS, last year's GS (0 if he had no MLB season) and age, target next-year GS / durability
+    gs_prev = d.set_index(["mlbam_id", "season"])["GS"]
+    def prev(rows): return pd.Series([gs_prev.get((r.mlbam_id, r.season - 1), 0.0) for r in rows.itertuples()], index=rows.index)
+    def durab(rows):
+        ilw = rows["il_days_w"] if "il_days_w" in rows.columns else rows["il_days_3yr"]
+        return (1 - 0.001 * ilw.fillna(0).clip(0, 250)) * np.where(rows["age"] >= 34, 0.93, 1.0)
+    gp = d[(d["is_sp"]) & (d["GS"] >= 10)].merge(d[["mlbam_id", "season", "GS"]].assign(season=lambda x: x["season"] - 1).rename(columns={"GS": "next_GS"}), on=["mlbam_id", "season"])
+    rg = Ridge(alpha=1.0).fit(np.c_[gp["GS"], prev(gp), gp["age"]], gp["next_GS"] / durab(gp)); g_gs, g_prev, g_age = rg.coef_; g0 = rg.intercept_
+    dur = durab(cur)
+    cur["proj_GS"] = ((g0 + g_gs * cur["GS"] + g_prev * prev(cur) + g_age * cur["age"]) * dur).clip(10, 32).round(0); cur["durability"] = pd.Series(dur, index=cur.index).round(3)
     cur["proj_pts"] = (cur["proj_pts_gs"] * cur["proj_GS"]).round(0)
     cur["proj_rank"] = cur["proj_pts"].rank(ascending=False).astype(int)
     cur["proj_rank_gs"] = cur["proj_pts_gs"].rank(ascending=False).astype(int)
+    cur.attrs["proj_coef"] = dict(intercept=round(float(b0), 3), skills=round(float(b_sk), 3), track=round(float(b_tr), 3), age=round(float(b_age), 4),
+                                  gs_intercept=round(float(g0), 2), gs=round(float(g_gs), 3), gs_prev=round(float(g_prev), 3), gs_age=round(float(g_age), 3))
     return cur, ag.reset_index().rename(columns={"age_i": "age", "delta": "yoy_delta"})

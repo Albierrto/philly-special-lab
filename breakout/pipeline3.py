@@ -98,8 +98,8 @@ def main(argv=None):
     pp = PT.career_context(PT.fit_pitching_plus(PT.proxies(pp)))
     coef = pp.attrs.get("pitching_plus_coef", {})
     cv_pit = PT.cross_validate(pp)
-    pbi, cv_pbi = PT.breakout_index(pp, a.season); pproj, page = PT.project(pp, a.season)
-    pcur = pbi.merge(pproj[["mlbam_id", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs"]], on="mlbam_id")
+    pbi, cv_pbi = PT.breakout_index(pp, a.season); pproj, page = PT.project(pp, a.season); pcoef = pproj.attrs.get("proj_coef", {})
+    pcur = pbi.merge(pproj[["mlbam_id", "track3", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs"]], on="mlbam_id")
     powners = pd.read_csv(C.DATA / "fantrax" / f"pitchers_{a.season}.csv")[["player", "owner"]]; powners["nkey"] = powners["player"].apply(key)
     pcur = pcur.merge(powners[["nkey", "owner"]].drop_duplicates("nkey"), on="nkey", how="left"); pcur["owner"] = pcur["owner"].fillna("FA")
     # two-way: add hitting projection to a pitcher's total for keeper purposes (match on MLBAM id, e.g. Ohtani)
@@ -150,7 +150,7 @@ def main(argv=None):
     payload = dict(
         meta=dict(season=a.season, league=league["name"], teams=teams, scoring=scoring, pitching_scoring=PT.PSCORE, positions=league["positions"],
                   presets=PRESETS, generated=pd.Timestamp.today().strftime("%Y-%m-%d"), my_abbrev=a.my_abbrev, my_team=a.my_team,
-                  hitter_keepers=hk, pitcher_keepers=pk, real_keepers=recs(real_k, ["player", "team", "slot"]), pitching_plus_coef={k: float(v) for k, v in coef.items()}),
+                  hitter_keepers=hk, pitcher_keepers=pk, real_keepers=recs(real_k, ["player", "team", "slot"]), pitching_plus_coef={k: float(v) for k, v in coef.items()}, pitcher_proj_coef=pcoef),
         seasons=recs(d[d["PA"] >= 50], P2.EXPLORER_COLS, columnar=True),
         projections=recs(kv, ["mlbam_id", "BI", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability", "il_days_w", "proj_pts", "proj_pts_600", "proj_rank",
                               "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as"], columnar=True),
