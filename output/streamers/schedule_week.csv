@@ -85,8 +85,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 824464,2026-09-17,2026-09-17T16:40:00Z,Scheduled,2602,Great American Ball Park,day,N,119,Los Angeles Dodgers,False,113,Cincinnati Reds,605483.0,Blake Snell,projected,663903.0,Brady Singer,listed
 822924,2026-09-17,2026-09-17T17:10:00Z,Scheduled,12,Tropicana Field,day,N,139,Tampa Bay Rays,True,133,Athletics,656876.0,Drew Rasmussen,listed,605488.0,Jeffrey Springs,listed
 822924,2026-09-17,2026-09-17T17:10:00Z,Scheduled,12,Tropicana Field,day,N,133,Athletics,False,139,Tampa Bay Rays,605488.0,Jeffrey Springs,listed,656876.0,Drew Rasmussen,listed
-824305,2026-09-17,2026-09-17T19:10:00Z,Scheduled,19,Coors Field,day,N,115,Colorado Rockies,True,135,San Diego Padres,685299.0,Tanner Gordon,listed,,,
-824305,2026-09-17,2026-09-17T19:10:00Z,Scheduled,19,Coors Field,day,N,135,San Diego Padres,False,115,Colorado Rockies,,,,685299.0,Tanner Gordon,listed
+824305,2026-09-17,2026-09-17T19:10:00Z,Scheduled,19,Coors Field,day,N,115,Colorado Rockies,True,135,San Diego Padres,687312.0,Gabriel Hughes,listed,,,
+824305,2026-09-17,2026-09-17T19:10:00Z,Scheduled,19,Coors Field,day,N,135,San Diego Padres,False,115,Colorado Rockies,,,,687312.0,Gabriel Hughes,listed
 823573,2026-09-17,2026-09-17T23:15:00Z,Scheduled,3289,Citi Field,night,N,121,New York Mets,True,143,Philadelphia Phillies,690997.0,Nolan McLean,projected,605400.0,Aaron Nola,projected
 823573,2026-09-17,2026-09-17T23:15:00Z,Scheduled,3289,Citi Field,night,N,143,Philadelphia Phillies,False,121,New York Mets,605400.0,Aaron Nola,projected,690997.0,Nolan McLean,projected
 824141,2026-09-17,2026-09-17T23:15:00Z,Scheduled,2392,Daikin Park,night,N,117,Houston Astros,True,118,Kansas City Royals,699044.0,Miguel Ullola,projected,607625.0,Seth Lugo,listed
@@ -147,8 +147,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 824545,2026-09-19,2026-09-19T23:10:00Z,Scheduled,4,Rate Field,night,N,116,Detroit Tigers,False,145,Chicago White Sox,695549.0,Jackson Jobe,projected,689818.0,David Sandlin,projected
 823003,2026-09-19,2026-09-19T23:15:00Z,Scheduled,2889,Busch Stadium,night,N,138,St. Louis Cardinals,True,120,Washington Nationals,700241.0,Michael McGreevy,projected,,,
 823003,2026-09-19,2026-09-19T23:15:00Z,Scheduled,2889,Busch Stadium,night,N,120,Washington Nationals,False,138,St. Louis Cardinals,,,,700241.0,Michael McGreevy,projected
-824304,2026-09-19,2026-09-20T00:10:00Z,Scheduled,19,Coors Field,night,N,115,Colorado Rockies,True,136,Seattle Mariners,687312.0,Gabriel Hughes,projected,682243.0,Bryce Miller,projected
-824304,2026-09-19,2026-09-20T00:10:00Z,Scheduled,19,Coors Field,night,N,136,Seattle Mariners,False,115,Colorado Rockies,682243.0,Bryce Miller,projected,687312.0,Gabriel Hughes,projected
+824304,2026-09-19,2026-09-20T00:10:00Z,Scheduled,19,Coors Field,night,N,115,Colorado Rockies,True,136,Seattle Mariners,685299.0,Tanner Gordon,projected,682243.0,Bryce Miller,projected
+824304,2026-09-19,2026-09-20T00:10:00Z,Scheduled,19,Coors Field,night,N,136,Seattle Mariners,False,115,Colorado Rockies,682243.0,Bryce Miller,projected,685299.0,Tanner Gordon,projected
 825029,2026-09-19,2026-09-20T00:10:00Z,Scheduled,15,Chase Field,night,N,109,Arizona Diamondbacks,True,147,New York Yankees,593958.0,Eduardo Rodriguez,projected,693645.0,Cam Schlittler,projected
 825029,2026-09-19,2026-09-20T00:10:00Z,Scheduled,15,Chase Field,night,N,147,New York Yankees,False,109,Arizona Diamondbacks,693645.0,Cam Schlittler,projected,593958.0,Eduardo Rodriguez,projected
 823249,2026-09-19,2026-09-20T00:40:00Z,Scheduled,2680,Petco Park,night,N,135,San Diego Padres,True,146,Miami Marlins,601713.0,Nick Pivetta,projected,691587.0,Eury Pérez,projected

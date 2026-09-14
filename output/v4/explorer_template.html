@@ -265,6 +265,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   .search{max-width:none;min-width:0} .search input[type="search"]{padding-left:30px} .brand small{display:none} .brand b{font-size:18px} .topbar{gap:8px;padding:0 10px} h1{font-size:28px}
   .row{grid-template-columns:auto minmax(0,1fr) auto} .row .sub{white-space:normal}
 }
+.lockb{font:600 10px/1 var(--font-b);letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink3);cursor:pointer;vertical-align:middle}
+.lockb:hover{border-color:var(--ink3);color:var(--ink)}
+.lockb.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .finder{margin:0 0 18px}
 .deal{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px;background:var(--panel);cursor:pointer}
 .deal:hover{border-color:var(--ink3);background:var(--panel2)}
@@ -1180,11 +1183,29 @@ function renderStreamers(){
   renderMyWeek(); if (typeof renderToday==='function' && VAL) renderToday();
 }
 const SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','UT','UT'];
-function bestLineup(rows){ // greedy: fill scarce slots first by expected points
-  const used = new Set(); const out = [];
+// ---------- your own calls beat the model's. Kept per day, in this browser, so a lock for today does not follow you to Friday.
+let LOCKS = (()=>{ try{ return JSON.parse(localStorage.getItem('lab-locks')||'{}') || {}; }catch(e){ return {}; } })();
+const lockKey = (date, id) => `${date}|${id}`;
+const lockOf = (date, id) => LOCKS[lockKey(date, id)] || null;
+function setLock(date, id, v){ const k = lockKey(date, id); if(v) LOCKS[k] = v; else delete LOCKS[k];
+  try{ localStorage.setItem('lab-locks', JSON.stringify(LOCKS)); }catch(e){} }
+const locksOn = date => Object.keys(LOCKS).filter(k=>k.startsWith(date+'|')).length;
+function clearLocks(date){ Object.keys(LOCKS).forEach(k=>{ if(k.startsWith(date+'|')) delete LOCKS[k]; });
+  try{ localStorage.setItem('lab-locks', JSON.stringify(LOCKS)); }catch(e){} }
+const eligIn = (r, s) => s==='UT' || (r.elig||'').split('/').includes(s);
+
+function bestLineup(rows, date){ // greedy: fill scarce slots first by expected points, after your own locks are honoured
+  const used = new Set(); const out = []; const day = date || (rows[0] && rows[0].date);
   const order = ['C','SS','2B','3B','1B','OF','OF','OF','UT','UT'];
-  rows = rows.filter(r => r.lineup!==0);
-  for (const s of order){ const cand = rows.filter(r=>!used.has(r.mlbam_id) && (s==='UT' || (r.elig||'').split('/').includes(s))).sort((a,b)=>b.exp_pts-a.exp_pts)[0]; if(cand){ used.add(cand.mlbam_id); out.push([s,cand]); } else out.push([s,null]); }
+  rows = rows.filter(r => r.lineup!==0 && lockOf(day, r.mlbam_id)!=='bench');
+  // forced starters take a slot first, scarcest position they qualify for, so a lock never costs you a spot it did not have to
+  const forced = rows.filter(r=>lockOf(day, r.mlbam_id)==='start').sort((a,b)=>b.exp_pts-a.exp_pts);
+  const slots = order.map(s=>({s, r:null}));
+  for (const f of forced){ const slot = slots.find(x=>!x.r && eligIn(f, x.s)); if(slot){ slot.r = f; used.add(f.mlbam_id); } }
+  for (const x of slots){ if(x.r) continue;
+    const cand = rows.filter(r=>!used.has(r.mlbam_id) && eligIn(r, x.s)).sort((a,b)=>b.exp_pts-a.exp_pts)[0];
+    if(cand){ used.add(cand.mlbam_id); x.r = cand; } }
+  for (const x of slots) out.push([x.s, x.r]);
   return out;
 }
 function renderMyWeek(){
@@ -1198,7 +1219,7 @@ function renderMyWeek(){
   h += `<div class="tblwrap" style="max-height:none"><table><thead><tr><th class="l">Your starts</th><th class="l">Day</th><th class="l">Opp</th><th>Exp</th></tr></thead><tbody>${myStarts.map(r=>`<tr><td class="l">${esc(r.name)}${r.two_start?' <span class="pill b">2</span>':''}${r.sp_source==='projected'?' <span class="pill n">P</span>':''}</td><td class="l">${dayLabel(r.date)}</td><td class="l">${r.home?'vs':'@'} ${esc(r.opp)}</td><td>${r.exp_pts.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`;
   const days = [...new Set(mine.map(r=>r.date))].sort();
   h += `<h3 style="margin-top:14px">Best lineup by day (your hitters)</h3>`;
-  for (const d of days){ const lu = bestLineup(mine.filter(r=>r.date===d)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0); const bench = mine.filter(r=>r.date===d && !lu.some(([s,x])=>x&&x.mlbam_id===r.mlbam_id)).sort((a,b)=>b.exp_pts-a.exp_pts);
+  for (const d of days){ const lu = bestLineup(mine.filter(r=>r.date===d), d); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0); const bench = mine.filter(r=>r.date===d && !lu.some(([s,x])=>x&&x.mlbam_id===r.mlbam_id)).sort((a,b)=>b.exp_pts-a.exp_pts);
     h += `<details><summary><b>${dayLabel(d)}</b> · ${tot.toFixed(1)} expected · ${lu.filter(x=>x[1]).length} filled</summary><table class="mini"><tbody>${lu.map(([s,r])=>`<tr><td class="l" style="width:36px"><b>${s}</b></td><td class="l">${r?esc(r.name)+' '+lineupPill(r):'<span class="hint">open</span>'}</td><td class="l hint">${r?`${r.home?'vs':'@'} ${esc(r.opp.split(' ').pop())} · ${spTag(r.opp_sp,r.opp_sp_source)} ${r.opp_sp_throws||''}`:''}</td><td>${r?r.exp_pts.toFixed(1):''}</td></tr>`).join('')}${bench.length?`<tr><td class="l hint" colspan="4">bench: ${bench.map(r=>`${esc(r.name)} ${r.exp_pts.toFixed(1)}`).join(', ')}</td></tr>`:''}</tbody></table></details>`; }
   $('#s-mine').innerHTML = h;
 }
@@ -1345,7 +1366,7 @@ function renderDash(){
   const tp = teamPlayers(MY); const ks = keeperSet(tp.h, tp.p); const keptIds = new Set([...ks.hs.map(r=>'h'+r.mlbam_id), ...ks.ps.map(r=>'p'+r.mlbam_id)]);
   $('#dash-title').textContent = teamLabel(MY).replace(/ \(.*\)$/,'');
   // week outlook: best lineup each day + starts
-  const myH = SHD.filter(r=>r.owner===MY && r.active!==0); const weekPts = dates.reduce((a,d)=>a+bestLineup(myH.filter(r=>r.date===d)).reduce((x,[s,r])=>x+(r?r.exp_pts:0),0),0);
+  const myH = SHD.filter(r=>r.owner===MY && r.active!==0); const weekPts = dates.reduce((a,d)=>a+bestLineup(myH.filter(r=>r.date===d), d).reduce((x,[s,r])=>x+(r?r.exp_pts:0),0),0);
   const myStarts = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts); const startPts = myStarts.slice(0,10).reduce((a,r)=>a+r.exp_pts,0);
   $('#dash-sub').textContent = `Week of ${dayLabel(SD?.meta.start||day)}: about ${weekPts.toFixed(0)} expected points from your best lineups and ${startPts.toFixed(0)} from your best ${Math.min(10,myStarts.length)} starts.`;
   // roster status
@@ -1441,10 +1462,12 @@ function renderToday(){
     $$('#today .row[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h))); $$('#today [data-team]').forEach(b=>b.addEventListener('click',()=>setTeam(b.dataset.team))); return; }
   const roster = [...new Map(SHD.filter(r=>r.owner===MY).map(r=>[r.mlbam_id, r])).values()];
   const mine = SHD.filter(r=>r.owner===MY && r.active!==0 && r.date===day);
-  const lu = bestLineup(mine); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
+  const lu = bestLineup(mine, day); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
   const posted = mine.filter(r=>r.lineup!=null).length;
   $('#today-sub').textContent = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster · ${tot.toFixed(1)} expected points${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}`;
-  const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)}</div><div class="mu">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} · ${esc(r.local_start||'')} ${stateChip(r.gamePk)}</div><div class="why">${whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>'}</div></div><div class="exp">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`
+  const lockBtn = (r, where) => { const st = lockOf(day, r.mlbam_id);
+    return `<button class="lockb${st?' on':''}" data-lock="${r.mlbam_id}" data-want="${where==='lineup' ? (st==='start'?'':'start') : (st==='bench'?'':'bench')}" title="${st==='start'?'locked into your lineup — click to let the model decide again':st==='bench'?'benched by you — click to let the model decide again':where==='lineup'?'lock him into the lineup so the model cannot move him':'bench him for today whatever the model says'}">${st==='start'?'locked':st==='bench'?'benched':where==='lineup'?'lock':'bench'}</button>`; };
+  const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)} ${lockBtn(r,'lineup')}</div><div class="mu">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} · ${esc(r.local_start||'')} ${stateChip(r.gamePk)}</div><div class="why">${whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>'}</div></div><div class="exp">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`
                               : `<div class="slotrow open"><div class="slot">${sl}</div><span class="ava" style="--tc:var(--panel3)">–</span><div><div class="nm">Open spot</div><div class="mu">nobody eligible on your roster with a game</div></div><div class="exp">0.0<small>expected</small></div></div>`;
   const ORDER = {C:0,'1B':1,'2B':2,'3B':3,SS:4,OF:5,UT:6}; const luShow = lu.slice().sort((a,b)=>ORDER[a[0]]-ORDER[b[0]]);
   let cards = `<div class="dcard w8"><h3>Your lineup <small>${dayWord(day)} · best ten by expected points</small></h3><div class="bigstat"><b>${tot.toFixed(1)}</b><span>expected points from these ten</span></div>${luShow.map(([sl,r])=>slotRow(sl,r)).join('')}</div>`;
@@ -1459,7 +1482,8 @@ function renderToday(){
   const bench = roster.filter(r=>!used.has(r.mlbam_id)).map(r=>{ const d = mine.find(x=>x.mlbam_id===r.mlbam_id); let why, exp = d ? d.exp_pts : null;
     if (r.active===0) why = `not active (${r.status||'IL / minors'})`; else if (!d) why = 'no game'; else if (d.lineup===0) why = 'not in the posted lineup'; else { const slots = (d.elig||'').split('/'); const beaten = lu.filter(([sl,x])=>x && (slots.includes(sl)||sl==='UT')).map(([sl,x])=>x.exp_pts); const best = beaten.length?Math.min(...beaten):null; why = best!=null ? `${d.exp_pts.toFixed(1)} vs ${best.toFixed(1)} for the weakest starter at his positions` : 'no open spot at his positions'; if (whyList(d)[0] && whyList(d)[0].pc<0) why += ` · ${whyList(d)[0].txt}`; }
     return {r, d, why, exp}; }).sort((a,b)=>(b.exp??-1)-(a.exp??-1));
-  cards += `<div class="dcard w6 bench"><h3>Bench <small>and why they sit</small></h3><div class="rowlist">${bench.map(({r,d,why,exp})=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${d?' '+lineupPill(d):''}</div><div class="sub">${esc(why)}</div></div><div class="val">${exp!=null?exp.toFixed(1):'–'}<small>expected</small></div></div>`).join('')||'<p class="hint">Everyone with a game is in the lineup.</p>'}</div></div>`;
+  const nLock = locksOn(day);
+  cards += `<div class="dcard w6 bench"><h3>Bench <small>and why they sit</small>${nLock?`<button class="go small" id="clear-locks" style="float:right;margin:0">reset my ${nLock} override${nLock>1?'s':''}</button>`:''}</h3><div class="rowlist">${bench.map(({r,d,why,exp})=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${d?' '+lineupPill(d):''}${d&&d.lineup!==0?' '+lockBtn(r,'bench').replace(`data-want="bench"`,`data-want="${lockOf(day,r.mlbam_id)==='bench'?'':'start'}"`).replace('>bench<','>start him<'):''}</div><div class="sub">${esc(why)}</div></div><div class="val">${exp!=null?exp.toFixed(1):'–'}<small>expected</small></div></div>`).join('')||'<p class="hint">Everyone with a game is in the lineup.</p>'}</div></div>`;
   // waiver upgrades for today
   const fa = SHD.filter(r=>r.date===day && isFA(r.owner) && r.active!==0 && r.lineup!==0);
   const ups = []; for (const [sl,r] of lu){ const need = r ? r.exp_pts + 0.4 : 0; const c = fa.filter(x=>(sl==='UT'||(x.elig||'').split('/').includes(sl)) && x.exp_pts>need).sort((a,b)=>b.exp_pts-a.exp_pts)[0]; if(c && !ups.some(u=>u.c.mlbam_id===c.mlbam_id)) ups.push({sl, r, c}); }
@@ -1485,6 +1509,10 @@ function renderToday(){
   cards += `<div class="dcard w6"><h3>Best bats to add for the week <small>free agents whose week beats your 10th-best hitter (${cutBat.toFixed(1)})</small></h3><div class="rowlist">${faWeek.map(r=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${r.cbs?` <span class="pill b">CBS ${esc(r.cbs)}</span>`:''}</div><div class="sub">${r.g} games · ${(r.base_rate||0).toFixed(2)} pts/PA · 30-day wOBA ${r.woba_30!=null?r.woba_30.toFixed(3):'–'}</div></div><div class="val">${r.week.toFixed(1)}<small>week expected</small></div></div>`).join('')||'<p class="hint">No free-agent bat projects better than your ten this week.</p>'}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
   cards += `<div class="dcard w6"><h3>Your ten this week <small>your hitters by expected points, whole week</small></h3><div class="rowlist">${mineWeek.slice(0,12).map((r,i)=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${i+1}. ${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span></div><div class="sub">${r.g} game${r.g===1?'':'s'} · ${(r.base_rate||0).toFixed(2)} pts/PA</div></div><div class="val">${r.week.toFixed(1)}<small>week expected</small></div></div>`).join('')}</div></div>`;
   $('#today').innerHTML = cards;
+  // your overrides, before the card-opening handler so a click on the button does not also open the player
+  $$('#today .lockb').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation();
+    setLock(day, +b.dataset.lock, b.dataset.want || null); renderToday(); renderDash(); }));
+  const cl = $('#clear-locks'); if(cl) cl.addEventListener('click', e=>{ e.stopPropagation(); clearLocks(day); renderToday(); renderDash(); });
   $$('#today [data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
   $$('#today [data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
   $$('#today .go').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)));
