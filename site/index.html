@@ -382,7 +382,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <h3>Starting pitchers</h3>
   <div class="filters"><label>Show <select id="s-pavail"><option value="FA">free agents</option><option value="mine">my roster</option><option value="">everyone</option></select></label><label>Two-start only <input type="checkbox" id="s-two"></label><label title="By default openers, swingmen and PitcherList Do-Not-Start arms are hidden">Show all roles <input type="checkbox" id="s-allroles"></label><span class="count" id="s-pcount"></span></div>
   <div class="tblwrap" style="max-height:60vh"><table id="t-sp"></table></div>
-  <div class="legend"><span>Exp pts = base pts/GS × opponent (wOBA vs the pitcher's hand) × park^0.5 × weather^0.5 × home + K bonus from the opponent's K% vs that hand. Ten starts a week is the cap. Openers, swingmen and PitcherList "Do Not Start" arms are hidden unless you tick Show all roles; the PitcherList column is Nick Pollock's 9/8 playoff tier, the CBS column is Scott White's Week 26 lists.</span></div>
+  <div class="legend"><span>Exp pts = base pts/GS × opponent (wOBA vs the pitcher's hand) × park^0.5 × weather^0.5 × home + K bonus from the opponent's K% vs that hand. The base rate is his stuff (Pitching+), how deep he goes lately, and his last-30-day velocity and whiff trend. Ten starts a week is the cap. Openers, swingmen and PitcherList "Do Not Start" arms are hidden unless you tick Show all roles; the PitcherList column is Nick Pollock's 9/8 playoff tier, the CBS column is Scott White's Week 26 lists.</span></div>
   <div class="grid2">
     <div><h3>Your week</h3><div id="s-mine"></div></div>
     <div><h3>Games, parks and weather</h3><div class="tblwrap" style="max-height:50vh"><table id="t-sgames"></table></div><p class="hint">Weather is Open-Meteo's hourly forecast at first pitch (temperature, wind speed and the wind component blowing out to center field from the park's orientation). Roofed parks ignore weather. Park factors are Savant's three-year Statcast run factors by batter side.</p></div>
@@ -541,7 +541,21 @@ proj pts = proj pts/GS × proj GS;   two-way: keeper value = pitching proj + hit
   <details class="math"><summary>Show the math</summary><div class="formula">hitter exp pts = base pts/PA × PA/G × f_SP^0.6 × f_platoon × f_park × f_weather × f_home × f_form
 f_SP = clip(SP xwOBA / league xwOBA, 0.75, 1.3), regressed to league over 300 batters faced;  f_platoon from his wOBA vs L / vs R (regressed);  f_park = Savant runs factor by batter side / 100
 f_weather = clip(1 + 0.003 × (temp − 70), 0.94, 1.06) × clip(1 + 0.004 × wind-out mph, 0.92, 1.08), 1.0 under a roof;  f_form from 30-day wOBA (regressed)
-pitcher exp pts = base pts/GS × f_opp × f_park^0.5 × f_weather^0.5 × f_home + K bonus;  base pts/GS = starts-only rate blended with last season and a 7.0 prior</div></details>
+pitcher exp pts = base pts/GS × f_opp × f_park^0.5 × f_weather^0.5 × f_home + K bonus from the opponent's K% vs that hand
+
+base pts/GS = −14.38 + 0.171·Pitching+ + 1.241·IP-mix + 0.084·Δwhiff + 0.154·Δvelo
+   IP-mix = half his innings per start this season, half his last three starts (shrunk toward 5.2 IP on a thin sample)
+   Δwhiff = whiff rate over the last 30 days − his season whiff rate;  Δvelo = fastball velocity over the last 30 days − his season average
+   fitted on 3,113 real 2026 starts, each predicted from what was known before it, five-fold by pitcher: r 0.361, MAE 4.51
+   (the formula this replaced — season rate blended with the model and shrunk toward 7.0 — scored r 0.315, MAE 4.67)
+   a starter with no Savant line falls back to his own starts-only rate shrunk toward what his Pitching+ implies
+
+Recent RESULTS are deliberately not in it. Predicting the next start from the last three starts alone scores r 0.241,
+worse than the season-to-date rate's 0.288, and a regression given both puts almost no weight on the recent one. What
+changes week to week and does carry: how deep he is going, how hard he is throwing and how many bats he is missing.
+
+A pitcher whose last outing came out of the bullpen, or who has not started in twelve days, is left out of the projected
+rotations entirely — a posted probable still overrides it.</div></details>
 
   <h3>Data</h3>
   <p>Baseball Savant custom leaderboards (hitters and pitchers, 2021-2026), Savant pitch-arsenal and movement tables, Savant minor-league Statcast search per prospect (2025-2026); MLB Stats API season hitting, fielding and pitching, game logs, schedules, rosters and transactions (IL) 2021-2026, minor-league hitting AAA–A 2024-2026; MLB Pipeline top 100; FantasyPros composite ADP archive 2021-2026; Open-Meteo forecasts; this league's Fantrax rules, drafts, keepers and player tables (read-only). Grand slams, cycles, no-hitters and perfect games are the only scored events not in public feeds.</p>
@@ -570,8 +584,8 @@ pitcher exp pts = base pts/GS × f_opp × f_park^0.5 × f_weather^0.5 × f_home 
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260914T0228"></script>
-<script src="data/streamers.js?v=20260914T0228"></script>
+<script src="data/lab.js?v=20260914T0304"></script>
+<script src="data/streamers.js?v=20260914T0304"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -690,7 +704,11 @@ const TERMS = [
  {k:'tier', name:'PitcherList tier', what:"Nick Pollock's weekly tiers: Auto (start anywhere), Solid, Tobys & Bombs (boom or bust), streamer tiers, Do Not Start."},
  {k:'cbs', name:'CBS sleepers', what:"Scott White's weekly sleeper hitters and pitchers and two-start tiers from CBS Fantasy Baseball."},
  {k:'lineup', name:'bats 3 / not in lineup', what:"Once a club posts its lineup, each hitter shows his spot in the order, or \"not in lineup\" if he is sitting. The lineup optimizer benches anyone confirmed out."},
- {k:'verdict', name:'Verdict (lock / clear keep / marginal / surplus / let go)', also:'Keep, Tier', what:"The keeper value in words. Lock: keep him, no debate. Clear keep: keep him unless a better one is available. Marginal: barely better than what you would draft. Surplus: worth keeping, but the team already has its 5 hitters or 2 pitchers ahead of him, so he is a trade chip. Let go: draft instead."},
+ {k:'dvelo', name:'Velo trend', also:'velo +0.9 mph', what:"His fastball's average speed over the last 30 days against his own season average. A real mid-season jump usually shows up here weeks before the results move, and it is worth about 0.15 points a start per mph."},
+  {k:'dwhiff', name:'Whiff trend', also:'whiffs +4%', what:"Swings and misses per swing over the last 30 days against his season rate. Same idea as the velo trend: stuff changes before scoring does."},
+  {k:'csw_30', name:'CSW%', what:"Called strikes plus whiffs, as a share of every pitch, over the last 30 days — PitcherList's one-number read on whether a pitcher is getting strikes. Above 30% is excellent, under 26% is trouble."},
+  {k:'bullpen', name:'Out of the rotation', what:"His last outing came in relief, or he has not started in twelve days. The model will not invent a start for him; if MLB posts him as a probable anyway, the posted start wins."},
+  {k:'verdict', name:'Verdict (lock / clear keep / marginal / surplus / let go)', also:'Keep, Tier', what:"The keeper value in words. Lock: keep him, no debate. Clear keep: keep him unless a better one is available. Marginal: barely better than what you would draft. Surplus: worth keeping, but the team already has its 5 hitters or 2 pitchers ahead of him, so he is a trade chip. Let go: draft instead."},
 ];
 const TERM = Object.fromEntries(TERMS.map(t=>[t.k,t]));
 const COL_TERM = {pts_c:'pts', pts:'pts', pts_pa_c:'pts_pa', pts_gs_c:'pts_gs', pts_gs_2026:'pts_gs', base_gs:'pts_gs', xLP_c:'xLP', luck_c:'luck', LPAR_c:'LPAR', over_c:'over', BI:'BI', proj_pts:'proj', tot_c:'proj', proj_pts_total:'proj', proj_pts_gs:'pts_gs', proj_pts_600:'proj600', pa_pace_162:'pace', KSV:'KSV', KSV_c:'KSV', KSV2_c:'KSV', KSV_2nd:'KSV', PAR_c:'PAR', exp_pts:'exp', week_pts:'exp', mult:'nudge', avg_mult:'nudge', f_sp:'nudge', f_platoon:'nudge', f_park:'nudge', f_wx:'nudge', f_form:'nudge', f_opp:'nudge', PAS:'PAS', stuff_plus:'stuff', location_plus:'loc', pitching_plus:'pplus', xwoba:'xwoba', sp_xwoba:'xwoba', xera:'xera', barrel_batted_rate:'brl', avg_best_speed:'ev50', avg_swing_speed:'bat', k_percent:'kbb', bb_percent:'kbb', il_days_3yr:'il', park_runs:'park', park_hr:'park', wind_out:'wind', pl_tier:'tier', cbs:'cbs', lineup:'lineup', keep_tier:'verdict', tier_c:'verdict', sp_source:'P'};
@@ -1013,7 +1031,12 @@ function whyList(r){ const out = []; const add = (v, txt) => { if(v==null) retur
   if (r.home) out.push({pc:2, txt:'home'}); return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
 function whyChips(r, n=3){ return `<span class="why" style="display:inline-flex;flex-wrap:wrap;gap:4px">${whyList(r).slice(0,n).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')}</span>`; }
 function whyListP(r){ const out = []; const add = (v, txt) => { if(v==null) return; const pc = Math.round((v-1)*100); if(Math.abs(pc) < 2) return; out.push({pc, txt:`${txt} ${pc>0?'+':''}${pc}%`}); };
-  add(r.f_opp, `vs ${abbrOf(r.opp)} bats`); add(r.f_park!=null ? Math.sqrt(r.f_park) : null, 'park'); add(r.f_wx!=null ? Math.sqrt(r.f_wx) : null, 'weather'); if (r.k_bonus) out.push({pc: Math.round(100*r.k_bonus/Math.max(1,r.base_gs||7)), txt:`K bonus ${r.k_bonus>=0?'+':''}${r.k_bonus.toFixed(1)}`}); if (r.home) out.push({pc:2, txt:'home'}); return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
+  add(r.f_opp, `vs ${abbrOf(r.opp)} bats`); add(r.f_park!=null ? Math.sqrt(r.f_park) : null, 'park'); add(r.f_wx!=null ? Math.sqrt(r.f_wx) : null, 'weather'); if (r.k_bonus) out.push({pc: Math.round(100*r.k_bonus/Math.max(1,r.base_gs||7)), txt:`K bonus ${r.k_bonus>=0?'+':''}${r.k_bonus.toFixed(1)}`}); if (r.home) out.push({pc:2, txt:'home'});
+  // form chips: what he is throwing lately against his own season line, which is what the base rate reads
+  if (r.dvelo!=null && Math.abs(r.dvelo)>=0.4) out.push({pc: r.dvelo>0?6:-6, txt:`velo ${r.dvelo>0?'+':''}${r.dvelo.toFixed(1)} mph`});
+  if (r.dwhiff!=null && Math.abs(r.dwhiff)>=2) out.push({pc: r.dwhiff>0?5:-5, txt:`whiffs ${r.dwhiff>0?'+':''}${r.dwhiff.toFixed(0)}%`});
+  if (r.ip_start_3!=null && r.ip_gs!=null && Math.abs(r.ip_start_3-r.ip_gs)>=0.6) out.push({pc: r.ip_start_3>r.ip_gs?4:-4, txt:`${r.ip_start_3.toFixed(1)} IP last 3`});
+  return out.sort((a,b)=>Math.abs(b.pc)-Math.abs(a.pc)); }
 function whyChipsP(r, n=3){ return `<span class="why" style="display:inline-flex;flex-wrap:wrap;gap:4px">${whyListP(r).slice(0,n).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')}</span>`; }
 function spTag(name, src){ return name ? `${esc(name)}${src==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}` : '<span class="hint">TBD</span>'; }
 function wxCell(r){ if(r.temp_f==null) return r.roof && r.roof!=='Open' ? '<span class="hint">roof</span>' : ''; const w = r.wind_out==null?'':(r.wind_out>=0?'out ':'in ')+Math.abs(r.wind_out).toFixed(0); return `${Math.round(r.temp_f)}° · ${w}${r.precip_prob>=50?` · <span class="pill w">${Math.round(r.precip_prob)}% rain</span>`:''}`; }
@@ -1514,6 +1537,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260914T0228"></script>
+<script src="live.js?v=20260914T0304"></script>
 </body>
 </html>
