@@ -15,6 +15,15 @@ to refresh now.
 forecasts) and republishes the site. "Run workflow" with `full = true` rebuilds the season models (projections,
 Breakout Index, keeper values, prospect cards) — do that after the season or whenever you want the models refreshed.
 
+## Home Run Board (separate page)
+
+`site/hr/` is a stand-alone page, deliberately not linked from the lab: who is most likely to homer today, hits and
+total bases, starter strikeouts and game odds, each next to DraftKings (ESPN's public odds feed) and Kalshi (public
+market data), plus a scorecard that grades every board once the games are played. Code in `hrboard/`
+(`python -m hrboard.build` for the daily board, `python -m hrboard.train` to refit and re-test the model), data in
+`data/hrboard/`. It rebuilds with every refresh and on its own `hrboard` workflow five more times a day; lineups,
+DraftKings lines, weather and home runs update live in the browser.
+
 ## Put it online (GitHub Pages, free)
 
 1. Create a GitHub account if you do not have one, then a new repository (public is fine; the data is public data).

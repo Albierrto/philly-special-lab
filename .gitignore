@@ -13,3 +13,10 @@ data/milb/
 data/injuries/transactions_*.json
 # generated pages (the site/ folder is the one that is served)
 output/*/philly_special*.html
+# Home Run Board: the week in progress is re-fetched every build; 2022-23 plate appearances and the backtest frames
+# are only needed to refit the model (python -m hrboard.train), not for the daily board
+data/hrboard/pa/*.open.parquet
+data/hrboard/pa/2022_*
+data/hrboard/pa/2023_*
+data/hrboard/backtest/*.parquet
+data/hrboard/context/schedule_*.parquet

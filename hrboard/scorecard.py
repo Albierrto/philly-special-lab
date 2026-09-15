@@ -1,0 +1,153 @@
+"""Log each day's board and grade it once the games are played.
+
+The saved board for a game is the last one built BEFORE first pitch: once a game is live or final its entry is frozen.
+A game first seen after it started is saved with late=True and left out of the market comparison (in-game prices).
+"""
+from __future__ import annotations
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+from . import context as C
+
+TOP_N = (1, 3, 5, 10)
+
+
+def log_picks(slate: dict, folder: Path) -> None:
+    f = folder / f"{slate['date']}.json"
+    old = json.loads(f.read_text()) if f.exists() else {}
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    games = {str(g["pk"]): g for g in slate["games"]}
+    by_pk = {}
+    for h in slate["hitters"]:
+        if (h.get("hr") or 0) < 0.01 or ((h.get("ps") or 0) < 0.25 and not h.get("il")): continue
+        mk = h.get("mk") or {}
+        by_pk.setdefault(str(h["pk"]), {"hitters": [], "pitchers": []})["hitters"].append(dict(
+            id=h["id"], n=h["n"], t=h["t"], hr=round(h["hr"], 4), hit=round(h["hit"], 4), tb2=round(h["tb2"], 4), sl=h["sl"], ps=h["ps"], il=h["il"],
+            dk_hr=_mp(mk, "dk", "hr1", 1), ks_hr=_mp(mk, "ks", "hr1", 0),
+            dk_hit=_mp(mk, "dk", "hit1", 1), ks_hit=_mp(mk, "ks", "hit1", 0),
+            dk_tb2=_mp(mk, "dk", "tb2", 1), ks_tb2=_mp(mk, "ks", "tb2", 0)))
+    for p in slate["pitchers"]:
+        mk = p.get("mk") or {}
+        by_pk.setdefault(str(p["pk"]), {"hitters": [], "pitchers": []})["pitchers"].append(dict(
+            id=p["id"], n=p["n"], ek=p["ek"], ge=p["ge"],
+            dk={k: v[1] for k, v in (mk.get("dk") or {}).items() if k.startswith("k")},
+            ks={k: v[0] for k, v in (mk.get("ks") or {}).items() if k.startswith("k")}))
+    out = dict(old)
+    for pk, g in games.items():
+        prev = old.get(pk)
+        started = g["state"] in ("Live", "Final")
+        if prev and prev.get("frozen"):
+            continue
+        entry = by_pk.get(pk, {"hitters": [], "pitchers": []})
+        mk = g.get("mk") or {}; dk = mk.get("dk") or {}; ks = (mk.get("ks") or {}).get("win") or {}
+        entry.update(saved=now, state=g["state"], frozen=started, late=bool(started and not prev),
+                     home=g["home"]["abbr"], away=g["away"]["abbr"],
+                     p_home=(g.get("model") or {}).get("p_home"), mu=[(g.get("model") or {}).get("mu_home"), (g.get("model") or {}).get("mu_away")],
+                     dk_home=dk.get("home_p"), dk_total=dk.get("total"),
+                     ks_home=(ks.get(g["home"]["abbr"]) or [None])[0])
+        if started and prev and not prev.get("frozen"):
+            prev.update(frozen=True, state=g["state"]); out[pk] = prev      # keep the last pre-game board
+        else:
+            out[pk] = entry
+    f.write_text(json.dumps(out, separators=(",", ":")))
+
+
+def _mp(mk, src, key, i):
+    v = (mk.get(src) or {}).get(key)
+    return v[i] if v else None
+
+
+def _ll(p, y):
+    p = np.clip(np.asarray(p, dtype=float), 1e-4, 1 - 1e-4); y = np.asarray(y, dtype=float)
+    return float(-(y * np.log(p) + (1 - y) * np.log(1 - p)).mean())
+
+
+def scorecard(d: pd.DataFrame, folder: Path, today: str) -> dict:
+    files = sorted(p for p in folder.glob("*.json") if p.stem < today)
+    if not files:
+        return dict(days=0)
+    x = d[d["season"] == d["season"].max()]
+    res_b = x.groupby(["game_pk", "batter"]).agg(HR=("hr", "sum"), H=("s1", "sum"), XB=("xb", "sum"), PA=("pa", "sum"))
+    res_b["H"] = res_b["H"] + res_b["XB"] + res_b["HR"]
+    tb = x.assign(tb=x["s1"] + 2 * (x["events"] == "double") + 3 * (x["events"] == "triple") + 4 * x["hr"]).groupby(["game_pk", "batter"])["tb"].sum()
+    res_b["TB"] = tb
+    res_p = x[x["vs_sp"] == 1].groupby(["game_pk", "opp_sp"])["k"].sum()
+    have = set(x["game_pk"].unique())
+    H, P, Gm, daily = [], [], [], []
+    for f in files:
+        day = f.stem
+        j = json.loads(f.read_text())
+        sch = C.schedule(day, day, hydrate="team").set_index("game_pk") if j else pd.DataFrame()
+        dayrows = []
+        for pk, g in j.items():
+            pk = int(pk)
+            if pk not in sch.index or sch.at[pk, "abstract"] != "Final" or pk not in have:
+                continue
+            for h in g["hitters"]:
+                r = res_b.loc[(pk, h["id"])] if (pk, h["id"]) in res_b.index else None
+                row = dict(day=day, pk=pk, late=g.get("late", False), **h, y_hr=int(r is not None and r["HR"] > 0),
+                           y_hit=int(r is not None and r["H"] > 0), y_tb2=int(r is not None and r["TB"] >= 2),
+                           played=int(r is not None), HRn=int(r["HR"]) if r is not None else 0)
+                H.append(row); dayrows.append(row)
+            for p in g["pitchers"]:
+                k = res_p.get((pk, p["id"]))
+                if k is None: continue
+                P.append(dict(day=day, pk=pk, late=g.get("late", False), id=p["id"], n=p["n"], ek=p["ek"], K=int(k), ge=p["ge"], dk=p.get("dk", {}), ks=p.get("ks", {})))
+            hr_, ar_ = sch.at[pk, "home_runs"], sch.at[pk, "away_runs"]
+            if g.get("p_home") is not None and pd.notna(hr_):
+                Gm.append(dict(day=day, pk=pk, late=g.get("late", False), p=g["p_home"], dk=g.get("dk_home"), ks=g.get("ks_home"),
+                               y=int(hr_ > ar_), total=int(hr_ + ar_), mu=sum(v or 0 for v in g.get("mu", [])), dk_total=g.get("dk_total"),
+                               home=g["home"], away=g["away"], score=f"{int(ar_)}-{int(hr_)}"))
+        if dayrows:
+            t = pd.DataFrame(dayrows).sort_values("hr", ascending=False).head(10)
+            daily.append(dict(day=day, top=[dict(id=int(r.id), n=r.n, t=r.t, p=r.hr, y=int(r.HRn), dk=r.dk_hr, ks=r.ks_hr, played=int(r.played))
+                                            for r in t.itertuples()]))
+    out = dict(days=len(daily), since=files[0].stem, daily=daily[-10:][::-1])
+    if H:
+        h = pd.DataFrame(H)
+        h["rank"] = h.groupby("day")["hr"].rank(ascending=False, method="first")
+        out["top"] = {str(n): dict(picks=int((h["rank"] <= n).sum()), hits=int(h.loc[h["rank"] <= n, "y_hr"].sum()),
+                                   expected=round(float(h.loc[h["rank"] <= n, "hr"].sum()), 2)) for n in TOP_N}
+        for k in ("hr", "hit", "tb2"):
+            yk = h[f"y_{k}"]
+            blk = dict(n=int(len(h)), actual=round(float(yk.mean()), 4), model=round(float(h[k].mean()), 4), ll_model=round(_ll(h[k], yk), 4))
+            for m in ("dk", "ks"):
+                c = f"{m}_{k}"
+                sub = h[h[c].notna() & ~h["late"]] if c in h else h.iloc[0:0]
+                if len(sub) >= 20:
+                    blk[m] = dict(n=int(len(sub)), actual=round(float(sub[f"y_{k}"].mean()), 4), market=round(float(sub[c].mean()), 4),
+                                  model=round(float(sub[k].mean()), 4), ll_market=round(_ll(sub[c], sub[f"y_{k}"]), 4),
+                                  ll_model=round(_ll(sub[k], sub[f"y_{k}"]), 4))
+            out[k] = blk
+        bins = pd.cut(h["hr"], [0, .08, .12, .16, .2, .25, 1])
+        out["hr_calib"] = [dict(bin=str(b), n=int(len(g)), model=round(float(g["hr"].mean()), 3), actual=round(float(g["y_hr"].mean()), 3))
+                           for b, g in h.groupby(bins, observed=True)]
+    if P:
+        p = pd.DataFrame(P)
+        out["k"] = dict(n=int(len(p)), mae=round(float((p["ek"] - p["K"]).abs().mean()), 2), mean_pred=round(float(p["ek"].mean()), 2),
+                        mean_actual=round(float(p["K"].mean()), 2))
+    if Gm:
+        g = pd.DataFrame(Gm)
+        fav = (g["p"] >= 0.5).astype(int)
+        blk = dict(n=int(len(g)), right=int((fav == g["y"]).sum()), ll_model=round(_ll(g["p"], g["y"]), 4))
+        for m in ("dk", "ks"):
+            sub = g[g[m].notna() & ~g["late"]]
+            if len(sub) >= 5:
+                blk[m] = dict(n=int(len(sub)), right=int(((sub[m] >= .5).astype(int) == sub["y"]).sum()), ll_market=round(_ll(sub[m], sub["y"]), 4),
+                              ll_model=round(_ll(sub["p"], sub["y"]), 4))
+        out["games"] = blk
+        out["recent_games"] = g.sort_values("day").tail(30)[["day", "home", "away", "p", "dk", "ks", "y", "score"]].iloc[::-1].to_dict(orient="records")
+    return out
+
+
+def slim_report(r: dict) -> dict:
+    if not r: return {}
+    keep = {}
+    for k in ("hr", "hr_naive", "hit", "tb2", "k_ladder", "win", "win_home_only"):
+        if k in r: keep[k] = {a: round(b, 4) for a, b in r[k].items() if a in ("n", "base", "mean_p", "logloss", "logloss_const", "auc")}
+    for k in ("top", "sp_k", "totals", "hr_calib", "k_calib", "win_calib", "pa_2026"):
+        if k in r: keep[k] = r[k]
+    return keep
