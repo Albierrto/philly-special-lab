@@ -100,6 +100,25 @@ def draft_results(lid: str, tm: pd.DataFrame, ids: dict) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("overall")
 
 
+def schedule(lid: str) -> dict:
+    """The league's scoring periods and its head-to-head schedule, straight from getLeagueInfo.
+
+    Regular-season periods name the two teams. Playoff periods name only SEEDS, because who fills them depends on
+    results Fantrax has not played yet, so the matchup simulator falls back to a team picker once the bracket starts.
+    """
+    info = _get("getLeagueInfo", leagueId=lid)
+    periods = [dict(n=int(p["number"]), start=str(p["startDate"])[:10], end=str(p["endDate"])[:10]) for p in info.get("scoringPeriods", [])]
+    games = []
+    for grp in info.get("matchups", []):
+        for g in grp.get("matchupList", []):
+            a, h = g.get("away") or {}, g.get("home") or {}
+            games.append(dict(period=int(grp["period"]), away=a.get("shortName"), home=h.get("shortName"),
+                              away_seed=a.get("seed"), home_seed=h.get("seed")))
+    pl = info.get("playoffs") or {}
+    return dict(periods=periods, games=games, first_playoff_period=pl.get("firstPlayoffPeriod"),
+                last_regular_period=pl.get("lastRegularSeasonPeriod"), playoff_teams=pl.get("numPlayoffTeams"))
+
+
 def sync(season: int | None = None) -> dict:
     season = season or C.CURRENT_SEASON; lid = league_id(season); out = C.DATA / "fantrax"; out.mkdir(parents=True, exist_ok=True)
     ids = player_ids(); tm = teams(lid); st = standings(lid, tm); ro = rosters(lid, tm, ids); slots = draft_slots_from_standings(st)
@@ -115,6 +134,8 @@ def sync(season: int | None = None) -> dict:
     if cfg.get("user_team_abbrev") in names: names[cfg["user_team_abbrev"]] = f"{names[cfg['user_team_abbrev']].split(' (')[0]} (Bort)"
     cfg["fantasy_team_abbrevs"] = names; cfg[f"standings_{season}"] = st[["rank", "team", "abbrev", "W", "L", "points_for"]].to_dict(orient="records")
     cfg[f"draft_order_{season + 1}"] = slots["team"].tolist(); cfg["draft_order_rule"] = DRAFT_RULE
+    try: cfg["schedule"] = schedule(lid)          # scoring periods + head-to-head, for the matchup simulator
+    except Exception as e: print("schedule sync failed, keeping what is on file:", e)
     cfg_p.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
     res = dict(teams=len(tm), rostered=len(ro), standings=len(st), synced_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), season=season)
     (out / "sync_meta.json").write_text(json.dumps(res, indent=2))

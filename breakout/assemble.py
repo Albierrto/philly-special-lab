@@ -28,6 +28,8 @@ def main(argv=None):
         data["streamers"] = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
                                  park_factors=s["park_factors"], venues=s.get("venues", []), logs=s.get("logs", {}))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
+    data["meta"]["schedule"] = cfg.get("schedule", {})          # scoring periods + head-to-head, for the matchup simulator
+    data["meta"]["standings"] = cfg.get(f"standings_{data['meta']['season']}", [])   # season pace, to sanity-check the simulator
     tpl_txt = tpl.read_text(encoding="utf-8")
     # Bort's edition (defaults to his team) and a league edition (defaults to league view, a different title)
     data["meta"]["default_team"] = data["meta"].get("my_abbrev", "BB")

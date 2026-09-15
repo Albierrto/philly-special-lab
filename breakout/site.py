@@ -199,6 +199,8 @@ def build(default_team: str):
     tpl = (C.OUT / "v4" / "explorer_template.html").read_text(encoding="utf-8")
     data = ownership.apply(picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text())))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
+    data["meta"]["schedule"] = cfg.get("schedule", {})                                        # periods + head-to-head, for the matchup simulator
+    data["meta"]["standings"] = cfg.get(f"standings_{data['meta']['season']}", [])            # season pace, to sanity-check it
     data["meta"]["default_team"] = default_team
     s = ownership.stamp_streamers(json.loads((C.OUT / "streamers" / "streamers.json").read_text()))
     stream = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
