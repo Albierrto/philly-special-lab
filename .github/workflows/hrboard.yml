@@ -1,0 +1,45 @@
+name: hrboard
+# The Home Run Board on its own: model, lineups, weather, DraftKings and Kalshi prices, scorecard. The main refresh
+# rebuilds it too; these extra slots keep Kalshi prices and projected lineups fresh through the afternoon and evening.
+# Not on the hour (GitHub sheds :00 runs under load) and in the same concurrency group as refresh, so the two never
+# push at the same time.
+on:
+  schedule:
+    - cron: "47 14 * * *"   # 10:47 am ET
+    - cron: "47 17 * * *"   #  1:47 pm ET
+    - cron: "47 20 * * *"   #  4:47 pm ET
+    - cron: "47 23 * * *"   #  7:47 pm ET
+    - cron: "47 2 * * *"    # 10:47 pm ET (tomorrow's board firms up)
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency: refresh
+jobs:
+  board:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: "pip" }
+      - run: pip install -r requirements.txt
+      - name: Home Run Board
+        timeout-minutes: 20
+        run: python -m hrboard.build
+      - name: Commit
+        run: |
+          git config user.name "lab-bot"
+          git config user.email "lab-bot@users.noreply.github.com"
+          git add -A site/hr data/hrboard
+          git commit -m "hr board $(date -u +%F\ %H:%M)" || echo "nothing to commit"
+          git pull --rebase
+          git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deployment
+        uses: actions/deploy-pages@v4
