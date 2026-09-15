@@ -716,9 +716,10 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
         # who is actually taking the opponent's plate appearances, against the club's season split. Shown, never applied.
         lw = (lstr or {}).get((int(g["opp_id"]), hand))
         lshift = round(lw - tw, 4) if lw is not None else np.nan
-        kmv = 0.0
+        kmv = 0.0; k30 = np.nan
         if tfi is not None and g["opp_id"] in tfi.index:
-            m = tfi.loc[g["opp_id"]]["k_move"]
+            m = tfi.loc[g["opp_id"]]["k_move"]; k3 = tfi.loc[g["opp_id"]]["k_30"]
+            if pd.notna(k3): k30 = float(k3)
             if pd.notna(m): kmv = float(m); tk = tk * (1 + W["k_move_w"] * kmv)
         oppf = float(np.clip(1 - W["opp_per_woba"] * (tw - LG_WOBA), 0.7, 1.3))
         park = pfa.loc[(g["venue_id"], "All")]["pf_runs"] / 100 if (g["venue_id"], "All") in pfa.index else 1.0
@@ -732,7 +733,7 @@ def pitcher_starts(games: pd.DataFrame, pitchers: pd.DataFrame, psplits: pd.Data
         kbonus = W["k_weight"] * float(sp["k_per_gs"]) * (tk / LG_K - 1)
         exp = float(sp["base_gs"]) * oppf * parkf * wxf * homef + kbonus
         rows.append(dict(mlbam_id=g["sp_id"], name=g["sp_name"], team=g["team"], throws=sp.get("throws"), owner=sp.get("owner"), date=g["date"], gamePk=g["gamePk"], home=g["home"], opp=g["opp"], venue=g["venue"],
-                         sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), opp_k_move=round(kmv, 3),
+                         sp_source=g["sp_source"], opp_woba_vs_hand=round(tw, 3), opp_k_vs_hand=round(tk, 3), opp_k_move=round(kmv, 3), opp_k_30=(round(k30, 3) if k30 == k30 else np.nan),
                          opp_lineup_woba=(round(lw, 3) if lw is not None else np.nan), opp_lineup_shift=lshift, park_runs=(int(park * 100)), temp_f=(float(w["temp_f"]) if w is not None else np.nan),
                          wind_out=round(wind_c, 1), precip_prob=(float(w["precip_prob"]) if w is not None else np.nan), local_start=(w["local_start"] if w is not None else None),
                          base_gs=round(float(sp["base_gs"]), 2),

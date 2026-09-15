@@ -7,7 +7,7 @@ from . import picks, ownership
 
 HD_COLS = ["mlbam_id", "name", "team", "bats", "elig", "owner", "date", "gamePk", "home", "opp", "opp_sp", "opp_sp_throws", "opp_sp_source", "sp_xwoba", "sp_k", "sp_pitching_plus",
            "park_runs", "park_hr", "temp_f", "wind_mph", "wind_out", "precip_prob", "roof", "local_start", "base_rate", "pa_g", "f_sp", "f_park", "f_wx", "f_platoon", "f_form", "mult", "exp_pts", "woba_30", "pa_30", "active", "status", "cbs"]
-PS_COLS = ["mlbam_id", "name", "team", "throws", "owner", "date", "gamePk", "home", "opp", "venue", "sp_source", "opp_woba_vs_hand", "opp_k_vs_hand", "opp_k_move", "opp_lineup_woba", "opp_lineup_shift", "park_runs", "temp_f", "wind_out", "precip_prob", "local_start",
+PS_COLS = ["mlbam_id", "name", "team", "throws", "owner", "date", "gamePk", "home", "opp", "venue", "sp_source", "opp_woba_vs_hand", "opp_k_vs_hand", "opp_k_move", "opp_k_30", "opp_lineup_woba", "opp_lineup_shift", "park_runs", "temp_f", "wind_out", "precip_prob", "local_start",
            "base_gs", "pts_gs_2026", "pts_all_gs", "n_relief", "GS", "pitching_plus", "stuff_plus", "xera", "k_percent", "woba_30", "gs_30", "f_opp", "f_park", "f_wx", "k_bonus", "exp_pts", "two_start", "week_pts", "active", "status", "role", "ip_gs", "n_starts", "last5_pts", "last3_pts", "ip_start_3", "ip_mix", "velo_30", "dvelo", "whiff_30", "dwhiff", "csw_30", "relief_after_start", "days_since_start", "velo_st", "csw_st", "whiff_st", "dcsw", "new_pitch", "xwoba_against", "k_start", "pl_tier", "pl_note", "cbs"]
 G_COLS = ["gamePk", "date", "team", "home", "opp", "venue", "sp_name", "sp_source", "opp_sp_name", "opp_sp_source", "local_start", "temp_f", "wind_mph", "wind_dir", "precip_prob", "dayNight"]
 
