@@ -238,5 +238,1065 @@
     "City to the Shore",
     "Basketball"
   ],
-  "draft_order_rule": "bottom4_then_reverse"
+  "draft_order_rule": "bottom4_then_reverse",
+  "schedule": {
+    "periods": [
+      {
+        "n": 1,
+        "start": "2026-03-25",
+        "end": "2026-04-06"
+      },
+      {
+        "n": 2,
+        "start": "2026-04-06",
+        "end": "2026-04-13"
+      },
+      {
+        "n": 3,
+        "start": "2026-04-13",
+        "end": "2026-04-20"
+      },
+      {
+        "n": 4,
+        "start": "2026-04-20",
+        "end": "2026-04-27"
+      },
+      {
+        "n": 5,
+        "start": "2026-04-27",
+        "end": "2026-05-04"
+      },
+      {
+        "n": 6,
+        "start": "2026-05-04",
+        "end": "2026-05-11"
+      },
+      {
+        "n": 7,
+        "start": "2026-05-11",
+        "end": "2026-05-18"
+      },
+      {
+        "n": 8,
+        "start": "2026-05-18",
+        "end": "2026-05-25"
+      },
+      {
+        "n": 9,
+        "start": "2026-05-25",
+        "end": "2026-06-01"
+      },
+      {
+        "n": 10,
+        "start": "2026-06-01",
+        "end": "2026-06-08"
+      },
+      {
+        "n": 11,
+        "start": "2026-06-08",
+        "end": "2026-06-15"
+      },
+      {
+        "n": 12,
+        "start": "2026-06-15",
+        "end": "2026-06-22"
+      },
+      {
+        "n": 13,
+        "start": "2026-06-22",
+        "end": "2026-06-29"
+      },
+      {
+        "n": 14,
+        "start": "2026-06-29",
+        "end": "2026-07-06"
+      },
+      {
+        "n": 15,
+        "start": "2026-07-06",
+        "end": "2026-07-13"
+      },
+      {
+        "n": 16,
+        "start": "2026-07-13",
+        "end": "2026-07-27"
+      },
+      {
+        "n": 17,
+        "start": "2026-07-27",
+        "end": "2026-08-03"
+      },
+      {
+        "n": 18,
+        "start": "2026-08-03",
+        "end": "2026-08-10"
+      },
+      {
+        "n": 19,
+        "start": "2026-08-10",
+        "end": "2026-08-17"
+      },
+      {
+        "n": 20,
+        "start": "2026-08-17",
+        "end": "2026-08-24"
+      },
+      {
+        "n": 21,
+        "start": "2026-08-24",
+        "end": "2026-08-31"
+      },
+      {
+        "n": 22,
+        "start": "2026-08-31",
+        "end": "2026-09-07"
+      },
+      {
+        "n": 23,
+        "start": "2026-09-07",
+        "end": "2026-09-14"
+      },
+      {
+        "n": 24,
+        "start": "2026-09-14",
+        "end": "2026-09-21"
+      }
+    ],
+    "games": [
+      {
+        "period": 1,
+        "away": "GK",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 1,
+        "away": "THALER",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 1,
+        "away": "LTTA",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 1,
+        "away": "Dpf",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 1,
+        "away": "Dan",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 1,
+        "away": "MMM",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 2,
+        "away": "CH",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 2,
+        "away": "GK",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 2,
+        "away": "BAMBI",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 2,
+        "away": "CS",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 2,
+        "away": "BB",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 2,
+        "away": "CJF",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 3,
+        "away": "LTTA",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 3,
+        "away": "Dpf",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 3,
+        "away": "Dan",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 3,
+        "away": "MMM",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 3,
+        "away": "GLIZZY",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 3,
+        "away": "CJF",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 4,
+        "away": "CH",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 4,
+        "away": "LTTA",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 4,
+        "away": "THALER",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 4,
+        "away": "GK",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 4,
+        "away": "BAMBI",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 4,
+        "away": "CS",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 5,
+        "away": "Dan",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 5,
+        "away": "MMM",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 5,
+        "away": "GLIZZY",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 5,
+        "away": "CJF",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 5,
+        "away": "BB",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 5,
+        "away": "CS",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 6,
+        "away": "CH",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 6,
+        "away": "Dan",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 6,
+        "away": "Dpf",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 6,
+        "away": "LTTA",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 6,
+        "away": "THALER",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 6,
+        "away": "GK",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 7,
+        "away": "GLIZZY",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 7,
+        "away": "CJF",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 7,
+        "away": "BB",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 7,
+        "away": "CS",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 7,
+        "away": "BAMBI",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 7,
+        "away": "GK",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 8,
+        "away": "CH",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 8,
+        "away": "GLIZZY",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 8,
+        "away": "MMM",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 8,
+        "away": "Dan",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 8,
+        "away": "Dpf",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 8,
+        "away": "LTTA",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 9,
+        "away": "BB",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 9,
+        "away": "CS",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 9,
+        "away": "BAMBI",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 9,
+        "away": "GK",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 9,
+        "away": "THALER",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 9,
+        "away": "LTTA",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 10,
+        "away": "CH",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 10,
+        "away": "BB",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 10,
+        "away": "CJF",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 10,
+        "away": "GLIZZY",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 10,
+        "away": "MMM",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 10,
+        "away": "Dan",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 11,
+        "away": "BAMBI",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 11,
+        "away": "GK",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 11,
+        "away": "THALER",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 11,
+        "away": "LTTA",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 11,
+        "away": "Dpf",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 11,
+        "away": "Dan",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 12,
+        "away": "CH",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 12,
+        "away": "BAMBI",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 12,
+        "away": "CS",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 12,
+        "away": "BB",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 12,
+        "away": "CJF",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 12,
+        "away": "GLIZZY",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 13,
+        "away": "THALER",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 13,
+        "away": "LTTA",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 13,
+        "away": "Dpf",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 13,
+        "away": "Dan",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 13,
+        "away": "MMM",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 13,
+        "away": "GLIZZY",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 14,
+        "away": "CH",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 14,
+        "away": "THALER",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 14,
+        "away": "GK",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 14,
+        "away": "BAMBI",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 14,
+        "away": "CS",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 14,
+        "away": "BB",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 15,
+        "away": "Dpf",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 15,
+        "away": "Dan",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 15,
+        "away": "MMM",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 15,
+        "away": "GLIZZY",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 15,
+        "away": "CJF",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 15,
+        "away": "BB",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 16,
+        "away": "CH",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 16,
+        "away": "Dpf",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 16,
+        "away": "LTTA",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 16,
+        "away": "THALER",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 16,
+        "away": "GK",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 16,
+        "away": "BAMBI",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 17,
+        "away": "MMM",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 17,
+        "away": "GLIZZY",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 17,
+        "away": "CJF",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 17,
+        "away": "BB",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 17,
+        "away": "CS",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 17,
+        "away": "BAMBI",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 18,
+        "away": "CH",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 18,
+        "away": "MMM",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 18,
+        "away": "Dan",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 18,
+        "away": "Dpf",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 18,
+        "away": "LTTA",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 18,
+        "away": "THALER",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 19,
+        "away": "CJF",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 19,
+        "away": "BB",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 19,
+        "away": "CS",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 19,
+        "away": "BAMBI",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 19,
+        "away": "GK",
+        "home": "Dpf",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 19,
+        "away": "THALER",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 20,
+        "away": "CH",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 20,
+        "away": "CJF",
+        "home": "CS",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 20,
+        "away": "GLIZZY",
+        "home": "BAMBI",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 20,
+        "away": "MMM",
+        "home": "GK",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 20,
+        "away": "Dan",
+        "home": "THALER",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 20,
+        "away": "Dpf",
+        "home": "LTTA",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 21,
+        "away": "CS",
+        "home": "CH",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 21,
+        "away": "BAMBI",
+        "home": "BB",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 21,
+        "away": "GK",
+        "home": "CJF",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 21,
+        "away": "THALER",
+        "home": "GLIZZY",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 21,
+        "away": "LTTA",
+        "home": "MMM",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 21,
+        "away": "Dpf",
+        "home": "Dan",
+        "away_seed": null,
+        "home_seed": null
+      },
+      {
+        "period": 22,
+        "away": null,
+        "home": null,
+        "away_seed": 8,
+        "home_seed": 1
+      },
+      {
+        "period": 22,
+        "away": null,
+        "home": null,
+        "away_seed": 5,
+        "home_seed": 4
+      },
+      {
+        "period": 22,
+        "away": null,
+        "home": null,
+        "away_seed": 7,
+        "home_seed": 2
+      },
+      {
+        "period": 22,
+        "away": null,
+        "home": null,
+        "away_seed": 6,
+        "home_seed": 3
+      },
+      {
+        "period": 23,
+        "away": null,
+        "home": null,
+        "away_seed": 4,
+        "home_seed": 1
+      },
+      {
+        "period": 23,
+        "away": null,
+        "home": null,
+        "away_seed": 3,
+        "home_seed": 2
+      },
+      {
+        "period": 24,
+        "away": null,
+        "home": null,
+        "away_seed": 2,
+        "home_seed": 1
+      }
+    ],
+    "first_playoff_period": 22,
+    "last_regular_period": 21,
+    "playoff_teams": 8
+  }
 }

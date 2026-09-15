@@ -51,7 +51,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 0510l,Emerson Hancock,SEA,SP,SP,INJURED_RESERVE,CH,Charlie Hustle
 03qpi,Patrick Sandoval,BOS,SP,SP,ACTIVE,CH,Charlie Hustle
 04pst,Jarren Duran,BOS,LF,OF,ACTIVE,CH,Charlie Hustle
-04yig,Brooks Lee,MIN,SS,SS,RESERVE,BAMBI,The Great Bambi
+04yig,Brooks Lee,MIN,SS,SS,ACTIVE,BAMBI,The Great Bambi
 06plc,Sam Antonacci,CHW,2B,2B,ACTIVE,BAMBI,The Great Bambi
 041ma,Cole Ragans,KC,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 02i2k,Byron Buxton,MIN,CF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
@@ -69,7 +69,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05tzn,Parker Messick,CLE,SP,SP,ACTIVE,BAMBI,The Great Bambi
 01fh9,Bryce Harper,PHI,1B,1B,ACTIVE,BAMBI,The Great Bambi
 04b02,Seiya Suzuki,CHC,DH,OF,ACTIVE,BAMBI,The Great Bambi
-04qk8,CJ Abrams,WSH,SS,SS,ACTIVE,BAMBI,The Great Bambi
+04qk8,CJ Abrams,WSH,SS,SS,RESERVE,BAMBI,The Great Bambi
 06n8y,Eli Willits,WSH,SS,SS,MINORS,BAMBI,The Great Bambi
 060pm,Wyatt Langford,TEX,LF,UT,ACTIVE,BAMBI,The Great Bambi
 05rcf,Joshua Baez,STL,RF,UT,RESERVE,BAMBI,The Great Bambi

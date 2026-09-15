@@ -123,6 +123,17 @@ td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font
 .pos-d{color:var(--good);font-weight:600}.neg-d{color:var(--bad);font-weight:600}
 /* ---------- dashboard */
 .dash{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+/* matchup simulator */
+#tab-matchup .dcard .big{font-family:var(--font-d);font-size:clamp(30px,6vw,44px);line-height:1;font-weight:700;margin:2px 0 6px}
+.mhist{display:flex;align-items:flex-end;gap:2px;height:130px;margin:10px 0 4px}
+.mhist .mbar{flex:1;display:flex;align-items:flex-end;gap:1px;height:100%}
+.mhist .mbar span{flex:1;border-radius:2px 2px 0 0;min-height:1px}
+.mhist .mbar .a{background:var(--hot)} .mhist .mbar .b{background:var(--cold)}
+.key{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:baseline}
+.key.a{background:var(--hot)} .key.b{background:var(--cold)}
+.wpbar{height:10px;border-radius:5px;background:var(--cold);overflow:hidden;margin:6px 0 8px}
+.wpbar span{display:block;height:100%;background:var(--hot)}
+td.neg{color:var(--cold)}
 .dcard{grid-column:span 4;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .dcard.w6{grid-column:span 6} .dcard.w8{grid-column:span 8} .dcard.w12{grid-column:span 12}
 .dcard h3{margin:0 0 8px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
@@ -367,6 +378,31 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
     <span class="count" id="b-count"></span>
   </div>
   <div class="tblwrap"><table id="t-break"></table></div>
+</section>
+
+<section role="tabpanel" id="tab-matchup">
+  <div class="pagehead"><div><h2>Matchup simulator</h2>
+  <p class="lede" id="m-lede"></p></div><div class="seg" role="group"><button aria-pressed="true" data-msims="4000">4k sims</button><button aria-pressed="false" data-msims="20000">20k</button></div></div>
+  <div class="filters">
+    <label>Me <select id="m-me"></select></label>
+    <label>Opponent <select id="m-opp"></select></label>
+    <label>My score so far <input type="number" step="0.01" id="m-mine-now" value="0" min="0"></label>
+    <label>Their score so far <input type="number" step="0.01" id="m-opp-now" value="0" min="0"></label>
+    <label>Fantrax says (me) <input type="number" step="0.01" id="m-fx-me" placeholder="optional"></label>
+    <label>Fantrax says (them) <input type="number" step="0.01" id="m-fx-opp" placeholder="optional"></label>
+    <button class="btn small" id="m-run">Run</button>
+  </div>
+  <div id="m-out"></div>
+  <h3 style="margin-top:22px">Whose projections are better</h3>
+  <p class="hint">After the period ends, put the two final scores in and this keeps the record. It is stored in this browser only.</p>
+  <div class="filters">
+    <label>Final (me) <input type="number" step="0.01" id="m-fin-me" placeholder="actual"></label>
+    <label>Final (them) <input type="number" step="0.01" id="m-fin-opp" placeholder="actual"></label>
+    <button class="btn small" id="m-log">Log this week</button>
+    <button class="btn small" id="m-clear">Clear log</button>
+  </div>
+  <div class="tblwrap" style="max-height:44vh"><table id="t-mlog"></table></div>
+  <div id="m-score"></div>
 </section>
 
 <section role="tabpanel" id="tab-pitchers">
@@ -1328,6 +1364,211 @@ function renderMyWeek(){
   $('#s-mine').innerHTML = h;
 }
 
+
+// ---------- matchup simulator
+// A projected score is a mean, and a mean is the least interesting thing about a fantasy week. What decides a
+// championship is the shape: how often does 90 turn into 140, how often into 55. So this resamples REAL game lines
+// rather than assuming a bell curve. Points in a single hitter-game are nothing like normal - 30% of the 4,671
+// games in this build's logs scored zero, the median is 2 and the 99th percentile is 15 - and a symmetric
+// distribution around the mean would understate both the blowups and the duds.
+const MST = { sims: 4000, me: null, opp: null };
+const PERIODS = (D.meta.schedule && D.meta.schedule.periods) || [];
+const SCHED = (D.meta.schedule && D.meta.schedule.games) || [];
+const FIRST_PO = (D.meta.schedule && D.meta.schedule.first_playoff_period) || 99;
+const curPeriod = () => { const t = localISO(); return PERIODS.find(p => p.start <= t && t <= p.end) || PERIODS[PERIODS.length-1] || null; };
+// What each team has ACTUALLY averaged per period this season. Fantrax's read-only API exposes a roster status but
+// not the lineup a manager has set, so "what if he leaves his lineup alone" is not knowable from here. This is the
+// honest stand-in: the projection below assumes a perfectly set lineup, and a manager's own season pace says how
+// close to perfect he really plays. Where the two disagree badly, trust the pace.
+const STAND = D.meta.standings || [];
+function pace(team){
+  const s = STAND.find(x => x.abbrev === team); if (!s) return null;
+  const pf = +s.points_for, gp = (+s.W || 0) + (+s.L || 0) + (+s.T || 0);
+  return gp ? pf / gp : null;
+}
+
+// Pools of real single-game results, bucketed by how good the player is. A draw for a player expected to score e
+// takes a random real game out of the nearest bucket and scales it to e, which keeps the zero spike and the long
+// right tail while matching the model's expectation for that day.
+let POOL = null;
+function buildPools(){
+  if (POOL) return POOL;
+  const H_EDGE = [0, 2, 3, 4, 5, 6, 99], P_EDGE = [0, 4, 6, 8, 10, 99];
+  const mk = (logs, edges, ptsOf, minG) => {
+    const bins = edges.slice(0,-1).map(()=>[]);
+    for (const id in (logs||{})){
+      const gs = (logs[id].r||[]).map(ptsOf).filter(v=>v!=null && isFinite(v));
+      if (gs.length < minG) continue;
+      const m = gs.reduce((a,b)=>a+b,0)/gs.length;
+      let b = 0; while (b < bins.length-1 && m >= edges[b+1]) b++;
+      for (const v of gs) bins[b].push(v);
+    }
+    const all = bins.flat();
+    return bins.map(b => { const use = b.length >= 60 ? b : all; const mean = use.reduce((a,x)=>a+x,0)/(use.length||1); return {v: use, mean: mean || 1}; });
+  };
+  POOL = {
+    h: mk(SD && SD.logs && SD.logs.h, H_EDGE, g => (g.PA>0 ? g.pts : null), 5),
+    p: mk(SD && SD.logs && SD.logs.p, P_EDGE, g => (g.gs ? g.pts : null), 3),
+    hEdge: H_EDGE, pEdge: P_EDGE
+  };
+  return POOL;
+}
+function draw(kind, e){
+  const P = buildPools(), edges = kind==='h' ? P.hEdge : P.pEdge, bins = P[kind];
+  let b = 0; while (b < bins.length-1 && e >= edges[b+1]) b++;
+  const bin = bins[b]; if (!bin.v.length) return e;
+  const v = bin.v[(Math.random()*bin.v.length)|0];
+  return v * (e / bin.mean);
+}
+
+// Who is actually playing, day by day. The lineup is set ONCE from expected points - which is what a manager does,
+// he sets it on Tuesday morning from projections, not from knowing the outcome - and then the same ten players have
+// their real results drawn. Solving the lineup inside every simulation would be a manager with tomorrow's box score.
+function sideSlate(team, from, to){
+  const days = [...new Set(SHD.filter(r=>r.date>=from && r.date<=to).map(r=>r.date))].sort();
+  const hit = [];
+  for (const d of days){
+    const rows = SHD.filter(r => r.owner===team && r.active!==0 && r.date===d);
+    if (!rows.length) continue;
+    for (const [slot, r] of bestLineup(rows, d)) if (r) hit.push({date:d, slot, name:r.name, e:r.exp_pts});
+  }
+  const thrown = SPS.filter(r => r.owner===team && r.sp_source!=='replaced' && r.date < from).length;
+  const left = Math.max(0, 10 - thrown);
+  const ahead = SPS.filter(r => r.owner===team && r.active!==0 && r.sp_source!=='replaced' && r.date>=from && r.date<=to)
+                   .sort((a,b)=>b.exp_pts-a.exp_pts).slice(0, left);
+  return {hit, pit: ahead.map(r=>({date:r.date, name:r.name, e:r.exp_pts, proj:r.sp_source==='projected'})), thrown, left, days};
+}
+function simulate(slate, n, base){
+  const out = new Float64Array(n);
+  const byDay = {};
+  for (let i=0;i<n;i++){
+    let s = base;
+    for (const x of slate.hit) s += draw('h', x.e);
+    for (const x of slate.pit) s += draw('p', x.e);
+    out[i] = s;
+  }
+  for (const x of slate.hit) byDay[x.date] = (byDay[x.date]||0) + x.e;
+  for (const x of slate.pit) byDay[x.date] = (byDay[x.date]||0) + x.e;
+  return {out, byDay};
+}
+const q = (sorted, p) => sorted[Math.min(sorted.length-1, Math.max(0, Math.round(p*(sorted.length-1))))];
+
+function renderMatchup(){
+  if (!SD || !SHD.length){ $('#m-out').innerHTML = '<p class="hint">No schedule data in this build.</p>'; return; }
+  const per = curPeriod(), TDY = localISO();
+  const from = TDY, to = per ? per.end : [...new Set(SHD.map(r=>r.date))].sort().pop();
+  const teams = [...new Set(SHD.map(r=>r.owner).filter(o=>o && !isFA(o)))].sort();
+  const sel = (id, val) => { const e=$(id); if(!e.options.length) e.innerHTML = teams.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); if(val && [...e.options].some(x=>x.value===val)) e.value = val; return e.value; };
+  // auto-pick the matchup from the league schedule; playoff periods list seeds only, so there it is a manual choice
+  let oppGuess = null;
+  if (per && per.n < FIRST_PO) { const g = SCHED.find(x=>x.period===per.n && (x.away===MY || x.home===MY)); if (g) oppGuess = g.away===MY ? g.home : g.away; }
+  MST.me = sel('#m-me', MST.me || MY || teams[0]);
+  MST.opp = sel('#m-opp', MST.opp || oppGuess || teams.find(t=>t!==MST.me));
+  const playoff = per && per.n >= FIRST_PO;
+  $('#m-lede').innerHTML = `Period <b>${per?per.n:'?'}</b>${per?` (${dayLabel(per.start)} – ${dayLabel(per.end)})`:''}. Simulating the days still to come — <b>${dayLabel(from)} through ${dayLabel(to)}</b> — ${MST.sims.toLocaleString()} times each side, by drawing real single-game results rather than assuming a bell curve. The lineup is solved once from expected points, the way you would set it, and the ten-start pitcher cap is respected on both sides. <b>These are the days still to come only</b> — put what each side has already banked this period in the boxes and the totals become projected finals.${playoff?' <b>Playoff period:</b> Fantrax only publishes seeds for the bracket, not teams, so pick your opponent yourself.':''}`;
+
+  const A = sideSlate(MST.me, from, to), B = sideSlate(MST.opp, from, to);
+  const baseA = +$('#m-mine-now').value || 0, baseB = +$('#m-opp-now').value || 0;
+  const sa = simulate(A, MST.sims, baseA), sb = simulate(B, MST.sims, baseB);
+  let wins = 0; for (let i=0;i<MST.sims;i++) if (sa.out[i] > sb.out[i]) wins++;
+  const wp = wins / MST.sims;
+  const arrA = Array.from(sa.out).sort((x,y)=>x-y), arrB = Array.from(sb.out).sort((x,y)=>x-y);
+  const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
+  const mA = mean(arrA), mB = mean(arrB);
+  const fxMe = +$('#m-fx-me').value || null, fxOpp = +$('#m-fx-opp').value || null;
+
+  const card = (lbl, team, arr, m, slate, base) => `<div class="dcard w6"><h3>${esc(teamLabel(team))} <span class="hint">${base ? 'projected final' : 'projected from here'}</span></h3>
+    <div class="big">${m.toFixed(1)}</div>
+    <p class="hint">middle 80% of outcomes <b>${q(arr,0.10).toFixed(0)} – ${q(arr,0.90).toFixed(0)}</b> · median ${q(arr,0.5).toFixed(1)} · worst 5% under ${q(arr,0.05).toFixed(0)} · best 5% over ${q(arr,0.95).toFixed(0)}</p>
+    <p class="hint">${base?`<b>${base.toFixed(1)}</b> already banked + `:''}${slate.hit.length} hitter starts and ${slate.pit.length} pitcher starts still to come${slate.thrown?` (${slate.thrown} start${slate.thrown===1?'':'s'} already used of the ten)`:''}.</p>
+    ${(()=>{ const pc = pace(team); if (pc==null || !slate.days.length) return '';
+      const share = slate.days.length / 7, exp = pc * share, gap = m - base - exp;
+      return `<p class="hint">His season pace is <b>${pc.toFixed(0)}</b> a period; over ${slate.days.length} of 7 days that is about <b>${exp.toFixed(0)}</b>. This projects <b>${(m-base).toFixed(0)}</b> — ${Math.abs(gap) < 0.08*exp ? 'in line with how he actually scores' : gap > 0 ? `<b>${gap.toFixed(0)} above</b> it, which assumes a perfectly set lineup` : `<b>${(-gap).toFixed(0)} below</b> it`}.</p>`; })()}</div>`;
+
+  const hist = (arrA, arrB) => {
+    const lo = Math.min(arrA[0], arrB[0]), hi = Math.max(arrA[arrA.length-1], arrB[arrB.length-1]);
+    const N = 26, w = (hi-lo)/N || 1;
+    const bin = a => { const c = new Array(N).fill(0); for (const v of a) c[Math.min(N-1, Math.max(0, Math.floor((v-lo)/w)))]++; return c; };
+    const ca = bin(arrA), cb = bin(arrB), mx = Math.max(...ca, ...cb) || 1;
+    let h = '<div class="mhist">';
+    for (let i=0;i<N;i++) h += `<div class="mbar" title="${(lo+i*w).toFixed(0)}–${(lo+(i+1)*w).toFixed(0)} pts"><span class="a" style="height:${100*ca[i]/mx}%"></span><span class="b" style="height:${100*cb[i]/mx}%"></span></div>`;
+    return h + `</div><p class="hint" style="display:flex;justify-content:space-between"><span>${lo.toFixed(0)}</span><span><span class="key a"></span> ${esc(teamLabel(MST.me))} &nbsp; <span class="key b"></span> ${esc(teamLabel(MST.opp))}</span><span>${hi.toFixed(0)}</span></p>`;
+  };
+
+  const days = [...new Set([...Object.keys(sa.byDay), ...Object.keys(sb.byDay)])].sort();
+  const dayRows = days.map(d=>`<tr><td class="l">${dayLabel(d)}</td><td>${(sa.byDay[d]||0).toFixed(1)}</td><td>${(sb.byDay[d]||0).toFixed(1)}</td><td class="${(sa.byDay[d]||0)>=(sb.byDay[d]||0)?'':'neg'}">${((sa.byDay[d]||0)-(sb.byDay[d]||0)>=0?'+':'')}${((sa.byDay[d]||0)-(sb.byDay[d]||0)).toFixed(1)}</td></tr>`).join('');
+
+  // Fantrax shows more than one projected number and they are not labelled in the DOM: the green figure on the live
+  // scoring page is the score THROUGH TONIGHT, not the period final. Comparing a whole-week projection against it
+  // would be meaningless, so both of this model's horizons are shown and the page says which one Fantrax's number
+  // is actually sitting next to.
+  const todA = baseA + (sa.byDay[TDY] || 0), todB = baseB + (sb.byDay[TDY] || 0);
+  const near = (x, y) => x != null && Math.abs(x - y) <= Math.max(12, 0.2 * y);
+  const fxMatch = fxMe == null ? null : near(fxMe, todA) && !near(fxMe, mA) ? 'tonight' : near(fxMe, mA) ? 'final' : 'neither';
+  const fxBlock = (fxMe||fxOpp) ? `<div class="dcard w12"><h3>Against Fantrax</h3><table class="mini"><tbody>
+      <tr><td class="l"></td><td class="l"><b>${esc(teamLabel(MST.me))}</b></td><td class="l"><b>${esc(teamLabel(MST.opp))}</b></td><td class="l">Margin</td></tr>
+      <tr><td class="l">This model, through tonight</td><td>${todA.toFixed(1)}</td><td>${todB.toFixed(1)}</td><td>${(todA-todB>=0?'+':'')}${(todA-todB).toFixed(1)}</td></tr>
+      <tr><td class="l">This model, period final</td><td>${mA.toFixed(1)}</td><td>${mB.toFixed(1)}</td><td>${(mA-mB>=0?'+':'')}${(mA-mB).toFixed(1)}</td></tr>
+      <tr><td class="l">Fantrax</td><td>${fxMe!=null?fxMe.toFixed(1):'—'}</td><td>${fxOpp!=null?fxOpp.toFixed(1):'—'}</td><td>${(fxMe!=null&&fxOpp!=null)?((fxMe-fxOpp>=0?'+':'')+(fxMe-fxOpp).toFixed(1)):'—'}</td></tr>
+      <tr><td class="l hint">vs the matching row</td><td class="hint">${fxMe!=null?((fxMatch==='tonight'?todA:mA)-fxMe>=0?'+':'')+(((fxMatch==='tonight'?todA:mA)-fxMe).toFixed(1)):'—'}</td><td class="hint">${fxOpp!=null?(((fxMatch==='tonight'?todB:mB)-fxOpp>=0?'+':'')+((fxMatch==='tonight'?todB:mB)-fxOpp).toFixed(1)):'—'}</td><td></td></tr>
+      </tbody></table>
+      <p class="hint">${fxMatch==='tonight' ? '<b>That looks like Fantrax\u2019s through-tonight number</b> (the green figure on its live scoring page), so it is being read against this model\u2019s through-tonight row.' : fxMatch==='final' ? 'That lines up with a full-period projection, so it is being read against the period final.' : fxMatch==='neither' ? '<b>That number does not match either horizon.</b> Check whether it is a daily figure, a period projection, or something else before reading anything into the gap.' : ''}</p>
+      <p class="hint">Neither number is a fact. Fantrax projects off a season-rate pace; this one prices the actual opponent, park and weather for every game left and only counts starts that fit under the ten-start cap. Where they disagree, the log below eventually says which was closer.</p></div>` : '';
+
+  $('#m-out').innerHTML = `<div class="dgrid">
+    ${card('projected', MST.me, arrA, mA, A, baseA)}
+    ${card('projected', MST.opp, arrB, mB, B, baseB)}
+    <div class="dcard w12"><h3>${wp>=0.5?'You win':'You lose'} ${(100*Math.max(wp,1-wp)).toFixed(0)}% of the time</h3>
+      <div class="wpbar"><span style="width:${(100*wp).toFixed(1)}%"></span></div>
+      <p class="hint">Out of ${MST.sims.toLocaleString()} simulated weeks you win <b>${wins.toLocaleString()}</b>. Expected margin <b>${(mA-mB>=0?'+':'')}${(mA-mB).toFixed(1)}</b>. The two sides are drawn independently, so this already accounts for him having a big week at the same time you have a quiet one.</p>
+      ${hist(arrA, arrB)}</div>
+    <div class="dcard w6"><h3>Day by day (expected)</h3><table class="mini"><tbody><tr><td class="l"></td><td><b>${esc(abbrOf(MST.me))}</b></td><td><b>${esc(abbrOf(MST.opp))}</b></td><td>+/−</td></tr>${dayRows}</tbody></table></div>
+    <div class="dcard w6"><h3>Who is carrying it</h3><table class="mini"><tbody>${
+      [...A.hit.map(x=>({...x,k:'bat'})), ...A.pit.map(x=>({...x,k:'arm'}))].sort((a,b)=>b.e-a.e).slice(0,10)
+        .map(x=>`<tr><td class="l">${esc(x.name)} <span class="hint">${x.k}</span></td><td class="l hint">${dayLabel(x.date).split(',')[0]}</td><td>${x.e.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>
+    ${fxBlock}</div>`;
+  renderMLog();
+}
+
+// the accuracy log: my projection, Fantrax's, and what actually happened
+const MLOG_KEY = 'lab-mlog';
+const mlogGet = () => { try { return JSON.parse(localStorage.getItem(MLOG_KEY) || '[]'); } catch(e){ return []; } };
+const mlogSet = v => { try { localStorage.setItem(MLOG_KEY, JSON.stringify(v)); } catch(e){} };
+let tMLog;
+function renderMLog(){
+  const rows = mlogGet().slice().sort((a,b)=>b.period-a.period);
+  const cols = [{k:'period',l:'Period',f:'int',dir:-1},{k:'opp',l:'Opponent',t:'txt'},
+    {k:'mine',l:'Mine',f:'1'},{k:'fx',l:'Fantrax',f:'1'},{k:'actual',l:'Actual',f:'1'},
+    {k:'err_mine',l:'My error',render:v=>v==null?'':(v>=0?'+':'')+v.toFixed(1)},
+    {k:'err_fx',l:'Fantrax error',render:v=>v==null?'':(v>=0?'+':'')+v.toFixed(1)},
+    {k:'winner',l:'Closer',render:v=>v==='mine'?'<span class="pill g">this model</span>':v==='fx'?'<span class="pill b">Fantrax</span>':'<span class="hint">—</span>',left:true}];
+  if (!tMLog) tMLog = table('t-mlog', cols, rows, {sort:'period'}); else tMLog.setRows(rows);
+  const scored = rows.filter(r=>r.winner);
+  if (!scored.length){ $('#m-score').innerHTML = '<p class="hint">Nothing logged yet. After a period ends, put both final scores in above.</p>'; return; }
+  const mineW = scored.filter(r=>r.winner==='mine').length;
+  const mae = k => scored.reduce((a,r)=>a+Math.abs(r[k]),0)/scored.length;
+  $('#m-score').innerHTML = `<p class="hint">Over <b>${scored.length}</b> logged period${scored.length===1?'':'s'}: this model was closer <b>${mineW}</b> time${mineW===1?'':'s'}, Fantrax <b>${scored.length-mineW}</b>. Average miss — this model <b>${mae('err_mine').toFixed(1)}</b>, Fantrax <b>${mae('err_fx').toFixed(1)}</b>. ${scored.length<4?'Too few weeks to mean anything yet.':''}</p>`;
+}
+function buildMatchup(){
+  if (!$('#m-me')) return;
+  ['#m-me','#m-opp'].forEach(s=>$(s).addEventListener('change', e=>{ MST[s==='#m-me'?'me':'opp'] = e.target.value; renderMatchup(); }));
+  ['#m-mine-now','#m-opp-now','#m-fx-me','#m-fx-opp'].forEach(s=>$(s).addEventListener('change', renderMatchup));
+  $('#m-run').addEventListener('click', renderMatchup);
+  $$('[data-msims]').forEach(b=>b.addEventListener('click',()=>{ MST.sims=+b.dataset.msims; $$('[data-msims]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderMatchup(); }));
+  $('#m-log').addEventListener('click', ()=>{
+    const per = curPeriod(); if(!per) return;
+    const fin = +$('#m-fin-me').value, fx = +$('#m-fx-me').value;
+    if (!fin){ alert('Put your actual final score in first.'); return; }
+    const mineProj = +($('#m-out').querySelector('.big')||{textContent:0}).textContent || 0;
+    const e1 = mineProj - fin, e2 = fx ? fx - fin : null;
+    const rec = {period: per.n, opp: teamLabel(MST.opp), mine: mineProj, fx: fx||null, actual: fin,
+                 err_mine: e1, err_fx: e2, winner: e2==null ? null : (Math.abs(e1) <= Math.abs(e2) ? 'mine' : 'fx')};
+    const log = mlogGet().filter(r=>r.period!==per.n); log.push(rec); mlogSet(log); renderMLog();
+  });
+  $('#m-clear').addEventListener('click', ()=>{ if(confirm('Clear the whole accuracy log?')){ mlogSet([]); renderMLog(); } });
+  renderMatchup();
+}
+
 // ---------- a breakout number only means something for a player who has one left in him
 // A percentage beside Aaron Judge is noise (he cannot enter new territory, he has lived there six years) and a
 // percentage beside Sal Stewart is backwards (his jump already happened this season, so the number is quietly asking
@@ -1546,8 +1787,9 @@ const NAV_ICON = {
  drafts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
  formulas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg>',
  glossary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5"/><path d="M12 17h.01"/></svg>',
+ matchup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9M9 20V4M15 20v-7M20 20v-4"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>'};
-const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['glossary','Glossary','Help']];
+const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['glossary','Glossary','Help']];
 (function buildNav(){
   const btn = (k,l) => `<button class="navbtn" role="tab" aria-selected="false" data-tab="${k}">${NAV_ICON[k]}<span>${l}</span></button>`;
   let h = '', g = '';
@@ -1939,5 +2181,5 @@ function renderValues(){ computeValues(); renderPicks(); renderTrade(); renderFi
 
 // ---------- tabs + boot
 buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
-renderGlossary(); renderValues(); renderDash(); renderToday(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
+renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
