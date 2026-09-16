@@ -73,6 +73,9 @@ jobs:
       - name: Home Run Board
         continue-on-error: true
         timeout-minutes: 20
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          KALSHI_RELAY: ${{ vars.KALSHI_RELAY }}
         run: python -m hrboard.build
       - name: Commit
         run: |
@@ -214,6 +217,7 @@ data/hrboard/pa/2022_*
 data/hrboard/pa/2023_*
 data/hrboard/backtest/*.parquet
 data/hrboard/context/schedule_*.parquet
+site/hr/data/kalshi.json
 """
 
 

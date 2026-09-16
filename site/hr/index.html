@@ -158,6 +158,29 @@ td.who2{white-space:normal;min-width:170px;line-height:1.25}
 .gfoot{display:flex;flex-wrap:wrap;gap:6px}
 .flag{font-size:12.5px;padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--ink)}
 
+/* where to bet */
+a.buy{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:12.5px;white-space:nowrap;text-decoration:none;color:var(--ink)}
+a.buy span{padding:3px 7px;display:flex;align-items:center}
+a.buy span:first-child{background:var(--panel2);color:var(--ink3);font-weight:700;font-size:11px;letter-spacing:.03em}
+a.buy.best{border-color:var(--good);box-shadow:0 0 0 1px var(--good) inset}
+a.buy.best span:first-child{background:var(--good);color:var(--grass-ink)}
+a.buy:hover{background:var(--panel2)}
+a.buy .ext{color:var(--ink3);font-size:11px;padding-left:0}
+.buybox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:7px 12px;font-weight:700;font-size:13.5px;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--panel)}
+.btn.primary{background:var(--grass);border-color:var(--grass);color:var(--grass-ink)}
+.wtb{font-size:13px}
+.wtb table{font-size:13px}
+.tablewrap td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink3)}
+td.best{background:color-mix(in srgb,var(--good) 16%,transparent);font-weight:700}
+.wtb td.best{background:color-mix(in srgb,var(--good) 16%,transparent);font-weight:700}
+.wtb td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink3)}
+.wtb summary{cursor:pointer;color:var(--ink2);font-size:13px;padding:4px 0}
+.bestline{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.bestline a{color:var(--ink);text-decoration:none}
+.bestline a b{color:var(--good)}
+.age{font-size:11.5px;color:var(--ink3)}
+
 /* scorecard */
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -214,7 +237,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;color:var(--ink3);font
 <main id="main"></main>
 <footer id="foot"></footer>
 
-<script src="data/hr.js?v=202609152336"></script>
+<script src="data/hr.js?v=202609160004"></script>
 <script>
 "use strict";
 /* ============================================================ state */
@@ -225,7 +248,8 @@ const store = { get(k, d) { try { const v = localStorage.getItem("hrb:" + k); re
                 set(k, v) { try { localStorage.setItem("hrb:" + k, JSON.stringify(v)); } catch (e) {} } };
 const TABS = [["hr", "Home runs"], ["hits", "Hits & bases"], ["ks", "Strikeouts"], ["games", "Games & odds"], ["card", "Scorecard"], ["how", "How it works"]];
 const S = { day: 0, tab: store.get("tab", "hr"), game: "", q: "", confirmed: store.get("confirmed", false), sort: "model", show: 30,
-            open: new Set(), live: { state: "", at: null, err: "" }, homered: {}, liveLines: {}, liveProps: {}, inGame: {}, startedPk: new Set() };
+            open: new Set(), live: { state: "", at: null, err: "" }, homered: {}, liveLines: {}, liveProps: {}, inGame: {}, startedPk: new Set(),
+            ks: {}, ksAt: null, ksSrc: "", pm: {}, pmMl: {}, pmTot: {}, pmAt: null };
 const MD = HR ? HR.model : null;
 const ORDER = ["out", "k", "bb", "s1", "xb", "hr"], IK = 1, IS1 = 3, IXB = 4, IHR = 5;
 
@@ -367,6 +391,57 @@ function oppSp(sl, h) { const g = gameMap(sl)[h.pk]; const side = h.h ? "away" :
 function mkv(h, src, key) { const m = (h.mk || {})[src]; return m && m[key] ? m[key] : null; }
 function preTag(sl, pk) { const g = gameMap(sl)[pk]; const m = g && g.mk || {}; return m.pregame_as_of ? `pre-game prices from ${tfmt(m.pregame_as_of)}` : m.no_pregame ? "no pre-game prices captured" : ""; }
 function liveDk(h, key) { const lp = S.liveProps[h.id]; if (lp && lp[key] && !S.startedPk.has(h.pk)) return lp[key]; return mkv(h, "dk", key); }
+
+/* ---------- price shopping: what one bet costs at each site, and where it pays the most */
+const SERIES_OF = k => k.startsWith("hr") ? "hr" : k.startsWith("hit") ? "hit" : k.startsWith("tb") ? "tb" : "k";
+function ksFee(p, series) {
+  const m = ((slate().markets || {}).ks_fee || {})[series]; const mult = m == null ? 1 : m;
+  if (!(p > 0 && p < 1)) return 0;
+  return Math.ceil(Math.round(100 * 0.07 * mult * p * (1 - p) * 1e6) / 1e6) / 100;
+}
+const costToAmer = c => c == null || !(c > 0 && c < 1) ? "–" : c >= 0.5 ? "−" + Math.round(100 * c / (1 - c)) : "+" + Math.round(100 * (1 - c) / c);
+const cents = c => c == null ? "–" : (c * 100 < 10 ? (c * 100).toFixed(1).replace(/\.0$/, "") : Math.round(c * 100)) + "¢";
+function ksQuote(entry, series) {
+  // entry: [mid, bid, ask, ticker]; live prices (relay or the 20-minute file) win over the build's
+  if (!entry) return null;
+  const live = entry[3] ? S.ks[entry[3]] : null;
+  const ask = live ? live[1] : entry[2];
+  if (!(ask > 0 && ask < 1)) return null;
+  const fee = ksFee(ask, series);
+  return { ask, fee, cost: Math.min(ask + fee, 0.999), mid: live ? (live[0] != null && live[1] != null ? (live[0] + live[1]) / 2 : live[2]) : entry[0], live: !!live };
+}
+function pmQuote(entry) {
+  // entry: [market price, ask, slug]
+  if (!entry) return null;
+  const live = entry[2] ? S.pm[entry[2]] : null;
+  const ask = live ? live[1] : entry[1];
+  if (!(ask > 0 && ask < 0.98)) return null;
+  return { ask, cost: ask, mid: live ? live[0] : entry[0], live: !!live };
+}
+function playerOffers(sl, who, key) {
+  const g = gameMap(sl)[who.pk], gm = g.mk || {}, series = SERIES_OF(key), out = [];
+  const dk = liveDk(who, key);
+  if (dk && dk[1] != null) out.push({ site: "DraftKings", short: "DK", cost: dk[1], label: amerStr(dk[0]), link: (gm.dk || {}).url || "https://sportsbook.draftkings.com/leagues/baseball/mlb" });
+  const kq = ksQuote(mkv(who, "ks", key), series);
+  if (kq) out.push({ site: "Kalshi", short: "KALSHI", cost: kq.cost, label: cents(kq.cost), link: ((gm.ks || {}).urls || {})[series] || "https://kalshi.com/sports/baseball",
+                     note: `Cheapest bet: 1 contract at ${cents(kq.ask)} + ${cents(kq.fee)} fee = ${cents(kq.ask + kq.fee)}, pays $1.00 (${costToAmer(kq.cost)})`, kq });
+  const pq = pmQuote(mkv(who, "pm", key));
+  if (pq) out.push({ site: "Polymarket", short: "POLY", cost: pq.cost, label: cents(pq.ask), link: (gm.pm || {}).props_url || (gm.pm || {}).url,
+                     note: `1 share at ${cents(pq.ask)} pays $1.00 (${costToAmer(pq.cost)})` });
+  out.sort((a, b) => a.cost - b.cost);
+  return out;
+}
+function buyChip(o, best) {
+  return `<a class="buy ${best ? "best" : ""}" href="${esc(o.link)}" target="_blank" rel="noopener" title="${esc((o.note || o.site + " " + o.label) + " · opens " + o.site)}"><span>${best ? "BEST · " : ""}${o.short}</span><span class="num">${esc(o.label)}${o.short !== "DK" ? " · " + costToAmer(o.cost) : ""}</span><span class="ext">↗</span></a>`;
+}
+function offersHtml(offers, model) {
+  if (!offers.length) return "";
+  const best = offers[0];
+  const e = model == null ? null : 100 * (model - best.cost);
+  const edge = e == null ? "" : `<span class="edge ${e >= 2 ? "pos" : e <= -2 ? "neg" : "flat"}" title="Model chance minus the cost of the best available price, in percentage points">${e >= 0 ? "+" : "−"}${Math.abs(e).toFixed(0)} vs best price</span>`;
+  return offers.map((o, i) => buyChip(o, i === 0 && offers.length > 1)).join("") + edge;
+}
+function bestCost(sl, who, key) { const o = playerOffers(sl, who, key); return o.length ? o[0].cost : null; }
 function edgeHtml(model, market, label) {
   if (market == null || model == null) return "";
   const d = 100 * (model - market); const cls = d >= 2 ? "pos" : d <= -2 ? "neg" : "flat";
@@ -408,6 +483,7 @@ function whyChips(sl, h) {
   if (!h.sp) out.push(["down", "Starter not announced"]);
   return out;
 }
+function lastName(n) { const p = String(n).split(" ").filter(w => !/^(jr\.?|sr\.?|ii|iii|iv)$/i.test(w)); return p[p.length - 1] || n; }
 function formOf(h) { if (!h.f) return null; const o = {}; HR.form_keys.forEach((k, i) => o[k] = h.f[i]); return o; }
 
 /* ============================================================ render: shell */
@@ -439,6 +515,7 @@ function viewHR(sl) {
   let hs = filtered(sl, "_hr");
   const sorts = {
     model: (a, b) => b._hr - a._hr,
+    best: (a, b) => edgeOf(b, "best") - edgeOf(a, "best"),
     ks: (a, b) => edgeOf(b, "ks") - edgeOf(a, "ks"),
     dk: (a, b) => edgeOf(b, "dk") - edgeOf(a, "dk"),
   };
@@ -453,7 +530,7 @@ function viewHR(sl) {
   let html = `<div class="lede"><div><h2>Who goes deep</h2>
     <p>Chance each hitter homers at least once, from his power, the starter and bullpen he faces, the park, the weather and where he bats. ${posted}/${sl.games.length} lineups posted; the rest are projected and shrink by the chance he starts.</p></div></div>
     <div class="hero">
-      <div class="stat"><div class="k">Top pick</div><div class="v">${top[0] ? esc(top[0].n.split(" ").slice(-1)[0]) : "–"}</div><div class="s">${top[0] ? pct(top[0]._hr, 1) + " to homer" : ""}</div></div>
+      <div class="stat"><div class="k">Top pick</div><div class="v">${top[0] ? esc(lastName(top[0].n)) : "–"}</div><div class="s">${top[0] ? pct(top[0]._hr, 1) + " to homer" : ""}</div></div>
       <div class="stat"><div class="k">Top 10 combined</div><div class="v">${top10.toFixed(1)} HR</div><div class="s">${pct(pAny)} at least one homers</div></div>
       <div class="stat"><div class="k">Whole slate</div><div class="v">${exp.toFixed(0)} HR</div><div class="s">expected across ${sl.games.length} games</div></div>
       <div class="stat"><div class="k">2026 test</div><div class="v">${b1 ? pct(b1.hit_rate) : "–"}</div><div class="s">top pick homered · top 10: ${b10 ? pct(b10.hit_rate) : "–"} (avg hitter ${pct(MD.report.hr ? MD.report.hr.base : null)})</div></div>
@@ -462,6 +539,7 @@ function viewHR(sl) {
       <select id="game" aria-label="Game">${gameOptions(sl)}</select>
       <input type="search" id="q" placeholder="Player or team" value="${esc(S.q)}" aria-label="Search">
       <select id="sort" aria-label="Sort"><option value="model" ${S.sort === "model" ? "selected" : ""}>Sort: model chance</option>
+        <option value="best" ${S.sort === "best" ? "selected" : ""}>Sort: model vs best price</option>
         <option value="ks" ${S.sort === "ks" ? "selected" : ""}>Sort: model vs Kalshi</option><option value="dk" ${S.sort === "dk" ? "selected" : ""}>Sort: model vs DraftKings</option></select>
       <label class="chk"><input type="checkbox" id="confirmed" ${S.confirmed ? "checked" : ""}> Confirmed lineups only</label>
     </div>`;
@@ -471,16 +549,15 @@ function viewHR(sl) {
   return html;
 }
 function edgeOf(h, src) {
-  if (src === "ks") { const v = mkv(h, "ks", "hr1"); return v && v[0] != null ? h._hr - v[0] : -9; }
+  const sl = slate();
+  if (src === "best") { const c = bestCost(sl, h, "hr1"); return c == null ? -9 : h._hr - c; }
+  if (src === "ks") { const q = ksQuote(mkv(h, "ks", "hr1"), "hr"); return q ? h._hr - q.cost : -9; }
   const v = liveDk(h, "hr1"); return v && v[1] != null ? h._hr - v[1] : -9;
 }
 function hrCard(sl, h, rank) {
   const sp = oppSp(sl, h), g = sp.g, open = S.open.has("hr" + h.id);
-  const dk = liveDk(h, "hr1"), ks = mkv(h, "ks", "hr1");
   const chips = whyChips(sl, h).map(([c, t]) => `<span class="chip ${c}">${esc(t)}</span>`).join("");
-  const mk = [dk ? `<span class="mk"><span>DK</span><span class="num">${amerStr(dk[0])} · ${pct(dk[1])}</span></span>` : "",
-              ks && ks[0] != null ? `<span class="mk"><span>KALSHI</span><span class="num">${Math.round(ks[0] * 100)}¢</span></span>` : "",
-              edgeHtml(h._hr, ks ? ks[0] : null, "Kalshi"), edgeHtml(h._hr, dk ? dk[1] : null, "DK")].join("");
+  const mk = offersHtml(playerOffers(sl, h, "hr1"), h._hr);
   return `<div class="card ${S.homered[h.id] ? "homered" : ""}">
     <button class="row" data-open="hr${h.id}" aria-expanded="${open}">
       <div class="rank">${rank}</div>
@@ -498,7 +575,8 @@ function hrDetail(sl, h) {
   const pit = sl.pitchers.find(p => p.pk === h.pk && p.vs === h.t);
   const ps = pit ? pit.s || {} : {};
   const w = g.wx;
-  const k2 = mkv(h, "ks", "hr2"), d2 = liveDk(h, "hr2");
+  const offers = playerOffers(sl, h, "hr1"), o2 = playerOffers(sl, h, "hr2");
+  const ksO = offers.find(o => o.site === "Kalshi");
   return `<div class="detail">
     <div><h4>Power</h4><div class="kv">
       <span>HR per 600 PA (vs ${h.spt || "R"}HP)</span><span>${f1(sk.hrh)}</span>
@@ -535,8 +613,15 @@ function hrDetail(sl, h) {
       <span>Chance he starts</span><span>${pct(h.ps)}</span>
       <span>Expected home runs</span><span>${(r.eHr * h.ps).toFixed(3)}</span>
       <span>Fair price (model)</span><span>${amer(h._hr)}</span>
-      <span>2+ HR — DK / Kalshi</span><span>${d2 ? amerStr(d2[0]) : "–"} / ${k2 && k2[0] != null ? Math.round(k2[0] * 100) + "¢" : "–"}</span>
+      <span>2+ HR, best price</span><span>${o2.length ? o2[0].short + " " + o2[0].label : "–"}</span>
     </div></div>
+    <div style="grid-column:1/-1"><h4>Where to bet (1+ HR)</h4>
+      ${offers.length ? `<div class="kv" style="max-width:520px">${offers.map((o, i) => `<span>${i === 0 && offers.length > 1 ? "<b>Best: </b>" : ""}${o.site}</span><span>${esc(o.label)}${o.short === "DK" ? "" : " · " + costToAmer(o.cost)} · ${pct(o.cost, 1)}</span>`).join("")}</div>
+      <div class="buybox">${ksO ? `<a class="btn primary" href="${esc(ksO.link)}" target="_blank" rel="noopener">Kalshi: buy 1 for ${cents(ksO.kq.ask + ksO.kq.fee)} ↗</a>` : ""}
+        ${offers.filter(o => o.site !== "Kalshi").map(o => `<a class="btn" href="${esc(o.link)}" target="_blank" rel="noopener">${o.site} ${esc(o.label)} ↗</a>`).join("")}</div>
+      ${ksO ? `<p class="note">${esc(ksO.note)}. Kalshi price ${ksO.kq.live ? "as of " + tfmt(S.ksAt) + " (" + S.ksSrc + ")" : "from the last build"}. Model's fair price ${amer(h._hr)}.</p>` : ""}`
+      : `<p class="note">No prices posted yet for this one.</p>`}
+    </div>
   </div>`;
 }
 
@@ -545,20 +630,24 @@ function viewHits(sl) {
   let hs = filtered(sl, "_hit");
   const key = S.hsort || "_hit";
   hs.sort((a, b) => (b[key] ?? 0) - (a[key] ?? 0));
+  const cell = (offers, model) => {
+    if (!offers.length) return `<td class="num">–</td>`;
+    const o = offers[0], e = 100 * (model - o.cost);
+    return `<td class="num"><a href="${esc(o.link)}" target="_blank" rel="noopener" title="${esc(offers.map(x => x.site + " " + x.label).join(" · "))}">${o.short} ${esc(o.label)}</a><br><small class="${e >= 2 ? "up" : ""}">${e >= 0 ? "+" : "−"}${Math.abs(e).toFixed(0)} pts</small></td>`;
+  };
   const rows = hs.slice(0, S.show * 2).map(h => {
-    const dh = liveDk(h, "hit1"), kh = mkv(h, "ks", "hit1"), dt = liveDk(h, "tb2"), kt = mkv(h, "ks", "tb2");
     return `<tr><td class="who2"><div class="mini"><img loading="lazy" src="${head(h.id)}" alt=""><div><b>${esc(h.n)}</b><br><small>${h.t} ${h.h ? "vs" : "@"} ${h.o} · ${h.lp ? (h.il ? "bats " + ord(h.sl) : "out") : "proj. " + ord(h.sl)}</small></div></div></td>
-      <td class="num"><b>${pct(h._hit)}</b></td><td class="num">${dh ? pct(dh[1]) : "–"}</td><td class="num">${kh && kh[0] != null ? Math.round(kh[0] * 100) + "¢" : "–"}</td>
-      <td class="num"><b>${pct(h._tb2)}</b></td><td class="num">${dt ? pct(dt[1]) : "–"}</td><td class="num">${kt && kt[0] != null ? Math.round(kt[0] * 100) + "¢" : "–"}</td>
+      <td class="num"><b>${pct(h._hit)}</b></td>${cell(playerOffers(sl, h, "hit1"), h._hit)}
+      <td class="num"><b>${pct(h._tb2)}</b></td>${cell(playerOffers(sl, h, "tb2"), h._tb2)}
       <td class="num">${pct(h._hr, 1)}</td></tr>`;
   }).join("");
   const rep = MD.report || {};
-  return `<div class="lede"><div><h2>Hits & total bases</h2><p>Chance of at least one hit and of two or more total bases (a double, or two singles, or a homer). Market columns are DraftKings' posted price (which includes the book's cut) and Kalshi's midpoint.</p></div></div>
+  return `<div class="lede"><div><h2>Hits & total bases</h2><p>Chance of at least one hit and of two or more total bases (a double, or two singles, or a homer). "Best price" is the cheapest place to buy that bet among DraftKings, Kalshi (with its fee) and Polymarket; tap it to open that site. Points = model chance minus that price.</p></div></div>
     <div class="controls"><select id="game" aria-label="Game">${gameOptions(sl)}</select>
       <input type="search" id="q" placeholder="Player or team" value="${esc(S.q)}" aria-label="Search">
       <select id="hsort" aria-label="Sort"><option value="_hit" ${key === "_hit" ? "selected" : ""}>Sort: 1+ hit</option><option value="_tb2" ${key === "_tb2" ? "selected" : ""}>Sort: 2+ bases</option></select>
       <label class="chk"><input type="checkbox" id="confirmed" ${S.confirmed ? "checked" : ""}> Confirmed lineups only</label></div>
-    <div class="tablewrap"><table><thead><tr><th class="l">Hitter</th><th>1+ hit</th><th>DK</th><th>Kalshi</th><th>2+ bases</th><th>DK</th><th>Kalshi</th><th>HR</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th class="l">Hitter</th><th>1+ hit</th><th>Best price</th><th>2+ bases</th><th>Best price</th><th>HR</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="note">2026 test: 1+ hit happened ${pct(rep.hit ? rep.hit.base : null)} of the time for starters; the model averaged ${pct(rep.hit ? rep.hit.mean_p : null)}. Two-plus bases: ${pct(rep.tb2 ? rep.tb2.base : null)} actual, ${pct(rep.tb2 ? rep.tb2.mean_p : null)} predicted.</p>`;
 }
 
@@ -569,13 +658,15 @@ function viewKs(sl) {
   const cards = ps.map(p => {
     const g = G[p.pk], s = p.s || {}, ge = p._ge || p.ge;
     const lines = [3, 4, 5, 6, 7, 8, 9, 10].map(n => {
-      const dk = (p.mk.dk || {})["k" + n], ks = (p.mk.ks || {})["k" + n];
       const m = ge[n] ?? ge[String(n)];
-      const best = ks && ks[0] != null ? ks[0] : dk ? dk[1] : null;
-      const e = best != null ? 100 * (m - best) : null;
-      return `<tr><td class="l">${n}+</td><td class="num"><b>${pct(m)}</b></td><td class="num">${dk ? amerStr(dk[0]) + " <small>" + pct(dk[1]) + "</small>" : "–"}</td>
-        <td class="num">${ks && ks[0] != null ? Math.round(ks[0] * 100) + "¢" : "–"}</td>
-        <td class="num">${e == null ? "" : `<span class="edge ${e >= 4 ? "pos" : e <= -4 ? "neg" : "flat"}">${e >= 0 ? "+" : "−"}${Math.abs(e).toFixed(0)}</span>`}</td></tr>`;
+      const offers = playerOffers(sl, p, "k" + n);
+      const by = site => offers.find(o => o.site === site);
+      const best = offers[0];
+      const cellO = o => o ? `<td class="num ${o === best && offers.length > 1 ? "best" : ""}"><a href="${esc(o.link)}" target="_blank" rel="noopener" title="${esc((o.note || o.site + " " + o.label) + (o.short === "DK" ? "" : " (" + costToAmer(o.cost) + ")"))}">${esc(o.label)}</a></td>` : `<td class="num">–</td>`;
+      const e = best ? 100 * (m - best.cost) : null;
+      return `<tr><td class="l">${n}+</td><td class="num"><b>${pct(m)}</b></td>
+        ${cellO(by("DraftKings"))}${cellO(by("Kalshi"))}${cellO(by("Polymarket"))}
+        <td class="num">${e == null ? "" : `<span class="edge ${e >= 4 ? "pos" : e <= -4 ? "neg" : "flat"}" title="Model minus the best price (${best.site} ${best.short === "DK" ? best.label : costToAmer(best.cost)})">${e >= 0 ? "+" : "−"}${Math.abs(e).toFixed(0)}</span>`}</td></tr>`;
     }).join("");
     const team = g.home.abbr === p.vs ? g.away : g.home;
     return `<div class="panel">
@@ -588,36 +679,114 @@ function viewKs(sl) {
         <span>Opposing lineup</span><span>${p._lu ? (p._lu.some(h => h.lp) ? "posted" : "projected") : "projected"}</span>
         ${g.state !== "Preview" && preTag(sl, p.pk) ? `<span>Prices</span><span><small>${preTag(sl, p.pk)}</small></span>` : ""}
       </div>
-      <div class="tablewrap" style="border:0"><table><thead><tr><th class="l">Ks</th><th>Model</th><th>DK</th><th>Kalshi</th><th>Edge</th></tr></thead><tbody>${lines}</tbody></table></div>
+      <div class="tablewrap" style="border:0"><table><thead><tr><th class="l">Ks</th><th>Model</th><th>DK</th><th>Kalshi</th><th>Poly</th><th>Edge</th></tr></thead><tbody>${lines}</tbody></table></div>
     </div>`;
   }).join("");
   const rep = (MD.report || {}).sp_k || {};
-  return `<div class="lede"><div><h2>Starter strikeouts</h2><p>Each starter's strikeouts come batter by batter through the lineup he will face (posted or projected), over how deep he usually goes. Edge is the model minus Kalshi (or DraftKings where Kalshi has no price), in points.</p></div></div>
+  return `<div class="lede"><div><h2>Starter strikeouts</h2><p>Each starter's strikeouts come batter by batter through the lineup he will face (posted or projected), over how deep he usually goes. The green cell is the cheapest place to buy each line (Kalshi counted with its fee); edge is the model minus that price, in points. Tap a price to open the site.</p></div></div>
     <div class="controls"><select id="game" aria-label="Game">${gameOptions(sl)}</select></div>
     <div class="two">${cards || '<div class="banner">No probable starters posted yet.</div>'}</div>
     <p class="note">2026 test over ${rep.n || "–"} starts: off by ${rep.mae_model ? rep.mae_model.toFixed(2) : "–"} strikeouts on average, against ${rep.mae_naive ? rep.mae_naive.toFixed(2) : "–"} for "his average so far".</p>`;
 }
 
 /* ============================================================ view: games */
+function gameOffers(g) {
+  const gm = g.mk || {}, rows = [], A = g.away.abbr, Hh = g.home.abbr;
+  const amerCost = o => amerP(o);
+  const bk = (gm.books || {}).list || [];
+  for (const b of bk) {
+    const r = { site: b.name, link: b.link, ml: {}, tot: {} };
+    for (const side of ["away", "home"]) { const v = (b.ml || {})[side]; if (v && v[0] != null) r.ml[side] = { cost: amerCost(v[0]), label: amerStr(fmtMl(v[0])), link: v[1] || b.link }; }
+    for (const side of ["over", "under"]) { const v = (b.tot || {})[side]; if (v && v[1] != null) r.tot[side] = { line: +v[0], cost: amerCost(v[1]), label: amerStr(fmtMl(v[1])), link: v[2] || b.link }; }
+    rows.push(r);
+  }
+  const dk = liveLine(g);
+  if (dk && dk.home_ml && !bk.some(b => b.key === "draftkings")) {
+    const L = dk.links || {};
+    const r = { site: "DraftKings", link: dk.url, ml: {}, tot: {} };
+    r.ml.away = { cost: amerP(dk.away_ml), label: amerStr(dk.away_ml), link: L.away_ml || dk.url };
+    r.ml.home = { cost: amerP(dk.home_ml), label: amerStr(dk.home_ml), link: L.home_ml || dk.url };
+    if (dk.total != null) {
+      if (dk.over) r.tot.over = { line: +dk.total, cost: amerP(dk.over), label: amerStr(dk.over), link: L.over || dk.url };
+      if (dk.under) r.tot.under = { line: +dk.total, cost: amerP(dk.under), label: amerStr(dk.under), link: L.under || dk.url };
+    }
+    rows.push(r);
+  }
+  const ks = gm.ks || {};
+  if (ks.win || ks.total) {
+    const url = (ks.urls || {}).game, turl = (ks.urls || {}).total || url;
+    const r = { site: "Kalshi", link: url, ml: {}, tot: {}, totals: {} };
+    for (const [side, ab] of [["away", A], ["home", Hh]]) {
+      const e = (ks.win || {})[ab]; const q = e ? ksQuote([e[0], e[1], e[2], e[4]], "game") : null;
+      if (q) r.ml[side] = { cost: q.cost, label: cents(q.cost), link: url, note: `1 contract ${cents(q.ask)} + ${cents(q.fee)} fee = ${cents(q.cost)}, pays $1` };
+    }
+    for (const [line, e] of Object.entries(ks.total || {})) {
+      const q = ksQuote(e, "total");
+      const live = e[3] ? S.ks[e[3]] : null; const bid = live ? live[0] : e[1];
+      const noAsk = bid != null && bid > 0 ? 1 - bid : null;
+      const nf = noAsk ? ksFee(noAsk, "total") : 0;
+      r.totals[line] = { over: q ? { line: +line, cost: q.cost, label: cents(q.cost), link: turl, note: `Over (Yes) at ${cents(q.ask)} + ${cents(q.fee)} fee` } : null,
+                         under: noAsk && noAsk < 0.99 ? { line: +line, cost: Math.min(noAsk + nf, 0.999), label: cents(noAsk + nf), link: turl, note: `Under (No) at ${cents(noAsk)} + ${cents(nf)} fee` } : null };
+    }
+    rows.push(r);
+  }
+  const pm = gm.pm || {};
+  if (pm.ml || pm.totals) {
+    const r = { site: "Polymarket", link: pm.url, ml: {}, tot: {}, totals: {} };
+    const liveMl = S.pmMl[g.pk] || {};
+    for (const side of ["away", "home"]) {
+      const e = liveMl[side] || (pm.ml || {})[side];
+      if (e && e[1] > 0 && e[1] < 0.98) r.ml[side] = { cost: e[1], label: cents(e[1]), link: pm.url };
+    }
+    const liveTot = S.pmTot[g.pk] || {};
+    for (const [line, t] of Object.entries(pm.totals || {})) {
+      const lt = liveTot[line] || t;
+      r.totals[line] = {};
+      for (const side of ["over", "under"]) { const e = lt[side]; if (e && e[1] > 0 && e[1] < 0.98) r.totals[line][side] = { line: +line, cost: e[1], label: cents(e[1]), link: pm.url }; }
+    }
+    rows.push(r);
+  }
+  // one total line to compare everyone on: DraftKings' if it has one, else the most common
+  const lines = rows.map(r => (r.tot.over || r.tot.under || {}).line).filter(v => v != null);
+  const cnt = {}; lines.forEach(l => cnt[l] = (cnt[l] || 0) + 1);
+  const main = dk && dk.total != null ? +dk.total : (Object.entries(cnt).sort((a, b) => b[1] - a[1])[0] || [null])[0];
+  for (const r of rows) if (r.totals) { const t = r.totals[String(main)] || {}; r.tot = { over: t.over || null, under: t.under || null }; }
+  const best = {};
+  for (const k of ["away", "home"]) best[k] = rows.filter(r => r.ml[k]).sort((a, b) => a.ml[k].cost - b.ml[k].cost)[0] || null;
+  for (const k of ["over", "under"]) best[k] = rows.filter(r => r.tot[k] && r.tot[k].line === +main).sort((a, b) => a.tot[k].cost - b.tot[k].cost)[0] || null;
+  return { rows, best, main: main == null ? null : +main };
+}
 function viewGames(sl) {
   const rep = MD.report || {};
   const cards = sl.games.map(g => {
     const m = g._m || null, dk = liveLine(g), ks = (g.mk.ks || {}), kw = ks.win || {};
-    const kh = kw[g.home.abbr], ka = kw[g.away.abbr];
     const pH = m ? m.pHome : null;
     const bookH = dk && dk.home_p != null ? dk.home_p : null;
-    const ksH = kh && kh[0] != null ? kh[0] : null;
     const flags = [];
     if (pH != null && bookH != null && Math.abs(pH - bookH) >= 0.07) flags.push(`Model is ${pct(Math.abs(pH - bookH))} ${pH > bookH ? "higher" : "lower"} on ${g.home.abbr} than DraftKings`);
-    let totalRow = "";
-    if (m) {
-      const exp = m.muH + m.muA;
-      const line = dk && dk.total != null ? +dk.total : null;
-      let pOver = null; if (line != null) { pOver = 0; m.total.forEach((v, t) => { if (t > line) pOver += v; }); }
-      const kt = ks.total || {}; const kl = line != null ? kt[String(line)] : null;
-      totalRow = `<span class="src">Total</span><span class="c">${exp.toFixed(1)} runs</span><span class="c">${line != null ? `over ${line}: ${pct(pOver)}` : ""}</span>
-        ${line != null ? `<span class="src">Book total</span><span class="c">DK ${line}</span><span class="c">o ${amerStr(dk.over)} / u ${amerStr(dk.under)}${kl && kl[0] != null ? ` · Kalshi o ${Math.round(kl[0] * 100)}¢` : ""}</span>` : ""}`;
-    }
+    const W = gameOffers(g);
+    let pOver = null;
+    if (m && W.main != null) { pOver = 0; m.total.forEach((v, t) => { if (t > W.main) pOver += v; }); }
+    const model = { away: pH != null ? 1 - pH : null, home: pH, over: pOver, under: pOver != null ? 1 - pOver : null };
+    const name = { away: g.away.abbr + " to win", home: g.home.abbr + " to win", over: `Over ${W.main}`, under: `Under ${W.main}` };
+    const bestLines = ["away", "home", "over", "under"].map(k => {
+      const r = W.best[k]; if (!r) return "";
+      const o = k === "away" || k === "home" ? r.ml[k] : r.tot[k];
+      const e = model[k] != null ? 100 * (model[k] - o.cost) : null;
+      const ex = r.site === "Kalshi" || r.site === "Polymarket";
+      return `<a href="${esc(o.link || r.link)}" target="_blank" rel="noopener" title="${esc(o.note || "")}">${name[k]}: <b>${esc(o.label)}</b> at ${esc(r.site)} ↗ <small>(${ex ? costToAmer(o.cost) + "; " : ""}model ${pct(model[k])}${e != null ? `, ${e >= 0 ? "+" : "−"}${Math.abs(e).toFixed(0)} pts` : ""})</small></a>`;
+    }).join("");
+    const cell = (r, k) => {
+      const o = k === "away" || k === "home" ? r.ml[k] : r.tot[k];
+      if (!o) return `<td class="num">–</td>`;
+      const isBest = W.best[k] === r && W.rows.filter(x => (k === "away" || k === "home") ? x.ml[k] : x.tot[k]).length > 1;
+      return `<td class="num ${isBest ? "best" : ""}"><a href="${esc(o.link || r.link)}" target="_blank" rel="noopener" title="${esc(o.note || costToAmer(o.cost))}">${esc(o.label)}</a></td>`;
+    };
+    const table = W.rows.length ? `<details class="wtb"><summary>All prices · ${W.rows.length} site${W.rows.length === 1 ? "" : "s"}</summary><div class="tablewrap" style="border:0"><table>
+      <thead><tr><th class="l">Site</th><th>${g.away.abbr}</th><th>${g.home.abbr}</th><th>O ${W.main ?? ""}</th><th>U ${W.main ?? ""}</th></tr></thead><tbody>
+      <tr><td class="l"><b>Model fair</b></td><td class="num">${amer(model.away)}</td><td class="num">${amer(model.home)}</td><td class="num">${amer(model.over)}</td><td class="num">${amer(model.under)}</td></tr>
+      ${W.rows.map(r => `<tr><td class="l"><a href="${esc(r.link || "#")}" target="_blank" rel="noopener">${esc(r.site)}</a></td>${cell(r, "away")}${cell(r, "home")}${cell(r, "over")}${cell(r, "under")}</tr>`).join("")}
+      </tbody></table></div><div class="age">${(g.mk.books || {}).as_of ? "Sportsbook lines as of " + tfmt(g.mk.books.as_of) + ". " : ""}Kalshi and Polymarket show what one contract costs, Kalshi's fee included; a contract pays $1.</div></details>` : "";
     const w = g.wx;
     const wx = w ? (w.indoor ? (w.roof || "Indoors") : `${w.temp != null ? Math.round(w.temp) + "°" : ""}${w.out != null ? (Math.abs(w.out) < 1 ? " · wind calm or across" : " · wind " + (w.out >= 0 ? "out " : "in ") + Math.abs(Math.round(w.out)) + " mph") : ""}${w.rain ? " · rain " + Math.round(w.rain) + "%" : ""}`) : "";
     const threat = sl.hitters.filter(h => h.pk === g.pk && h._hr).sort((a, b) => b._hr - a._hr).slice(0, 2);
@@ -632,21 +801,23 @@ function viewGames(sl) {
       <div class="wpbar" title="Model win chance">${pH != null ? `<i style="width:${100 - 100 * pH}%;background:var(--blue)"></i><i style="width:${100 * pH}%;background:var(--grass)"></i>` : ""}</div>
       <div class="odds">
         <span class="h"></span><span class="h c">${g.away.abbr}</span><span class="h c">${g.home.abbr}</span>
-        <span class="src">Model</span><span class="c">${pct(pH != null ? 1 - pH : null)} <small>${amer(pH != null ? 1 - pH : null)}</small></span><span class="c">${pct(pH)} <small>${amer(pH)}</small></span>
-        <span class="src">DraftKings</span><span class="c">${dk ? pct(1 - dk.home_p) + ` <small>${amerStr(dk.away_ml)}</small>` : "–"}</span><span class="c">${dk ? pct(dk.home_p) + ` <small>${amerStr(dk.home_ml)}</small>` : "–"}</span>
-        <span class="src">Kalshi</span><span class="c">${ka && ka[0] != null ? Math.round(ka[0] * 100) + "¢" : "–"}</span><span class="c">${ksH != null ? Math.round(ksH * 100) + "¢" : "–"}</span>
+        <span class="src">Model</span><span class="c">${pct(model.away)} <small>${amer(model.away)}</small></span><span class="c">${pct(pH)} <small>${amer(pH)}</small></span>
+        <span class="src">DraftKings</span><span class="c">${dk && dk.home_p != null ? pct(1 - dk.home_p) + ` <small>${amerStr(dk.away_ml)}</small>` : "–"}</span><span class="c">${dk && dk.home_p != null ? pct(dk.home_p) + ` <small>${amerStr(dk.home_ml)}</small>` : "–"}</span>
         <span class="src">Proj. runs</span><span class="c">${m ? m.muA.toFixed(1) : "–"}</span><span class="c">${m ? m.muH.toFixed(1) : "–"}</span>
-        ${dk && dk.home_rl != null ? `<span class="src">Run line</span><span class="c">${dk.home_rl > 0 ? "−" : "+"}${Math.abs(dk.home_rl)} ${amerStr(dk.away_rl_odds)}</span><span class="c">${dk.home_rl > 0 ? "+" : "−"}${Math.abs(dk.home_rl)} ${amerStr(dk.home_rl_odds)}</span>` : ""}
-        ${totalRow}
+        ${m ? `<span class="src">Total</span><span class="c">${(m.muH + m.muA).toFixed(1)} runs</span><span class="c">${W.main != null ? `over ${W.main}: ${pct(pOver)}` : ""}</span>` : ""}
       </div>
-      <div class="gfoot">${threat.map(h => `<span class="chip">${esc(h.n.split(" ").slice(-1)[0])} ${pct(h._hr)} HR</span>`).join("")}
+      ${bestLines ? `<div class="bestline"><span class="h" style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em">${W.rows.length > 1 ? "Best price to bet" : "Price"}</span>${bestLines}</div>` : `<div class="note">No prices posted yet.</div>`}
+      ${table}
+      <div class="gfoot">${threat.map(h => `<span class="chip">${esc(lastName(h.n))} ${pct(h._hr)} HR</span>`).join("")}
         ${g.pf_hr && g.pf_hr.R != null ? `<span class="chip">Park HR: RHB x${g.pf_hr.R.toFixed(2)} · LHB x${g.pf_hr.L != null ? g.pf_hr.L.toFixed(2) : "–"}</span>` : ""}</div>
-      ${g.state !== "Preview" && preTag(sl, g.pk) ? `<div class="note">Kalshi and props: ${preTag(sl, g.pk)}</div>` : ""}
+      ${g.state !== "Preview" && preTag(sl, g.pk) ? `<div class="note">Kalshi, Polymarket and props: ${preTag(sl, g.pk)}</div>` : ""}
       ${S.inGame[g.pk] && g.state === "Live" ? `<div class="note">DraftKings live: ${g.away.abbr} ${amerStr(S.inGame[g.pk].away_ml)} · ${g.home.abbr} ${amerStr(S.inGame[g.pk].home_ml)} (${pct(S.inGame[g.pk].home_p)} ${g.home.abbr})</div>` : ""}
       ${flags.concat(Object.values(g.flags || {})).map(f => `<div class="flag">${esc(f)}</div>`).join("")}
     </div>`;
   }).join("");
-  return `<div class="lede"><div><h2>Games & odds</h2><p>The model's win chance and projected score next to DraftKings (vig removed) and Kalshi. Books are sharper than any public model on the moneyline: in the 2026 test the model beat a coin-flip-plus-home-field guess (log loss ${rep.win ? rep.win.logloss.toFixed(3) : "–"} vs ${rep.win_home_only ? rep.win_home_only.logloss.toFixed(3) : "–"}), which is useful, but a gap to the market is a reason to look closer, not a bet.</p></div></div>
+  const bs = HR.books_status || {};
+  return `<div class="lede"><div><h2>Games & odds</h2><p>The model's win chance and projected score, and the best price for each side and the total across ${bs.configured ? "ten sportsbooks and exchanges plus Kalshi and Polymarket" : "DraftKings, Kalshi and Polymarket"} (tap to open that site). Books are sharper than any public model on the moneyline: in the 2026 test the model beat a coin-flip-plus-home-field guess (log loss ${rep.win ? rep.win.logloss.toFixed(3) : "–"} vs ${rep.win_home_only ? rep.win_home_only.logloss.toFixed(3) : "–"}), so a gap to the market is a reason to look closer, not a bet.</p></div></div>
+    ${S.ksAt ? `<p class="age">Kalshi prices ${S.ksSrc === "relay" ? "live" : "refreshed"} ${ago(S.ksAt)}${S.pmAt ? " · Polymarket live " + ago(S.pmAt) : ""}.</p>` : ""}
     <div class="games">${cards}</div>`;
 }
 function liveLine(g) { return S.liveLines[g.pk] || (g.mk || {}).dk || null; }
@@ -659,7 +830,7 @@ function viewCard() {
     <div class="hero">${["1", "3", "5", "10"].map(n => { const t = (c.top || {})[n]; return t ? `<div class="stat"><div class="k">Top ${n} daily</div><div class="v">${t.hits}/${t.picks}</div><div class="s">${pct(t.hits / Math.max(t.picks, 1))} homered · expected ${t.expected.toFixed(1)}</div></div>` : ""; }).join("")}</div>
     <div class="two">
       <div class="panel"><h3>Recent boards</h3><p>Each day's top 10, as the board stood before first pitch. Green homered.</p><div class="daylist">
-        ${(c.daily || []).map(d => `<div class="d"><b>${dfmt(d.day)}</b>${d.top.map(t => `<span class="tick ${t.y ? "y" : ""}" title="${pct(t.p, 1)}${t.played ? "" : " · did not play"}">${esc(t.n.split(" ").slice(-1)[0])}${t.played ? "" : "*"}</span>`).join("")}</div>`).join("")}
+        ${(c.daily || []).map(d => `<div class="d"><b>${dfmt(d.day)}</b>${d.top.map(t => `<span class="tick ${t.y ? "y" : ""}" title="${pct(t.p, 1)}${t.played ? "" : " · did not play"}">${esc(lastName(t.n))}${t.played ? "" : "*"}</span>`).join("")}</div>`).join("")}
       </div><p class="note">* did not play</p></div>
       <div class="panel"><h3>Model vs the markets</h3><p>Lower log loss is better. Only games priced before first pitch count.</p>${marketTable(c)}</div>
     </div>` : `<div class="banner">The live record starts with the first slate this board logged${c.since ? " (" + dfmt(c.since) + ")" : ""}. Picks are graded the morning after; until then, here is how the same model did on every 2026 game it never saw.</div>`;
@@ -717,8 +888,15 @@ function viewHow() {
     <p>Where a hitter bats sets how many trips he gets (a leadoff man averages about 4.5, a nine-hole hitter about 3.5). How deep the starter usually goes sets how many of those trips come against him and how many against that club's bullpen. Until lineups are posted, each hitter is projected from his club's last few weeks and his number is scaled by the chance he starts.</p>
     <h3>4. Checking itself</h3>
     <p>The final numbers are recalibrated against games the model had not seen. Over the 2026 season (fitted on 2024–25 only), the top pick each day homered ${pct(rep.top && rep.top["1"] ? rep.top["1"].hit_rate : null)} of the time and the top ten ${pct(rep.top && rep.top["10"] ? rep.top["10"].hit_rate : null)}, against ${pct(rep.hr ? rep.hr.base : null)} for the average starter. Even the best pick misses about three times in four; a home run is a rare event.</p>
-    <h3>Markets</h3>
-    <p><b>DraftKings</b> prices come from ESPN's public odds feed and refresh on this page. Their "to hit a home run" price includes the book's margin, so the true chance is lower than the implied percentage. Moneylines are shown with the margin removed. <b>Kalshi</b> is an exchange; the number shown is the middle of the bid and ask, as of the last build. A positive edge means the model likes the player more than the market does. Markets know things the model does not (late scratches, injuries, weather updates), so treat a big gap as a question.</p>
+    <h3>Where to bet</h3>
+    <p>Every bet shows the cheapest place to buy it right now, with a link that opens that site. Prices are compared as what a $1 payout costs, so a sportsbook's American odds, a Kalshi contract and a Polymarket share line up on one scale.</p>
+    <ul>
+      <li><b>DraftKings</b>: game lines and player bets from ESPN's public odds feed, refreshed on this page. Player-bet prices include the book's margin. Links open the DraftKings game page, with the pick already on the bet slip for game lines.</li>
+      <li><b>Kalshi</b>: the price shown is what one contract costs right now (the cheapest bet you can place), plus Kalshi's trading fee, and it pays $1 if it hits. Kalshi does not let web pages read its prices, so they come ${HR.relay ? "through a small relay, live" : "from a job that refreshes them about every 20 minutes"}; the page says how old they are. The link opens that game's market on Kalshi.</li>
+      <li><b>Polymarket</b>: one share's current asking price, pays $1, read live. Shown only when the market is actually trading.</li>
+      <li><b>FanDuel, BetMGM, Caesars, Fanatics, BetRivers, theScore Bet, Hard Rock, Novig, ProphetX</b>: moneyline, run line and total ${(HR.books_status || {}).configured ? "from The Odds API, a few times a day" : "appear once an Odds API key is added"}. Player bets from these books need a paid plan, so they are not shown.</li>
+    </ul>
+    <p>"Pts" or "edge" is the model's chance minus the best price. Markets know things the model does not (late scratches, injuries, weather), so a big gap is a question, not a sure thing. Which sites you can use depends on your state.</p>
     <h3>What it does not know</h3>
     <ul><li>Injuries or rest days announced after the build, until the lineup posts.</li><li>Opener or bullpen games beyond what the listed starter usually does.</li><li>Umpires and catcher framing.</li><li>Hot streaks: tested on the 2026 season, the last 14 days of barrels, hard contact and homers did not improve the forecast by a measurable amount, so they are shown but not scored.</li></ul>
     <p class="note">Built from Baseball Savant, the MLB Stats API, Open-Meteo, ESPN and Kalshi's public data. For fun and research, not betting advice.</p>
@@ -866,6 +1044,77 @@ async function liveProps(sl) {
     } catch (e) {}
   }));
 }
+
+/* Kalshi: through the relay when one is configured (live), otherwise the file the 20-minute job writes */
+function kalshiTickers(sl) {
+  const pre = new Set(sl.games.filter(g => g.state === "Preview").map(g => g.pk)), out = new Set();
+  for (const g of sl.games) {
+    if (!pre.has(g.pk)) continue;
+    const ks = (g.mk || {}).ks || {};
+    Object.values(ks.win || {}).forEach(v => v[4] && out.add(v[4]));
+    Object.values(ks.total || {}).forEach(v => v[3] && out.add(v[3]));
+  }
+  for (const w of sl.hitters.concat(sl.pitchers)) {
+    if (!pre.has(w.pk)) continue;
+    Object.values(((w.mk || {}).ks) || {}).forEach(v => v[3] && out.add(v[3]));
+  }
+  return [...out];
+}
+async function liveKalshi(sl) {
+  if (HR.relay) {
+    try {
+      const t = kalshiTickers(sl), got = {};
+      for (let i = 0; i < t.length; i += 100) {
+        const j = await jget(`${HR.relay}/markets?limit=100&tickers=${encodeURIComponent(t.slice(i, i + 100).join(","))}`);
+        for (const m of j.markets || []) got[m.ticker] = [+m.yes_bid_dollars, +m.yes_ask_dollars, +m.last_price_dollars];
+      }
+      if (Object.keys(got).length) { Object.assign(S.ks, got); S.ksAt = new Date().toISOString(); S.ksSrc = "relay"; return; }
+    } catch (e) {}
+  }
+  try {
+    const j = await jget(`data/kalshi.json?t=${Date.now()}`);
+    if (!S.ksAt || new Date(j.as_of) > new Date(S.ksAt)) { S.ks = j.p || {}; S.ksAt = j.as_of; S.ksSrc = "file"; }
+  } catch (e) {}
+}
+/* Polymarket answers web pages directly */
+function pmTrio(m) {
+  const px = JSON.parse(m.outcomePrices || "[]").map(Number);
+  const b = m.bestBid == null || m.bestBid === "" ? null : +m.bestBid, a = m.bestAsk == null || m.bestAsk === "" ? null : +m.bestAsk;
+  const q = (p, ask, bid) => (ask == null || ask >= 0.98 || ask <= 0) ? null : [(bid != null && bid > 0 && ask - bid <= 0.1) ? p : null, ask];
+  return [q(px[0], a, b), q(px[1], b != null ? 1 - b : null, a != null ? 1 - a : null)];
+}
+const PMK = { baseball_player_home_runs: "hr", baseball_player_hits: "hit", baseball_player_total_bases: "tb", baseball_player_strikeouts: "k" };
+async function livePoly(sl) {
+  const pre = sl.games.filter(g => g.state === "Preview" && g.mk && g.mk.pm && g.mk.pm.slug);
+  if (!pre.length) return;
+  await Promise.all(pre.map(async g => {
+    try {
+      const [ev] = await jget(`https://gamma-api.polymarket.com/events?slug=${g.mk.pm.slug}`);
+      if (ev) for (const m of ev.markets || []) {
+        if (m.closed) continue;
+        const t = pmTrio(m), names = JSON.parse(m.outcomes || "[]").map(x => String(x).toLowerCase());
+        if (m.sportsMarketType === "moneyline") {
+          const ml = {};
+          const hf = (g.home.full || g.home.name).toLowerCase(), af = (g.away.full || g.away.name).toLowerCase();
+          const hl = hf.split(" ").pop(), al = af.split(" ").pop();
+          names.forEach((n, i) => {
+            const last = n.split(" ").pop();
+            if (n === hf || (hl !== al && last === hl)) ml.home = t[i];
+            else if (n === af || (hl !== al && last === al)) ml.away = t[i];
+          });
+          S.pmMl[g.pk] = ml;
+        } else if (m.sportsMarketType === "totals" && m.line != null) {
+          (S.pmTot[g.pk] = S.pmTot[g.pk] || {})[String(+m.line)] = { over: t[0], under: t[1] };
+        }
+      }
+      if (g.mk.pm.props_slug) {
+        const [pe] = await jget(`https://gamma-api.polymarket.com/events?slug=${g.mk.pm.props_slug}`);
+        if (pe) for (const m of pe.markets || []) if (PMK[m.sportsMarketType] && !m.closed) { const t = pmTrio(m); if (t[0]) S.pm[m.slug] = t[0]; }
+      }
+    } catch (e) {}
+  }));
+  S.pmAt = new Date().toISOString();
+}
 let busy = false;
 async function refresh(force) {
   if (!HR || busy) return;
@@ -874,7 +1123,7 @@ async function refresh(force) {
   busy = true; S.live.state = "busy"; renderShell();
   try {
     const games = await liveSchedule(sl);
-    await Promise.allSettled([liveWeather(sl), liveHomers(sl, games), liveOdds(sl), liveProps(sl)]);
+    await Promise.allSettled([liveWeather(sl), liveHomers(sl, games), liveOdds(sl), liveProps(sl), liveKalshi(sl), livePoly(sl)]);
     compute(sl);
     S.live = { state: "ok", at: new Date().toISOString() };
   } catch (e) {

@@ -16,7 +16,7 @@ import pandas as pd
 from breakout.config import DATA
 from breakout.names import key as name_key
 from breakout import streamers as ST
-from . import features as F, dataset as D, game as G, model as M, context as C, odds as O, savant, scorecard as SC
+from . import features as F, dataset as D, game as G, model as M, context as C, odds as O, savant, scorecard as SC, books as BK
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site" / "hr"
@@ -357,7 +357,7 @@ def markets(day, games, H, SPd, ctx) -> dict:
             out["games"].setdefault(int(r.game_pk), {})["dk"] = {k: (None if (isinstance(v, float) and math.isnan(v)) else v) for k, v in dict(
                 espn_id=r.espn_id, home_ml=r.dk_home_ml, away_ml=r.dk_away_ml, home_p=r.dk_home_p, total=r.dk_total, over=r.dk_over,
                 under=r.dk_under, home_rl=r.dk_home_rl, home_rl_odds=r.dk_home_rl_odds, away_rl_odds=r.dk_away_rl_odds,
-                home_ml_open=r.dk_home_ml_open).items()}
+                home_ml_open=r.dk_home_ml_open, links=r.dk_links, url=(r.dk_links or {}).get("event")).items()}
         try:
             props = O.espn_props(eg["espn_id"])
             ros = ctx["espn_rosters"]
@@ -378,21 +378,76 @@ def markets(day, games, H, SPd, ctx) -> dict:
         kg, kp = O.kalshi_split(km, gdf)
         for r in kg.itertuples():
             g = out["games"].setdefault(int(r.game_pk), {}).setdefault("ks", {})
+            g.setdefault("urls", {})[r.series] = r.url
             if r.series == "game":
-                g.setdefault("win", {})[r.team] = [_f(r.price), _f(r.bid), _f(r.ask), _f(r.volume)]
+                g.setdefault("win", {})[r.team] = [_f(r.price), _f(r.bid), _f(r.ask), _f(r.volume), r.ticker]
             else:
-                g.setdefault("total", {})[f"{r.line:g}"] = [_f(r.price), _f(r.bid), _f(r.ask)]
+                g.setdefault("total", {})[f"{r.line:g}"] = [_f(r.price), _f(r.bid), _f(r.ask), r.ticker]
         if len(kp):
+            for r in kp.drop_duplicates(["game_pk", "series"]).itertuples():
+                out["games"].setdefault(int(r.game_pk), {}).setdefault("ks", {}).setdefault("urls", {})[r.series] = r.url
             idmap = player_keys(H, SPd)
             kp["pid"] = [idmap.get((g, k)) for g, k in zip(kp["game_pk"], kp["nkey"])]
             for r in kp.dropna(subset=["pid", "line"]).itertuples():
                 kk = f"{r.series}{int(r.line)}"
                 if r.series != "k" and kk not in KEEP: continue
-                out["players"].setdefault(str(int(r.pid)), {}).setdefault("ks", {})[kk] = [_f(r.price), _f(r.bid), _f(r.ask)]
+                out["players"].setdefault(str(int(r.pid)), {}).setdefault("ks", {})[kk] = [_f(r.price), _f(r.bid), _f(r.ask), r.ticker]
             out["kalshi_unmatched"] = int(kp["pid"].isna().sum())
+        out["ks_fee"] = ctx.get("ks_fee") or {}
     except Exception as e:
         out["errors"].append(f"kalshi: {e}")
+    try:
+        names = {x["gamePk"]: (x["teams"]["away"]["team"]["name"], x["teams"]["home"]["team"]["name"]) for x in games}
+        pm = O.polymarket_games(day, gdf)
+        idmap = player_keys(H, SPd)
+        for pk, v in pm.items():
+            aw, hm = names.get(pk, ("", ""))
+            gm = out["games"].setdefault(pk, {})
+            gm["pm"] = dict(url=v["url"], slug=v["slug"], props_url=v.get("props_url"), props_slug=v.get("props_slug"),
+                            ml=_pm_ml(v["ml"], aw, hm), totals={k: dict(over=_pm_px(t["over"]), under=_pm_px(t["under"]), slug=t["slug"])
+                                                             for k, t in v["totals"].items()})
+            for nm, mks in v["props"].items():
+                pid = idmap.get((pk, name_key(nm)))
+                if pid is None: continue
+                for kk, (px, ask, bid, slug) in mks.items():
+                    if not kk.startswith("k") and kk not in KEEP: continue
+                    q = _pm_px([px, ask, bid])
+                    if q is None: continue
+                    out["players"].setdefault(str(pid), {}).setdefault("pm", {})[kk] = q + [slug]
+    except Exception as e:
+        out["errors"].append(f"polymarket: {e}")
+    try:
+        snap = BK.snapshot(day, gdf)
+        for pk, books in (snap.get("games") or {}).items():
+            out["games"].setdefault(int(pk), {})["books"] = dict(as_of=snap.get("as_of"), list=books)
+    except Exception as e:
+        out["errors"].append(f"books: {e}")
     out["as_of"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return out
+
+
+def _pm_px(trio):
+    """[market price, ask] from Polymarket's [price, ask, bid]. The ask is what one share costs right now; the market
+    price is only kept when the book is two-sided and tight (bid and ask within 10 cents), otherwise it is noise."""
+    px, ask, bid = (list(trio) + [None, None, None])[:3]
+    if ask is None or ask >= 0.98 or ask <= 0: return None
+    mkt = px if (bid is not None and bid > 0 and ask - bid <= 0.10) else None
+    return [_f(mkt), _f(ask)]
+
+
+def _pm_ml(ml, away_name, home_name):
+    """Polymarket names the clubs; match each outcome to home or away by name rather than trusting the order."""
+    if not ml or not ml.get("names"): return {}
+    out = {"slug": ml.get("slug")}
+    hn, an = home_name.lower(), away_name.lower()
+    for nm, trio in zip(ml["names"], ml["prices"]):
+        n = str(nm).lower()
+        if n == hn: side = "home"
+        elif n == an: side = "away"
+        elif hn.split()[-1] != an.split()[-1]:          # "Sox" and "Sox" would be ambiguous
+            side = "home" if n.split()[-1] == hn.split()[-1] else "away" if n.split()[-1] == an.split()[-1] else None
+        else: side = None
+        if side: out[side] = _pm_px(trio)
     return out
 
 
@@ -419,7 +474,7 @@ def pregame_markets(day, games, H, SPd, mk) -> dict:
         started = x["status"]["abstractGameState"] != "Preview"
         gm = mk["games"].get(pk, {})
         if not started:
-            cache[key] = dict(as_of=mk["as_of"], ks=gm.get("ks"), dk=gm.get("dk"),
+            cache[key] = dict(as_of=mk["as_of"], ks=gm.get("ks"), dk=gm.get("dk"), pm=gm.get("pm"), books=gm.get("books"),
                               players={p: players[p] for p in who.get(pk, ()) if p in players})
             continue
         old = cache.get(key)
@@ -427,11 +482,14 @@ def pregame_markets(day, games, H, SPd, mk) -> dict:
             players.pop(p, None)
         if old:
             for p, v in old["players"].items(): players[p] = v
-            if old.get("ks"): gm["ks"] = old["ks"]
+            for k in ("ks", "pm", "books"):
+                if old.get(k): gm[k] = old[k]
+                else: gm.pop(k, None)
             if old.get("dk") and not gm.get("dk"): gm["dk"] = old["dk"]
             gm["pregame_as_of"] = old["as_of"]
         else:
-            gm.pop("ks", None); gm["no_pregame"] = True
+            for k in ("ks", "pm"): gm.pop(k, None)
+            gm["no_pregame"] = True
         mk["games"][pk] = gm
     mk["players"] = players
     f.write_text(json.dumps(cache, separators=(",", ":"), default=_json))
@@ -477,10 +535,10 @@ def assemble(day, games, gmeta, H, SPd, Gd, wx, mk, ctx) -> dict:
         G_list.append(dict(
             pk=pk, time=x["gameDate"], status=x["status"]["detailedState"], state=x["status"]["abstractGameState"],
             venue=x["venue"]["name"], venue_id=x["venue"]["id"], dh=x.get("doubleHeader"), game_no=x.get("gameNumber"),
-            home=dict(abbr=h["team"]["abbreviation"], name=h["team"]["teamName"], id=h["team"]["id"], score=h.get("score"),
+            home=dict(abbr=h["team"]["abbreviation"], name=h["team"]["teamName"], full=h["team"]["name"], id=h["team"]["id"], score=h.get("score"),
                       rec=f'{(h.get("leagueRecord") or {}).get("wins", "")}-{(h.get("leagueRecord") or {}).get("losses", "")}',
                       sp=(h.get("probablePitcher") or {}).get("id"), sp_name=(h.get("probablePitcher") or {}).get("fullName")),
-            away=dict(abbr=a["team"]["abbreviation"], name=a["team"]["teamName"], id=a["team"]["id"], score=a.get("score"),
+            away=dict(abbr=a["team"]["abbreviation"], name=a["team"]["teamName"], full=a["team"]["name"], id=a["team"]["id"], score=a.get("score"),
                       rec=f'{(a.get("leagueRecord") or {}).get("wins", "")}-{(a.get("leagueRecord") or {}).get("losses", "")}',
                       sp=(a.get("probablePitcher") or {}).get("id"), sp_name=(a.get("probablePitcher") or {}).get("fullName")),
             inning=ls.get("currentInningOrdinal"), half=ls.get("inningHalf"),
@@ -515,7 +573,7 @@ def assemble(day, games, gmeta, H, SPd, Gd, wx, mk, ctx) -> dict:
                              lu=r.lineup_ids, s=s, mk=mk["players"].get(str(int(r.pid)), {})))
     return dict(date=day, games=G_list, hitters=hitters, pitchers=pitchers,
                 markets=dict(as_of=mk["as_of"], errors=mk["errors"], kalshi_unmatched=mk.get("kalshi_unmatched"),
-                             espn_map=mk.get("dk_props_espn_map", {})))
+                             espn_map=mk.get("dk_props_espn_map", {}), ks_fee=mk.get("ks_fee", {})))
 
 
 def _geo(ven, vid):
@@ -583,10 +641,18 @@ def main(argv=None):
                parks=D.park_table([int(today[:4])]), parks_now=D.park_table([int(today[:4])]),
                form=recent_form(d, today), pitcher_season=pitcher_season(d, int(today[:4])))
     try:
+        ctx["ks_fee"] = O.kalshi_fees()
+    except Exception as e:
+        log("kalshi fees failed", e); ctx["ks_fee"] = {}
+    try:
         ctx["espn_rosters"] = O.espn_rosters()
     except Exception as e:
         log("espn rosters failed", e); ctx["espn_rosters"] = pd.DataFrame()
     log(f"context ready ({time.time()-t0:.0f}s)")
+    try:
+        BK.maybe_fetch(today)
+    except Exception as e:
+        log("odds api step failed:", type(e).__name__)
     slates = []
     for k in range(a.days):
         day = (date.fromisoformat(today) + timedelta(days=k)).isoformat()
@@ -598,12 +664,20 @@ def main(argv=None):
         SC.log_picks(s, PICKS)
     card = SC.scorecard(d, PICKS, today)
     report = json.loads((DATA / "hrboard" / "backtest" / "report.json").read_text()) if (DATA / "hrboard" / "backtest" / "report.json").exists() else {}
+    import os
     payload = dict(built=datetime.now(timezone.utc).isoformat(timespec="seconds"), today=today, slates=slates,
+                   relay=(os.environ.get("KALSHI_RELAY") or "").strip().rstrip("/") or None,
+                   books_status=BK.status(),
                    model=model_block(mj, SC.slim_report(report)), card=card, data_through=str(d["game_date"].max().date()),
                    form_keys=FORM_KEYS)
     SITE.joinpath("data").mkdir(parents=True, exist_ok=True)
     js = "window.HR=" + json.dumps(payload, separators=(",", ":"), default=_json) + ";\n"
     (SITE / "data" / "hr.js").write_text(js)
+    try:
+        from . import kalshi_live
+        kalshi_live.write(payload)
+    except Exception as e:
+        log("kalshi.json skipped:", e)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
     idx = SITE / "index.html"
     if idx.exists():

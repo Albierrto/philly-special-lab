@@ -20,3 +20,4 @@ data/hrboard/pa/2022_*
 data/hrboard/pa/2023_*
 data/hrboard/backtest/*.parquet
 data/hrboard/context/schedule_*.parquet
+site/hr/data/kalshi.json

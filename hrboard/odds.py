@@ -41,6 +41,16 @@ def _get(url, **params):
     return {}
 
 
+def dk_link(link) -> str | None:
+    """ESPN wraps DraftKings bet-slip links in a tracking gateway with unfilled placeholders; the real target is its
+    `preurl` (the DraftKings event page, with the outcome pre-selected when there is one)."""
+    from urllib.parse import urlparse, parse_qs
+    href = (link or {}).get("href") if isinstance(link, dict) else link
+    if not href: return None
+    q = parse_qs(urlparse(href).query).get("preurl")
+    return q[0] if q else (href if "__" not in href else None)
+
+
 def american_to_prob(o) -> float:
     try: o = float(str(o).replace("+", ""))
     except (TypeError, ValueError): return np.nan
@@ -59,7 +69,11 @@ def espn_games(day: str) -> pd.DataFrame:
         ml = o.get("moneyline") or {}; tot = o.get("total") or {}; ps = o.get("pointSpread") or {}
         hml = (ml.get("home") or {}).get("close", {}).get("odds"); aml = (ml.get("away") or {}).get("close", {}).get("odds")
         ph, pa = american_to_prob(hml), american_to_prob(aml)
-        rows.append(dict(espn_id=e["id"], date=e["date"], home_abbr=mlb_abbr(teams["home"]["team"]["abbreviation"]),
+        L = lambda side, part: dk_link(((((o.get(part) or {}).get(side) or {}).get("close") or {}).get("link")))
+        rows.append(dict(dk_links=dict(event=dk_link(o.get("link")), home_ml=L("home", "moneyline"), away_ml=L("away", "moneyline"),
+                                       over=L("over", "total"), under=L("under", "total"), home_rl=L("home", "pointSpread"),
+                                       away_rl=L("away", "pointSpread")),
+                         espn_id=e["id"], date=e["date"], home_abbr=mlb_abbr(teams["home"]["team"]["abbreviation"]),
                          away_abbr=mlb_abbr(teams["away"]["team"]["abbreviation"]), espn_home_team=teams["home"]["team"]["id"],
                          espn_away_team=teams["away"]["team"]["id"], dk_home_ml=hml, dk_away_ml=aml,
                          dk_home_p=(ph / (ph + pa) if ph == ph and pa == pa else np.nan),
@@ -146,7 +160,7 @@ def kalshi_markets(day: str, series=tuple(KALSHI_SERIES)) -> pd.DataFrame:
                     price = last
                 else:
                     price = np.nan
-                rows.append(dict(series=KALSHI_SERIES[s], ticker=m["ticker"], event=ev, title=m.get("title"), sub=m.get("yes_sub_title"),
+                rows.append(dict(series=KALSHI_SERIES[s], series_ticker=s, url=kalshi_url(s, ev), ticker=m["ticker"], event=ev, title=m.get("title"), sub=m.get("yes_sub_title"),
                                  et_time=(mm.group(4) if mm else None), teams=(mm.group(5) if mm else None),
                                  bid=bid, ask=ask, last=last, price=price, volume=_dollars(m.get("volume_fp")),
                                  oi=_dollars(m.get("open_interest_fp"))))
@@ -154,6 +168,38 @@ def kalshi_markets(day: str, series=tuple(KALSHI_SERIES)) -> pd.DataFrame:
 
 
 _KCACHE: dict = {}
+
+
+def kalshi_url(series: str, event: str) -> str:
+    """Kalshi's own event pages are /markets/<series>/<slug>/<event>; '-' works as the slug."""
+    return f"https://kalshi.com/markets/{series.lower()}/-/{event.lower()}"
+
+
+def kalshi_fees(series=tuple(KALSHI_SERIES)) -> dict:
+    """fee_multiplier per series (taker fee = round up to the cent of 0.07 x multiplier x contracts x P x (1 - P))."""
+    out = {}
+    for s in series:
+        j = _get(f"{KALSHI}/series/{s}")
+        out[KALSHI_SERIES[s]] = float((j.get("series") or {}).get("fee_multiplier") or 1.0)
+    return out
+
+
+def kalshi_fee(p: float, mult: float, contracts: int = 1) -> float:
+    import math as _m
+    if p is None or not (0 < p < 1): return 0.0
+    return _m.ceil(round(100 * 0.07 * mult * contracts * p * (1 - p), 6)) / 100
+
+
+def kalshi_prices(tickers) -> dict:
+    """Current bid / ask / last for a list of market tickers (100 per request)."""
+    tickers = list(dict.fromkeys(t for t in tickers if t))
+    out = {}
+    for i in range(0, len(tickers), 100):
+        j = _get(f"{KALSHI}/markets", tickers=",".join(tickers[i:i + 100]), limit=100)
+        for m in j.get("markets", []):
+            out[m["ticker"]] = [_dollars(m.get("yes_bid_dollars")), _dollars(m.get("yes_ask_dollars")), _dollars(m.get("last_price_dollars"))]
+        time.sleep(0.2)
+    return out
 
 
 def _kalshi_series(s: str) -> list[dict]:
@@ -206,3 +252,121 @@ KAL = {"AZ": "ARI", "CWS": "CWS", "WSH": "WSH", "ATH": "ATH"}
 
 def _k(a):
     return KAL.get(a, a)
+
+
+# ------------------------------------------------------------------ Polymarket (public, CORS-open, so the page also reads it live)
+GAMMA = "https://gamma-api.polymarket.com"
+PM_CODE = {"AZ": ["ari", "az"], "ATH": ["oak", "ath"], "CWS": ["cws", "chw"], "WSH": ["wsh", "was"], "KC": ["kc"], "SD": ["sd"],
+           "SF": ["sf"], "TB": ["tb"], "LAA": ["laa"], "LAD": ["lad"]}
+PM_PROP = {"baseball_player_home_runs": "hr", "baseball_player_hits": "hit", "baseball_player_total_bases": "tb",
+           "baseball_player_strikeouts": "k"}
+
+
+def _pm_event(slug):
+    j = _get(f"{GAMMA}/events", slug=slug)
+    return j[0] if isinstance(j, list) and j else None
+
+
+def _jl(x):
+    import json as _j
+    try: return _j.loads(x) if isinstance(x, str) else (x or [])
+    except ValueError: return []
+
+
+def pm_side_prices(m) -> list:
+    """[price, ask, bid] for each outcome of a two-outcome market. Gamma's bestBid/bestAsk describe the first outcome;
+    the second outcome's ask is one minus the first outcome's bid (and its bid one minus the first's ask)."""
+    px = [float(v) for v in _jl(m.get("outcomePrices"))] + [None, None]
+    f = lambda v: float(v) if v not in (None, "") else None
+    b0, a0 = f(m.get("bestBid")), f(m.get("bestAsk"))
+    return [[px[0], a0, b0], [px[1], round(1 - b0, 4) if b0 is not None else None, round(1 - a0, 4) if a0 is not None else None]]
+
+
+def polymarket_game(day: str, away: str, home: str) -> dict | None:
+    """Moneyline, totals and run line from the game event, and player props from its '-player-props' twin."""
+    ev = slug = None
+    for a in PM_CODE.get(away, [away.lower()]):
+        for h in PM_CODE.get(home, [home.lower()]):
+            cand = f"mlb-{a}-{h}-{day}"
+            ev = _pm_event(cand)
+            if ev: slug = cand; break
+        if ev: break
+    if not ev: return None
+    out = dict(slug=slug, url=f"https://polymarket.com/event/{slug}", ml={}, totals={}, rl={}, props={}, props_slug=None)
+    for m in ev.get("markets", []):
+        t = m.get("sportsMarketType"); sp = pm_side_prices(m)
+        if m.get("closed"): continue
+        if t == "moneyline":
+            out["ml"] = dict(names=_jl(m.get("outcomes")), prices=sp, slug=m.get("slug"))
+        elif t == "totals" and m.get("line") is not None:
+            out["totals"][f"{float(m['line']):g}"] = dict(over=sp[0], under=sp[1], slug=m.get("slug"))
+        elif t == "spreads" and m.get("line") is not None:
+            out["rl"][m.get("slug")] = dict(line=float(m["line"]), first=_jl(m.get("outcomes"))[:1], prices=sp)
+    pe = _pm_event(f"{slug}-player-props")
+    if pe:
+        out["props_slug"] = f"{slug}-player-props"; out["props_url"] = f"https://polymarket.com/event/{slug}-player-props"
+        for m in pe.get("markets", []):
+            k = PM_PROP.get(m.get("sportsMarketType"))
+            if not k or m.get("closed") or m.get("line") is None: continue
+            name = str(m.get("question", "")).split(":")[0].strip()
+            n = int(float(m["line"]) + 0.5)
+            out["props"].setdefault(name, {})[f"{k}{n}"] = pm_side_prices(m)[0] + [m.get("slug")]
+    return out
+
+
+def polymarket_games(day: str, games: pd.DataFrame) -> dict:
+    with ThreadPoolExecutor(6) as ex:
+        res = list(ex.map(lambda g: (g.game_pk, polymarket_game(day, g.away_abbr, g.home_abbr)), list(games.itertuples())))
+    return {int(pk): v for pk, v in res if v}
+
+
+# ------------------------------------------------------------------ The Odds API (key in the ODDS_API_KEY secret; build-time only)
+ODDS_API = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds"
+BOOKS = ["fanduel", "draftkings", "betmgm", "williamhill_us", "fanatics", "betrivers", "espnbet", "hardrockbet", "novig", "prophetx"]
+BOOK_NAMES = {"fanduel": "FanDuel", "draftkings": "DraftKings", "betmgm": "BetMGM", "williamhill_us": "Caesars", "fanatics": "Fanatics",
+              "betrivers": "BetRivers", "espnbet": "theScore Bet", "hardrockbet": "Hard Rock", "novig": "Novig", "prophetx": "ProphetX"}
+TEAM_FULL = {}   # filled by the caller from the MLB schedule: "Seattle Mariners" -> "SEA"
+
+
+def odds_api_lines(key: str, markets=("h2h", "spreads", "totals")) -> tuple[list, dict]:
+    """One request for every upcoming game: ten books (counts as one region) x three markets = 3 credits."""
+    r = _S.get(ODDS_API, params=dict(apiKey=key, bookmakers=",".join(BOOKS), markets=",".join(markets), oddsFormat="american",
+                                     dateFormat="iso", includeLinks="true"), timeout=45)
+    usage = dict(remaining=r.headers.get("x-requests-remaining"), used=r.headers.get("x-requests-used"), last=r.headers.get("x-requests-last"),
+                 status=r.status_code)
+    if not r.ok:
+        return [], usage
+    return r.json(), usage
+
+
+def odds_api_by_game(events: list, games: pd.DataFrame) -> dict:
+    """Match The Odds API events to MLB games by team names and start time; shape each book's prices."""
+    out = {}
+    g = games.copy(); g["t"] = pd.to_datetime(g["time"], utc=True)
+    for ev in events:
+        h, a = TEAM_FULL.get(ev.get("home_team")), TEAM_FULL.get(ev.get("away_team"))
+        cand = g[(g["home_abbr"] == h) & (g["away_abbr"] == a)]
+        if not len(cand): continue
+        t = pd.Timestamp(ev["commence_time"])
+        cand = cand.assign(dt=(cand["t"] - t).abs()).sort_values("dt")
+        if cand["dt"].iat[0] > pd.Timedelta(hours=6): continue
+        pk = int(cand["game_pk"].iat[0])
+        books = []
+        for b in ev.get("bookmakers", []):
+            row = dict(key=b["key"], name=BOOK_NAMES.get(b["key"], b.get("title")), link=b.get("link"), updated=b.get("last_update"))
+            for mk in b.get("markets", []):
+                oc = mk.get("outcomes", [])
+                if mk["key"] == "h2h":
+                    for o in oc:
+                        side = "home" if o["name"] == ev["home_team"] else "away"
+                        row.setdefault("ml", {})[side] = [o.get("price"), o.get("link") or mk.get("link")]
+                elif mk["key"] == "totals":
+                    for o in oc:
+                        row.setdefault("tot", {})[o["name"].lower()] = [o.get("point"), o.get("price"), o.get("link") or mk.get("link")]
+                elif mk["key"] == "spreads":
+                    for o in oc:
+                        side = "home" if o["name"] == ev["home_team"] else "away"
+                        row.setdefault("rl", {})[side] = [o.get("point"), o.get("price"), o.get("link") or mk.get("link")]
+            books.append(row)
+        out[pk] = books
+    return out
