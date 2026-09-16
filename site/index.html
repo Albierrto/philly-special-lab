@@ -288,6 +288,52 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   .search{max-width:none;min-width:0} .search input[type="search"]{padding-left:30px} .brand small{display:none} .brand b{font-size:18px} .topbar{gap:8px;padding:0 10px} h1{font-size:28px}
   .row{grid-template-columns:auto minmax(0,1fr) auto} .row .sub{white-space:normal}
 }
+
+/* ---------- phone: finger-sized controls, nothing clipped or pushed off-screen */
+@media (max-width:900px){
+  /* 16px on text fields is what stops iOS zooming the page on focus */
+  select,input[type="number"],input[type="search"],input[type="text"]{font-size:16px;padding-top:9px;padding-bottom:9px;min-height:40px}
+  input[type="number"]{width:100px;font-size:15px}
+  .wts input{width:64px;padding-top:6px;padding-bottom:6px;min-height:34px}
+  .teamsel select{font-size:14px;min-height:36px;padding-top:6px;padding-bottom:6px}
+  .search input[type="search"]{font-size:16px;padding-top:9px;padding-bottom:9px} .search svg{top:12px}
+  /* on the live site this reads "LIVE · 11:09 PM · 30 lineups posted" and shoved the whole top bar off screen */
+  .liveind{font-size:0;letter-spacing:0;display:inline-flex;align-items:center;justify-content:center;min-width:26px;min-height:36px;flex:0 0 auto}
+  .liveind::before{font-size:14px;margin-right:0}
+  .btn{padding:10px 14px;font-size:13.5px;min-height:40px}
+  .btn.small{padding:8px 12px;font-size:13px;min-height:36px}
+  .seg button{padding:10px 14px;font-size:13.5px;min-height:40px}
+  .chip{padding:7px 12px;font-size:13px;min-height:34px;display:inline-flex;align-items:center}
+  .dcard .go{min-height:40px;padding:11px 0;font-size:13px}
+  .colpicker label{padding:5px 0}
+  input[type="range"]{min-height:32px}
+  /* the little lock buttons live inside table rows, so grow the touch area, not the button */
+  .lockb{position:relative;padding:6px 10px;min-height:26px;display:inline-flex;align-items:center}
+  .lockb::after{content:"";position:absolute;left:-9px;right:-9px;top:-10px;bottom:-10px}
+  .dayseg button{padding:10px 14px;font-size:13.5px;min-height:40px}
+  input[type="checkbox"],input[type="radio"]{width:20px;height:20px;min-height:20px;flex:0 0 auto}
+  .filters{gap:6px 10px} .filters label{min-height:38px;min-width:0;max-width:100%;flex-wrap:wrap}
+  .filters label:has(select),.filters label:has(input[type="number"]),.filters label:has(input[type="text"]){width:100%;justify-content:space-between}
+  .filters select,.rf select{max-width:100%;min-width:0}
+  .colpicker label{display:flex;align-items:center;gap:8px;min-height:34px}
+  /* long CBS / analyst notes used to be cut off mid-sentence by the ellipsis */
+  .row .nm{white-space:normal;overflow:visible;text-overflow:clip}
+  .row .nm .pill{white-space:normal;max-width:100%;line-height:1.35;padding:2px 7px}
+  .row .v,.row .val{min-width:0} .row .v small,.row .val small{white-space:normal;display:block}
+  /* compact tables inside disclosure blocks wrap instead of running off the edge */
+  table.mini{table-layout:fixed} table.mini td{white-space:normal;overflow-wrap:anywhere}
+  table.mini td:nth-child(4){width:46px} table.mini td.hint{font-size:11px;line-height:1.3}
+  /* charts drawn as SVG scale to the panel */
+  .chartbox svg{width:100%;height:auto;display:block}
+  /* tall stacked rows look wrong with the badge floating in the middle */
+  .slotrow{align-items:flex-start} .slotrow .exp{padding-top:2px} .slotrow .ava{margin-top:2px}
+}
+
+@media (max-width:560px){
+  /* the wordmark was eating the whole top bar and leaving the search a stub */
+  .brand div{display:none} .brand{margin-right:2px}
+  .teamsel select{max-width:108px} .search{min-width:98px}
+}
 .lockb{font:600 10px/1 var(--font-b);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;vertical-align:middle;margin-left:4px}
 .lockb:hover{background:var(--accent);color:#fff}
 .lockb.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -693,8 +739,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260916T1935"></script>
-<script src="data/streamers.js?v=20260916T1935"></script>
+<script src="data/lab.js?v=20260916T2313"></script>
+<script src="data/streamers.js?v=20260916T2313"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1712,7 +1758,8 @@ function renderDrafts(){
   if(!tD){ $('#d-year').innerHTML = '<option value="">all</option>' + [...new Set(D.drafts.map(d=>d.season))].sort().map(s=>`<option>${s}</option>`).join(''); $('#d-team').innerHTML = '<option value="">all</option>' + [...new Set(D.drafts.map(d=>d.team))].sort().map(s=>`<option>${esc(s)}</option>`).join(''); $('#d-year').addEventListener('change', renderDrafts); $('#d-team').addEventListener('change', renderDrafts);
     tD = table('t-drafts', cols, rows, {sort:'pts_over_slot', rowClass:x=>x.mine?'mine':''}); drawPickCurve(); } else tD.setRows(rows);
 }
-function drawPickCurve(){ const pts = Object.entries(D.pick_curve).map(([k,v])=>[+k,+v]); const W=720,H=220,pl=44,pb=28; const mx=Math.max(...pts.map(p=>p[0])), my=Math.max(...pts.map(p=>p[1])); const X=x=>pl+(x-1)/(mx-1)*(W-pl-10), Y=y=>H-pb-(y/my)*(H-pb-10); const path = pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' '); const picks = D.drafts.filter(d=>d.pts!=null); $('#pickcurve').innerHTML = `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="League pick curve"><g>${[0,200,400,600,800].filter(v=>v<=my).map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join('')}</g>${picks.map(d=>`<circle cx="${X(d.hitter_pick)}" cy="${Y(d.pts)}" r="2.5" fill="${d.mine?'var(--hot)':'var(--cold)'}" opacity="${d.mine?1:.45}"><title>${esc(d.player)} ${d.season}: pick ${d.overall}, ${Math.round(d.pts)} pts</title></circle>`).join('')}<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="${W/2}" y="${H-6}" text-anchor="middle">hitter pick number in this league (2024–2026 pooled)</text></svg></div><div class="legend"><span class="h">your picks</span><span class="c">everyone else</span> line = expected points at that slot</div>`; }
+function boxW(sel, max){ const el = $(sel); const w = el ? el.clientWidth : 0; return Math.round(Math.max(300, Math.min(max, w || max))); }   // charts are drawn at the width they actually get, so a phone never has to scroll sideways to read one
+function drawPickCurve(){ const pts = Object.entries(D.pick_curve).map(([k,v])=>[+k,+v]); const W=boxW('#pickcurve',720),H=220,pl=44,pb=28; const mx=Math.max(...pts.map(p=>p[0])), my=Math.max(...pts.map(p=>p[1])); const X=x=>pl+(x-1)/(mx-1)*(W-pl-10), Y=y=>H-pb-(y/my)*(H-pb-10); const path = pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' '); const picks = D.drafts.filter(d=>d.pts!=null); const lbl = W<470 ? 'hitter pick number (2024\u20132026)' : 'hitter pick number in this league (2024\u20132026 pooled)'; $('#pickcurve').innerHTML = `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="League pick curve"><g>${[0,200,400,600,800].filter(v=>v<=my).map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join('')}</g>${picks.map(d=>`<circle cx="${X(d.hitter_pick)}" cy="${Y(d.pts)}" r="2.5" fill="${d.mine?'var(--hot)':'var(--cold)'}" opacity="${d.mine?1:.45}"><title>${esc(d.player)} ${d.season}: pick ${d.overall}, ${Math.round(d.pts)} pts</title></circle>`).join('')}<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="${W/2}" y="${H-6}" text-anchor="middle">${lbl}</text></svg></div><div class="legend"><span class="h">your picks</span><span class="c">everyone else</span> line = expected points at that slot</div>`; }
 
 // ---------- prospects
 let tP;
@@ -1728,8 +1775,8 @@ function renderPros(){
 
 // ---------- formulas tab
 function renderFormulaScoring(){ $('#f-scoring').textContent = `hitting points  = ${EVENTS.filter(e=>+W[e]).map(e=>`${W[e]}×${e}`).join(' + ')}\n(+5 grand slam, +10 cycle in Fantrax; not in public feeds)\nChecked against Fantrax 2026: 500/500 hitters match except those two events.\n\npitching points = ${PEVENTS.filter(e=>+PW[e]).map(e=>`${PW[e]}×${e}`).join(' + ')}\n(+10 no-hitter, +25 perfect game in Fantrax; not in public feeds; IP counted in thirds)\nChecked against Fantrax 2026: 116/116 pitchers with 20+ IP match exactly.`; }
-function drawAging(){ const a = D.aging; const W=720,H=240,pl=50,pb=30; const ys=a.map(r=>r.rel_to_27); const mn=Math.min(...ys), mx=Math.max(...ys); const X=x=>pl+(x-21)/(39-21)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn))*(H-pb-14); const path=a.map((r,i)=>(i?'L':'M')+X(r.age).toFixed(1)+' '+Y(r.rel_to_27).toFixed(1)).join(' '); const ticks=[-0.5,-0.4,-0.3,-0.2,-0.1,0].filter(v=>v>=mn&&v<=mx); $('#agingchart').innerHTML=`<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Aging curve"><g>${ticks.map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(1)}</text>`).join('')}</g>${a.map(r=>`<text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`).join('')}<path d="${path}" fill="none" stroke="var(--hot)" stroke-width="2.5"/>${a.map(r=>`<circle cx="${X(r.age)}" cy="${Y(r.rel_to_27)}" r="${Math.min(6,2+Math.sqrt(r.n_pairs||0)/3)}" fill="var(--hot)" opacity=".7"><title>age ${r.age}: ${r.rel_to_27.toFixed(3)} pts/PA vs 27 (${r.n_pairs} pairs)</title></circle>`).join('')}</svg></div><div class="hint">points per PA relative to age 27; dot size = number of consecutive-season pairs at that age (2021-2026, 300+ PA both years)</div>`; }
-function drawPAging(){ const a = D.pitcher_aging||[]; if(!a.length) return; const W=720,H=200,pl=50,pb=30; const ys=a.map(r=>r.yoy_delta); const mn=Math.min(...ys,0), mx=Math.max(...ys,0); const ages=a.map(r=>r.age); const a0=Math.min(...ages), a1=Math.max(...ages); const X=x=>pl+(x-a0)/(a1-a0)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn||1))*(H-pb-14); $('#pagingchart').innerHTML=`<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Pitcher aging"><line x1="${pl}" x2="${W-10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--ink3)"/>${a.map(r=>`<rect x="${X(r.age)-8}" y="${Math.min(Y(0),Y(r.yoy_delta))}" width="16" height="${Math.abs(Y(0)-Y(r.yoy_delta))}" fill="${r.yoy_delta>=0?'var(--hot)':'var(--cold)'}" opacity=".8"><title>age ${r.age}→${r.age+1}: ${r.yoy_delta>=0?'+':''}${r.yoy_delta.toFixed(2)} pts/GS</title></rect><text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`).join('')}<text x="${pl-6}" y="${Y(0)+4}" text-anchor="end">0</text></svg></div><div class="hint">expected change in points per start from one age to the next (starters with 10+ GS both years, 2021-2026, smoothed). Pitchers improve into their mid-20s and decline gently until the mid-30s.</div>`; }
+function drawAging(){ const a = D.aging; const W=boxW('#agingchart',720),H=240,pl=50,pb=30; const ys=a.map(r=>r.rel_to_27); const mn=Math.min(...ys), mx=Math.max(...ys); const X=x=>pl+(x-21)/(39-21)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn))*(H-pb-14); const path=a.map((r,i)=>(i?'L':'M')+X(r.age).toFixed(1)+' '+Y(r.rel_to_27).toFixed(1)).join(' '); const ticks=[-0.5,-0.4,-0.3,-0.2,-0.1,0].filter(v=>v>=mn&&v<=mx); const every = (W-pl-10)/Math.max(1,a.length) < 22 ? 2 : 1; $('#agingchart').innerHTML=`<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Aging curve"><g>${ticks.map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(1)}</text>`).join('')}</g>${a.map((r,i)=>i%every?'':`<text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`).join('')}<path d="${path}" fill="none" stroke="var(--hot)" stroke-width="2.5"/>${a.map(r=>`<circle cx="${X(r.age)}" cy="${Y(r.rel_to_27)}" r="${Math.min(6,2+Math.sqrt(r.n_pairs||0)/3)}" fill="var(--hot)" opacity=".7"><title>age ${r.age}: ${r.rel_to_27.toFixed(3)} pts/PA vs 27 (${r.n_pairs} pairs)</title></circle>`).join('')}</svg></div><div class="hint">points per PA relative to age 27; dot size = number of consecutive-season pairs at that age (2021-2026, 300+ PA both years)</div>`; }
+function drawPAging(){ const a = D.pitcher_aging||[]; if(!a.length) return; const W=boxW('#pagingchart',720),H=200,pl=50,pb=30; const ys=a.map(r=>r.yoy_delta); const mn=Math.min(...ys,0), mx=Math.max(...ys,0); const ages=a.map(r=>r.age); const a0=Math.min(...ages), a1=Math.max(...ages); const X=x=>pl+(x-a0)/(a1-a0)*(W-pl-10), Y=y=>H-pb-((y-mn)/(mx-mn||1))*(H-pb-14); const bw=Math.max(5,Math.min(16,(W-pl-10)/a.length*0.62)); const every=(W-pl-10)/Math.max(1,a.length) < 22 ? 2 : 1; $('#pagingchart').innerHTML=`<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Pitcher aging"><line x1="${pl}" x2="${W-10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--ink3)"/>${a.map((r,i)=>`<rect x="${X(r.age)-bw/2}" y="${Math.min(Y(0),Y(r.yoy_delta))}" width="${bw}" height="${Math.abs(Y(0)-Y(r.yoy_delta))}" fill="${r.yoy_delta>=0?'var(--hot)':'var(--cold)'}" opacity=".8"><title>age ${r.age}\u2192${r.age+1}: ${r.yoy_delta>=0?'+':''}${r.yoy_delta.toFixed(2)} pts/GS</title></rect>${i%every?'':`<text x="${X(r.age)}" y="${H-8}" text-anchor="middle">${r.age}</text>`}`).join('')}<text x="${pl-6}" y="${Y(0)+4}" text-anchor="end">0</text></svg></div><div class="hint">expected change in points per start from one age to the next (starters with 10+ GS both years, 2021-2026, smoothed). Pitchers improve into their mid-20s and decline gently until the mid-30s.</div>`; }
 function renderPCV(){
   const pc = D.meta.pitcher_proj_coef||{}; if (pc.skills!=null) { $('#f-pproj').textContent = `[b₀ ${pc.intercept}, b₁ ${pc.skills}, b₂ ${pc.track}, b₃ ${Math.abs(pc.age).toFixed(3)}]`; $('#f-pgs').textContent = `[c₀ ${pc.gs_intercept}, c₁ ${pc.gs}, c₂ ${pc.gs_prev}, c₃ ${pc.gs_age}]`; }
   const coef = D.meta.pitching_plus_coef||{}; $('#f-ppcoef').textContent = `Pitching+ ridge (alpha 5) on next-year points per start:  ${Object.entries(coef).map(([k,v])=>`${k} ${v>=0?'+':''}${v}`).join('   ')}\nK−BB% carries most of the weight; Stuff+ adds real signal on top of it; Location+ is nearly redundant once BB% is in K−BB%.`;
@@ -1754,7 +1801,9 @@ $('#theme-btn').addEventListener('click', ()=>{ const cur = document.documentEle
 try{ const t=localStorage.getItem('lab-theme'); if(t) setTheme(t); }catch(e){}
 $('#settings-btn').addEventListener('click', ()=>{ $('#settings').classList.toggle('open'); });
 $('#settings-close').addEventListener('click', ()=>$('#settings').classList.remove('open'));
-function goTab(k){ $('#moresheet')?.classList.remove('open'); $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); try{localStorage.setItem('lab-tab',k);}catch(e){} window.scrollTo({top:0}); }
+function goTab(k){ $('#moresheet')?.classList.remove('open'); $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); try{localStorage.setItem('lab-tab',k);}catch(e){} window.scrollTo({top:0}); fitCharts(k); }
+function fitCharts(k){ try{ if(k==='drafts') drawPickCurve(); if(k==='formulas'){ drawAging(); drawPAging(); } }catch(e){} }   // a hidden panel has no width, so charts are re-fitted the moment their tab is shown
+let _fitT; addEventListener('resize', ()=>{ clearTimeout(_fitT); _fitT = setTimeout(()=>{ const on = document.querySelector('section[role="tabpanel"].on'); if(on) fitCharts(on.id.replace('tab-','')); }, 180); });
 $$('[data-tab]').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.tab)));
 $('#brand').addEventListener('click', e=>{ e.preventDefault(); goTab('dash'); });
 $('#live-ind').addEventListener('click', ()=>{ if(window.refreshLive) window.refreshLive(); });
@@ -2272,6 +2321,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260916T1935"></script>
+<script src="live.js?v=20260916T2313"></script>
 </body>
 </html>

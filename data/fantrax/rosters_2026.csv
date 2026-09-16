@@ -63,13 +63,12 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 0630d,Drake Baldwin,ATL,C,C,ACTIVE,BAMBI,The Great Bambi
 02bqr,Blake Snell,LAD,SP,SP,ACTIVE,BAMBI,The Great Bambi
 024m0,Jose Altuve,HOU,2B,2B,ACTIVE,BAMBI,The Great Bambi
-05r1m,Jordan Lawlar,ARI,3B,SS,ACTIVE,BAMBI,The Great Bambi
+05r1m,Jordan Lawlar,ARI,3B,SS,RESERVE,BAMBI,The Great Bambi
 05aoc,Eury Perez,MIA,SP,SP,ACTIVE,BAMBI,The Great Bambi
-04pmb,Kris Bubic,LAD,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 05tzn,Parker Messick,CLE,SP,SP,ACTIVE,BAMBI,The Great Bambi
 01fh9,Bryce Harper,PHI,1B,1B,ACTIVE,BAMBI,The Great Bambi
 04b02,Seiya Suzuki,CHC,DH,UT,ACTIVE,BAMBI,The Great Bambi
-04qk8,CJ Abrams,WSH,SS,SS,RESERVE,BAMBI,The Great Bambi
+04qk8,CJ Abrams,WSH,SS,SS,ACTIVE,BAMBI,The Great Bambi
 06n8y,Eli Willits,WSH,SS,SS,MINORS,BAMBI,The Great Bambi
 060pm,Wyatt Langford,TEX,LF,UT,ACTIVE,BAMBI,The Great Bambi
 05rcf,Joshua Baez,STL,RF,OF,ACTIVE,BAMBI,The Great Bambi
@@ -286,10 +285,10 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ahe,Curtis Mead,BOS,1B,3B,INJURED_RESERVE,GK,Gotham Knights
 050w9,Gunnar Henderson,BAL,SS,SS,ACTIVE,GK,Gotham Knights
 05vy5,Carter Jensen,KC,C,C,ACTIVE,BB,Basketball
-05yb0,T.J. Rumfield,COL,1B,UT,ACTIVE,BB,Basketball
+05yb0,T.J. Rumfield,COL,1B,1B,RESERVE,BB,Basketball
 066eo,Cole Carrigg,COL,CF,OF,ACTIVE,BB,Basketball
 03whq,Ty France,SD,1B,1B,ACTIVE,BB,Basketball
-03qjy,Brandon Lowe,PIT,2B,2B,RESERVE,BB,Basketball
+03qjy,Brandon Lowe,PIT,2B,UT,ACTIVE,BB,Basketball
 04ml0,Yusei Kikuchi,LAA,SP,SP,ACTIVE,BB,Basketball
 02btx,Tyler Glasnow,LAD,SP,SP,RESERVE,BB,Basketball
 051ui,Jacob Lopez,ATH,SP,SP,RESERVE,BB,Basketball
