@@ -30,6 +30,8 @@ def main(argv=None):
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
     data["meta"]["schedule"] = cfg.get("schedule", {})          # scoring periods + head-to-head, for the matchup simulator
     data["meta"]["standings"] = cfg.get(f"standings_{data['meta']['season']}", [])   # season pace, to sanity-check the simulator
+    sc = C.DATA / "scorecard" / "summary.csv"
+    data["scorecard"] = pd.read_csv(sc).to_dict(orient="records") if sc.exists() else []
     tpl_txt = tpl.read_text(encoding="utf-8")
     # Bort's edition (defaults to his team) and a league edition (defaults to league view, a different title)
     data["meta"]["default_team"] = data["meta"].get("my_abbrev", "BB")
