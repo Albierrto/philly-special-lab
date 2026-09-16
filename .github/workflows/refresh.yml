@@ -47,29 +47,32 @@ jobs:
         run: python -m breakout.fantrax_api
       - name: This week's streamers (schedule, probables, rosters, weather, splits)
         run: python -m breakout.pipeline_streamers
+      # Keep score of the forecasts. Archives the day's projections while the games are still ahead (a later run
+      # after first pitch leaves the file alone, so nothing is ever graded against a number written after the fact),
+      # then grades every archived day whose box scores are in.
+      - name: Forecast scorecard
+        continue-on-error: true
+        run: python -m breakout.scorecard
       - name: Assemble the site
         run: |
           python -m breakout.build_v4
           python -m breakout.assemble
           python -m breakout.site --default-team ""
-      # The Home Run Board (site/hr/) is its own page and is not linked from the lab. It rebuilds here too so the
-      # deploy below never publishes a stale copy of it, and a failure in it can never stop the lab's refresh.
-      - name: Home Run Board
-        continue-on-error: true
-        timeout-minutes: 20
-        env:
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-          KALSHI_RELAY: ${{ vars.KALSHI_RELAY }}
-        run: python -m hrboard.build
       - name: Commit
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast data/reference data/hrboard
+          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
-          git pull --rebase
-          git push
+          # someone (or another run) can land a commit on main while this one is building, and a plain push then dies
+          # with exit 128 and takes the whole refresh down with it. Rebase onto whatever arrived and try again.
+          for i in 1 2 3; do
+            git push && break
+            echo "push rejected, rebasing onto origin/main (attempt $i)"
+            git pull --rebase --autostash origin main || exit 1
+            sleep 3
+          done
       # publish the site folder to GitHub Pages (a commit made by the workflow does not trigger other workflows)
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
