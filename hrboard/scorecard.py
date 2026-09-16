@@ -35,6 +35,12 @@ def log_picks(slate: dict, folder: Path) -> None:
             id=p["id"], n=p["n"], ek=p["ek"], ge=p["ge"],
             dk={k: v[1] for k, v in (mk.get("dk") or {}).items() if k.startswith("k")},
             ks={k: v[0] for k, v in (mk.get("ks") or {}).items() if k.startswith("k")}))
+    from . import value as VAL
+    vb = {}
+    for v in VAL.value_bets(slate):
+        if v["verdict"] < 1: continue
+        vb.setdefault(str(v["pk"]), []).append({k: (round(x, 4) if isinstance(x, float) else x) for k, x in v.items()
+                                                if k in ("kind", "key", "id", "name", "site", "cost", "ev", "verdict", "p_model", "fair", "push", "line", "confirmed", "wild")})
     out = dict(old)
     for pk, g in games.items():
         prev = old.get(pk)
@@ -42,6 +48,7 @@ def log_picks(slate: dict, folder: Path) -> None:
         if prev and prev.get("frozen"):
             continue
         entry = by_pk.get(pk, {"hitters": [], "pitchers": []})
+        entry["value"] = vb.get(pk, [])
         mk = g.get("mk") or {}; dk = mk.get("dk") or {}; ks = (mk.get("ks") or {}).get("win") or {}
         entry.update(saved=now, state=g["state"], frozen=started, late=bool(started and not prev),
                      home=g["home"]["abbr"], away=g["away"]["abbr"],
@@ -76,7 +83,7 @@ def scorecard(d: pd.DataFrame, folder: Path, today: str) -> dict:
     res_b["TB"] = tb
     res_p = x[x["vs_sp"] == 1].groupby(["game_pk", "opp_sp"])["k"].sum()
     have = set(x["game_pk"].unique())
-    H, P, Gm, daily = [], [], [], []
+    H, P, Gm, daily, VB = [], [], [], [], []
     for f in files:
         day = f.stem
         j = json.loads(f.read_text())
@@ -97,6 +104,9 @@ def scorecard(d: pd.DataFrame, folder: Path, today: str) -> dict:
                 if k is None: continue
                 P.append(dict(day=day, pk=pk, late=g.get("late", False), id=p["id"], n=p["n"], ek=p["ek"], K=int(k), ge=p["ge"], dk=p.get("dk", {}), ks=p.get("ks", {})))
             hr_, ar_ = sch.at[pk, "home_runs"], sch.at[pk, "away_runs"]
+            for v in ([] if g.get("late") else g.get("value", [])):
+                res = _grade_value(v, pk, res_b, res_p, hr_, ar_)
+                if res is not None: VB.append(dict(day=day, **v, result=res))
             if g.get("p_home") is not None and pd.notna(hr_):
                 Gm.append(dict(day=day, pk=pk, late=g.get("late", False), p=g["p_home"], dk=g.get("dk_home"), ks=g.get("ks_home"),
                                y=int(hr_ > ar_), total=int(hr_ + ar_), mu=sum(v or 0 for v in g.get("mu", [])), dk_total=g.get("dk_total"),
@@ -140,7 +150,44 @@ def scorecard(d: pd.DataFrame, folder: Path, today: str) -> dict:
                               ll_model=round(_ll(sub["p"], sub["y"]), 4))
         out["games"] = blk
         out["recent_games"] = g.sort_values("day").tail(30)[["day", "home", "away", "p", "dk", "ks", "y", "score"]].iloc[::-1].to_dict(orient="records")
+    if VB:
+        v = pd.DataFrame(VB)
+        v["profit"] = np.where(v["result"] == "win", 1 / v["cost"] - 1, np.where(v["result"] == "loss", -1.0, 0.0))
+        def blk(x):
+            settled = x[x["result"].isin(["win", "loss"])]
+            return dict(n=int(len(settled)), wins=int((x["result"] == "win").sum()), losses=int((x["result"] == "loss").sum()),
+                        pushes=int((x["result"] == "push").sum()), voids=int((x["result"] == "void").sum()),
+                        units=round(float(x["profit"].sum()), 2), roi=round(float(settled["profit"].mean()), 4) if len(settled) else None,
+                        expected=round(float(settled["ev"].mean()), 4) if len(settled) else None)
+        out["value"] = dict(all=blk(v), value=blk(v[v["verdict"] == 2]), slight=blk(v[v["verdict"] == 1]),
+                            by_kind={k: blk(x) for k, x in v.groupby("kind")},
+                            recent=v.sort_values("day").tail(25).iloc[::-1][["day", "kind", "key", "name", "site", "cost", "ev", "verdict", "result"]]
+                            .to_dict(orient="records"))
     return out
+
+
+def _grade_value(v, pk, res_b, res_p, home_runs, away_runs):
+    """win / loss / push / void for one logged value pick, or None if its result is not known yet."""
+    kind = v["kind"]
+    if kind in ("hr", "hit", "tb"):
+        if (pk, v["id"]) not in res_b.index: return "void"          # did not play: DraftKings voids, Kalshi refunds
+        r = res_b.loc[(pk, v["id"])]
+        hit = r["HR"] >= 1 if kind == "hr" else r["H"] >= 1 if kind == "hit" else r["TB"] >= 2
+        return "win" if hit else "loss"
+    if kind == "k":
+        k = res_p.get((pk, v["id"]))
+        if k is None: return "void"
+        return "win" if k >= int(v["key"][1:]) else "loss"
+    if pd.isna(home_runs) or pd.isna(away_runs): return None
+    if kind == "ml":
+        home_won = home_runs > away_runs
+        return "win" if (home_won == (v["key"] == "home")) else "loss"
+    if kind == "tot":
+        t = home_runs + away_runs; line = v.get("line")
+        if line is None: return None
+        if t == line: return "push"
+        return "win" if ((t > line) == (v["key"] == "over")) else "loss"
+    return None
 
 
 def slim_report(r: dict) -> dict:

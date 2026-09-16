@@ -181,6 +181,35 @@ td.best{background:color-mix(in srgb,var(--good) 16%,transparent);font-weight:70
 .bestline a b{color:var(--good)}
 .age{font-size:11.5px;color:var(--ink3)}
 
+/* best bets */
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--amber);color:#1b1300}
+.verdict{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.verdict.v2{background:var(--good);color:var(--grass-ink)}
+.verdict.v1{background:color-mix(in srgb,var(--good) 22%,transparent);color:var(--good)}
+.verdict.v0{background:var(--panel2);color:var(--ink3)}
+.vb{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.vb.v2{border-color:color-mix(in srgb,var(--good) 60%,var(--line))}
+.vb .t{font-weight:700;font-size:16px;line-height:1.25}
+.vb .t small{font-weight:500;color:var(--ink3);font-size:13px}
+.vb .ev{text-align:right}
+.vb .ev b{display:block;font-family:var(--font-d);font-size:26px;font-weight:600;line-height:1}
+.vb .ev span{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.vb .nums{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.vb .nums div{background:var(--panel2);border-radius:8px;padding:6px 8px;min-width:0}
+.vb .nums div span{display:block;font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vb .nums div b{font-family:var(--font-m);font-size:14px}
+.vb .nums div.hl{background:color-mix(in srgb,var(--good) 16%,var(--panel2))}
+.vb .why{grid-column:1/-1;font-size:13px;color:var(--ink2)}
+.vb .buys{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:0 0 14px}
+.legend div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink2)}
+.legend b{color:var(--ink);display:block;font-size:13.5px;margin-bottom:2px}
+.odds-t th:first-child,.odds-t td:first-child{position:sticky;left:0;background:var(--panel);z-index:1}
+.odds-t td.worst{color:var(--ink3)}
+@media (max-width:640px){ .vb .nums{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
 /* scorecard */
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -237,7 +266,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;color:var(--ink3);font
 <main id="main"></main>
 <footer id="foot"></footer>
 
-<script src="data/hr.js?v=202609160028"></script>
+<script src="data/hr.js?v=202609160039"></script>
 <script>
 "use strict";
 /* ============================================================ state */
@@ -246,7 +275,7 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = { get(k, d) { try { const v = localStorage.getItem("hrb:" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
                 set(k, v) { try { localStorage.setItem("hrb:" + k, JSON.stringify(v)); } catch (e) {} } };
-const TABS = [["hr", "Home runs"], ["hits", "Hits & bases"], ["ks", "Strikeouts"], ["games", "Games & odds"], ["card", "Scorecard"], ["how", "How it works"]];
+const TABS = [["hr", "Home runs"], ["value", "Best bets"], ["hits", "Hits & bases"], ["ks", "Strikeouts"], ["games", "Games & odds"], ["card", "Scorecard"], ["how", "How it works"]];
 const S = { day: 0, tab: store.get("tab", "hr"), game: "", q: "", confirmed: store.get("confirmed", false), sort: "model", show: 30,
             open: new Set(), live: { state: "", at: null, err: "" }, homered: {}, liveLines: {}, liveProps: {}, inGame: {}, startedPk: new Set(),
             ks: {}, ksAt: null, ksSrc: "", pm: {}, pmMl: {}, pmTot: {}, pmAt: null };
@@ -497,7 +526,7 @@ function render() {
   if (!HR) { $("#main").innerHTML = `<div class="banner">The board has not been built yet.</div>`; return; }
   renderShell();
   const sl = slate(), m = $("#main");
-  const fn = { hr: viewHR, hits: viewHits, ks: viewKs, games: viewGames, card: viewCard, how: viewHow }[S.tab] || viewHR;
+  const fn = { hr: viewHR, value: viewValue, hits: viewHits, ks: viewKs, games: viewGames, card: viewCard, how: viewHow }[S.tab] || viewHR;
   m.innerHTML = fn(sl);
   $("#foot").innerHTML = `Model through ${esc(HR.data_through)} games · board built ${new Date(HR.built).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · DraftKings via ESPN, Kalshi as of ${sl.markets.as_of ? tfmt(sl.markets.as_of) : "–"}. For fun and research, not betting advice.`;
 }
@@ -539,7 +568,7 @@ function viewHR(sl) {
       <select id="game" aria-label="Game">${gameOptions(sl)}</select>
       <input type="search" id="q" placeholder="Player or team" value="${esc(S.q)}" aria-label="Search">
       <select id="sort" aria-label="Sort"><option value="model" ${S.sort === "model" ? "selected" : ""}>Sort: model chance</option>
-        <option value="best" ${S.sort === "best" ? "selected" : ""}>Sort: model vs best price</option>
+        <option value="best" ${S.sort === "best" ? "selected" : ""}>Sort: best value</option>
         <option value="ks" ${S.sort === "ks" ? "selected" : ""}>Sort: model vs Kalshi</option><option value="dk" ${S.sort === "dk" ? "selected" : ""}>Sort: model vs DraftKings</option></select>
       <label class="chk"><input type="checkbox" id="confirmed" ${S.confirmed ? "checked" : ""}> Confirmed lineups only</label>
     </div>`;
@@ -550,14 +579,17 @@ function viewHR(sl) {
 }
 function edgeOf(h, src) {
   const sl = slate();
-  if (src === "best") { const c = bestCost(sl, h, "hr1"); return c == null ? -9 : h._hr - c; }
+  if (src === "best") { const v = propValue(sl, h, "hr1", h._hrIf); return v ? v.ev : -9; }
   if (src === "ks") { const q = ksQuote(mkv(h, "ks", "hr1"), "hr"); return q ? h._hr - q.cost : -9; }
   const v = liveDk(h, "hr1"); return v && v[1] != null ? h._hr - v[1] : -9;
 }
 function hrCard(sl, h, rank) {
   const sp = oppSp(sl, h), g = sp.g, open = S.open.has("hr" + h.id);
   const chips = whyChips(sl, h).map(([c, t]) => `<span class="chip ${c}">${esc(t)}</span>`).join("");
-  const mk = offersHtml(playerOffers(sl, h, "hr1"), h._hr);
+  const offers = playerOffers(sl, h, "hr1");
+  const val = g.state === "Preview" ? propValue(sl, h, "hr1", h._hrIf) : null;
+  const mk = offers.map((o, i) => buyChip(o, i === 0 && offers.length > 1)).join("")
+    + (val ? `${verdictPill(val)}<span class="edge ${val.ev >= 0 ? "pos" : "neg"}" title="Average return per $1 at the best price (see Best bets)">${signedPct(val.ev, 0)} return</span>` : "");
   return `<div class="card ${S.homered[h.id] ? "homered" : ""}">
     <button class="row" data-open="hr${h.id}" aria-expanded="${open}">
       <div class="rank">${rank}</div>
@@ -623,6 +655,235 @@ function hrDetail(sl, h) {
       : `<p class="note">No prices posted yet for this one.</p>`}
     </div>
   </div>`;
+}
+
+
+/* ============================================================ value: model vs market, at the best price */
+const VCFG = Object.assign({
+  w: { hr: 0.35, hit: 0.3, tb: 0.3, k: 0.4, ml: 0.2, tot: 0.15 },
+  dk_ratio: { hr: 1.2, hit: 1.07, tb: 1.11, k: 1.06 },
+  good: 0.04, lean: 0.015, ks_tight: 0.06, min_ratio_pairs: 8, wild_ratio: 1.9,
+}, (HR && HR.value_cfg) || {});
+const KIND_NAME = { hr: "to homer", hit: "1+ hit", tb: "2+ total bases", k: "strikeouts", ml: "to win", tot: "total" };
+const KIND_KEY = { hr: "hr1", hit: "hit1", tb: "tb2" };
+function median(a) { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
+function ksTightMid(entry) {
+  if (!entry) return null;
+  const live = entry[3] ? S.ks[entry[3]] : null;
+  const bid = live ? live[0] : entry[1], ask = live ? live[1] : entry[2];
+  return bid > 0 && ask > 0 && ask - bid <= VCFG.ks_tight ? (bid + ask) / 2 : null;
+}
+function pmMid(entry) {
+  if (!entry) return null;
+  const live = entry[2] ? S.pm[entry[2]] : null;
+  const m = live ? live[0] : entry[0];
+  return m > 0 && m < 1 ? m : null;
+}
+function dkRatios(sl) {
+  // DraftKings' one-sided prop prices carry its margin. How much, today, is read off the props that also trade tightly on Kalshi.
+  const pre = new Set(sl.games.filter(g => g.state === "Preview").map(g => g.pk)), pairs = { hr: [], hit: [], tb: [], k: [] };
+  for (const w of sl.hitters.concat(sl.pitchers)) {
+    if (!pre.has(w.pk)) continue;
+    const dk = (w.mk || {}).dk || {};
+    for (const key in dk) {
+      const series = SERIES_OF(key), mid = ksTightMid(mkv(w, "ks", key)), d = liveDk(w, key);
+      if (mid && mid > 0.03 && d && d[1]) pairs[series].push(d[1] / mid);
+    }
+  }
+  const out = {};
+  for (const k in pairs) out[k] = pairs[k].length >= VCFG.min_ratio_pairs ? { r: median(pairs[k]), n: pairs[k].length } : { r: VCFG.dk_ratio[k], n: 0 };
+  sl._dkr = out;
+  return out;
+}
+function propFair(sl, who, key) {
+  const series = SERIES_OF(key), F = [];
+  const km = ksTightMid(mkv(who, "ks", key)); if (km != null) F.push(["Kalshi", km]);
+  const pm = pmMid(mkv(who, "pm", key)); if (pm != null) F.push(["Polymarket", pm]);
+  const d = liveDk(who, key); if (d && d[1]) F.push(["DraftKings", Math.min(0.99, d[1] / ((sl._dkr || dkRatios(sl))[series].r))]);
+  if (!F.length) return null;
+  return { p: F.reduce((a, x) => a + x[1], 0) / F.length, parts: F };
+}
+function assess(kind, pModel, fair, offers, push = 0) {
+  // pModel and fair are chances of winning given no push. EV is per $1 staked at the best price.
+  if (!offers.length || fair == null || pModel == null) return null;
+  const w = VCFG.w[kind], best = offers[0];
+  const blend = w * pModel + (1 - w) * fair;
+  const ev = blend * (1 - push) / best.cost + push - 1;
+  const priceEdge = fair * (1 - push) / best.cost + push - 1;
+  let verdict = ev >= VCFG.good && pModel >= best.cost ? 2 : ev >= VCFG.lean ? 1 : 0;
+  // when the model is twice as high as every market, the market usually knows something (a pitch count, a sore wrist)
+  const wild = pModel >= VCFG.wild_ratio * fair && fair < 0.3;
+  if (wild && verdict === 2) verdict = 1;
+  return { pModel, fair, blend, best, ev, priceEdge, verdict, push, w, wild };
+}
+function verdictPill(v) { return v == null ? "" : `<span class="verdict v${v.verdict}">${["No value", "Slight value", "Value"][v.verdict]}</span>`; }
+function signedPct(x, d = 1) { return (x >= 0 ? "+" : "−") + Math.abs(100 * x).toFixed(d) + "%"; }
+function propValue(sl, who, key, pModel) { return assess(SERIES_OF(key), pModel, (propFair(sl, who, key) || {}).p, playerOffers(sl, who, key)); }
+function gameFair(g, W, kind, side) {
+  const gm = g.mk || {}, F = [];
+  if (kind === "ml") {
+    for (const r of W.rows) {
+      if (r.site === "Kalshi" || r.site === "Polymarket") continue;
+      const a = r.ml.away, h = r.ml.home; if (!a || !h) continue;
+      const ph = h.cost / (h.cost + a.cost); F.push([r.site, side === "home" ? ph : 1 - ph]);
+    }
+    const kw = (gm.ks || {}).win || {}, e = kw[g[side].abbr];
+    const km = e ? ksTightMid([e[0], e[1], e[2], e[4]]) : null; if (km != null) F.push(["Kalshi", km]);
+    const pl = (S.pmMl[g.pk] || {})[side] || ((gm.pm || {}).ml || {})[side]; if (pl && pl[0] > 0) F.push(["Polymarket", pl[0]]);
+  } else {
+    const L = W.main; if (L == null) return null;
+    for (const r of W.rows) {
+      if (r.site === "Kalshi" || r.site === "Polymarket") continue;
+      const o = r.tot.over, u = r.tot.under; if (!o || !u || o.line !== L || u.line !== L) continue;
+      const po = o.cost / (o.cost + u.cost); F.push([r.site, side === "over" ? po : 1 - po]);
+    }
+    const kt = ((gm.ks || {}).total || {})[String(L)]; const km = kt ? ksTightMid(kt) : null;
+    if (km != null) F.push(["Kalshi", side === "over" ? km : 1 - km]);
+    const pt = (S.pmTot[g.pk] || {})[String(L)] || (((gm.pm || {}).totals || {})[String(L)]);
+    const pe = pt ? pt[side] : null; if (pe && pe[0] > 0) F.push(["Polymarket", pe[0]]);
+  }
+  if (!F.length) return null;
+  return { p: F.reduce((a, x) => a + x[1], 0) / F.length, parts: F };
+}
+function valueBets(sl) {
+  dkRatios(sl);
+  const out = [], G = gameMap(sl);
+  for (const h of sl.hitters) {
+    if (!h._P || G[h.pk].state !== "Preview") continue;
+    const confirmed = h.lp && h.il;
+    if (!confirmed && (h.lp || h.ps < 0.6)) continue;
+    for (const kind of ["hr", "hit", "tb"]) {
+      const key = KIND_KEY[kind], pM = kind === "hr" ? h._hrIf : kind === "hit" ? h._hitIf : h._tbIf;
+      const offers = playerOffers(sl, h, key); if (!offers.length) continue;
+      const fair = propFair(sl, h, key);
+      const v = assess(kind, pM, fair && fair.p, offers); if (!v) continue;
+      out.push(Object.assign(v, { kind, key, who: h, pk: h.pk, id: `${kind}-${h.id}`, offers, fairParts: fair.parts, confirmed,
+        title: `${h.n} ${KIND_NAME[kind]}`, sub: `${h.t} ${h.h ? "vs" : "@"} ${h.o} · ${confirmed ? "batting " + ord(h.sl) : "lineup not posted (proj. " + ord(h.sl) + ")"}` }));
+    }
+  }
+  for (const p of sl.pitchers) {
+    if (G[p.pk].state !== "Preview" || !p._ge) continue;
+    for (let n = 3; n <= 10; n++) {
+      const key = "k" + n, offers = playerOffers(sl, p, key); if (!offers.length) continue;
+      const fair = propFair(sl, p, key);
+      const v = assess("k", p._ge[n], fair && fair.p, offers); if (!v) continue;
+      out.push(Object.assign(v, { kind: "k", key, who: p, pk: p.pk, id: `k${n}-${p.id}`, offers, fairParts: fair.parts, confirmed: true,
+        title: `${p.n} ${n}+ strikeouts`, sub: `vs ${p.vs} · proj. ${f1(p._ek)} K` }));
+    }
+  }
+  for (const g of sl.games) {
+    if (g.state !== "Preview" || !g._m) continue;
+    const W = gameOffers(g), pH = g._m.pHome;
+    for (const side of ["away", "home"]) {
+      const offers = W.rows.filter(r => r.ml[side]).map(r => ({ site: r.site, short: r.site, cost: r.ml[side].cost, label: r.ml[side].label, link: r.ml[side].link || r.link, note: r.ml[side].note }))
+        .sort((a, b) => a.cost - b.cost);
+      const fair = gameFair(g, W, "ml", side);
+      const v = assess("ml", side === "home" ? pH : 1 - pH, fair && fair.p, offers); if (!v) continue;
+      out.push(Object.assign(v, { kind: "ml", key: side, who: g, pk: g.pk, id: `ml-${g.pk}-${side}`, offers, fairParts: fair.parts, confirmed: true,
+        title: `${g[side].name} ${KIND_NAME.ml}`, sub: `${g.away.abbr} @ ${g.home.abbr} · ${tfmt(g.time)} · ${esc(spOf(g, side))} starts` }));
+    }
+    if (W.main != null) {
+      const L = W.main; let pO = 0, pP = 0; g._m.total.forEach((v, t) => { if (t > L) pO += v; else if (t === L) pP += v; });
+      const pU = 1 - pO - pP;
+      for (const side of ["over", "under"]) {
+        const offers = W.rows.filter(r => r.tot[side] && r.tot[side].line === L).map(r => ({ site: r.site, short: r.site, cost: r.tot[side].cost, label: r.tot[side].label, link: r.tot[side].link || r.link, note: r.tot[side].note }))
+          .sort((a, b) => a.cost - b.cost);
+        const fair = gameFair(g, W, "tot", side);
+        const pM = (side === "over" ? pO : pU) / Math.max(1e-6, 1 - pP);
+        const v = assess("tot", pM, fair && fair.p, offers, pP); if (!v) continue;
+        out.push(Object.assign(v, { kind: "tot", key: side, who: g, pk: g.pk, id: `tot-${g.pk}-${side}`, offers, fairParts: fair.parts, confirmed: true,
+          title: `${side === "over" ? "Over" : "Under"} ${L} · ${g.away.abbr} @ ${g.home.abbr}`, sub: `model ${(g._m.muA + g._m.muH).toFixed(1)} runs · ${tfmt(g.time)}` }));
+      }
+    }
+  }
+  return out.sort((a, b) => b.ev - a.ev);
+}
+
+/* ============================================================ view: best bets */
+function valueCard(v) {
+  const b = v.best, other = v.offers.slice(1);
+  const fairTxt = v.fairParts.map(([s, p]) => `${s} ${pct(p)}`).join(" · ");
+  const stake10 = 10 * v.ev;
+  const why = v.verdict === 2
+    ? `Our model gives this ${pct(v.pModel)} and the market ${pct(v.fair)}. Even trusting the market ${Math.round(100 * (1 - v.w))}% of the way, the best price (${pct(b.cost)}) is too cheap.`
+    : v.wild
+      ? `On paper a big edge (model ${pct(v.pModel)} vs market ${pct(v.fair)}), held to Slight until the disagreement is explained.`
+    : v.verdict === 1
+      ? `A small edge: ${v.priceEdge > 0.01 ? "the best price beats the market average, " : ""}model ${pct(v.pModel)} vs market ${pct(v.fair)}.`
+      : `No edge at the best price: fair chance ${pct(v.blend)} vs price ${pct(b.cost)}.`;
+  return `<div class="vb v${v.verdict}">
+    <div><div class="t">${esc(v.title)} ${verdictPill(v)}<br><small>${v.sub}${v.moreLines ? ` · ${v.moreLines} more of his lines also show value (Every bet)` : ""}</small></div></div>
+    <div class="ev"><b style="color:${v.ev >= 0 ? "var(--good)" : "var(--bad)"}">${signedPct(v.ev)}</b><span>expected return</span></div>
+    <div class="nums">
+      <div class="hl"><span>Best price · ${esc(b.site)}</span><b>${esc(b.label)}${b.short === "DK" || !/¢/.test(b.label) ? "" : " · " + costToAmer(b.cost)}</b></div>
+      <div><span>Price means</span><b>${pct(b.cost, 1)}</b></div>
+      <div><span>Market thinks</span><b>${pct(v.fair, 1)}</b></div>
+      <div><span>Our model</span><b>${pct(v.pModel, 1)}</b></div>
+    </div>
+    <div class="why">${v.wild ? "<b>Model is far above every market here; check for news (pitch count, injury, lineup) before trusting it.</b> " : ""}${why} ${v.push ? `Push (refund) chance ${pct(v.push)}. ` : ""}$10 here returns ${stake10 >= 0 ? "+" : "−"}$${Math.abs(stake10).toFixed(2)} on average. <span class="age">Market: ${esc(fairTxt)}${v.confirmed ? "" : " · lineup not posted yet"}</span></div>
+    <div class="buys">${v.offers.map((o, i) => `<a class="buy ${i === 0 && v.offers.length > 1 ? "best" : ""}" href="${esc(o.link || "#")}" target="_blank" rel="noopener" title="${esc(o.note || "")}"><span>${i === 0 && v.offers.length > 1 ? "BEST · " : ""}${esc(o.short === "DK" ? "DK" : o.site.toUpperCase())}</span><span class="num">${esc(o.label)}</span><span class="ext">↗</span></a>`).join("")}</div>
+  </div>`;
+}
+function viewValue(sl) {
+  const all = valueBets(sl);
+  const kinds = [["all", "All"], ["hr", "Home runs"], ["hit", "Hits"], ["tb", "Total bases"], ["k", "Strikeouts"], ["ml", "Moneyline"], ["tot", "Totals"]];
+  const kind = S.vkind || "all", mode = S.vmode || "value";
+  const pool = all.filter(v => kind === "all" || v.kind === kind);
+  let shown = mode === "value" ? pool.filter(v => v.verdict >= 1).sort((a, b) => (b.verdict - a.verdict) || (b.ev - a.ev)) : pool;
+  if (mode === "value") {
+    // a pitcher's strikeout lines are one opinion, not five bets: keep his best line
+    const seen = new Map();
+    shown = shown.filter(v => {
+      if (v.kind !== "k") return true;
+      const k = v.who.id; const n = seen.get(k) || 0; seen.set(k, n + 1);
+      return n === 0;
+    });
+    shown.forEach(v => { if (v.kind === "k") v.moreLines = seen.get(v.who.id) - 1; });
+  }
+  const nV = all.filter(v => v.verdict === 2).length, nS = all.filter(v => v.verdict === 1).length;
+  const dkr = sl._dkr || {};
+  let body;
+  if (mode === "odds") body = oddsBoard(sl, pool);
+  else body = shown.length ? `<div class="list">${shown.slice(0, S.show).map(valueCard).join("")}</div>${shown.length > S.show ? `<button class="more" data-more="1">Show more (${shown.length - S.show} left)</button>` : ""}`
+    : `<div class="banner">Nothing clears the bar right now${kind !== "all" ? " for this bet type" : ""}. Prices move all day, and lineups change the numbers; check back after lineups post.</div>`;
+  return `<div class="lede"><div><h2>Best bets</h2>
+    <p>Every bet we can price, compared with the market, at the best price anywhere. <b>Value</b> means it should return money on average at that price, even after leaning mostly on what the market thinks. The big green number is the average return per $1.</p></div></div>
+    <div class="controls">
+      <div class="seg" role="group"><button data-vmode="value" aria-pressed="${mode === "value"}">Value picks · ${nV + nS}</button><button data-vmode="all" aria-pressed="${mode === "all"}">Every bet</button><button data-vmode="odds" aria-pressed="${mode === "odds"}">Best odds</button></div>
+      <select id="vkind" aria-label="Bet type">${kinds.map(([k, t]) => `<option value="${k}" ${k === kind ? "selected" : ""}>${t}</option>`).join("")}</select>
+      <span class="note">${nV} value · ${nS} slight · ${all.length} priced bets on games not yet started</span>
+    </div>
+    <details class="wtb" style="margin:0 0 12px"><summary><b>How to read these numbers</b></summary><div class="legend" style="margin-top:8px">
+      <div><b>Price means</b>What the best price implies: a +400 bet or a 20¢ contract needs to hit 20% of the time to break even.</div>
+      <div><b>Market thinks</b>The average of the sites' own odds with their margins taken out (DraftKings player bets run about ${pct((dkr.hr || {}).r ? dkr.hr.r - 1 : VCFG.dk_ratio.hr - 1)} rich on homers today).</div>
+      <div><b>Expected return</b>What $1 bet at the best price returns on average, using a fair chance that is ${Math.round(100 * (1 - VCFG.w.hr))}% market and ${Math.round(100 * VCFG.w.hr)}% our model for homers (${Math.round(100 * (1 - VCFG.w.ml))}/${Math.round(100 * VCFG.w.ml)} for moneylines, where books are sharpest).</div>
+      <div><b><span class="verdict v2">Value</span> / <span class="verdict v1">Slight value</span></b>Value: +${Math.round(VCFG.good * 100)}% or better and our model agrees. Slight: +${(VCFG.lean * 100).toFixed(1)}% or better. Most value bets still lose; a +400 hits one time in five.</div>
+    </div></details>
+    ${body}
+    <p class="note">Only games that have not started. Player bets use the chance he homers <i>if he plays</i>, because DraftKings voids and Kalshi refunds a player who sits. For fun and research, not betting advice; check that a site is legal where you are.</p>`;
+}
+function oddsBoard(sl, pool) {
+  const props = pool.filter(v => ["hr", "hit", "tb", "k"].includes(v.kind) && v.offers.length >= 2);
+  const games = pool.filter(v => (v.kind === "ml" || v.kind === "tot"));
+  const sites = ["DraftKings", "Kalshi", "Polymarket"];
+  const byGain = v => { const c = v.offers.map(o => o.cost); return Math.max(...c) / Math.min(...c) - 1; };
+  props.sort((a, b) => byGain(b) - byGain(a));
+  const propRows = props.slice(0, 80).map(v => {
+    const cells = sites.map(s => { const o = v.offers.find(x => x.site === s); if (!o) return `<td class="num">–</td>`;
+      const isBest = o === v.best, isWorst = o.cost === Math.max(...v.offers.map(x => x.cost));
+      return `<td class="num ${isBest ? "best" : isWorst ? "worst" : ""}"><a href="${esc(o.link)}" target="_blank" rel="noopener">${esc(o.label)}</a>${o.short === "DK" ? "" : `<br><small>${costToAmer(o.cost)}</small>`}</td>`; }).join("");
+    return `<tr><td class="l"><b>${esc(v.title)}</b><br><small>${v.sub}</small></td>${cells}<td class="num">+${(100 * byGain(v)).toFixed(0)}%</td><td class="num">${verdictPill(v)}</td></tr>`;
+  }).join("");
+  const gsites = [...new Set(games.flatMap(v => v.offers.map(o => o.site)))];
+  const gRows = games.map(v => {
+    const cells = gsites.map(s => { const o = v.offers.find(x => x.site === s); if (!o) return `<td class="num">–</td>`;
+      return `<td class="num ${o === v.best && v.offers.length > 1 ? "best" : ""}"><a href="${esc(o.link || "#")}" target="_blank" rel="noopener">${esc(o.label)}</a></td>`; }).join("");
+    return `<tr><td class="l"><b>${esc(v.title)}</b><br><small>${v.sub}</small></td><td class="num">${amer(v.pModel)}</td>${cells}<td class="num">${verdictPill(v)}</td></tr>`;
+  }).join("");
+  return `<div class="panel" style="margin-bottom:12px"><h3>Player bets: who pays the most</h3><p>Sorted by how much more the best site pays than the worst for the same bet. Kalshi includes its fee; the small line is the same price in sportsbook odds.</p>
+    ${propRows ? `<div class="tablewrap odds-t"><table><thead><tr><th class="l">Bet</th>${sites.map(s => `<th>${s === "Polymarket" ? "Poly" : s === "DraftKings" ? "DK" : s}</th>`).join("")}<th>Best vs worst</th><th></th></tr></thead><tbody>${propRows}</tbody></table></div>` : `<p class="note">No player bet is priced at two or more sites yet.</p>`}</div>
+    <div class="panel"><h3>Game lines</h3><p>${(HR.books_status || {}).configured ? "Every sportsbook and exchange we read." : "DraftKings, Kalshi and Polymarket (more sportsbooks appear once an Odds API key is added)."} Model column is our fair price.</p>
+    ${gRows ? `<div class="tablewrap odds-t"><table><thead><tr><th class="l">Bet</th><th>Model</th>${gsites.map(s => `<th>${esc(s)}</th>`).join("")}<th></th></tr></thead><tbody>${gRows}</tbody></table></div>` : `<p class="note">No game lines posted yet.</p>`}</div>`;
 }
 
 /* ============================================================ view: hits & total bases */
@@ -835,6 +1096,19 @@ function viewCard() {
       <div class="panel"><h3>Model vs the markets</h3><p>Lower log loss is better. Only games priced before first pitch count.</p>${marketTable(c)}</div>
     </div>` : `<div class="banner">The live record starts with the first slate this board logged${c.since ? " (" + dfmt(c.since) + ")" : ""}. Picks are graded the morning after; until then, here is how the same model did on every 2026 game it never saw.</div>`;
   const cal = rep.hr_calib || [];
+  const vr = c.value;
+  const vline = b => b && (b.n || b.pushes || b.voids) ? `${b.wins}-${b.losses}${b.pushes ? "-" + b.pushes : ""} · ${b.units >= 0 ? "+" : "−"}${Math.abs(b.units).toFixed(2)} units · ${b.roi == null ? "–" : signedPct(b.roi)} per bet <small>(expected ${b.expected == null ? "–" : signedPct(b.expected)})</small>` : "none settled yet";
+  const valuePanel = `<div class="panel" style="margin-top:12px"><h3>Value picks record</h3>
+    <p>Every Value and Slight value pick from the Best bets tab, as it stood before first pitch, bet at the price shown then ($1 each). Voids are players who sat.</p>
+    ${vr ? `<div class="kv">
+      <span><span class="verdict v2">Value</span></span><span>${vline(vr.value)}</span>
+      <span><span class="verdict v1">Slight</span></span><span>${vline(vr.slight)}</span>
+      ${Object.entries(vr.by_kind || {}).map(([k, b]) => `<span>${esc(({ hr: "Home runs", hit: "Hits", tb: "Total bases", k: "Strikeouts", ml: "Moneylines", tot: "Totals" })[k] || k)}</span><span>${vline(b)}</span>`).join("")}
+    </div>
+    ${(vr.recent || []).length ? `<div class="tablewrap" style="border:0;margin-top:10px"><table><thead><tr><th class="l">Day</th><th class="l">Pick</th><th>Price</th><th>Return</th><th>Result</th></tr></thead><tbody>
+      ${vr.recent.map(r => `<tr><td class="l">${dfmt(r.day)}</td><td class="l">${esc(r.name)} ${esc(({ hr: "HR", hit: "1+ hit", tb: "2+ TB", ml: "to win", tot: r.key })[r.kind] || r.key)} ${verdictPill({ verdict: r.verdict })}</td><td class="num">${esc(r.site)} ${costToAmer(r.cost)}</td><td class="num">${signedPct(r.ev)}</td><td class="num">${r.result === "win" ? "✓ win" : r.result}</td></tr>`).join("")}
+    </tbody></table></div>` : ""}` : `<p class="note">The first value picks are graded the morning after they are logged. Expect a lot of noise for the first few weeks: a +400 bet can lose ten times in a row and still be a good price.</p>`}
+  </div>`;
   return `<div class="lede"><div><h2>Scorecard</h2><p>Every board is saved and graded against what actually happened, so you can see whether the numbers deserve trust.</p></div></div>
     ${live}
     <div class="two" style="margin-top:12px">
@@ -848,7 +1122,7 @@ function viewCard() {
           <span>Games: favorite won</span><span>${rep.win ? "AUC " + rep.win.auc.toFixed(3) : "–"}</span>
         </div></div>
       <div class="panel"><h3>Does 20% mean 20%?</h3><p>2026 starters grouped by the model's home run chance, against how often they actually homered.</p>${calChart(cal)}</div>
-    </div>`;
+    </div>${valuePanel}`;
 }
 function marketTable(c) {
   const rows = [["Home run", c.hr], ["1+ hit", c.hit], ["2+ bases", c.tb2]].map(([n, b]) => {
@@ -896,7 +1170,9 @@ function viewHow() {
       <li><b>Polymarket</b>: one share's current asking price, pays $1, read live. Shown only when the market is actually trading.</li>
       <li><b>FanDuel, BetMGM, Caesars, Fanatics, BetRivers, theScore Bet, Hard Rock, Novig, ProphetX</b>: moneyline, run line and total ${(HR.books_status || {}).configured ? "from The Odds API, a few times a day" : "appear once an Odds API key is added"}. Player bets from these books need a paid plan, so they are not shown.</li>
     </ul>
-    <p>"Pts" or "edge" is the model's chance minus the best price. Markets know things the model does not (late scratches, injuries, weather), so a big gap is a question, not a sure thing. Which sites you can use depends on your state.</p>
+    <h3>Best bets</h3>
+    <p>For each bet the <b>Best bets</b> tab puts three numbers side by side: what the best price implies, what the market thinks (every site's own odds with the margin taken out, averaged), and what our model thinks. The fair chance used for the return is mostly the market's (65% for player bets, 80% for moneylines, 85% for totals), because the markets are sharper than any model on the day and know about late news. A bet is <b>Value</b> when $1 at the best price returns +4% or more on average and the model alone also beats the price; <b>Slight value</b> is +1.5% or more. If the model is about twice as high as every market, it is capped at Slight and flagged, because that usually means news the model has not seen. A pitcher's strikeout lines count as one pick. Every pick is logged before first pitch and graded on the Scorecard, so these weights can be tuned to what actually happens.</p>
+    <p>"Pts" or "edge" elsewhere is the model's chance minus the best price. Markets know things the model does not (late scratches, injuries, weather), so a big gap is a question, not a sure thing. Which sites you can use depends on your state.</p>
     <h3>What it does not know</h3>
     <ul><li>Injuries or rest days announced after the build, until the lineup posts.</li><li>Opener or bullpen games beyond what the listed starter usually does.</li><li>Umpires and catcher framing.</li><li>Hot streaks: tested on the 2026 season, the last 14 days of barrels, hard contact and homers did not improve the forecast by a measurable amount, so they are shown but not scored.</li></ul>
     <p class="note">Built from Baseball Savant, the MLB Stats API, Open-Meteo, ESPN and Kalshi's public data. For fun and research, not betting advice.</p>
@@ -905,12 +1181,13 @@ function viewHow() {
 
 /* ============================================================ events */
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-day],[data-tab],[data-open],[data-more],#livebtn,#theme");
+  const t = e.target.closest("[data-day],[data-tab],[data-open],[data-more],[data-vmode],#livebtn,#theme");
   if (!t) return;
   if (t.dataset.day != null) { S.day = +t.dataset.day; S.game = ""; S.show = 30; render(); }
   else if (t.dataset.tab) { S.tab = t.dataset.tab; store.set("tab", S.tab); S.show = 30; render(); window.scrollTo({ top: 0 }); }
   else if (t.dataset.open) { S.open.has(t.dataset.open) ? S.open.delete(t.dataset.open) : S.open.add(t.dataset.open); render(); }
   else if (t.dataset.more) { S.show += 30; render(); }
+  else if (t.dataset.vmode) { S.vmode = t.dataset.vmode; S.show = 30; render(); }
   else if (t.id === "livebtn") { refresh(true); }
   else if (t.id === "theme") {
     const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -920,6 +1197,7 @@ document.addEventListener("click", e => {
 document.addEventListener("change", e => {
   const t = e.target;
   if (t.id === "game") { S.game = t.value; render(); }
+  else if (t.id === "vkind") { S.vkind = t.value; S.show = 30; render(); }
   else if (t.id === "sort") { S.sort = t.value; render(); }
   else if (t.id === "hsort") { S.hsort = t.value; render(); }
   else if (t.id === "confirmed") { S.confirmed = t.checked; store.set("confirmed", S.confirmed); render(); }

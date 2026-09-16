@@ -16,7 +16,7 @@ import pandas as pd
 from breakout.config import DATA
 from breakout.names import key as name_key
 from breakout import streamers as ST
-from . import features as F, dataset as D, game as G, model as M, context as C, odds as O, savant, scorecard as SC, books as BK
+from . import features as F, dataset as D, game as G, model as M, context as C, odds as O, savant, scorecard as SC, books as BK, value as VAL
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site" / "hr"
@@ -274,6 +274,7 @@ def build_slate(day: str, d: pd.DataFrame, ctx: dict) -> dict | None:
     H["p_hit"] = platt(r["p_hit"], cal["hit"]) * H["p_start"]
     H["p_tb2"] = platt(r["p_tb2"], cal["tb2"]) * H["p_start"]
     H["p_hr_if_starts"] = platt(r["p_hr"], cal["hr"]); H["e_pa"] = r["e_pa"]
+    H["p_hit_if_starts"] = platt(r["p_hit"], cal["hit"]); H["p_tb2_if_starts"] = platt(r["p_tb2"], cal["tb2"])
     H["pa_hr_sp"] = P_sp[:, ORDER.index("hr")]; H["pa_hr_bp"] = P_bp[:, ORDER.index("hr")]
     H["zsp"] = list(np.round(H_zsp, 4)); H["zbp"] = list(np.round(H_zbp, 4))
     # skill snapshot for the cards
@@ -560,6 +561,7 @@ def assemble(day, games, gmeta, H, SPd, Gd, wx, mk, ctx) -> dict:
             spt=r.sp_throws, st=r.stand_sp, sl=int(r.slot), ps=_r(r.p_start, 3), il=bool(r.in_lineup), lp=bool(r.lineup_posted),
             bf=_r(r.bf_exp, 3), zsp=[_r(v, 4) for v in r.zsp], zbp=[_r(v, 4) for v in r.zbp],
             hr=_r(r.p_hr), hit=_r(r.p_hit), tb2=_r(r.p_tb2), epa=_r(r.e_pa, 2),
+            hri=_r(r.p_hr_if_starts), hiti=_r(r.p_hit_if_starts), tbi=_r(r.p_tb2_if_starts),
             sk=dict(hr=_r(r.b_hr * 600, 1), hrh=_r(r.bh_hr * 600, 1), brl=_r(r.b_brl * 100, 1), pull=_r(r.b_pull_air * 100, 1),
                     hard=_r(r.b_hard * 100, 1), bat=_r(r.b_bat_speed, 1), pa=_r(r.b_pa_eff, 0), p_hr=_r(r.ps_hr * 600, 1),
                     p_brl=_r(r.p_brl * 100, 1), p_gb=_r(r.p_gb * 100, 0), pf=_r(r.pf_hr, 2), lg_hr=_r(r.lg_hr * 600, 1), lg_brl=_r(r.lg_brl * 100, 1)),
@@ -667,7 +669,7 @@ def main(argv=None):
     import os
     payload = dict(built=datetime.now(timezone.utc).isoformat(timespec="seconds"), today=today, slates=slates,
                    relay=(os.environ.get("KALSHI_RELAY") or "").strip().rstrip("/") or None,
-                   books_status=BK.status(),
+                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG,
                    model=model_block(mj, SC.slim_report(report)), card=card, data_through=str(d["game_date"].max().date()),
                    form_keys=FORM_KEYS)
     SITE.joinpath("data").mkdir(parents=True, exist_ok=True)
