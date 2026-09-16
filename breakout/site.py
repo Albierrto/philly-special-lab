@@ -82,7 +82,14 @@ jobs:
           git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
-          git push
+          # someone (or another run) can land a commit on main while this one is building, and a plain push then dies
+          # with exit 128 and takes the whole refresh down with it. Rebase onto whatever arrived and try again.
+          for i in 1 2 3; do
+            git push && break
+            echo "push rejected, rebasing onto origin/main (attempt $i)"
+            git pull --rebase --autostash origin main || exit 1
+            sleep 3
+          done
       # publish the site folder to GitHub Pages (a commit made by the workflow does not trigger other workflows)
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
