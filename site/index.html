@@ -127,6 +127,7 @@ tbody tr:hover td.sticky{background:var(--panel2)}
 tr.mine td.sticky{background:var(--mine)} tr.mine td.sticky .sub{color:var(--mine-ink)}
 td.name{font-weight:600;cursor:pointer}
 @media (max-width:900px){ th.opt,td.opt{display:none} }   /* columns worth dropping before a phone has to scroll sideways */
+td .sub{display:block;font-weight:400;color:var(--ink3);font-size:11px;font-family:var(--font-b);white-space:nowrap}
 td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font-family:var(--font-b)}
 .pill{display:inline-block;padding:0 7px;border-radius:4px;font-size:12px;font-weight:600;font-family:var(--font-b);line-height:20px;white-space:nowrap}
 .pill.g{background:rgba(76,194,122,.18);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.18);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.18);color:var(--cold)} .pill.w{background:rgba(232,176,75,.18);color:var(--warn)} .pill.n{background:var(--panel3);color:var(--ink2)} td.name.noclick,.row.noclick{cursor:default;opacity:.75}
@@ -468,7 +469,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <div class="grid2">
     <div>
       <h3>Hitter keeper board</h3>
-      <div class="tblwrap"><table id="t-kboard"></table></div>
+      <div class="tblwrap"><table id="t-kboard"></table></div><p class="hint">The <b>&plusmn;</b> on a projection is the model's own measured error, not a decoration: out of fold a pitcher's season total carries a standard deviation of about a third of itself (89 points), a hitter's about 153. Two men four points apart are the same man as far as this can tell &mdash; hover <b>Tied with</b> in the Hitters and Pitchers tabs to see how many rivals sit inside that error.</p>
     </div>
     <div>
       <h3>2027 hitter draft pool (likely keepers removed)</h3>
@@ -477,7 +478,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
     </div>
     <div>
       <h3>Pitcher keeper board</h3>
-      <div class="tblwrap"><table id="t-pkboard"></table></div>
+      <div class="tblwrap"><table id="t-pkboard"></table></div><p class="hint">The <b>&plusmn;</b> on a projection is the model's own measured error, not a decoration: out of fold a pitcher's season total carries a standard deviation of about a third of itself (89 points), a hitter's about 153. Two men four points apart are the same man as far as this can tell &mdash; hover <b>Tied with</b> in the Hitters and Pitchers tabs to see how many rivals sit inside that error.</p>
     </div>
     <div>
       <h3>2027 pitcher draft pool (likely keepers removed)</h3>
@@ -686,8 +687,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260916T0305"></script>
-<script src="data/streamers.js?v=20260916T0305"></script>
+<script src="data/lab.js?v=20260916T0335"></script>
+<script src="data/streamers.js?v=20260916T0335"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -699,12 +700,12 @@ const PROJ = Object.fromEntries(unpack(D.projections).map(p => [p.mlbam_id, p]))
 const BY_ID = {}; ROWS.forEach(r => (BY_ID[r.mlbam_id] ||= []).push(r)); Object.values(BY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
 const SEASONS = [...new Set(ROWS.map(r=>r.season))].sort();
 const CUR = D.meta.season; const HOME_ABBR = D.meta.my_abbrev; let MY = (D.meta.default_team ?? HOME_ABBR); try{ const s=localStorage.getItem('lab-team'); if(s!==null) MY=s; }catch(e){}
-ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as}); });
+ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
 // pitchers
 const PROWS = unpack(D.pitchers); const PSEASONS = [...new Set(PROWS.map(r=>r.season))].sort();
 const PPROJ = Object.fromEntries(unpack(D.pitcher_proj).map(p => [p.mlbam_id, p]));
 const PBY_ID = {}; PROWS.forEach(r => (PBY_ID[r.mlbam_id] ||= []).push(r)); Object.values(PBY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
-PROWS.forEach(r => { const p = PPROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_gs:p.proj_pts_gs, proj_GS:p.proj_GS, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, proj_pts_hitting:p.proj_pts_hitting, proj_pts_total:p.proj_pts_total}); r.elig = 'SP'; r.team_abbr = r.team; });
+PROWS.forEach(r => { const p = PPROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_gs:p.proj_pts_gs, proj_GS:p.proj_GS, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, proj_pts_hitting:p.proj_pts_hitting, proj_pts_total:p.proj_pts_total, ip_gs_last:p.ip_gs_last, comeback:p.comeback, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); r.elig = 'SP'; r.team_abbr = r.team; });
 // prospects
 const PROS_BY_ID = Object.fromEntries(D.prospects.map(p => [p.mlbam_id, p]));
 const PLINES = {}; D.prospect_lines.forEach(l => (PLINES[l.mlbam_id] ||= []).push(l));
@@ -825,6 +826,16 @@ const RELABEL = {pts_c:'Points', pts_pa_c:'Pts / PA', pts_gs_c:'Pts / start', LP
 function renderGlossary(){ $('#glossary').innerHTML = TERMS.map(t=>`<div class="gterm"><b>${esc(t.name)}</b>${t.also?`<div class="also">also shown as: ${esc(t.also)}</div>`:''}<p>${esc(t.what)}</p>${t.ex?`<div class="ex">Example: ${esc(t.ex)}</div>`:''}</div>`).join(''); }
 
 // ---------- column catalogue
+// A ranked list reads as if 13th and 14th are different things. They are not. Out of fold a season projection
+// carries a standard deviation of roughly a third of itself - 89 points on a pitcher, 153 on a hitter - so the
+// ordering near the top is mostly the model's own noise being sorted. rank_lo/rank_hi are the 10th and 90th
+// percentile of where a player actually finished across 4,000 simulated seasons; n_tied counts the rivals whose
+// projection sits inside the combined error of the pair. See keepers.uncertainty for the fits.
+const rankBand = (v, r) => v == null ? '' :
+  `${(+v).toFixed(0)}${r && r.rank_lo != null ? `<span class="sub">really ${(+r.rank_lo).toFixed(0)}\u2013${(+r.rank_hi).toFixed(0)}</span>` : ''}`;
+const projBand = (v, r) => v == null ? '' :
+  `${Math.round(+v)}${r && r.proj_sd != null ? ` <span class="hint">\u00b1${Math.round(+r.proj_sd)}</span>` : ''}`;
+const tiedCell = (v) => v == null ? '' : (+v === 0 ? '<span class="hint">clear</span>' : `<span class="pill n" title="this many other players project inside the combined error of the pair - the board cannot tell them apart">${(+v).toFixed(0)}</span>`);
 const COLS = [
   {k:'name',l:'Hitter',g:'Identity',t:'name',sticky:true},{k:'season',l:'Yr',g:'Identity',f:'int',dir:0,def:true},{k:'age',l:'Age',g:'Identity',f:'1',dir:-1,def:true},{k:'elig',l:'Pos',g:'Identity',t:'txt',def:true},{k:'team_abbr',l:'MLB',g:'Identity',t:'txt'},{k:'owner',l:'Owner',g:'Identity',t:'txt',def:true},{k:'prospect_status',l:'Status',g:'Identity',t:'txt'},
   {k:'PA',l:'PA',g:'Production',f:'int',dir:1,def:true},{k:'G',l:'G',g:'Production',f:'int',dir:1},{k:'pa_pace_162',l:'PA pace',g:'Production',f:'int',dir:1,title:'PA per 162 team games while on the roster (late call-ups and IL time excluded)'},{k:'avail_games',l:'Avail G',g:'Production',f:'int',dir:0},{k:'days_late',l:'Days late',g:'Production',f:'int',dir:0,title:'days between opening day and his first MLB game'},{k:'pts_c',l:'Pts',g:'Production',f:'0',dir:1,def:true},{k:'pts_pa_c',l:'Pts/PA',g:'Production',f:'3',dir:1,def:true},{k:'rank_c',l:'Rank',g:'Production',f:'int',dir:-1,def:true},{k:'LPAR_c',l:'Above repl.',g:'Production',f:'0',dir:1,def:true},{k:'roto_c',l:'Roto z',g:'Production',f:'1',dir:1},
@@ -837,7 +848,7 @@ const COLS = [
   {k:'sprint_speed',l:'Sprint',g:'Speed',f:'1',dir:1,def:true},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_pa',l:'Career best /PA',g:'Career',f:'3',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'3',dir:1},{k:'seasons_200',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_PA',l:'Career PA',g:'Career',f:'int',dir:0},{k:'pipeline_rank',l:'Pipeline',g:'Career',f:'int',dir:-1},{k:'PAS',l:'Prospect score',g:'Career',f:'1',dir:1},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 COLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const CI = Object.fromEntries(COLS.map(c=>[c.k,c]));
@@ -854,7 +865,7 @@ const PCOLS = [
   {k:'fb_velo',l:'FB velo',g:'Arsenal',f:'1',dir:1,def:true},{k:'movement_uniqueness',l:'Mvmt uniq',g:'Arsenal',f:'2',dir:1},{k:'n_pitches_10',l:'# pitches',g:'Arsenal',f:'int',dir:1},{k:'arsenal_whiff',l:'Ars whiff',g:'Arsenal',f:'1',dir:1},{k:'arsenal_putaway',l:'Put-away',g:'Arsenal',f:'1',dir:1},{k:'arsenal_rv100',l:'Ars RV/100',g:'Arsenal',f:'2',dir:1},{k:'best_pitch',l:'Best',g:'Arsenal',t:'txt',def:true},{k:'best_pitch_whiff',l:'Best whiff',g:'Arsenal',f:'1',dir:1},{k:'n_plus_pitches',l:'Plus pitches',g:'Arsenal',f:'int',dir:1},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_gs',l:'Career best /GS',g:'Career',f:'1',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'1',dir:1},{k:'seasons_10gs',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_GS',l:'Career GS',g:'Career',f:'int',dir:0},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',f:'0',dir:1,def:true},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',f:'int',dir:-1},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'ip_gs_last',l:'IP / start',g:'2027 (this season only)',f:'2',dir:1,title:'how long they actually let him go this year. It barely persists - regressed on next year it has a slope of 0.10, so nine tenths of a short leash comes off - which is why the track record is carried as points per INNING and re-expressed at a normal leash.'},{k:'comeback',l:'1st yr back',g:'2027 (this season only)',render:v=>v?'<span class="pill w" title="last season was lost (8 starts or fewer) and the one before it was a real season. On the 11 such cases in this data the model came in 1.5 points per start LOW and those pitchers gained 2.2 a start the next year, against -0.3 for everyone else. Too few to fit a coefficient on, so it is flagged, not applied.">back</span>':''},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'ip_gs_last',l:'IP / start',g:'2027 (this season only)',f:'2',dir:1,title:'how long they actually let him go this year. It barely persists - regressed on next year it has a slope of 0.10, so nine tenths of a short leash comes off - which is why the track record is carried as points per INNING and re-expressed at a normal leash.'},{k:'comeback',l:'1st yr back',g:'2027 (this season only)',render:v=>v?'<span class="pill w" title="last season was lost (8 starts or fewer) and the one before it was a real season. On the 11 such cases in this data the model came in 1.5 points per start LOW and those pitchers gained 2.2 a start the next year, against -0.3 for everyone else. Too few to fit a coefficient on, so it is flagged, not applied.">back</span>':''},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 PCOLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const PCI = Object.fromEntries(PCOLS.map(c=>[c.k,c]));
@@ -1134,7 +1145,7 @@ function renderBreak(){
     {k:'pts_pa_c',l:`${CUR} pts / PA`,f:'3',dir:1},
     {k:'prior_best_pa',l:'Previous best / PA',f:'3',dir:1,title:'his best rate in any earlier season of 200+ PA; blank means he has never had one'},
     {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1},
-    {k:'proj_pts',l:`${CUR+1} proj`,f:'0',dir:1}, {k:'proj_rank',l:`${CUR+1} rank`,f:'int',dir:-1}, {k:'proj_pts_600',l:`${CUR+1} / 600`,f:'0',dir:1},
+    {k:'proj_pts',l:`${CUR+1} proj`,dir:1,render:projBand}, {k:'proj_rank',l:`${CUR+1} rank`,dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'proj_pts_600',l:`${CUR+1} / 600`,f:'0',dir:1},
     CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr];
   const cshow = bcols(cols, BO_SIMPLE_CAND);
   if (!tBreak) tBreak = table('t-break', cshow, rows, {sort:'BI', color:true, rowClass:x=>x.owner===MY?'mine':''}); else { tBreak.setCols(cshow); tBreak.setRows(rows); }
@@ -1157,7 +1168,7 @@ function renderPitch(){
   if (pstate.view==='break'){
     const rows = PROWS.filter(r=>r.season===CUR && r.BI!=null && r.GS>=Math.max(10,pstate.mings) && r.age>=pstate.agemin && r.age<=pstate.agemax && (!pstate.owner || (pstate.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===pstate.owner)) && (!pstate.q || r.name.toLowerCase().includes(pstate.q)));
     $('#p-count').textContent = `${rows.length} starters (10+ GS)`;
-    const cols = [PCI.name, PCI.age, PCI.owner, PCI.GS, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'career_best_gs',l:'Career best / start',f:'1',dir:1}, {k:'pts_gs_c',l:'2026 pts / start',f:'1',dir:1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'proj_pts_gs',l:'2027 / start',f:'1',dir:1}, {k:'ip_gs_last',l:'IP / start',f:'2',dir:1,title:'how long they let him go this year; a short leash mostly comes off, so the track record is carried per inning and re-expressed at a normal one'}, {k:'comeback',l:'1st yr back',render:v=>v?'<span class="pill w" title="last season was lost; this cohort beat the model by 1.5 points a start on 11 cases, too few to bake in">back</span>':''}, PCI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, PCI.pitching_plus, PCI.stuff_plus, PCI.location_plus, PCI.yoy_stuff_change, PCI.yoy_velo_change, PCI.k_minus_bb, PCI.xera, PCI.fb_velo, PCI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'1',dir:1}];
+    const cols = [PCI.name, PCI.age, PCI.owner, PCI.GS, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'career_best_gs',l:'Career best / start',f:'1',dir:1}, {k:'pts_gs_c',l:'2026 pts / start',f:'1',dir:1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'proj_pts_gs',l:'2027 / start',f:'1',dir:1}, {k:'ip_gs_last',l:'IP / start',f:'2',dir:1,title:'how long they let him go this year; a short leash mostly comes off, so the track record is carried per inning and re-expressed at a normal one'}, {k:'comeback',l:'1st yr back',render:v=>v?'<span class="pill w" title="last season was lost; this cohort beat the model by 1.5 points a start on 11 cases, too few to bake in">back</span>':''}, PCI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, PCI.pitching_plus, PCI.stuff_plus, PCI.location_plus, PCI.yoy_stuff_change, PCI.yoy_velo_change, PCI.k_minus_bb, PCI.xera, PCI.fb_velo, PCI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'1',dir:1}];
     tPitch.setCols(cols); tPitch.setRows(rows); return;
   }
   const rows = pitchRows(); $('#p-count').textContent = `${rows.length} starter-seasons`; tPitch.setCols(PCOLS.filter(c=>pvisible.has(c.k))); tPitch.setRows(rows);
@@ -1603,19 +1614,19 @@ function renderKeepers(){
   $('#k-real').textContent = sel.value===HOME_ABBR && MY===HOME_ABBR && REAL_K.length ? `Your real 2026 keepers: ${REAL_K.filter(k=>k.slot==='hitter').map(k=>k.player).join(', ')} (hitters); ${REAL_K.filter(k=>k.slot==='pitcher').map(k=>k.player).join(', ')} (pitchers). Boards below are the 2027 recommendation.` : '';
   // beyond the team's keeper slots a positive value is a trade chip, not a keeper: label it surplus
   const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
-  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 (2027 in full, 2028 at 60%, 2029 at 35%) — this is what decides the keeper order, because a keeper can be kept again'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left'}, {k:'KSV_c',l:'2027 only',render:signed,title:'projected 2027 points above the first-round draft alternative, one season, no aging'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
+  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 (2027 in full, 2028 at 60%, 2029 at 35%) — this is what decides the keeper order, because a keeper can be kept again'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left'}, {k:'KSV_c',l:'2027 only',render:signed,title:'projected 2027 points above the first-round draft alternative, one season, no aging'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
   if(!tK) tK = table('t-kboard', kcols, board, {sort:'team_rank', dir:1, color:true}); else tK.setRows(board);
   const n = +$('#p-n').value||50;
   const pool = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
-  const pcols = [{k:'pool_rank',l:'#',f:'int'}, CI.name, CI.age, CI.owner, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.xwoba, CI.k_percent, CI.sprint_speed, CI.il_days_3yr];
+  const pcols = [{k:'pool_rank',l:'#',f:'int'}, CI.name, CI.age, CI.owner, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.xwoba, CI.k_percent, CI.sprint_speed, CI.il_days_3yr];
   if(!tPool) { tPool = table('t-pool', pcols, pool, {sort:'pool_rank', dir:1, limit:n, color:true, rowClass:x=>x.owner===MY?'mine':''}); $('#p-n').addEventListener('change', renderKeepers); } else { tPool.setRows(pool.slice(0,n)); }
   // ---- pitchers: a pitcher-slot keeper is worth his arm over a replacement arm plus, for a two-way player, his bat
   const pboard = (pByOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>PKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
-  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 — what decides the keeper order'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s first-round pick is worth to them'}, {k:'KSV_c',l:'2027 only',render:signed}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
+  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 — what decides the keeper order'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s first-round pick is worth to them'}, {k:'KSV_c',l:'2027 only',render:signed}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
   if(!tPK) tPK = table('t-pkboard', pkcols, pboard, {sort:'team_rank', dir:1, color:true, pct:PPCT, ci:PCI, card:openPitcherCard}); else tPK.setRows(pboard);
   const pn = +$('#pp-n').value||50;
   const ppool = pc.slice().sort((a,b)=>b.tot_c-a.tot_c).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
-  const ppcols = [{k:'pool_rank',l:'#',f:'int'}, PCI.name, PCI.age, PCI.owner, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',f:'0',dir:1}, {k:'proj_rank',l:'2027 rank',f:'int',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.stuff_plus, PCI.xera, PCI.il_days_3yr];
+  const ppcols = [{k:'pool_rank',l:'#',f:'int'}, PCI.name, PCI.age, PCI.owner, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.stuff_plus, PCI.xera, PCI.il_days_3yr];
   if(!tPPool) { tPPool = table('t-ppool', ppcols, ppool, {sort:'pool_rank', dir:1, limit:pn, color:true, pct:PPCT, ci:PCI, card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); $('#pp-n').addEventListener('change', renderKeepers); } else { tPPool.setRows(ppool.slice(0,pn)); }
   const yrs = Object.keys(D.keepers); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
   const kyrows = D.keepers[ky.value]||[];
@@ -2195,6 +2206,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260916T0305"></script>
+<script src="live.js?v=20260916T0335"></script>
 </body>
 </html>
