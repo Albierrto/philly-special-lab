@@ -337,6 +337,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <div class="grid2"><div><div class="tblwrap" style="max-height:60vh"><table id="t-picks"></table></div></div><div><div id="pickchart"></div><h3 style="font-size:15px;margin-top:14px">Draft order for 2027 <span class="hint" style="text-transform:none;font-family:var(--font-b);font-weight:400;letter-spacing:0">from the 2026 regular-season standings: 9th–12th place pick 1–4 in that order, then 8th down to 1st · fixed order, no snake · editable</span></h3><div class="pickgrid" id="slotgrid"></div></div></div>
 </section>
 
+<section role="tabpanel" id="tab-scorecard">
+  <h2>Scorecard</h2>
+  <p class="lede">Every day this site archives the projections it is showing you, <b>before the first pitch of that day</b>, and grades them against the box scores once the games are in. A later build the same day can refresh the file while the games are still ahead; once anything has started, the archive is frozen. Nothing here is graded against a number written after the fact.</p>
+  <div id="sc-out"></div>
+</section>
+
 <section role="tabpanel" id="tab-glossary">
   <div class="pagehead"><div><h1>What the numbers mean</h1><p class="lede">Every stat and score on this site in plain words. Hover any underlined column header for the same explanation.</p></div></div>
   <div class="glossary" id="glossary"></div>
@@ -1376,6 +1382,29 @@ function renderMyWeek(){
 }
 
 
+
+// ---------- scorecard: how the forecasts have actually done
+function renderScorecard(){
+  const S = D.scorecard || [];
+  if (!S.length){ $('#sc-out').innerHTML = '<p class="hint">Nothing graded yet. A day appears here the morning after its games finish.</p>'; return; }
+  const by = k => S.filter(r => r.who === k);
+  const agg = rows => { if(!rows.length) return null;
+    const n = rows.reduce((a,r)=>a+r.n,0);
+    const w = (f) => rows.reduce((a,r)=>a+f(r)*r.n,0)/n;
+    return {n, days:rows.length, predicted:w(r=>r.predicted), actual:w(r=>r.actual), bias:w(r=>r.bias), mae:w(r=>r.mae), r:w(r=>r.r), zero:w(r=>r.zero_pct)}; };
+  const card = (lab, a) => !a ? '' : `<div class="dcard w6"><h3>${lab} <span class="hint">${a.days} day${a.days===1?'':'s'}, ${a.n.toLocaleString()} graded</span></h3>
+      <div class="big">${a.mae.toFixed(2)}<span class="hint" style="font-size:14px;font-weight:400"> points off, on average</span></div>
+      <p class="hint">Projected <b>${a.predicted.toFixed(2)}</b> a game against an actual <b>${a.actual.toFixed(2)}</b> — running ${a.bias>=0?'under':'over'} by ${Math.abs(a.bias).toFixed(2)}. Correlation with what happened: <b>${a.r>=0?'+':''}${a.r.toFixed(2)}</b>.${a.zero?` ${a.zero.toFixed(0)}% of them scored nothing at all.`:''}</p></div>`;
+  const rows = S.slice().sort((a,b)=> a.date===b.date ? a.who.localeCompare(b.who) : (a.date<b.date?1:-1));
+  const tbl = `<div class="dcard w12"><h3>Day by day</h3><div class="tblwrap" style="max-height:52vh"><table class="mini"><tbody>
+      <tr><td class="l"><b>Day</b></td><td class="l"><b>Who</b></td><td><b>n</b></td><td><b>Projected</b></td><td><b>Actual</b></td><td><b>Off by</b></td><td><b>Correlation</b></td><td><b>Scored zero</b></td></tr>
+      ${rows.map(r=>`<tr><td class="l">${dayLabel(r.date)}</td><td class="l">${r.who}</td><td>${r.n}</td><td>${(+r.predicted).toFixed(2)}</td><td>${(+r.actual).toFixed(2)}</td><td>${(+r.mae).toFixed(2)}</td><td>${r.r>=0?'+':''}${(+r.r).toFixed(2)}</td><td>${(+r.zero_pct).toFixed(0)}%</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+  $('#sc-out').innerHTML = `<div class="dgrid">${card('Hitters', agg(by('hitters')))}${card('Starting pitchers', agg(by('starters')))}${tbl}
+    <div class="dcard w12"><h3>How to read it</h3>
+      <p class="hint">A single hitter-game is mostly noise: actual scores are spread about four times wider than any honest projection of them can be, and roughly a third of projected starters score nothing. Being two and a half points off per hitter is not the model failing, it is the model correctly refusing to pretend a coin flip is knowable. What it should do is <b>order</b> players, and the way to use it is to stack small edges across ten lineup slots, where the noise averages out — not to expect any one call to land. The pitcher side carries more signal per decision, which is why a streamer pickup moves a week more than a lineup tweak does.</p></div></div>`;
+}
+
 // ---------- matchup simulator
 // A projected score is a mean, and a mean is the least interesting thing about a fantasy week. What decides a
 // championship is the shape: how often does 90 turn into 140, how often into 55. So this resamples REAL game lines
@@ -1799,8 +1828,9 @@ const NAV_ICON = {
  formulas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg>',
  glossary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5"/><path d="M12 17h.01"/></svg>',
  matchup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9M9 20V4M15 20v-7M20 20v-4"/></svg>',
+ scorecard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V9m5 10V5m5 14v-6"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>'};
-const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['glossary','Glossary','Help']];
+const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
 (function buildNav(){
   const btn = (k,l) => `<button class="navbtn" role="tab" aria-selected="false" data-tab="${k}">${NAV_ICON[k]}<span>${l}</span></button>`;
   let h = '', g = '';
@@ -2192,5 +2222,5 @@ function renderValues(){ computeValues(); renderPicks(); renderTrade(); renderFi
 
 // ---------- tabs + boot
 buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
-renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
+renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
