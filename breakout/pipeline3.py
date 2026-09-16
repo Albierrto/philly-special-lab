@@ -6,6 +6,7 @@ import pandas as pd
 
 from . import config as C
 from . import pipeline2 as P2
+from . import keepers as KP
 from .adp_value import score_seasons
 from .breakout import cross_validate
 from . import breakout2 as B2
@@ -89,6 +90,7 @@ def main(argv=None):
           f"{int((d.loc[d['season']==a.season,'bo_status']=='established').sum())} established; "
           f"{int((d.loc[d['season']==a.season,'bo_status']=='candidate').sum())} still candidates")
     kv = keeper_values(cur.dropna(subset=["proj_pts"]), hk, teams)
+    kv = kv.join(KP.uncertainty(kv["proj_pts"], "hitter"))       # how much of the ranking is real (see keepers.uncertainty)
     kv["kept_2026_as"] = kv["nkey"].map(dict(zip(real_k["nkey"], real_k["slot"]))).fillna("")
     kv_h = kv[~kv["nkey"].isin(pitcher_keeper_keys)]
     board = team_keeper_board(kv_h, owners, n=hk)
@@ -118,6 +120,7 @@ def main(argv=None):
     nk = pk * teams
     r1 = float(psorted["proj_pts_total"].iloc[min(nk + teams - 1, len(psorted) - 1)]); r2 = float(psorted["proj_pts_total"].iloc[min(nk + 2 * teams - 1, len(psorted) - 1)])
     pcur["KSV"] = (pcur["proj_pts_total"] - r1).round(0); pcur["KSV_2nd"] = (pcur["proj_pts_total"] - r2).round(0)
+    pcur = pcur.join(KP.uncertainty(pcur["proj_pts_total"], "pitcher"))
     pcur["keep_tier"] = np.select([pcur["KSV"] >= 80, pcur["KSV"] >= 25, pcur["KSV"] > 0], ["lock", "clear keep", "marginal"], default="let go")
     pcur["kept_2026_as"] = pcur["nkey"].map(dict(zip(real_k["nkey"], real_k["slot"]))).fillna("")
     pb = pcur[~pcur["owner"].isin(["FA", "W (Sun)", "W (Mon)"])].copy(); pb["team_rank"] = pb.groupby("owner")["KSV"].rank(ascending=False, method="first")
@@ -161,7 +164,7 @@ def main(argv=None):
                   hitter_keepers=hk, pitcher_keepers=pk, real_keepers=recs(real_k, ["player", "team", "slot"]), pitching_plus_coef={k: float(v) for k, v in coef.items()}, pitcher_proj_coef=pcoef),
         seasons=recs(d[d["PA"] >= 50], P2.EXPLORER_COLS, columnar=True),
         projections=recs(kv, ["mlbam_id", "BI", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability", "il_days_w", "proj_pts", "proj_pts_600", "proj_rank",
-                              "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as", "bo_status"], columnar=True),
+                              "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as", "bo_status", "proj_sd", "rank_lo", "rank_hi", "n_tied"], columnar=True),
         pool=recs(pool, ["mlbam_id", "name", "pool_rank", "proj_pts", "proj_rank", "owner", "KSV"]),
         drafts=recs(dv, ["season", "overall", "round", "pick", "team", "player", "pos", "mlb", "PA", "pts", "final_hitter_rank", "adp_hitter_rank", "exp_pts",
                          "pts_over_exp", "hitter_pick", "exp_pts_slot", "pts_over_slot", "beat", "mine"]),
@@ -174,7 +177,7 @@ def main(argv=None):
         prospect_statcast=recs(sc_sum, list(sc_sum.columns)) if len(sc_sum) else [],
         pitchers=recs(pp[(pp["is_sp"]) & (pp["GS"] >= 3)], PIT_COLS, columnar=True),
         pitcher_proj=recs(pcur, ["mlbam_id", "BI", "track3", "ip_gs_last", "comeback", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs",
-                                 "owner", "proj_pts_hitting", "proj_pts_total", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as"], columnar=True),
+                                 "owner", "proj_pts_hitting", "proj_pts_total", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as", "proj_sd", "rank_lo", "rank_hi", "n_tied"], columnar=True),
         pitcher_pool=recs(ppool, ["mlbam_id", "name", "pool_rank", "proj_pts", "proj_rank", "owner", "KSV"]),
         aging=recs(curve, ["age", "rel_to_27", "yoy_delta", "n_pairs"]), pitcher_aging=recs(page, ["age", "yoy_delta"]),
         cv_proj=recs(cv_proj, list(cv_proj.columns)), cv_bi=recs(cv_bi, list(cv_bi.columns)),

@@ -55,3 +55,43 @@ def team_keeper_board(kv: pd.DataFrame, owners: pd.DataFrame, owner_col="owner",
     m = m[~m[owner_col].isin(["FA", "W (Sun)"]) & m[owner_col].notna()]
     m["team_rank"] = m.groupby(owner_col)["KSV"].rank(ascending=False, method="first")
     return m[m["team_rank"] <= n + 2].sort_values([owner_col, "team_rank"])
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# How much of the keeper board is real, and how much is the model's own noise.
+#
+# A ranked list reads as if 13th and 14th are different things. They are not. Measured out of fold, a season-points
+# projection carries a standard deviation of about a THIRD of itself:
+#
+#   pitchers   5-fold out of fold on 605 pairs: MAE 72.9 points, sd 89.4, 10th/90th percentile of the error -117/+111.
+#              sd is roughly proportional - 40% of the projection at the bottom of the board, 34% at the top.
+#   hitters    one-year backtest (project 2025, compare to 2026) on 408: MAE 156, sd 153, near-flat in absolute terms.
+#
+# So Cade Cavalli at 296 and Payton Tolle at 295 are not 13th and 14th. They are the same number, and the ranks are
+# an artefact of sorting a noisy column. These fits turn that into something a reader can see: a band on the
+# projection, the range of ranks the player could honestly occupy, and a count of how many others he is tied with.
+SD_FIT = {"pitcher": (23.6, 0.2634), "hitter": (137.1, 0.0330)}     # sd = a + b * projected points
+
+
+def uncertainty(proj: pd.Series, kind: str = "hitter", sims: int = 4000, seed: int = 0) -> pd.DataFrame:
+    """Projection sd, a 10th-90th percentile range of true rank, and how many rivals are inside the noise."""
+    a, b = SD_FIT[kind]
+    p = pd.to_numeric(proj, errors="coerce")
+    sd = (a + b * p.clip(lower=0)).where(p.notna())
+    ok = p.notna() & sd.notna()
+    out = pd.DataFrame(index=proj.index, columns=["proj_sd", "rank_lo", "rank_hi", "n_tied"], dtype="float")
+    if ok.sum() < 2:
+        return out
+    pv, sv = p[ok].to_numpy(), sd[ok].to_numpy()
+    rng = np.random.default_rng(seed)
+    draws = rng.normal(pv[None, :], sv[None, :], size=(sims, len(pv)))
+    ranks = (-draws).argsort(axis=1).argsort(axis=1) + 1                      # 1 = best in that simulated season
+    out.loc[ok, "proj_sd"] = sv.round(0)
+    out.loc[ok, "rank_lo"] = np.percentile(ranks, 10, axis=0).round(0)
+    out.loc[ok, "rank_hi"] = np.percentile(ranks, 90, axis=0).round(0)
+    # a rival is "inside the noise" when the gap is under half the combined sd of the pair
+    gap = np.abs(pv[:, None] - pv[None, :])
+    comb = np.sqrt(sv[:, None] ** 2 + sv[None, :] ** 2)
+    tied = (gap < 0.5 * comb).sum(axis=1) - 1
+    out.loc[ok, "n_tied"] = tied
+    return out
