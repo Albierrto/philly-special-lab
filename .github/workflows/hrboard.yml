@@ -29,6 +29,9 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Home Run Board
         timeout-minutes: 20
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          KALSHI_RELAY: ${{ vars.KALSHI_RELAY }}
         run: python -m hrboard.build
       - name: Commit
         run: |

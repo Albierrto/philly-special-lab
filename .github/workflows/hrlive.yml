@@ -1,0 +1,41 @@
+name: hrlive
+# Kalshi prices for the Home Run Board, about every 20 minutes from late morning to midnight Eastern. Kalshi does not let
+# web pages read its prices, so this re-reads them (standard library only, no installs, ~20 seconds), writes
+# site/hr/data/kalshi.json and republishes the site. Nothing is committed. If a Cloudflare relay is set up
+# (repository variable KALSHI_RELAY), the page reads Kalshi live and this job is only the fallback.
+on:
+  schedule:
+    - cron: "7,27,47 15-23 * * *"   # 11:07 am - 7:47 pm ET
+    - cron: "7,27,47 0-3 * * *"     #  8:07 pm - 11:47 pm ET
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: hrlive
+  cancel-in-progress: true
+jobs:
+  prices:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Kalshi prices
+        id: kalshi
+        continue-on-error: true
+        run: python -m hrboard.kalshi_live
+      - if: steps.kalshi.outcome == 'success'
+        uses: actions/configure-pages@v5
+      - if: steps.kalshi.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deployment
+        if: steps.kalshi.outcome == 'success'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
