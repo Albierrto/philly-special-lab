@@ -47,8 +47,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 824307,2026-09-15,2026-09-16T00:40:00Z,Final,19,Coors Field,night,N,135,San Diego Padres,False,115,Colorado Rockies,621111.0,Walker Buehler,listed,607536.0,Kyle Freeland,listed
 823980,2026-09-15,2026-09-16T01:38:00Z,Final,1,Angel Stadium,night,N,108,Los Angeles Angels,True,136,Seattle Mariners,696270.0,Ryan Johnson,listed,669302.0,Logan Gilbert,listed
 823980,2026-09-15,2026-09-16T01:38:00Z,Final,1,Angel Stadium,night,N,136,Seattle Mariners,False,108,Los Angeles Angels,669302.0,Logan Gilbert,listed,696270.0,Ryan Johnson,listed
-825030,2026-09-15,2026-09-16T01:40:00Z,In Progress,15,Chase Field,night,N,109,Arizona Diamondbacks,True,146,Miami Marlins,647336.0,Michael Soroka,listed,676083.0,Janson Junk,listed
-825030,2026-09-15,2026-09-16T01:40:00Z,In Progress,15,Chase Field,night,N,146,Miami Marlins,False,109,Arizona Diamondbacks,676083.0,Janson Junk,listed,647336.0,Michael Soroka,listed
+825030,2026-09-15,2026-09-16T01:40:00Z,Final,15,Chase Field,night,N,109,Arizona Diamondbacks,True,146,Miami Marlins,647336.0,Michael Soroka,listed,676083.0,Janson Junk,listed
+825030,2026-09-15,2026-09-16T01:40:00Z,Final,15,Chase Field,night,N,146,Miami Marlins,False,109,Arizona Diamondbacks,676083.0,Janson Junk,listed,647336.0,Michael Soroka,listed
 824382,2026-09-16,2026-09-16T17:10:00Z,Scheduled,5,Progressive Field,day,N,114,Cleveland Guardians,True,145,Chicago White Sox,800048.0,Parker Messick,listed,641743.0,Anthony Kay,listed
 824382,2026-09-16,2026-09-16T17:10:00Z,Scheduled,5,Progressive Field,day,N,145,Chicago White Sox,False,114,Cleveland Guardians,641743.0,Anthony Kay,listed,800048.0,Parker Messick,listed
 823004,2026-09-16,2026-09-16T17:15:00Z,Scheduled,2889,Busch Stadium,day,N,138,St. Louis Cardinals,True,137,San Francisco Giants,669461.0,Matthew Liberatore,listed,683627.0,Anthony Molina,listed

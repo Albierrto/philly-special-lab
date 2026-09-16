@@ -693,8 +693,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260916T0419"></script>
-<script src="data/streamers.js?v=20260916T0419"></script>
+<script src="data/lab.js?v=20260916T1340"></script>
+<script src="data/streamers.js?v=20260916T1340"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1416,6 +1416,41 @@ function renderScorecard(){
       <p class="hint">A single hitter-game is mostly noise: actual scores are spread about four times wider than any honest projection of them can be, and roughly a third of projected starters score nothing. Being two and a half points off per hitter is not the model failing, it is the model correctly refusing to pretend a coin flip is knowable. What it should do is <b>order</b> players, and the way to use it is to stack small edges across ten lineup slots, where the noise averages out — not to expect any one call to land. The pitcher side carries more signal per decision, which is why a streamer pickup moves a week more than a lineup tweak does.</p></div></div>`;
 }
 
+
+// ---------- how the week has actually gone: the recommended lineup, priced before and scored after
+function matchupActuals(me, opp){
+  const L = D.matchup_log || []; if (!L.length) return '';
+  const days = [...new Set(L.map(r=>r.date))].sort();
+  const run = t => { let p=0,a=0,b=0; return days.map(d=>{ const r=L.find(x=>x.team===t && x.date===d);
+    if(r){ p+=+r.proj; a+=+r.actual; b+=+r.perfect; } return {d, p, a, b, has:!!r}; }); };
+  const A = run(me), B = run(opp);
+  if (!A.some(x=>x.has) && !B.some(x=>x.has)) return '';
+  const hi = Math.max(...[...A,...B].map(x=>Math.max(x.p,x.a,x.b)), 1);
+  const W = 520, H = 150, x = i => 8 + i*(W-16)/Math.max(1,days.length-1), y = v => H-8 - (v/hi)*(H-24);
+  const path = (rows, key) => rows.map((r,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).join(' ');
+  const line = (rows,key,col,dash) => `<path d="${path(rows,key)}" fill="none" stroke="${col}" stroke-width="2" ${dash?'stroke-dasharray="4 3"':''} stroke-linejoin="round"/>`;
+  const last = rows => rows[rows.length-1];
+  const box = (lab, rows, col) => { const l=last(rows); const d=l.a-l.p;
+    return `<div><div class="hint"><span class="key" style="background:${col}"></span> ${esc(lab)}</div>
+      <div style="font-family:var(--font-d);font-size:26px;font-weight:700;line-height:1.1">${l.a.toFixed(0)}<span class="hint" style="font-size:13px;font-weight:400"> actual</span></div>
+      <div class="hint">projected ${l.p.toFixed(0)} (${d>=0?'+':''}${d.toFixed(0)}) · perfect lineup ${l.b.toFixed(0)}</div></div>`; };
+  return `<div class="dcard w12"><h3>How this week has actually gone</h3>
+    <p class="hint">The site archives the lineup it recommends each morning, before first pitch, then scores that same lineup once the games are in. Solid is what it actually scored, dashed is what it was projected to score. The faint line is the perfect lineup in hindsight — nobody reaches it, and the gap is the price of not knowing the future rather than a fault in the model. Fantrax does not publish set lineups or per-day team scores through its read-only API, so this is the recommended ten on both sides, priced twice.</p>
+    <div style="display:flex;gap:26px;flex-wrap:wrap;margin:6px 0 10px">${box(teamLabel(me),A,'var(--hot)')}${box(teamLabel(opp),B,'var(--cold)')}</div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;max-width:100%;overflow:visible" role="img" aria-label="projected against actual, cumulative">
+      ${line(A,'b','var(--hot)',false).replace('stroke-width="2"','stroke-width="1" opacity="0.30"')}
+      ${line(B,'b','var(--cold)',false).replace('stroke-width="2"','stroke-width="1" opacity="0.30"')}
+      ${line(A,'p','var(--hot)',true)}${line(B,'p','var(--cold)',true)}
+      ${line(A,'a','var(--hot)',false)}${line(B,'a','var(--cold)',false)}
+    </svg>
+    <p class="hint" style="display:flex;justify-content:space-between">${days.map(d=>`<span>${dayLabel(d).split(',')[0]}</span>`).join('')}</p>
+    <div class="tblwrap" style="max-height:34vh"><table class="mini"><tbody>
+      <tr><td class="l"></td><td class="l"><b>${esc(abbrOf(me))} proj</b></td><td class="l"><b>actual</b></td><td class="l"><b>${esc(abbrOf(opp))} proj</b></td><td class="l"><b>actual</b></td><td class="l"><b>margin</b></td></tr>
+      ${days.map((d,i)=>{ const a=A[i],b=B[i]; const m=a.a-b.a;
+        return `<tr><td class="l">${dayLabel(d)}</td><td>${a.p.toFixed(0)}</td><td><b>${a.a.toFixed(0)}</b></td><td>${b.p.toFixed(0)}</td><td><b>${b.a.toFixed(0)}</b></td><td class="${m>=0?'':'neg'}">${m>=0?'+':''}${m.toFixed(0)}</td></tr>`; }).join('')}
+      </tbody></table></div></div>`;
+}
+
 // ---------- matchup simulator
 // A projected score is a mean, and a mean is the least interesting thing about a fantasy week. What decides a
 // championship is the shape: how often does 90 turn into 140, how often into 55. So this resamples REAL game lines
@@ -1577,6 +1612,7 @@ function renderMatchup(){
     <div class="dcard w6"><h3>Who is carrying it</h3><table class="mini"><tbody>${
       [...A.hit.map(x=>({...x,k:'bat'})), ...A.pit.map(x=>({...x,k:'arm'}))].sort((a,b)=>b.e-a.e).slice(0,10)
         .map(x=>`<tr><td class="l">${esc(x.name)} <span class="hint">${x.k}</span></td><td class="l hint">${dayLabel(x.date).split(',')[0]}</td><td>${x.e.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>
+    ${matchupActuals(MST.me, MST.opp)}
     ${fxBlock}</div>`;
   renderMLog();
 }
@@ -2236,6 +2272,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260916T0419"></script>
+<script src="live.js?v=20260916T1340"></script>
 </body>
 </html>
