@@ -87,9 +87,11 @@ def archive(day: str | None = None) -> str:
             print(f"scorecard: {day} is already under way - keeping the forecast that was on the page before it started")
             return str(out)
     rows = ([dict(kind="H", mlbam_id=r["mlbam_id"], name=r["name"], team=r.get("team"), gamePk=r["gamePk"],
-                  opp=r.get("opp"), exp_pts=r["exp_pts"], src=r.get("opp_sp_source")) for r in hd]
+                  opp=r.get("opp"), exp_pts=r["exp_pts"], src=r.get("opp_sp_source"),
+                  owner=r.get("owner"), elig=r.get("elig"), active=r.get("active")) for r in hd]
             + [dict(kind="P", mlbam_id=r["mlbam_id"], name=r["name"], team=r.get("team"), gamePk=r["gamePk"],
-                    opp=r.get("opp"), exp_pts=r["exp_pts"], src=r.get("sp_source")) for r in ps])
+                    opp=r.get("opp"), exp_pts=r["exp_pts"], src=r.get("sp_source"),
+                    owner=r.get("owner"), elig="SP", active=r.get("active")) for r in ps])
     FC.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(rows); df.insert(0, "date", day)
     df["made_utc"] = _now().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -179,7 +181,98 @@ def main(argv=None):
                 print(f"scorecard: graded {f.stem} - {len(x)} players, MAE {(x['actual']-x['exp_pts']).abs().mean():.2f}")
     s = summarise()
     if len(s): print(s.tail(6).to_string(index=False))
+    m = log_current_period()
+    if m is not None and len(m):
+        tot = m.groupby("team")[["proj", "actual", "perfect"]].sum().round(1)
+        print("\nmatchup log, period to date (following the recommended lineup):")
+        print(tot.sort_values("actual", ascending=False).head(4).to_string())
     return 0
+
+
+def log_current_period():
+    """Run the matchup log for every team over whichever scoring period today falls in."""
+    cfg_p = C.DATA / "fantrax" / "league_config.json"
+    if not cfg_p.exists(): return None
+    sch = json.loads(cfg_p.read_text()).get("schedule", {})
+    today = pd.Timestamp.today().strftime("%Y-%m-%d")
+    per = next((p for p in sch.get("periods", []) if p["start"] <= today <= p["end"]), None)
+    if not per: return None
+    teams = set()
+    for f in sorted(SC.glob("20*.csv")):
+        if not (per["start"] <= f.stem <= per["end"]): continue
+        d = pd.read_csv(f)
+        if "owner" in d.columns:
+            teams |= {o for o in d["owner"].dropna().unique() if o and str(o) not in ("FA", "W (Sun)", "W (Mon)")}
+    if not teams: return None
+    df = matchup_log(per["start"], per["end"], sorted(teams))
+    if len(df): df.insert(0, "period", per["n"])
+    if len(df): df.to_csv(SC / "matchup_log.csv", index=False)
+    return df
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------------
+# The matchup log: not "was the projection right" but "would following it have worked".
+#
+# The lineup is chosen from the PROJECTIONS, exactly as the site recommends it, and then scored with what actually
+# happened. That is the number a manager who did what this page said would have put up. Alongside it sits the perfect
+# hindsight lineup from the same roster, which is the ceiling nobody reaches, so the gap between the two is the price
+# of not knowing the future rather than a flaw in the model.
+#
+# Fantrax's read-only API does not publish set lineups or per-day team scores, so the real Fantrax number is not
+# recoverable here. This is like-for-like instead: both columns are the same ten slots, one priced before the games
+# and one after.
+SLOTS = ["C", "1B", "2B", "3B", "SS", "OF", "OF", "OF", "UT", "UT"]
+CAP = 10          # pitcher starts per period in this league
+
+
+def _fill(rows, value_key):
+    """Best legal ten-man lineup out of `rows`, maximising `value_key`. Returns (total, the chosen rows)."""
+    from scipy.optimize import linear_sum_assignment
+    rows = [r for r in rows if r.get(value_key) is not None and r[value_key] == r[value_key]]
+    if not rows: return 0.0, []
+    n, m = len(SLOTS), len(rows)
+    C = np.full((m, m + n), 0.0)
+    for i, r in enumerate(rows):
+        e = str(r.get("elig") or "").split("/")
+        for j, s in enumerate(SLOTS):
+            C[i, j] = -float(r[value_key]) if (s == "UT" or s in e) else 1e6
+    ri, ci = linear_sum_assignment(C)
+    tot, used = 0.0, []
+    for i, j in zip(ri, ci):
+        if j < n and C[i, j] < 1e5:
+            tot += float(rows[i][value_key]); used.append(rows[i])
+    return tot, used
+
+
+def matchup_log(period_start: str, period_end: str, teams: list[str]) -> pd.DataFrame:
+    """Day by day for each team: what the recommended lineup was projected to score, what it actually scored,
+    and what the perfect lineup would have scored. Pitchers are allocated against the ten-start cap best-first."""
+    out = []
+    for team in teams:
+        used = 0
+        for f in sorted(SC.glob("20*.csv")):
+            day = f.stem
+            if not (period_start <= day <= period_end): continue
+            d = pd.read_csv(f)
+            d = d[(d["owner"] == team) & (d.get("active", 1) != 0)] if "owner" in d.columns else d.iloc[0:0]
+            if not len(d): continue
+            hit = d[d["kind"] == "H"].to_dict("records")
+            pit = sorted(d[d["kind"] == "P"].to_dict("records"), key=lambda r: -r["exp_pts"])
+            pit = pit[:max(0, CAP - used)]; used += len(pit)
+            pj, chosen = _fill(hit, "exp_pts")
+            act = sum(float(r["actual"]) for r in chosen if r.get("actual") == r.get("actual"))
+            bj, _ = _fill(hit, "actual")
+            pp = sum(float(r["exp_pts"]) for r in pit)
+            pa = sum(float(r["actual"]) for r in pit if r.get("actual") == r.get("actual"))
+            out.append(dict(date=day, team=team, proj=round(pj + pp, 1), actual=round(act + pa, 1),
+                            perfect=round(bj + pa, 1), starts=len(pit)))
+    df = pd.DataFrame(out)
+    if len(df):
+        SC.mkdir(parents=True, exist_ok=True)
+        df.sort_values(["team", "date"]).to_csv(SC / "matchup_log.csv", index=False)
+    return df
 
 
 if __name__ == "__main__":

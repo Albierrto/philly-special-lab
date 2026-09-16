@@ -217,6 +217,8 @@ def build(default_team: str):
     data["meta"]["standings"] = cfg.get(f"standings_{data['meta']['season']}", [])            # season pace, to sanity-check it
     sc = C.DATA / "scorecard" / "summary.csv"
     data["scorecard"] = pd.read_csv(sc).to_dict(orient="records") if sc.exists() else []       # how the forecasts have actually done
+    ml = C.DATA / "scorecard" / "matchup_log.csv"
+    data["matchup_log"] = pd.read_csv(ml).to_dict(orient="records") if ml.exists() else []
     data["meta"]["default_team"] = default_team
     s = ownership.stamp_streamers(json.loads((C.OUT / "streamers" / "streamers.json").read_text()))
     stream = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
