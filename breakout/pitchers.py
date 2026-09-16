@@ -261,14 +261,60 @@ DUR_AGE_FROM = 36
 DUR_AGE_MULT = 0.93
 
 
-def track3(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
-    """GS-weighted points per start over the last three seasons (this year in full, last year 60%, two ago 30%)."""
-    dd = d[(d["is_sp"]) & (d["GS"] >= 1)][["mlbam_id", "season", "GS", "pts_gs"]].rename(columns={"season": "s_h"})
-    m = rows[["mlbam_id", "season", "pts_gs"]].reset_index().merge(dd, on="mlbam_id", suffixes=("", "_h"))
+LEASH_PERSIST = 0.102   # how much of this year's innings-per-start carries to next year (fitted, n=605)
+
+
+def _t3(d: pd.DataFrame, rows: pd.DataFrame, col: str) -> pd.Series:
+    """GS-weighted value of `col` over the last three seasons (this year in full, last year 60%, two ago 30%)."""
+    dd = d[(d["is_sp"]) & (d["GS"] >= 1)][["mlbam_id", "season", "GS", col]].rename(columns={"season": "s_h"})
+    m = rows[["mlbam_id", "season"]].reset_index().merge(dd, on="mlbam_id")
     m = m[(m["s_h"] <= m["season"]) & (m["s_h"] >= m["season"] - 2)]
     m["w"] = m["GS"] * (m["season"] - m["s_h"]).map({0: 1.0, 1: 0.6, 2: 0.3})
-    t = (m["pts_gs_h"] * m["w"]).groupby(m["index"]).sum() / m["w"].groupby(m["index"]).sum()
-    return pd.Series(rows.index.map(t), index=rows.index).fillna(rows["pts_gs"])
+    t = (m[col] * m["w"]).groupby(m["index"]).sum() / m["w"].groupby(m["index"]).sum()
+    return pd.Series(rows.index.map(t), index=rows.index)
+
+
+def track3(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
+    """Track record in points per start, RE-EXPRESSED AT THE LEASH HE IS LIKELY TO GET NEXT YEAR.
+
+    Points per start conflates two different things: how good a pitcher is per inning, and how long they let him go.
+    A man coming back from surgery on a 5-inning limit posts a low points-per-start that says almost nothing about
+    next season, because the leash comes off. Measured on 605 pairs, innings per start barely persists at all -
+    regressing next year's on this year's gives a slope of 0.102, so NINE TENTHS of a short leash comes back. The
+    shortest quintile averages 4.88 IP/start and goes to 5.63 the following year (+0.75); the longest goes 6.57 to
+    5.80 (-0.77). It is close to pure mean reversion.
+
+    So the history is carried as points per INNING (skill, which does persist) times the leash he is projected to get
+    (mostly the league norm). Drew Rasmussen 2025 is the case that prompted this: 150 innings over 31 starts, 4.84 a
+    start on a post-surgery limit, 8.48 points a start. His points per inning that year were fine; at a normal leash
+    that season reads 9.8 a start, not 8.5. Cross-validated, this takes the rate projection from MAE 1.5184 to 1.5041,
+    and the gain lands where it should: on the quartile with the shortest leash in its window (MAE 1.461 -> 1.417,
+    bias +0.352 -> +0.309) and on the longest (1.474 -> 1.431), with the middle untouched.
+    """
+    ip_gs = (d["IP"] / d["GS"].replace(0, np.nan))
+    dd = d.assign(_ip_gs=ip_gs)
+    rate = _t3(dd, rows, "pts_ip")                       # points per inning over the window
+    leash = _t3(dd, rows, "_ip_gs")                      # innings per start he has been getting
+    lg = float(ip_gs[(d["is_sp"]) & (d["GS"] >= 10)].median())
+    own = rows["IP"] / rows["GS"].replace(0, np.nan) if "IP" in rows.columns else leash
+    proj_leash = LEASH_PERSIST * own.fillna(leash).fillna(lg) + (1 - LEASH_PERSIST) * lg
+    out = rate * proj_leash
+    return out.fillna(_t3(dd, rows, "pts_gs")).fillna(rows["pts_gs"])
+
+
+def comeback_year(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
+    """Flag: the season BEFORE this one was lost (<=8 starts) and the one before that was real (>=15).
+
+    Not a model term - a label. On the 11 such pairs in this data the rate model came in 1.52 points per start too
+    LOW (se 0.82, t +1.85), and those pitchers went 8.73 -> 10.96 the following year (+2.22) while everyone else
+    went 10.24 -> 9.94 (-0.30). The effect is large and the mechanism is not mysterious, but n=11 is far too thin to
+    fit a coefficient on, and most of it is the leash, which track3 now handles. So it is surfaced and left to the
+    reader rather than baked into everybody's projection.
+    """
+    gs = d.set_index(["mlbam_id", "season"])["GS"]
+    prev = pd.Series([gs.get((r.mlbam_id, r.season - 1), 0.0) for r in rows.itertuples()], index=rows.index)
+    prev2 = pd.Series([gs.get((r.mlbam_id, r.season - 2), 0.0) for r in rows.itertuples()], index=rows.index)
+    return (prev <= 8) & (prev2 >= 15)
 
 
 def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
@@ -291,6 +337,8 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
     ag = pp.groupby("age_i")["delta"].mean().rolling(3, center=True, min_periods=1).mean()
     cur = d[(d["season"] == season) & (d["is_sp"]) & (d["GS"] >= 5)].copy()
     cur["track3"] = track3(d, cur); cur["skills"] = cur["pitching_plus_raw"].fillna(cur["track3"]) if "pitching_plus_raw" in cur.columns else cur["track3"]
+    cur["ip_gs_last"] = (cur["IP"] / cur["GS"].replace(0, np.nan)).round(2)      # how long they let him go this year
+    cur["comeback"] = comeback_year(d, cur)                                       # first year back from a lost season
     cur["proj_pts_gs_raw"] = b0 + b_sk * cur["skills"] + b_tr * cur["track3"] + b_age * NEUTRAL_AGE
     cur["age_step"] = b_age * (cur["age"] - NEUTRAL_AGE) - LATE_DECLINE * (cur["age"] + 1 - LATE_FROM).clip(lower=0)
     cur["proj_pts_gs"] = cur["proj_pts_gs_raw"] + cur["age_step"]

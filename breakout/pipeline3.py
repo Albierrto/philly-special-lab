@@ -107,7 +107,7 @@ def main(argv=None):
     coef = pp.attrs.get("pitching_plus_coef", {})
     cv_pit = PT.cross_validate(pp)
     pbi, cv_pbi = PT.breakout_index(pp, a.season); pproj, page = PT.project(pp, a.season); pcoef = pproj.attrs.get("proj_coef", {})
-    pcur = pbi.merge(pproj[["mlbam_id", "track3", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs"]], on="mlbam_id")
+    pcur = pbi.merge(pproj[["mlbam_id", "track3", "ip_gs_last", "comeback", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs"]], on="mlbam_id")
     powners = pd.read_csv(C.DATA / "fantrax" / f"pitchers_{a.season}.csv")[["player", "owner"]]; powners["nkey"] = powners["player"].apply(key)
     pcur = pcur.merge(powners[["nkey", "owner"]].drop_duplicates("nkey"), on="nkey", how="left"); pcur["owner"] = pcur["owner"].fillna("FA")
     # two-way: add hitting projection to a pitcher's total for keeper purposes (match on MLBAM id, e.g. Ohtani)
@@ -173,7 +173,7 @@ def main(argv=None):
                             "milb_ISO", "milb_K", "milb_BB", "milb_HR", "milb_SB", "milb_OPS_pct", "milb_ISO_pct", "milb_OBP_pct", "milb_K_pct", "milb_BB_pct", "milb_SB600_pct"]),
         prospect_statcast=recs(sc_sum, list(sc_sum.columns)) if len(sc_sum) else [],
         pitchers=recs(pp[(pp["is_sp"]) & (pp["GS"] >= 3)], PIT_COLS, columnar=True),
-        pitcher_proj=recs(pcur, ["mlbam_id", "BI", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs",
+        pitcher_proj=recs(pcur, ["mlbam_id", "BI", "track3", "ip_gs_last", "comeback", "proj_pts_gs_raw", "age_step", "proj_pts_gs", "proj_GS", "durability", "proj_pts", "proj_rank", "proj_rank_gs",
                                  "owner", "proj_pts_hitting", "proj_pts_total", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as"], columnar=True),
         pitcher_pool=recs(ppool, ["mlbam_id", "name", "pool_rank", "proj_pts", "proj_rank", "owner", "KSV"]),
         aging=recs(curve, ["age", "rel_to_27", "yoy_delta", "n_pairs"]), pitcher_aging=recs(page, ["age", "yoy_delta"]),
