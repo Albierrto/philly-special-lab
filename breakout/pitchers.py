@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import requests
 from sklearn.ensemble import HistGradientBoostingRegressor, HistGradientBoostingClassifier
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import roc_auc_score
 
 from .config import DATA
@@ -261,7 +261,47 @@ DUR_AGE_FROM = 36
 DUR_AGE_MULT = 0.93
 
 
-LEASH_PERSIST = 0.102   # how much of this year's innings-per-start carries to next year (fitted, n=605)
+def _clean_leash(d: pd.DataFrame) -> pd.Series:
+    """Innings per start, but ONLY for seasons he was a full-time starter.
+
+    IP/GS across every row is garbage: IP counts relief innings and GS counts only starts, so Jesse Chavez 2022 (60
+    games, 1 start, 69.3 innings) reads as 69 innings per start, and the whole column tops out at 88. Restricting to
+    10+ starts with at most 3 relief appearances gives a sane distribution: min 3.36, median 5.44, max 7.15.
+    """
+    relief = d["G"] - d["GS"]
+    return pd.Series(np.where((d["GS"] >= 10) & (relief <= 3), d["IP"] / d["GS"].replace(0, np.nan), np.nan), index=d.index)
+
+
+def _leash_model(d: pd.DataFrame, t3):
+    """Fit next season's innings per start. It is predicted by how GOOD he is, not by what he got this year.
+
+    Regressed on itself, a clean leash carries a slope of 0.269 - so about 73% of a short leash comes off, not the 90%
+    the contaminated column suggested. But in a multivariate fit, this year's leash has NO independent signal left
+    (t -0.42) once quality is in: what predicts next year's leash is points per inning (+0.081 per unit, t +2.62).
+    Managers hand innings to pitchers who are getting outs, which is why regressing everyone toward the league average
+    was wrong - it quietly took innings off the aces and handed them to the innings-eaters.
+
+    Age moves it too, and not the way the folklore says. Leash rises for the young (+0.18 an outing under 25, +0.17 at
+    25-26), is FLAT right through the supposed peak (-0.03 to -0.05 from 27 to 34), and only falls at 35+ (-0.21).
+    So it is fitted as quality plus a young flag and a 35+ flag, with no term for his own leash at all - which also
+    means it is defined for a swingman who has no clean leash season to measure.
+    """
+    leash = _clean_leash(d)
+    s = d.assign(_leash=leash)
+    nxt = s.set_index(["mlbam_id", "season"])["_leash"]
+    fit = s[s["_leash"].notna()].copy()
+    fit["next_leash"] = [nxt.get((r.mlbam_id, r.season + 1), np.nan) for r in fit.itertuples()]
+    fit["rate3"] = t3(fit, "pts_ip")
+    fit = fit.dropna(subset=["next_leash", "rate3"])
+    X = np.c_[fit["rate3"], (fit["age"] < 27).astype(float), (fit["age"] >= 35).astype(float)]
+    lr = LinearRegression().fit(X, fit["next_leash"])
+    lo, hi = float(leash.quantile(0.02)), float(leash.quantile(0.98))
+    def proj(rate3, age):
+        v = lr.intercept_ + lr.coef_[0] * rate3 + lr.coef_[1] * (age < 27) + lr.coef_[2] * (age >= 35)
+        return np.clip(v, lo, hi)
+    proj.coef = dict(intercept=round(float(lr.intercept_), 3), rate=round(float(lr.coef_[0]), 3),
+                     young=round(float(lr.coef_[1]), 3), age35=round(float(lr.coef_[2]), 3), n=int(len(fit)))
+    return proj
 
 
 def _t3(d: pd.DataFrame, rows: pd.DataFrame, col: str) -> pd.Series:
@@ -275,31 +315,20 @@ def _t3(d: pd.DataFrame, rows: pd.DataFrame, col: str) -> pd.Series:
 
 
 def track3(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
-    """Track record in points per start, RE-EXPRESSED AT THE LEASH HE IS LIKELY TO GET NEXT YEAR.
+    """Track record in points per start, re-expressed at the leash he is projected to get next year.
 
     Points per start conflates two different things: how good a pitcher is per inning, and how long they let him go.
-    A man coming back from surgery on a 5-inning limit posts a low points-per-start that says almost nothing about
-    next season, because the leash comes off. Measured on 605 pairs, innings per start barely persists at all -
-    regressing next year's on this year's gives a slope of 0.102, so NINE TENTHS of a short leash comes back. The
-    shortest quintile averages 4.88 IP/start and goes to 5.63 the following year (+0.75); the longest goes 6.57 to
-    5.80 (-0.77). It is close to pure mean reversion.
+    A man back from surgery on a five-inning limit posts a low points-per-start that says little about next season.
+    Drew Rasmussen 2025: 150 innings over 31 starts, 4.84 an outing, 8.48 points a start. His points per INNING that
+    year were fine - the leash was the story, and the leash came off (5.73 and 12.08 in 2026).
 
-    So the history is carried as points per INNING (skill, which does persist) times the leash he is projected to get
-    (mostly the league norm). Drew Rasmussen 2025 is the case that prompted this: 150 innings over 31 starts, 4.84 a
-    start on a post-surgery limit, 8.48 points a start. His points per inning that year were fine; at a normal leash
-    that season reads 9.8 a start, not 8.5. Cross-validated, this takes the rate projection from MAE 1.5184 to 1.5041,
-    and the gain lands where it should: on the quartile with the shortest leash in its window (MAE 1.461 -> 1.417,
-    bias +0.352 -> +0.309) and on the longest (1.474 -> 1.431), with the middle untouched.
+    So the history is carried as points per inning, which is skill and persists, times a projected leash from
+    _leash_model. Cross-validated the rate projection goes from MAE 1.5106 on plain points per start to 1.4948.
     """
-    ip_gs = (d["IP"] / d["GS"].replace(0, np.nan))
-    dd = d.assign(_ip_gs=ip_gs)
-    rate = _t3(dd, rows, "pts_ip")                       # points per inning over the window
-    leash = _t3(dd, rows, "_ip_gs")                      # innings per start he has been getting
-    lg = float(ip_gs[(d["is_sp"]) & (d["GS"] >= 10)].median())
-    own = rows["IP"] / rows["GS"].replace(0, np.nan) if "IP" in rows.columns else leash
-    proj_leash = LEASH_PERSIST * own.fillna(leash).fillna(lg) + (1 - LEASH_PERSIST) * lg
-    out = rate * proj_leash
-    return out.fillna(_t3(dd, rows, "pts_gs")).fillna(rows["pts_gs"])
+    rate3 = _t3(d, rows, "pts_ip")
+    proj = _leash_model(d, lambda rws, c: _t3(d, rws, c))
+    out = rate3 * proj(rate3, rows["age"])
+    return out.fillna(_t3(d, rows, "pts_gs")).fillna(rows["pts_gs"])
 
 
 def comeback_year(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
@@ -337,7 +366,7 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
     ag = pp.groupby("age_i")["delta"].mean().rolling(3, center=True, min_periods=1).mean()
     cur = d[(d["season"] == season) & (d["is_sp"]) & (d["GS"] >= 5)].copy()
     cur["track3"] = track3(d, cur); cur["skills"] = cur["pitching_plus_raw"].fillna(cur["track3"]) if "pitching_plus_raw" in cur.columns else cur["track3"]
-    cur["ip_gs_last"] = (cur["IP"] / cur["GS"].replace(0, np.nan)).round(2)      # how long they let him go this year
+    cur["ip_gs_last"] = _clean_leash(cur).round(2)     # blank unless he was a full-time starter; see _clean_leash
     cur["comeback"] = comeback_year(d, cur)                                       # first year back from a lost season
     cur["proj_pts_gs_raw"] = b0 + b_sk * cur["skills"] + b_tr * cur["track3"] + b_age * NEUTRAL_AGE
     cur["age_step"] = b_age * (cur["age"] - NEUTRAL_AGE) - LATE_DECLINE * (cur["age"] + 1 - LATE_FROM).clip(lower=0)
