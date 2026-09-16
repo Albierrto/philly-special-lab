@@ -244,8 +244,21 @@ def breakout_index(d: pd.DataFrame, season: int):
 
 
 NEUTRAL_AGE = 27       # the rate projection is quoted "as a 27-year-old"; age_step is the difference from that
-LATE_DECLINE = 0.15    # extra points per start lost for every year past 34 (the survivor sample cannot see collapses)
-LATE_FROM = 34
+# Extra points per start lost past LATE_FROM, on top of the fitted linear age term, for survivor bias: the pairs the
+# ridge sees are pitchers who were still starting the following year, so it cannot see the ones who fell off a cliff.
+# It was hand-set at 0.15/yr from 34 and never checked. Checked on the 72 age-34+ pairs in this data it was WORSE THAN
+# APPLYING NOTHING (MAE 1.269 against 1.252, bias +0.490 against +0.013), because 34-35 year-olds who are still
+# starting do not decline at all - the model is already 0.33 points per start too PESSIMISTIC on them before the
+# penalty, and the penalty pushed that to +0.62. The decline only shows up at 36+ (bias -0.56 with no penalty), and
+# 0.10/yr from 36 corrects it without overshooting: MAE 1.216, bias +0.151, the best of every setting tried.
+# n=72 is thin, so this is a smaller correction applied later rather than a confident one.
+LATE_DECLINE = 0.10
+LATE_FROM = 36
+# Same story on projected STARTS: cutting 7% off every 34-year-old made the age-34+ projection worse (MAE 7.616,
+# bias +0.613 starts) than not cutting at all (7.417, -0.094). Moving the cut to 36 is the best of the three: 7.413
+# and +0.101. Note the ridge is fitted on next_GS / durability and then multiplied back, so this is not double-counted.
+DUR_AGE_FROM = 36
+DUR_AGE_MULT = 0.93
 
 
 def track3(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
@@ -263,7 +276,8 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
 
     skills   = the Pitching+ inputs (Stuff+, Location+, xERA, K−BB%) already fitted to next-year pts/GS in fit_pitching_plus
     track    = GS-weighted pts/GS over the last three seasons (1 / 0.6 / 0.3)
-    age      = linear (about −0.05 pts/GS per year) plus LATE_DECLINE per year past 34
+    age      = linear (about −0.05 pts/GS per year) plus LATE_DECLINE per year past LATE_FROM (see the note on those
+               constants: both late-career penalties were hand-set from 34 and, measured, were worse than nothing)
     Leave-one-season-out this beats the boosted model in four folds of five (r 0.50–0.67 vs 0.42–0.63) and, being three
     terms, cannot rate a bad year above a good one the way the boosted model did (Anthony Kay over Shota Imanaga).
     Projected starts = ridge(GS, last year's GS, age) fitted to next-year GS (no prior season counts as 0), times a
@@ -285,7 +299,7 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
     def prev(rows): return pd.Series([gs_prev.get((r.mlbam_id, r.season - 1), 0.0) for r in rows.itertuples()], index=rows.index)
     def durab(rows):
         ilw = rows["il_days_w"] if "il_days_w" in rows.columns else rows["il_days_3yr"]
-        return (1 - 0.001 * ilw.fillna(0).clip(0, 250)) * np.where(rows["age"] >= 34, 0.93, 1.0)
+        return (1 - 0.001 * ilw.fillna(0).clip(0, 250)) * np.where(rows["age"] >= DUR_AGE_FROM, DUR_AGE_MULT, 1.0)
     gp = d[(d["is_sp"]) & (d["GS"] >= 10)].merge(d[["mlbam_id", "season", "GS"]].assign(season=lambda x: x["season"] - 1).rename(columns={"GS": "next_GS"}), on=["mlbam_id", "season"])
     rg = Ridge(alpha=1.0).fit(np.c_[gp["GS"], prev(gp), gp["age"]], gp["next_GS"] / durab(gp)); g_gs, g_prev, g_age = rg.coef_; g0 = rg.intercept_
     dur = durab(cur)
