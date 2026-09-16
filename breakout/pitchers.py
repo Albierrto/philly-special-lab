@@ -280,8 +280,8 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
                constants: both late-career penalties were hand-set from 34 and, measured, were worse than nothing)
     Leave-one-season-out this beats the boosted model in four folds of five (r 0.50–0.67 vs 0.42–0.63) and, being three
     terms, cannot rate a bad year above a good one the way the boosted model did (Anthony Kay over Shota Imanaga).
-    Projected starts = ridge(GS, last year's GS, age) fitted to next-year GS (no prior season counts as 0), times a
-    durability factor for recent IL days and age 34+."""
+    Projected starts = ridge(GS, last year's GS, age, 3-year points per start) fitted to next-year GS, times an
+    age-only durability factor. IL history is deliberately NOT in it - see the note in durab()."""
     pr = _pairs(d)
     pr["track3"] = track3(d, pr); pr["skills"] = pr["pitching_plus_raw"].fillna(pr["track3"]) if "pitching_plus_raw" in pr.columns else pr["track3"]
     X = np.c_[pr["skills"], pr["track3"], pr["age"]]
@@ -298,15 +298,30 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
     gs_prev = d.set_index(["mlbam_id", "season"])["GS"]
     def prev(rows): return pd.Series([gs_prev.get((r.mlbam_id, r.season - 1), 0.0) for r in rows.itertuples()], index=rows.index)
     def durab(rows):
-        ilw = rows["il_days_w"] if "il_days_w" in rows.columns else rows["il_days_3yr"]
-        return (1 - 0.001 * ilw.fillna(0).clip(0, 250)) * np.where(rows["age"] >= DUR_AGE_FROM, DUR_AGE_MULT, 1.0)
+        # NO IL TERM. It used to cut 0.1% of a pitcher's starts per recency-weighted IL day, and that was charging him
+        # twice for the same injury: a pitcher who missed time already shows fewer GS, and GS is the strongest input to
+        # the ridge below. Fitted on 801 pairs, IL history adds nothing once GS, last year's GS and age are known -
+        # il_days_w +0.0049 starts per day (se 0.0061, t +0.80, and POSITIVE), il_days_3yr -0.0013 (t -0.28),
+        # il_stints_3yr -0.118 (t -0.45), il_60 +0.09 (t +0.06). The shipped 0.001/day is about -0.021 starts per day,
+        # roughly four standard errors the wrong side of zero. On the 190 pairs with 90+ weighted IL days - Wheeler and
+        # Rasmussen's cohort - it projected 1.40 starts too FEW (MAE 9.194); dropping it leaves bias +0.15 (MAE 8.983),
+        # and overall MAE goes 8.580 -> 8.532. The age factor survives because it was checked separately.
+        return np.where(rows["age"] >= DUR_AGE_FROM, DUR_AGE_MULT, 1.0)
     gp = d[(d["is_sp"]) & (d["GS"] >= 10)].merge(d[["mlbam_id", "season", "GS"]].assign(season=lambda x: x["season"] - 1).rename(columns={"GS": "next_GS"}), on=["mlbam_id", "season"])
-    rg = Ridge(alpha=1.0).fit(np.c_[gp["GS"], prev(gp), gp["age"]], gp["next_GS"] / durab(gp)); g_gs, g_prev, g_age = rg.coef_; g0 = rg.intercept_
+    # QUALITY BELONGS IN THE STARTS MODEL. Without it, a short season means the same thing whoever threw it, and that is
+    # plainly false: a rotation spot is earned. Residual next-year starts against the ridge on (GS, prev GS, age) rise
+    # +0.855 per point of points-per-start (se 0.140, t +6.10), +0.224 per point of Pitching+ (t +6.36), +0.476 per
+    # point of K% (t +6.69) and fall -2.38 per point of xERA (t -6.02) - four independent measures all past t 6.
+    # Among pitchers whose season was SHORT (GS <= 26) the old model missed the best quartile by +3.12 starts and the
+    # worst by -3.32: it handed the good ones too few and the bad ones too many. 5-fold CV MAE 8.571 -> 8.373.
+    gp["track3"] = track3(d, gp)
+    rg = Ridge(alpha=1.0).fit(np.c_[gp["GS"], prev(gp), gp["age"], gp["track3"]], gp["next_GS"] / durab(gp))
+    g_gs, g_prev, g_age, g_q = rg.coef_; g0 = rg.intercept_
     dur = durab(cur)
-    cur["proj_GS"] = ((g0 + g_gs * cur["GS"] + g_prev * prev(cur) + g_age * cur["age"]) * dur).clip(10, 32).round(0); cur["durability"] = pd.Series(dur, index=cur.index).round(3)
+    cur["proj_GS"] = ((g0 + g_gs * cur["GS"] + g_prev * prev(cur) + g_age * cur["age"] + g_q * cur["track3"]) * dur).clip(10, 32).round(0); cur["durability"] = pd.Series(dur, index=cur.index).round(3)
     cur["proj_pts"] = (cur["proj_pts_gs"] * cur["proj_GS"]).round(0)
     cur["proj_rank"] = cur["proj_pts"].rank(ascending=False).astype(int)
     cur["proj_rank_gs"] = cur["proj_pts_gs"].rank(ascending=False).astype(int)
     cur.attrs["proj_coef"] = dict(intercept=round(float(b0), 3), skills=round(float(b_sk), 3), track=round(float(b_tr), 3), age=round(float(b_age), 4),
-                                  gs_intercept=round(float(g0), 2), gs=round(float(g_gs), 3), gs_prev=round(float(g_prev), 3), gs_age=round(float(g_age), 3))
+                                  gs_intercept=round(float(g0), 2), gs=round(float(g_gs), 3), gs_prev=round(float(g_prev), 3), gs_age=round(float(g_age), 3), gs_quality=round(float(g_q), 3))
     return cur, ag.reset_index().rename(columns={"age_i": "age", "delta": "yoy_delta"})
