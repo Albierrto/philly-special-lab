@@ -51,8 +51,8 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 0510l,Emerson Hancock,SEA,SP,SP,INJURED_RESERVE,CH,Charlie Hustle
 03qpi,Patrick Sandoval,BOS,SP,SP,ACTIVE,CH,Charlie Hustle
 04pst,Jarren Duran,BOS,LF,OF,ACTIVE,CH,Charlie Hustle
-04yig,Brooks Lee,MIN,SS,SS,ACTIVE,BAMBI,The Great Bambi
-06plc,Sam Antonacci,CHW,2B,2B,ACTIVE,BAMBI,The Great Bambi
+04yig,Brooks Lee,MIN,SS,3B,RESERVE,BAMBI,The Great Bambi
+06plc,Sam Antonacci,CHW,2B,UT,RESERVE,BAMBI,The Great Bambi
 041ma,Cole Ragans,KC,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 02i2k,Byron Buxton,MIN,CF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
 05r8n,Yoshinobu Yamamoto,LAD,SP,SP,ACTIVE,BAMBI,The Great Bambi
@@ -62,18 +62,18 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ydp,Kade Anderson,SEA,SP,SP,RESERVE,BAMBI,The Great Bambi
 0630d,Drake Baldwin,ATL,C,C,ACTIVE,BAMBI,The Great Bambi
 02bqr,Blake Snell,LAD,SP,SP,ACTIVE,BAMBI,The Great Bambi
-024m0,Jose Altuve,HOU,2B,UT,RESERVE,BAMBI,The Great Bambi
-05r1m,Jordan Lawlar,ARI,3B,3B,RESERVE,BAMBI,The Great Bambi
+024m0,Jose Altuve,HOU,2B,2B,ACTIVE,BAMBI,The Great Bambi
+05r1m,Jordan Lawlar,ARI,3B,SS,ACTIVE,BAMBI,The Great Bambi
 05aoc,Eury Perez,MIA,SP,SP,ACTIVE,BAMBI,The Great Bambi
 04pmb,Kris Bubic,LAD,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 05tzn,Parker Messick,CLE,SP,SP,ACTIVE,BAMBI,The Great Bambi
 01fh9,Bryce Harper,PHI,1B,1B,ACTIVE,BAMBI,The Great Bambi
-04b02,Seiya Suzuki,CHC,DH,OF,ACTIVE,BAMBI,The Great Bambi
+04b02,Seiya Suzuki,CHC,DH,UT,ACTIVE,BAMBI,The Great Bambi
 04qk8,CJ Abrams,WSH,SS,SS,RESERVE,BAMBI,The Great Bambi
 06n8y,Eli Willits,WSH,SS,SS,MINORS,BAMBI,The Great Bambi
 060pm,Wyatt Langford,TEX,LF,UT,ACTIVE,BAMBI,The Great Bambi
-05rcf,Joshua Baez,STL,RF,UT,RESERVE,BAMBI,The Great Bambi
-04q2n,Adley Rutschman,BOS,C,UT,ACTIVE,BAMBI,The Great Bambi
+05rcf,Joshua Baez,STL,RF,OF,ACTIVE,BAMBI,The Great Bambi
+04q2n,Adley Rutschman,BOS,C,UT,RESERVE,BAMBI,The Great Bambi
 05t9v,Jonathan Aranda,TB,1B,1B,RESERVE,BAMBI,The Great Bambi
 05xch,Junior Caminero,TB,3B,3B,ACTIVE,BAMBI,The Great Bambi
 06ibv,Jesus Made,MIL,SS,SS,MINORS,BAMBI,The Great Bambi
@@ -128,31 +128,30 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 042sz,Will Smith,LAD,C,UT,RESERVE,LTTA,Let’s try this again
 03120,Cody Bellinger,NYY,LF,OF,ACTIVE,LTTA,Let’s try this again
 01ut7,Nathan Eovaldi,TEX,SP,SP,INJURED_RESERVE,LTTA,Let’s try this again
-041vt,Samad Taylor,SD,2B,UT,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-03yrz,William Contreras,MIL,C,C,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-040b5,Randy Arozarena,SEA,LF,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-04eee,Drew Rasmussen,TB,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-04e2u,Brent Rooker,ATH,DH,UT,INJURED_RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-04ee8,Heliot Ramos,NYY,LF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-04c0o,Jose Soriano,TOR,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 03poo,Peter Lambert,HOU,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04ru7,Miguel Vargas,CHW,3B,3B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 01sb3,Zack Wheeler,PHI,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-05y2l,Emmet Sheehan,LAD,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 05m49,Jung Hoo Lee,SF,CF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 0514f,Hayden Wesneski,HOU,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-04yid,Ryne Nelson,ARI,SP,SP,INJURED_RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
+04yid,Ryne Nelson,ARI,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04cd5,MacKenzie Gore,TEX,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 060i2,Jake Bennett,BOS,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+041vt,Samad Taylor,SD,2B,UT,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04y97,Kyle Stowers,MIA,LF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+03yrz,William Contreras,MIL,C,C,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+040b5,Randy Arozarena,SEA,LF,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+04eee,Drew Rasmussen,TB,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 051wv,Pete Crow-Armstrong,CHC,CF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 060x1,Wilyer Abreu,BOS,RF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04pr8,Taj Bradley,MIN,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 03pjd,Josh Naylor,SEA,1B,1B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 05tp6,Thomas White,MIA,SP,SP,MINORS,GLIZZY,The Greatest Glizzy Guzzlers
 03mew,Luis Arraez,PHI,1B,2B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+04e2u,Brent Rooker,ATH,DH,UT,INJURED_RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
+04ee8,Heliot Ramos,NYY,LF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 041qb,Bo Bichette,NYM,SS,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 05yby,Kevin McGonigle,DET,SS,SS,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+04c0o,Jose Soriano,TOR,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 067yc,Leo De Vries,ATH,SS,UT,MINORS,Dan,Some Ting Wong
 04yk2,Spencer Torkelson,DET,1B,1B,RESERVE,Dan,Some Ting Wong
 01u75,Salvador Perez,KC,C,C,ACTIVE,Dan,Some Ting Wong
@@ -291,11 +290,11 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 066eo,Cole Carrigg,COL,CF,OF,ACTIVE,BB,Basketball
 03whq,Ty France,SD,1B,1B,ACTIVE,BB,Basketball
 03qjy,Brandon Lowe,PIT,2B,2B,RESERVE,BB,Basketball
+04ml0,Yusei Kikuchi,LAA,SP,SP,ACTIVE,BB,Basketball
 02btx,Tyler Glasnow,LAD,SP,SP,RESERVE,BB,Basketball
 051ui,Jacob Lopez,ATH,SP,SP,RESERVE,BB,Basketball
-04ak5,Trevor Rogers,BAL,SP,SP,ACTIVE,BB,Basketball
+04ak5,Trevor Rogers,BAL,SP,SP,RESERVE,BB,Basketball
 06gwk,Payton Tolle,BOS,RP,SP,ACTIVE,BB,Basketball
-04yi8,Spencer Jones,NYY,CF,OF,RESERVE,BB,Basketball
 067yn,Seth Hernandez,PIT,SP,SP,MINORS,BB,Basketball
 02yc4,Shohei Ohtani,LAD,DH,UT,INJURED_RESERVE,BB,Basketball
 04fhb,Julio Rodriguez,SEA,CF,OF,ACTIVE,BB,Basketball
