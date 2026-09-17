@@ -59,7 +59,10 @@ def keeper_candidates(cands: pd.DataFrame, my_team_abbrev: str = "BB", season: i
         return pd.DataFrame()
     h = pd.read_csv(p)
     h["nkey"] = h["player"].apply(key)
-    mine = h[h["owner"] == my_team_abbrev][["player", "pos", "mlb", "fpts", "fpg", "nkey"]]
+    # the Fantrax players export dropped fpts/fpg at some point and this hard column list then raised KeyError,
+    # which killed `cli run` at step 5 of 6 -- silently, because the parquet it writes at step 1 was already on disk.
+    want = [c for c in ("player", "pos", "mlb", "fpts", "fpg", "nkey") if c in h.columns]
+    mine = h[h["owner"] == my_team_abbrev][want]
     c = cands[["nkey", "age", "PA", "pts", "final_hitter_rank", "proj_pts", "proj_rank", "proj_pts_600pa",
                "proj_rank_600pa", "skills_score", "breakout_score", "tag"]]
     return mine.merge(c, on="nkey", how="left").sort_values("proj_pts", ascending=False)
