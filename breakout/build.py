@@ -142,17 +142,29 @@ def player_seasons(seasons=SEASONS, scoring: dict | None = None) -> pd.DataFrame
     allp["pts_pa"] = allp["pts"] / allp["PA"].replace(0, np.nan)
     allp["final_hitter_rank"] = allp.groupby("season")["pts"].rank(ascending=False, method="min").astype(int)
     allp["elig"] = allp.apply(_elig, axis=1)
+    # what a man is eligible at NEXT season, which is the only thing a 2027 projection can be slotted by
+    allp["elig_next"] = allp["elig"]
     allp = _fantrax_elig(allp)
     return allp
 
 
 def _fantrax_elig(allp: pd.DataFrame) -> pd.DataFrame:
-    """Take eligibility from Fantrax for the current season, because Fantrax's rule is the one the league plays by.
+    """Two different questions, two different columns.
 
-    Deriving it from 20+ games at a spot THIS season is stricter than what Fantrax grants, and the error is entirely
-    one-sided: checked against their own export for 446 hitters, this code was never wrong about a position it gave,
-    and was missing 170 that Fantrax grants (2B 47, 3B 36, 1B 36, SS 25, OF 21, C 5). Undercounting a position's pool
-    makes it read scarcer than it is, which fed straight into the keeper credits.
+    Fantrax's rule, recovered from their own export for the 2026 season, is: eligible at a spot if you played 20 games
+    there LAST season or 10 games there THIS season. Reconstructing that rule from games played reproduces 91% of their
+    grants exactly with one over-grant in 490 players; no single-season rule gets past 80%.
+
+      elig       what Fantrax grants him right now. This is the one the daily lineup, the streamer board and the
+                 roster views want, because those are decisions about today's lineup card. Taken from the export
+                 for the current season, derived for past ones.
+      elig_next  what he will carry into NEXT season, which is 20+ games at the spot this season and nothing else:
+                 the "10 games this season" half of the rule has no meaning at a draft, and last season's grant
+                 expires. This is the one the 2027 projections, the scarcity credits and the keeper board want.
+
+    They are genuinely different players in places. Ben Rice is a catcher in Fantrax today off 2025 games and is not
+    one for 2027; slotting his 2027 projection at catcher would have had the league's shallowest position defended by
+    a man who cannot play it.
     """
     import re as _re
     cur_season = max(SEASONS)

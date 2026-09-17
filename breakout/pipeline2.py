@@ -103,7 +103,7 @@ def main(argv=None):
     return 0
 
 
-EXPLORER_COLS = ["mlbam_id", "name", "season", "age", "elig", "team_abbr", "bats", "G", "PA", "first_game", "avail_games", "il_games_in_window", "pa_pace_162", "g_share", "days_late", "AB", "H", "1B", "2B", "3B", "HR", "R", "RBI",
+EXPLORER_COLS = ["mlbam_id", "name", "season", "age", "elig", "elig_next", "team_abbr", "bats", "G", "PA", "first_game", "avail_games", "il_games_in_window", "pa_pace_162", "g_share", "days_late", "AB", "H", "1B", "2B", "3B", "HR", "R", "RBI",
                  "BB", "HBP", "SB", "CS", "K", "E", "CSA", "AOF", "pts", "pts_pa", "pts_g", "final_hitter_rank", "adp", "adp_hitter_rank",
                  "adp_nfbc", "adp_fantrax", "exp_pts", "pts_over_exp", "rank_gain", "beat", "big_beat", "bust", "produced_like_rank",
                  "xLP", "xLP_pa", "luck_pts", "x1B", "x2B", "x3B", "xHR", "xR", "xRBI", "LPAR", "repl_pts", "pct_league", "pct_std_points",
