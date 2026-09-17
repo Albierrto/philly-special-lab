@@ -129,6 +129,9 @@ td.name{font-weight:600;cursor:pointer}
 @media (max-width:900px){ th.opt,td.opt{display:none} }   /* columns worth dropping before a phone has to scroll sideways */
 td .sub{display:block;font-weight:400;color:var(--ink3);font-size:11px;font-family:var(--font-b);white-space:nowrap}
 td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font-family:var(--font-b)}
+tr.out td{opacity:.6} tr.out td.l b{font-weight:600}
+#k-verdict .sc{color:var(--good);font-weight:600} #k-verdict .sd{color:var(--ink3);font-weight:600}
+#k-verdict .yrs{display:none}
 .pill{display:inline-block;padding:0 7px;border-radius:4px;font-size:12px;font-weight:600;font-family:var(--font-b);line-height:20px;white-space:nowrap}
 .pill.g{background:rgba(76,194,122,.18);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.18);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.18);color:var(--cold)} .pill.w{background:rgba(232,176,75,.18);color:var(--warn)} .pill.n{background:var(--panel3);color:var(--ink2)} td.name.noclick,.row.noclick{cursor:default;opacity:.75}
 .pos-d{color:var(--good);font-weight:600}.neg-d{color:var(--bad);font-weight:600}
@@ -325,6 +328,17 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   table.mini td:nth-child(4){width:46px} table.mini td.hint{font-size:11px;line-height:1.3}
   /* charts drawn as SVG scale to the panel */
   .chartbox svg{width:100%;height:auto;display:block}
+  #k-verdict table.mini{table-layout:fixed;width:100%}
+  #k-verdict table.mini th,#k-verdict table.mini td{padding:6px 4px;font-size:12px;white-space:nowrap}
+  #k-verdict table.mini td.l{white-space:normal} #k-verdict td .sub{white-space:normal;line-height:1.3}
+  #k-verdict table.mini th:nth-child(1),#k-verdict table.mini td:nth-child(1){display:none}
+  #k-verdict table.mini th:nth-child(2){width:36%} #k-verdict table.mini th:nth-child(3){width:20%}
+  #k-verdict table.mini th:nth-child(7){width:30%} #k-verdict table.mini th:nth-child(8){width:14%}
+  #k-verdict table.mini th{white-space:normal;line-height:1.2}
+  #k-verdict table.mini th:nth-child(4),#k-verdict table.mini td:nth-child(4),
+  #k-verdict table.mini th:nth-child(5),#k-verdict table.mini td:nth-child(5),
+  #k-verdict table.mini th:nth-child(6),#k-verdict table.mini td:nth-child(6){display:none}
+  #k-verdict .yrs{display:block;font-family:var(--font-m);font-size:10px;line-height:1.3;color:var(--ink3);font-weight:400;margin-top:1px;white-space:normal}
   /* tall stacked rows look wrong with the badge floating in the middle */
   .slotrow{align-items:flex-start} .slotrow .exp{padding-top:2px} .slotrow .ava{margin-top:2px}
 }
@@ -518,6 +532,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <h2>Keepers and the 2027 draft pool</h2>
   <p class="lede">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b> — points above replacement over 2027 in full, 2028 at 60% and 2029 at 35% — because a keeper can be kept again, so two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is the old single-season number, kept as a cross-check. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p>
   <div class="filters"><label>Team <select id="k-owner"></select></label><span class="hint" id="k-real"></span></div>
+  <div class="dash" id="k-verdict"></div>
   <div class="grid2">
     <div>
       <h3>Hitter keeper board</h3>
@@ -538,7 +553,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
       <div class="tblwrap"><table id="t-ppool"></table></div>
     </div>
   </div>
-  <h3>Inferred keepers by year</h3>
+  <h3 id="ky-h">Inferred keepers by year</h3>
+  <p class="hint" id="ky-note"></p>
   <div class="filters"><label>Year <select id="ky-year"></select></label></div>
   <div class="tblwrap" style="max-width:820px"><table id="t-keepyear"></table></div>
 </section>
@@ -739,8 +755,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260916T2313"></script>
-<script src="data/streamers.js?v=20260916T2313"></script>
+<script src="data/lab.js?v=20260917T0025"></script>
+<script src="data/streamers.js?v=20260917T0025"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1718,10 +1734,46 @@ const boPill = r => { const st = boStatus(r);
 // ---------- keepers tab
 let tK, tPool, tKY, tPK, tPPool;
 const tierPill = v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':v==='surplus'?'b':'n'}">${v}</span>`;
+// The seven a team would keep, with the arithmetic that chose them showing. Keeper value is one number on one scale:
+// points above a replacement starter in 2027, plus 60% of 2028 and 35% of 2029, so a 33-year-old and a 26-year-old
+// with the same 2027 projection do not come out equal. The gap column is what actually decides a slot.
+function renderVerdict(V, o){
+  const sgn = v => (v>=0?'+':'\u2212') + Math.round(Math.abs(v));
+  const hs = (V.byO[o]||[]).slice().sort((a,b)=>b.DV_c-a.DV_c);
+  const ps = (V.pByO[o]||[]).slice().sort((a,b)=>b.DV_c-a.DV_c);
+  const block = (list, n, kind) => {
+    const cut = list[n] ? list[n].DV_c : null;                       // a keeper's margin is over the best man left off
+    const last = list[n-1] ? list[n-1].DV_c : null;                  // a bubble man's gap is to the last one who made it
+    const rows = list.slice(0, n+2).map((r,i)=>{
+      const out = i>=n, ref = out ? last : cut, gap = ref==null ? null : r.DV_c - ref;
+      return `<tr class="${out?'out':''}"><td class="l">${out?'':i+1}</td>
+        <td class="l name" data-${kind}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(kind==='p'?'SP':(r.elig||''))} \u00b7 age ${(r.age||0).toFixed(0)}${kind==='h'&&r.scarce_c>0?` \u00b7 <b class="sc" title="scarcity credit: what this position is worth over the deepest one on the field">+${r.scarce_c}${(r.elig||'').includes('/')?' at '+esc(r.pos_c):''}</b>`:''}${out?' \u00b7 on the bubble':''}</span></td>
+        <td>${Math.round(r.proj_pts + (kind==='p'?(r.proj_pts_hitting||0):0))}<small>${r.proj_pts_hitting>0?'arm + bat':'\u00b1'+Math.round(r.proj_sd||0)}</small></td>
+        <td>${sgn(r.PAR_c)}</td><td>${sgn(r.PAR28_c)}</td><td>${sgn(r.PAR29_c)}</td>
+        <td><b>${Math.round(r.DV_c)}</b><small class="yrs">'28 ${sgn(r.PAR28_c)}<br>'29 ${sgn(r.PAR29_c)}</small></td>
+        <td class="${gap!=null&&gap<0?'neg':''}">${gap==null?'\u2014':sgn(gap)}</td></tr>`;}).join('');
+    return `<div class="tblwrap" style="max-height:none"><table class="mini"><thead><tr>
+      <th class="l">#</th><th class="l">${kind==='p'?'Pitcher':'Hitter'}</th><th title="2027 projected points, with the model's own measured error">2027 proj</th>
+      <th title="projected points above a replacement starter in 2027">vs repl</th><th title="the same, aged one year">2028</th><th title="the same, aged two years">2029</th>
+      <th title="2027 + 0.6 x 2028 + 0.35 x 2029">Keeper value</th><th title="keeper value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  };
+  const rp0 = Object.entries(V.replPos||{}).filter(([p])=>p!=='UT'), deep0 = Math.max(...rp0.map(([,v])=>v));
+  const scarceLine = rp0.map(([p,v])=>[p, Math.round(deep0-v)]).sort((a,b)=>b[1]-a[1]).map(([p,d])=>`${p} +${d}`).join(', ');
+  const tight = (list,n) => list[n-1] && list[n] ? Math.round(list[n-1].DV_c - list[n].DV_c) : null;
+  const th = tight(hs,HKEEP), tp = tight(ps,PKEEP);
+  const warn = [th!=null&&th<25?`the fifth hitter slot is ${th} points from the sixth man`:'', tp!=null&&tp<25?`the ${PKEEP===2?'second':'last'} pitcher slot is ${tp} points from the next arm`:''].filter(Boolean);
+  $('#k-verdict').innerHTML = `<div class="dcard w12"><h3>The ${HKEEP+PKEEP} ${esc(teamLabel(o))} would keep <small>${HKEEP} hitters and ${PKEEP} pitchers</small></h3>
+    <p class="hint">Everything here is one number: points above a <b>replacement starter</b>, counted in full for 2027, then 60% of 2028 and 35% of 2029. That is why a young man beats an older one they project level on next year. Replacement is worked out <b>per position</b> by filling all ${TEAMS} lineups and taking the best man nobody had a slot for, so a scarce position is credited: ${scarceLine}. Those are points over the deepest spot on the field. The green figure beside a hitter is his: it moves a whole position at once and never reorders men inside one, so it settles bubble cases and leaves the obvious ones alone.</p>
+    ${block(hs, HKEEP, 'h')}${block(ps, PKEEP, 'p')}
+    <p class="hint">${warn.length ? `Close: ${warn.join('; ')}. The \u00b1 on a 2027 projection is the model's own out-of-fold error, so a gap smaller than that is not a real ordering \u2014 treat those as a tie and pick on what you believe about the player.` : `The \u00b1 on a 2027 projection is the model's own out-of-fold error. A gap smaller than that is not a real ordering.`}</p></div>`;
+  $$('#k-verdict td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
+  $$('#k-verdict td.name[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
+}
 function renderKeepers(){
   const V = computeValues(); const cur = V.cur, pc = V.pc;
   const byOwner = V.byO, pByOwner = V.pByO;
   const owners = [...new Set([...Object.keys(byOwner), ...Object.keys(pByOwner)])].sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
+  renderVerdict(V, sel.value);
   $('#k-real').textContent = sel.value===HOME_ABBR && MY===HOME_ABBR && REAL_K.length ? `Your real 2026 keepers: ${REAL_K.filter(k=>k.slot==='hitter').map(k=>k.player).join(', ')} (hitters); ${REAL_K.filter(k=>k.slot==='pitcher').map(k=>k.player).join(', ')} (pitchers). Boards below are the 2027 recommendation.` : '';
   // beyond the team's keeper slots a positive value is a trade chip, not a keeper: label it surplus
   const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
@@ -1741,6 +1793,15 @@ function renderKeepers(){
   if(!tPPool) { tPPool = table('t-ppool', ppcols, ppool, {sort:'pool_rank', dir:1, limit:pn, color:true, pct:PPCT, ci:PCI, card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); $('#pp-n').addEventListener('change', renderKeepers); } else { tPPool.setRows(ppool.slice(0,pn)); }
   const yrs = Object.keys(D.keepers); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
   const kyrows = D.keepers[ky.value]||[];
+  // this block is league history, not the selected team's. 2024-25 are league-wide inferences; the league file only
+  // ever gave us one roster's real keeper slots, so labelling it by name stops it reading as whoever you are viewing.
+  const kyFile = kyrows.length && kyrows.every(r=>r.source==='league file');
+  $('#ky-h').textContent = kyFile ? `${teamLabel(HOME_ABBR)}'s actual ${ky.value} keepers` : `Inferred keepers by year`;
+  $('#ky-note').textContent = !kyFile
+    ? `League-wide, not one team: players at the top of ADP that nobody drafted, so somebody must have kept them. Whose they were is not in the data.`
+    : sel.value===HOME_ABBR
+      ? `From the league file. It is the one roster whose real keeper slots we have, which is why no other team shows one.`
+      : `From the league file, the one roster whose real keeper slots we have. These are not ${teamLabel(sel.value)}'s ${ky.value} keepers, and they do not feed the board above.`;
   const kycols = [{k:'player',l:'Player',left:true,t:'txt'}, {k:'adp_hitter_rank',l:'ADP hitter rk',f:'int'}, {k:'pts',l:'Pts that year',f:'0'}, {k:'final_hitter_rank',l:'Final rk',f:'int'}, {k:'source',l:'Source',t:'txt'}];
   if(!tKY) tKY = table('t-keepyear', kycols, kyrows, {sort:'adp_hitter_rank', dir:1}); else tKY.setRows(kyrows);
 }
@@ -2043,9 +2104,37 @@ function computeValues(){
   const {cur, pc} = prepScores();
   const hs = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts), ps = pc.slice().sort((a,b)=>(b.tot_c??b.proj_pts)-(a.tot_c??a.proj_pts));
   const replH = hs[Math.min(TEAMS*ROSTERED_H-1, hs.length-1)]?.proj_pts ?? 0, replP = (ps[Math.min(TEAMS*ROSTERED_P-1, ps.length-1)]?.tot_c) ?? 0;
+  // ---- scarcity: a hitter is worth what he beats AT HIS POSITION, not what he beats league-wide.
+  // Every lineup in the league is filled greedily by projection, each man into one slot and the scarcest he can
+  // still fill, and the replacement at a position is then the best man nobody had a slot for. The levels are
+  // recentred on the league-wide number the rest of the model is calibrated against, so this only ever moves a
+  // position RELATIVE to the others: it shifts a whole position by a constant and never reorders men within one.
+  const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3}, UTIL = 2;
+  const posOf = r => { const e = (r.elig||'UT').split('/').filter(x=>x in DED); return e.length ? e : ['UT']; };
+  const replPos = (()=>{
+    const left = {}; Object.keys(DED).forEach(k=>left[k]=TEAMS*DED[k]); let ut = TEAMS*UTIL;
+    const taken = new Set();
+    for (const r of hs){                                    // hs is already sorted by projection
+      const opts = posOf(r).filter(p=>p in DED && left[p]>0);
+      if (opts.length){ const p = opts.reduce((a,b)=> left[a]/(TEAMS*DED[a]) <= left[b]/(TEAMS*DED[b]) ? a : b); left[p]--; taken.add(r.mlbam_id); }
+      else if (ut>0){ ut--; taken.add(r.mlbam_id); }
+    }
+    const rest = hs.filter(r=>!taken.has(r.mlbam_id));
+    const best = rest.length ? rest[0].proj_pts : replH;
+    const raw = {UT: best};
+    Object.keys(DED).forEach(p=>{ const f = rest.find(r=>posOf(r).includes(p)); raw[p] = f ? f.proj_pts : best; });
+    let wsum = 0, w = 0; Object.keys(DED).forEach(p=>{ wsum += raw[p]*DED[p]; w += DED[p]; });
+    const mid = w ? wsum/w : best;                          // recentre so the league-wide scale does not move
+    const out = {}; Object.keys(raw).forEach(p=> out[p] = replH + (raw[p] - mid));
+    return out;
+  })();
+  const replOf = r => { const ps2 = posOf(r).map(p=> replPos[p] ?? replPos.UT); return Math.min(...ps2); };
+  const deepest = Math.max(...Object.keys(DED).map(p=>replPos[p]));
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
     const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
-    r.PAR_c = r.proj_pts - replH; r.PAR28_c = r28*pa28 - replH; r.PAR29_c = r29*pa29 - replH; r.DV_c = r.PAR_c + 0.6*Math.max(0,r.PAR28_c) + 0.35*Math.max(0,r.PAR29_c); }
+    const rp = replOf(r); r.repl_c = rp; r.pos_c = posOf(r).reduce((a,b)=> (replPos[a]??replPos.UT) <= (replPos[b]??replPos.UT) ? a : b);
+    r.scarce_c = Math.round(deepest - rp);                  // what his position is worth over the DEEPEST one, so it is a credit and never a fine
+    r.PAR_c = r.proj_pts - rp; r.PAR28_c = r28*pa28 - rp; r.PAR29_c = r29*pa29 - rp; r.DV_c = r.PAR_c + 0.6*Math.max(0,r.PAR28_c) + 0.35*Math.max(0,r.PAR29_c); }
   for (const r of pc){ const p = PPROJ[r.mlbam_id]||{}; const gs = p.proj_GS || 25, pg = p.proj_pts_gs ?? (r.proj_pts/gs), hit = r.proj_pts_hitting||0; const a = r.age+1;
     const pg28 = pg + ageStep(PAGE, a), pg29 = pg28 + ageStep(PAGE, a+1); const gs28 = gs*(a+1>=34?0.93:1), gs29 = gs28*(a+2>=34?0.93:1);
     // a two-way player in a pitcher slot is worth his arm over a replacement ARM plus his bat over a replacement BAT
@@ -2072,7 +2161,7 @@ function computeValues(){
   const picks = [null]; for (let k=1; k<=TEAMS*15; k++){ const model = Math.max(0, avail[k-1]?.par ?? 0), mdv = Math.max(0, avail[k-1]?.dv ?? 0); const h = +(hist[Math.min(k, hmax)] ?? 0);
     picks[k] = {k, round: Math.floor((k-1)/TEAMS)+1, slot: ((k-1)%TEAMS)+1, model:+model.toFixed(1), hist:+h.toFixed(1), model_dv:+mdv.toFixed(1), hist_dv:+(h*RAT).toFixed(1),
                 value:+(0.5*mdv + 0.5*h*RAT).toFixed(1), value_1yr:+(0.5*model + 0.5*h).toFixed(1), best: avail[k-1]?.name||'', bestKind: avail[k-1]?.kind}; }
-  VAL = {cur, pc, replH, replP, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
+  VAL = {cur, pc, replH, replP, replPos, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
   // ---- keep-or-draft: what a keeper slot is worth over spending that team's first pick on the best man left.
   // One number on the three-year scale, so the verdict on the Keepers tab cannot contradict the keep pill beside it.
   const first = {}; Object.keys({...byO, ...pByO}).forEach(o=>{
@@ -2321,6 +2410,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260916T2313"></script>
+<script src="live.js?v=20260917T0025"></script>
 </body>
 </html>
