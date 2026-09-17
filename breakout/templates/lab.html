@@ -772,6 +772,12 @@ that decide whether anyone gets a second start in the week:
 const D = JSON.parse(document.getElementById('data').textContent);
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// NEXT year's eligibility, not today's. Fantrax grants a spot for 20 games there last season or 10 this season, so the
+// badge on a player's card right now can rest entirely on games he played the season before, and that grant expires
+// before the 2027 draft. Slotting a 2027 projection by today's badge put Ben Rice, who has not caught this season,
+// among the twelve men filling catcher, and a position defended by someone who cannot play it next year reads deeper
+// than it is. elig_next is games at the spot THIS season only, which is what he actually carries into the draft.
+const eligN = r => r.elig_next || r.elig || '';
 // ---------- unpack columnar tables
 function unpack(t){ return t.rows.map(r => Object.fromEntries(t.cols.map((c,i)=>[c, r[i]]))); }
 const ROWS = unpack(D.seasons);
@@ -1758,7 +1764,7 @@ function renderVerdict(V, o){
     const rows = list.slice(0, n+2).map((r,i)=>{
       const out = i>=n, ref = out ? last : cut, gap = ref==null ? null : r.DV_c - ref;
       return `<tr class="${out?'out':''}"><td class="l">${out?'':i+1}</td>
-        <td class="l name" data-${kind}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(kind==='p'?'SP':(r.elig||''))} \u00b7 age ${(r.age||0).toFixed(0)}${kind==='h'&&r.scarce_c>0?` \u00b7 <b class="sc" title="scarcity credit: what this position is worth over the deepest one on the field">+${r.scarce_c}${(r.elig||'').includes('/')?' at '+esc(r.pos_c):''}</b>`:''}${out?' \u00b7 on the bubble':''}</span></td>
+        <td class="l name" data-${kind}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(kind==='p'?'SP':eligN(r))} \u00b7 age ${(r.age||0).toFixed(0)}${kind==='h'&&r.scarce_c>0?` \u00b7 <b class="sc" title="scarcity credit: what this position is worth over the deepest one on the field">+${r.scarce_c}${(r.elig||'').includes('/')?' at '+esc(r.pos_c):''}</b>`:''}${out?' \u00b7 on the bubble':''}</span></td>
         <td>${Math.round(r.proj_pts + (kind==='p'?(r.proj_pts_hitting||0):0))}<small>${r.proj_pts_hitting>0?'arm + bat':'\u00b1'+Math.round(r.proj_sd||0)}</small></td>
         <td>${sgn(r.PAR_c)}</td><td>${sgn(r.PAR28_c)}</td><td>${sgn(r.PAR29_c)}</td>
         <td><b>${Math.round(r.DV_c)}</b><small class="yrs">'28 ${sgn(r.PAR28_c)}<br>'29 ${sgn(r.PAR29_c)}</small></td>
@@ -1809,7 +1815,7 @@ function renderRealK(V, o){
     if(!r) return `<tr><td class="l">${pitcher?'P':'H'}</td><td class="l">${esc(k.player)}</td><td colspan="5" class="l hint">not in this season's pool</td></tr>`;
     const again = r.kept_c, rank = pitcher ? r.rank_c : r.rank_c;
     return `<tr><td class="l">${pitcher?'P':'H'}</td>
-      <td class="l name" data-${pitcher?'p':'h'}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(pitcher?'SP':(r.elig||''))} \u00b7 age ${(r.age||0).toFixed(0)}</span><span class="sub mstat">2026 ${r.pts_c!=null?Math.round(r.pts_c):'\u2014'}${rank!=null?` \u00b7 #${rank}`:''} \u00b7 2027 ${r.proj_pts!=null?Math.round(r.proj_pts):'\u2014'}</span></td>
+      <td class="l name" data-${pitcher?'p':'h'}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(pitcher?'SP':eligN(r))} \u00b7 age ${(r.age||0).toFixed(0)}</span><span class="sub mstat">2026 ${r.pts_c!=null?Math.round(r.pts_c):'\u2014'}${rank!=null?` \u00b7 #${rank}`:''} \u00b7 2027 ${r.proj_pts!=null?Math.round(r.proj_pts):'\u2014'}</span></td>
       <td>${r.pts_c!=null?Math.round(r.pts_c):''}</td>
       <td>${rank!=null?'#'+rank:''}</td>
       <td>${r.proj_pts!=null?Math.round(r.proj_pts):''}<small>\u00b1${Math.round(r.proj_sd||0)}</small></td>
@@ -1996,7 +2002,7 @@ function renderDash(){
     <p class="hint" style="margin-top:8px">Luck = points minus deserved points this year (big positive = sell high). Keep = would be in your best 5 hitters + 2 pitchers for 2027 by multi-year value; the verdict pill is the keeper value in words, and <b>surplus</b> means he beats the draft pool but is behind your five (or two) — trade currency, worth full value to a team with a slot.</p></div>`;
   // keeper picture
   const bubbleH = tp.h.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(HKEEP, HKEEP+2), bubbleP = tp.p.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(PKEEP, PKEEP+1);
-  cards += `<div class="dcard w6"><h3>Your keepers for 2027 <small>the model's five and two, and who is on the bubble</small></h3><div class="rowlist">${ks.hs.map((r,i)=>rowH(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `${i+1}. ${esc(r.elig||'')} · age ${r.age} · 2027 proj ${Math.round(r.proj_pts)} · ${esc(r.tier_c||'')}${r.kept_2026_as&&MY===HOME_ABBR?' · kept 2026':''}`)).join('')}${ks.ps.map((r,i)=>rowP(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `P${i+1}. SP · age ${r.age} · 2027 proj ${Math.round(r.tot_c??r.proj_pts)} · ${esc(r.tier_c||'')}`)).join('')}</div>${bubbleH.length||bubbleP.length?`<p class="hint" style="margin-top:8px">Next in line: ${[...bubbleH.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)})`), ...bubbleP.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)}, SP)`)].join(', ')}.</p>`:''}<button class="go" data-go="keepers">Full keeper boards →</button></div>`;
+  cards += `<div class="dcard w6"><h3>Your keepers for 2027 <small>the model's five and two, and who is on the bubble</small></h3><div class="rowlist">${ks.hs.map((r,i)=>rowH(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `${i+1}. ${esc(eligN(r))} · age ${r.age} · 2027 proj ${Math.round(r.proj_pts)} · ${esc(r.tier_c||'')}${r.kept_2026_as&&MY===HOME_ABBR?' · kept 2026':''}`)).join('')}${ks.ps.map((r,i)=>rowP(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `P${i+1}. SP · age ${r.age} · 2027 proj ${Math.round(r.tot_c??r.proj_pts)} · ${esc(r.tier_c||'')}`)).join('')}</div>${bubbleH.length||bubbleP.length?`<p class="hint" style="margin-top:8px">Next in line: ${[...bubbleH.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)})`), ...bubbleP.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)}, SP)`)].join(', ')}.</p>`:''}<button class="go" data-go="keepers">Full keeper boards →</button></div>`;
   // trade targets: the same search the Trades page runs, so the card proposes real deals rather than naming players
   // with no price on them. Only deals that leave both keeper groups better off survive.
   const deals = findDeals(MY).slice(0,4);
@@ -2168,7 +2174,7 @@ function computeValues(){
   // position on his own. The levels are recentred on the league-wide number the rest of the model is calibrated
   // against, so this only moves a position RELATIVE to the others, by a constant, never reordering men within one.
   const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3}, UTIL = 2;
-  const posOf = r => (r.elig||'').split('/').filter(x=>x in DED);
+  const posOf = r => eligN(r).split('/').filter(x=>x in DED);
   const slotsOf = r => { const e = posOf(r); return e.length ? [...e, 'UT'] : ['UT']; };
   const replPos = (()=>{
     const cap = {UT: TEAMS*UTIL}; Object.keys(DED).forEach(k=>cap[k]=TEAMS*DED[k]);
@@ -2242,7 +2248,7 @@ function computeValues(){
   Object.values(byO).forEach(a=>a.sort((x,y)=>y.DV_c-x.DV_c).slice(0,HKEEP).forEach(r=>kept.add('h'+r.mlbam_id)));
   cur.forEach(r=>r.kept_c = kept.has('h'+r.mlbam_id) || r.pslot);
   pc.forEach(r=>r.kept_c = kept.has('p'+r.mlbam_id));
-  const avail = [...cur.filter(r=>!r.kept_c).map(r=>({id:r.mlbam_id,name:r.name,kind:'h',par:r.PAR_c,dv:r.DV_c,elig:r.elig})), ...pc.filter(r=>!r.kept_c).map(r=>({id:r.mlbam_id,name:r.name,kind:'p',par:r.PAR_c,dv:r.DV_c,elig:'SP'}))].sort((a,b)=>b.par-a.par);
+  const avail = [...cur.filter(r=>!r.kept_c).map(r=>({id:r.mlbam_id,name:r.name,kind:'h',par:r.PAR_c,dv:r.DV_c,elig:eligN(r)})), ...pc.filter(r=>!r.kept_c).map(r=>({id:r.mlbam_id,name:r.name,kind:'p',par:r.PAR_c,dv:r.DV_c,elig:'SP'}))].sort((a,b)=>b.par-a.par);
   const hist = D.pick_hist||{}; const hk = Object.keys(hist).map(Number); const hmax = hk.length?Math.max(...hk):0;
   // a drafted player can be kept afterwards, so a pick is worth the same three-year value a player is; the league's own
   // realized history is a one-season number, so it is put on the same footing with the pool's median value-to-2027 ratio
