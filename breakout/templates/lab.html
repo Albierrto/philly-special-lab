@@ -119,6 +119,8 @@ td.name{font-weight:600;cursor:pointer}
 @media (max-width:900px){ th.opt,td.opt{display:none} }   /* columns worth dropping before a phone has to scroll sideways */
 td .sub{display:block;font-weight:400;color:var(--ink3);font-size:11px;font-family:var(--font-b);white-space:nowrap}
 td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font-family:var(--font-b)}
+tr.out td{opacity:.6} tr.out td.l b{font-weight:600}
+#k-verdict .yrs{display:none}
 .pill{display:inline-block;padding:0 7px;border-radius:4px;font-size:12px;font-weight:600;font-family:var(--font-b);line-height:20px;white-space:nowrap}
 .pill.g{background:rgba(76,194,122,.18);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.18);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.18);color:var(--cold)} .pill.w{background:rgba(232,176,75,.18);color:var(--warn)} .pill.n{background:var(--panel3);color:var(--ink2)} td.name.noclick,.row.noclick{cursor:default;opacity:.75}
 .pos-d{color:var(--good);font-weight:600}.neg-d{color:var(--bad);font-weight:600}
@@ -315,6 +317,17 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   table.mini td:nth-child(4){width:46px} table.mini td.hint{font-size:11px;line-height:1.3}
   /* charts drawn as SVG scale to the panel */
   .chartbox svg{width:100%;height:auto;display:block}
+  #k-verdict table.mini{table-layout:fixed;width:100%}
+  #k-verdict table.mini th,#k-verdict table.mini td{padding:6px 4px;font-size:12px;white-space:nowrap}
+  #k-verdict table.mini td.l{white-space:normal} #k-verdict td .sub{white-space:normal;line-height:1.3}
+  #k-verdict table.mini th:nth-child(1),#k-verdict table.mini td:nth-child(1){display:none}
+  #k-verdict table.mini th:nth-child(2){width:36%} #k-verdict table.mini th:nth-child(3){width:20%}
+  #k-verdict table.mini th:nth-child(7){width:30%} #k-verdict table.mini th:nth-child(8){width:14%}
+  #k-verdict table.mini th{white-space:normal;line-height:1.2}
+  #k-verdict table.mini th:nth-child(4),#k-verdict table.mini td:nth-child(4),
+  #k-verdict table.mini th:nth-child(5),#k-verdict table.mini td:nth-child(5),
+  #k-verdict table.mini th:nth-child(6),#k-verdict table.mini td:nth-child(6){display:none}
+  #k-verdict .yrs{display:block;font-family:var(--font-m);font-size:10px;line-height:1.3;color:var(--ink3);font-weight:400;margin-top:1px;white-space:normal}
   /* tall stacked rows look wrong with the badge floating in the middle */
   .slotrow{align-items:flex-start} .slotrow .exp{padding-top:2px} .slotrow .ava{margin-top:2px}
 }
@@ -508,6 +521,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <h2>Keepers and the 2027 draft pool</h2>
   <p class="lede">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b> — points above replacement over 2027 in full, 2028 at 60% and 2029 at 35% — because a keeper can be kept again, so two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is the old single-season number, kept as a cross-check. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p>
   <div class="filters"><label>Team <select id="k-owner"></select></label><span class="hint" id="k-real"></span></div>
+  <div class="dash" id="k-verdict"></div>
   <div class="grid2">
     <div>
       <h3>Hitter keeper board</h3>
@@ -1708,10 +1722,44 @@ const boPill = r => { const st = boStatus(r);
 // ---------- keepers tab
 let tK, tPool, tKY, tPK, tPPool;
 const tierPill = v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':v==='surplus'?'b':'n'}">${v}</span>`;
+// The seven a team would keep, with the arithmetic that chose them showing. Keeper value is one number on one scale:
+// points above a replacement starter in 2027, plus 60% of 2028 and 35% of 2029, so a 33-year-old and a 26-year-old
+// with the same 2027 projection do not come out equal. The gap column is what actually decides a slot.
+function renderVerdict(V, o){
+  const sgn = v => (v>=0?'+':'\u2212') + Math.round(Math.abs(v));
+  const hs = (V.byO[o]||[]).slice().sort((a,b)=>b.DV_c-a.DV_c);
+  const ps = (V.pByO[o]||[]).slice().sort((a,b)=>b.DV_c-a.DV_c);
+  const block = (list, n, kind) => {
+    const cut = list[n] ? list[n].DV_c : null;                       // a keeper's margin is over the best man left off
+    const last = list[n-1] ? list[n-1].DV_c : null;                  // a bubble man's gap is to the last one who made it
+    const rows = list.slice(0, n+2).map((r,i)=>{
+      const out = i>=n, ref = out ? last : cut, gap = ref==null ? null : r.DV_c - ref;
+      return `<tr class="${out?'out':''}"><td class="l">${out?'':i+1}</td>
+        <td class="l name" data-${kind}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(kind==='p'?'SP':(r.elig||''))} \u00b7 age ${(r.age||0).toFixed(0)}${out?' \u00b7 on the bubble':''}</span></td>
+        <td>${Math.round(r.proj_pts + (kind==='p'?(r.proj_pts_hitting||0):0))}<small>${r.proj_pts_hitting>0?'arm + bat':'\u00b1'+Math.round(r.proj_sd||0)}</small></td>
+        <td>${sgn(r.PAR_c)}</td><td>${sgn(r.PAR28_c)}</td><td>${sgn(r.PAR29_c)}</td>
+        <td><b>${Math.round(r.DV_c)}</b><small class="yrs">'28 ${sgn(r.PAR28_c)}<br>'29 ${sgn(r.PAR29_c)}</small></td>
+        <td class="${gap!=null&&gap<0?'neg':''}">${gap==null?'\u2014':sgn(gap)}</td></tr>`;}).join('');
+    return `<div class="tblwrap" style="max-height:none"><table class="mini"><thead><tr>
+      <th class="l">#</th><th class="l">${kind==='p'?'Pitcher':'Hitter'}</th><th title="2027 projected points, with the model's own measured error">2027 proj</th>
+      <th title="projected points above a replacement starter in 2027">vs repl</th><th title="the same, aged one year">2028</th><th title="the same, aged two years">2029</th>
+      <th title="2027 + 0.6 x 2028 + 0.35 x 2029">Keeper value</th><th title="keeper value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  };
+  const tight = (list,n) => list[n-1] && list[n] ? Math.round(list[n-1].DV_c - list[n].DV_c) : null;
+  const th = tight(hs,HKEEP), tp = tight(ps,PKEEP);
+  const warn = [th!=null&&th<25?`the fifth hitter slot is ${th} points from the sixth man`:'', tp!=null&&tp<25?`the ${PKEEP===2?'second':'last'} pitcher slot is ${tp} points from the next arm`:''].filter(Boolean);
+  $('#k-verdict').innerHTML = `<div class="dcard w12"><h3>The ${HKEEP+PKEEP} ${esc(teamLabel(o))} would keep <small>${HKEEP} hitters and ${PKEEP} pitchers</small></h3>
+    <p class="hint">Everything here is one number: points above a <b>replacement starter</b> (the ${TEAMS*ROSTERED_H}th hitter, ${Math.round(V.replH)} points, and the ${TEAMS*ROSTERED_P}th pitcher, ${Math.round(V.replP)}), counted in full for 2027 and then at 60% for 2028 and 35% for 2029. That is why a young man can beat an older one they project level on next year.</p>
+    ${block(hs, HKEEP, 'h')}${block(ps, PKEEP, 'p')}
+    <p class="hint">${warn.length ? `Close: ${warn.join('; ')}. The \u00b1 on a 2027 projection is the model's own out-of-fold error, so a gap smaller than that is not a real ordering \u2014 treat those as a tie and pick on what you believe about the player.` : `The \u00b1 on a 2027 projection is the model's own out-of-fold error. A gap smaller than that is not a real ordering.`}</p></div>`;
+  $$('#k-verdict td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
+  $$('#k-verdict td.name[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
+}
 function renderKeepers(){
   const V = computeValues(); const cur = V.cur, pc = V.pc;
   const byOwner = V.byO, pByOwner = V.pByO;
   const owners = [...new Set([...Object.keys(byOwner), ...Object.keys(pByOwner)])].sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
+  renderVerdict(V, sel.value);
   $('#k-real').textContent = sel.value===HOME_ABBR && MY===HOME_ABBR && REAL_K.length ? `Your real 2026 keepers: ${REAL_K.filter(k=>k.slot==='hitter').map(k=>k.player).join(', ')} (hitters); ${REAL_K.filter(k=>k.slot==='pitcher').map(k=>k.player).join(', ')} (pitchers). Boards below are the 2027 recommendation.` : '';
   // beyond the team's keeper slots a positive value is a trade chip, not a keeper: label it surplus
   const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
