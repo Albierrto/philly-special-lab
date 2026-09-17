@@ -1767,7 +1767,7 @@ function renderVerdict(V, o){
   const th = tight(hs,HKEEP), tp = tight(ps,PKEEP);
   const warn = [th!=null&&th<25?`the fifth hitter slot is ${th} points from the sixth man`:'', tp!=null&&tp<25?`the ${PKEEP===2?'second':'last'} pitcher slot is ${tp} points from the next arm`:''].filter(Boolean);
   $('#k-verdict').innerHTML = `<div class="dcard w12"><h3>The ${HKEEP+PKEEP} ${esc(teamLabel(o))} would keep <small>${HKEEP} hitters and ${PKEEP} pitchers</small></h3>
-    <p class="hint">Everything here is one number: points above a <b>replacement starter</b>, counted in full for 2027, then 60% of 2028 and 35% of 2029. That is why a young man beats an older one they project level on next year. Replacement is worked out <b>per position</b> by filling all ${TEAMS} lineups and taking the best man nobody had a slot for, so a scarce position is credited: ${scarceLine}. Those are points over the deepest spot on the field. The green figure beside a hitter is his: it moves a whole position at once and never reorders men inside one, so it settles bubble cases and leaves the obvious ones alone.</p>
+    <p class="hint">Everything here is one number: points above a <b>replacement starter</b>, counted in full for 2027, then 60% of 2028 and 35% of 2029. That is why a young man beats an older one they project level on next year. Replacement is worked out <b>per position</b> by filling all ${TEAMS} lineups the best way they can be filled, then averaging the best five men left over at each spot, so a scarce position is credited: ${scarceLine}. Those are points over the deepest spot on the field. The green figure beside a hitter is his: it moves a whole position at once and never reorders men inside one, so it settles bubble cases and leaves the obvious ones alone.</p>
     ${block(hs, HKEEP, 'h')}${block(ps, PKEEP, 'p')}
     <p class="hint">${warn.length ? `Close: ${warn.join('; ')}. The \u00b1 on a 2027 projection is the model's own out-of-fold error, so a gap smaller than that is not a real ordering \u2014 treat those as a tie and pick on what you believe about the player.` : `The \u00b1 on a 2027 projection is the model's own out-of-fold error. A gap smaller than that is not a real ordering.`}</p></div>`;
   $$('#k-verdict td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
@@ -2138,34 +2138,47 @@ function computeValues(){
   const hs = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts), ps = pc.slice().sort((a,b)=>(b.tot_c??b.proj_pts)-(a.tot_c??a.proj_pts));
   const replH = hs[Math.min(TEAMS*ROSTERED_H-1, hs.length-1)]?.proj_pts ?? 0, replP = (ps[Math.min(TEAMS*ROSTERED_P-1, ps.length-1)]?.tot_c) ?? 0;
   // ---- scarcity: a hitter is worth what he beats AT HIS POSITION, not what he beats league-wide.
-  // Every lineup in the league is filled greedily by projection, each man into one slot and the scarcest he can
-  // still fill, and the replacement at a position is then the best man nobody had a slot for. The levels are
-  // recentred on the league-wide number the rest of the model is calibrated against, so this only ever moves a
-  // position RELATIVE to the others: it shifts a whole position by a constant and never reorders men within one.
+  // Every lineup in the league is filled, each man into one slot, and the replacement at a position is what the
+  // men left over at it are worth. Two things matter for getting this right. The fill has to be OPTIMAL, not
+  // first-come: a man who can play two spots must be re-routed when a better one wants his slot, or a position
+  // that happens to be full of dual-eligible men reads far scarcer than it is. Taking players in descending
+  // projection and re-routing through augmenting paths gives the exact maximum, because the assignable sets form
+  // a transversal matroid (checked against a Hungarian solve: same 120 men, same total to the point).
+  // And the level is the mean of the best FIVE left, not the single best, so one fluke man cannot move a
+  // position on his own. The levels are recentred on the league-wide number the rest of the model is calibrated
+  // against, so this only moves a position RELATIVE to the others, by a constant, never reordering men within one.
   const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3}, UTIL = 2;
-  const posOf = r => { const e = (r.elig||'UT').split('/').filter(x=>x in DED); return e.length ? e : ['UT']; };
+  const posOf = r => (r.elig||'').split('/').filter(x=>x in DED);
+  const slotsOf = r => { const e = posOf(r); return e.length ? [...e, 'UT'] : ['UT']; };
   const replPos = (()=>{
-    const left = {}; Object.keys(DED).forEach(k=>left[k]=TEAMS*DED[k]); let ut = TEAMS*UTIL;
-    const taken = new Set();
-    for (const r of hs){                                    // hs is already sorted by projection
-      const opts = posOf(r).filter(p=>p in DED && left[p]>0);
-      if (opts.length){ const p = opts.reduce((a,b)=> left[a]/(TEAMS*DED[a]) <= left[b]/(TEAMS*DED[b]) ? a : b); left[p]--; taken.add(r.mlbam_id); }
-      else if (ut>0){ ut--; taken.add(r.mlbam_id); }
-    }
-    const rest = hs.filter(r=>!taken.has(r.mlbam_id));
-    const best = rest.length ? rest[0].proj_pts : replH;
-    const raw = {UT: best};
-    Object.keys(DED).forEach(p=>{ const f = rest.find(r=>posOf(r).includes(p)); raw[p] = f ? f.proj_pts : best; });
+    const cap = {UT: TEAMS*UTIL}; Object.keys(DED).forEach(k=>cap[k]=TEAMS*DED[k]);
+    const occ = {}; Object.keys(cap).forEach(t=>occ[t]=[]);
+    const at = new Map();
+    const aug = (r, seen) => {
+      for (const t of slotsOf(r)){
+        if (seen.has(t)) continue; seen.add(t);
+        if (occ[t].length < cap[t]){ occ[t].push(r); at.set(r,t); return true; }
+        for (const o of occ[t].slice()){                    // bump someone out and re-house him
+          if (aug(o, seen)){ occ[t].splice(occ[t].indexOf(o),1); occ[t].push(r); at.set(r,t); return true; }
+        }
+      }
+      return false;
+    };
+    for (const r of hs) aug(r, new Set());                   // hs is already sorted by projection
+    const rest = hs.filter(r=>!at.has(r));
+    const best5 = list => { const v = list.slice(0,5); return v.length ? v.reduce((a,b)=>a+b.proj_pts,0)/v.length : replH; };
+    const raw = {UT: best5(rest)};
+    Object.keys(DED).forEach(p=> raw[p] = best5(rest.filter(r=>posOf(r).includes(p))));
     let wsum = 0, w = 0; Object.keys(DED).forEach(p=>{ wsum += raw[p]*DED[p]; w += DED[p]; });
-    const mid = w ? wsum/w : best;                          // recentre so the league-wide scale does not move
+    const mid = w ? wsum/w : raw.UT;                         // recentre so the league-wide scale does not move
     const out = {}; Object.keys(raw).forEach(p=> out[p] = replH + (raw[p] - mid));
     return out;
   })();
-  const replOf = r => { const ps2 = posOf(r).map(p=> replPos[p] ?? replPos.UT); return Math.min(...ps2); };
+  const replOf = r => Math.min(...slotsOf(r).map(p=> replPos[p] ?? replPos.UT));
   const deepest = Math.max(...Object.keys(DED).map(p=>replPos[p]));
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
     const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
-    const rp = replOf(r); r.repl_c = rp; r.pos_c = posOf(r).reduce((a,b)=> (replPos[a]??replPos.UT) <= (replPos[b]??replPos.UT) ? a : b);
+    const rp = replOf(r); r.repl_c = rp; r.pos_c = slotsOf(r).reduce((a,b)=> (replPos[a]??replPos.UT) <= (replPos[b]??replPos.UT) ? a : b);
     r.scarce_c = Math.round(deepest - rp);                  // what his position is worth over the DEEPEST one, so it is a credit and never a fine
     r.PAR_c = r.proj_pts - rp; r.PAR28_c = r28*pa28 - rp; r.PAR29_c = r29*pa29 - rp; r.DV_c = r.PAR_c + 0.6*Math.max(0,r.PAR28_c) + 0.35*Math.max(0,r.PAR29_c); }
   for (const r of pc){ const p = PPROJ[r.mlbam_id]||{}; const gs = p.proj_GS || 25, pg = p.proj_pts_gs ?? (r.proj_pts/gs), hit = r.proj_pts_hitting||0; const a = r.age+1;
