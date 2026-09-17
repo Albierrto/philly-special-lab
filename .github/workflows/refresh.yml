@@ -34,8 +34,16 @@ jobs:
       # runs itself every Monday morning, and still on demand with full=true.
       - name: Full model rebuild (Mondays, or on demand)
         if: ${{ github.event.inputs.full == 'true' || github.event.schedule == '17 8 * * 1' }}
-        timeout-minutes: 60     # it takes ~2 min from a cold runner; this is only a runaway guard
-        run: python -m breakout.pipeline3
+        timeout-minutes: 60     # it takes ~10 min from a cold runner; this is only a runaway guard
+        # All three, in this order. pipeline3 reads data/player_seasons.parquet and data/prepared.parquet straight
+        # off the repo, so on its own it rebuilds the MODELS on top of a frozen table: any change to how a
+        # player-season is built (eligibility, scoring, a new source column) was invisible to every "full" rebuild
+        # this workflow has ever run, Mondays included. cli run rewrites player_seasons.parquet from the raw
+        # sources and pipeline2 rewrites prepared.parquet from that, so now full means full.
+        run: |
+          python -m breakout.cli run
+          python -m breakout.pipeline2
+          python -m breakout.pipeline3
       # The two lists no API gives us. One Anthropic API call with web search reads this week's PitcherList tiers and
       # Scott White's CBS columns and writes a validated CSV; without the secret it prints one line and does nothing,
       # and a list that fails validation is thrown away rather than published, so this can never fail the build.
