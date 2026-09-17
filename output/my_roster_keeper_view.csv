@@ -1,16 +1,26 @@
-player,pos,mlb,fpts,fpg,nkey,age,PA,pts,final_hitter_rank,proj_pts,proj_rank,proj_pts_600pa,proj_rank_600pa,skills_score,breakout_score,tag
-Bobby Witt Jr.,SS,KC,684,5.26,bobby witt,26.0,576,684.0,19,771.0,1,774.0,1,4.178146960124278,4.218146960124278,unlucky (xwOBA >> wOBA); elite contact quality; plus speed
-Fernando Tatis Jr.,"2B,OF",SD,750,5.14,fernando tatis,27.5,645,750.0,3,760.0,2,713.0,6,4.95835052147301,4.9783505214730095,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; plus speed
-James Wood,OF,WSH,726,5.9,james wood,23.8,575,716.0,6,746.0,4,748.0,2,6.313079425907215,6.353079425907215,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; young
-Shohei Ohtani,"UT,SP",LAD,689,5.14,shohei ohtani,32.0,596,689.0,16,726.0,6,700.0,10,1.4168231017011617,1.3168231017011616,unlucky (xwOBA >> wOBA); elite contact quality
-Julio Rodriguez,OF,SEA,598,4.33,julio rodriguez,25.5,601,598.0,47,622.0,29,599.0,89,2.86227817321892,2.44227817321892,unlucky (xwOBA >> wOBA); elite bat speed; plus speed
-Sal Stewart,"1B,3B",CIN,715,4.83,sal stewart,22.6,641,716.0,6,566.0,58,648.0,29,1.5231541192973084,0.48315411929730834,young
-Brandon Lowe,2B,PIT,624,4.52,brandon lowe,32.0,606,619.0,41,548.0,66,553.0,262,-1.1012457777386064,-1.6012457777386064,
-Nick Kurtz,1B,ATH,496,5.01,nick kurtz,23.3,434,491.0,117,532.0,77,717.0,4,4.688711264565546,3.4687112645655462,elite bat speed; elite contact quality; needs playing time; young
-Carter Jensen,C,KC,579,4.2,carter jensen,23.0,556,579.0,59,448.0,138,586.0,137,1.6885823540757583,0.10858235407575823,young
-Heriberto Hernandez,OF,MIA,470,4.02,heriberto hernandez,26.5,446,465.0,130,418.0,160,603.0,75,3.6121011259914964,3.0121011259914963,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; needs playing time
-Jeff McNeil,"1B,2B,OF",ATH,431,3.29,jeff mcneil,34.2,472,431.0,157,408.0,164,521.0,358,-4.047010149950436,-4.187010149950436,
-Ty France,1B,SD,483,4.03,ty france,32.0,442,473.0,125,386.0,182,513.0,373,-1.8626955613688763,-3.0026955613688764,needs playing time
-Corey Seager,SS,TEX,351,3.94,corey seager,32.2,379,351.0,208,349.0,207,534.0,328,-0.7005389811357824,-3.7005389811357823,unlucky (xwOBA >> wOBA); elite contact quality; needs playing time
-Cole Carrigg,"SS,OF",COL,337,4.27,cole carrigg,24.1,313,337.0,213,298.0,241,571.0,194,0.40557540545953663,-0.15442459454046342,plus speed; needs playing time; young
-Spencer Jones,OF,NYY,277,3.69,spencer jones,25.1,243,277.0,262,292.0,248,700.0,10,2.9436698842464004,3.2236698842464007,elite bat speed; elite contact quality; plus speed; needs playing time
+player,pos,mlb,nkey,age,PA,pts,final_hitter_rank,proj_pts,proj_rank,proj_pts_600pa,proj_rank_600pa,skills_score,breakout_score,tag
+Bobby Witt Jr.,SS,KC,bobby witt,26.0,590.0,697.0,20.0,817.0,1.0,805.0,1.0,3.964033451413756,4.004033451413756,unlucky (xwOBA >> wOBA); elite contact quality; plus speed
+Fernando Tatis Jr.,RF,SD,fernando tatis,27.5,664.0,780.0,3.0,751.0,2.0,704.0,5.0,4.99333004076481,5.013330040764809,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; plus speed
+James Wood,LF,WSH,james wood,23.8,585.0,721.0,11.0,750.0,3.0,743.0,3.0,6.200536166973428,6.360536166973428,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; young
+Shohei Ohtani,DH,LAD,shohei ohtani,32.0,596.0,689.0,23.0,728.0,6.0,702.0,7.0,1.4254538465135074,1.3254538465135073,unlucky (xwOBA >> wOBA); elite contact quality
+Julio Rodriguez,CF,SEA,julio rodriguez,25.5,619.0,617.0,46.0,622.0,28.0,586.0,148.0,2.8360899758829636,2.4360899758829637,unlucky (xwOBA >> wOBA); elite bat speed; plus speed
+Brandon Lowe,2B,PIT,brandon lowe,32.0,619.0,643.0,38.0,581.0,57.0,575.0,178.0,-1.1238701036541179,-1.5038701036541178,elite contact quality
+Sal Stewart,1B,CIN,sal stewart,22.6,659.0,736.0,6.0,574.0,60.0,639.0,41.0,1.4250812108227044,0.3450812108227044,young
+T.J. Rumfield,1B,COL,tj rumfield,26.1,597.0,594.0,58.0,546.0,74.0,549.0,275.0,-2.60250664245324,-2.9225066424532398,plus approach
+Nick Kurtz,1B,ATH,nick kurtz,23.3,434.0,491.0,120.0,515.0,94.0,695.0,8.0,4.7029618099301285,3.1429618099301284,elite bat speed; elite contact quality; needs playing time; young
+Carter Jensen,C,KC,carter jensen,23.0,567.0,591.0,63.0,445.0,146.0,571.0,192.0,1.5987514993952674,-0.06124850060473275,young
+Ty France,1B,SD,ty france,32.0,456.0,487.0,125.0,411.0,166.0,533.0,328.0,-1.8657704242756723,-2.685770424275672,
+Corey Seager,SS,TEX,corey seager,32.2,393.0,376.0,194.0,351.0,209.0,523.0,352.0,-0.7599673313768124,-3.7599673313768123,unlucky (xwOBA >> wOBA); elite contact quality; needs playing time
+Cole Carrigg,CF,COL,cole carrigg,24.1,331.0,368.0,201.0,325.0,226.0,590.0,133.0,0.2790490757665497,-0.2209509242334503,plus speed; needs playing time; young
+Tyler Glasnow,SP,LAD,tyler glasnow,,,,,,,,,,,
+Jacob Lopez,SP,ATH,jacob lopez,,,,,,,,,,,
+Trevor Rogers,SP,BAL,trevor rogers,,,,,,,,,,,
+Payton Tolle,RP,BOS,payton tolle,,,,,,,,,,,
+Seth Hernandez,SP,PIT,seth hernandez,,,,,,,,,,,
+Logan Gilbert,SP,SEA,logan gilbert,,,,,,,,,,,
+Dylan Cease,SP,TOR,dylan cease,,,,,,,,,,,
+Leo Bernal,C,STL,leo bernal,,,,,,,,,,,
+Bryan Woo,SP,SEA,bryan woo,,,,,,,,,,,
+Logan Henderson,SP,MIL,logan henderson,,,,,,,,,,,
+Ian Seymour,RP,TB,ian seymour,,,,,,,,,,,
+Rainiel Rodriguez,C,STL,rainiel rodriguez,,,,,,,,,,,
