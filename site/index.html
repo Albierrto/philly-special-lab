@@ -131,6 +131,7 @@ td .sub{display:block;font-weight:400;color:var(--ink3);font-size:11px;font-fami
 td.name .sub{display:block;font-weight:400;color:var(--ink3);font-size:12px;font-family:var(--font-b)}
 tr.out td{opacity:.6} tr.out td.l b{font-weight:600}
 #k-verdict .sc{color:var(--good);font-weight:600} #k-verdict .sd{color:var(--ink3);font-weight:600}
+.mstat{display:none}
 #k-verdict .yrs{display:none}
 .pill{display:inline-block;padding:0 7px;border-radius:4px;font-size:12px;font-weight:600;font-family:var(--font-b);line-height:20px;white-space:nowrap}
 .pill.g{background:rgba(76,194,122,.18);color:var(--good)} .pill.r{background:rgba(var(--hot-rgb),.18);color:var(--hot)} .pill.b{background:rgba(var(--cold-rgb),.18);color:var(--cold)} .pill.w{background:rgba(232,176,75,.18);color:var(--warn)} .pill.n{background:var(--panel3);color:var(--ink2)} td.name.noclick,.row.noclick{cursor:default;opacity:.75}
@@ -212,6 +213,8 @@ details.sec>div.secbody{padding:2px 0 16px}
 .pas span{display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#fff;font-family:var(--font-m);white-space:nowrap;overflow:hidden}
 .pas .p1{background:#2C6FB7}.pas .p2{background:#2E7D4F}.pas .p3{background:#B7791F}.pas .p4{background:#C8312B}
 details{border:1px solid var(--line);background:var(--panel);padding:6px 10px;margin:6px 0;border-radius:8px} summary{cursor:pointer;font-size:13px} table.mini{width:100%;margin-top:6px} table.mini td{padding:3px 6px;font-size:12px}
+table.kbig td{padding:10px 11px;font-size:14px} table.kbig th{font-size:11.5px;padding:10px 11px} table.kbig td.l{font-size:14.5px}
+table.kbig td b{font-family:var(--font-d);font-size:18px;line-height:1} table.kbig td .sub{font-size:12px} table.kbig td small{font-size:11px;color:var(--ink3)}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
 .note{border-left:3px solid var(--accent);padding:8px 12px;background:var(--panel);margin:10px 0;max-width:80ch;color:var(--ink2)}
 .formula{font-family:var(--font-m);font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0 10px;white-space:pre-wrap;color:var(--ink)}
@@ -339,6 +342,17 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   #k-verdict table.mini th:nth-child(5),#k-verdict table.mini td:nth-child(5),
   #k-verdict table.mini th:nth-child(6),#k-verdict table.mini td:nth-child(6){display:none}
   #k-verdict .yrs{display:block;font-family:var(--font-m);font-size:10px;line-height:1.3;color:var(--ink3);font-weight:400;margin-top:1px;white-space:normal}
+  #k-real-block table.mini{table-layout:fixed;width:100%}
+  #k-real-block table.mini th,#k-real-block table.mini td{padding:8px 5px;font-size:12.5px;white-space:nowrap}
+  #k-real-block table.mini td.l{white-space:normal}
+  #k-real-block table.mini th:nth-child(3),#k-real-block table.mini td:nth-child(3),
+  #k-real-block table.mini th:nth-child(4),#k-real-block table.mini td:nth-child(4),
+  #k-real-block table.mini th:nth-child(5),#k-real-block table.mini td:nth-child(5){display:none}
+  #k-real-block table.mini th:nth-child(1){width:9%} #k-real-block table.mini th:nth-child(2){width:44%}
+  #k-real-block table.mini th:nth-child(6){width:18%} #k-real-block table.mini th:nth-child(7){width:29%}
+  #k-real-block .pill{font-size:11px;padding:0 6px;white-space:normal;line-height:1.3}
+  #k-real-block table.mini th{white-space:normal;line-height:1.2}
+  #k-real-block .mstat{display:block;font-family:var(--font-m);font-size:10.5px;white-space:normal}
   /* tall stacked rows look wrong with the badge floating in the middle */
   .slotrow{align-items:flex-start} .slotrow .exp{padding-top:2px} .slotrow .ava{margin-top:2px}
 }
@@ -530,9 +544,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 
 <section role="tabpanel" id="tab-keepers">
   <h2>Keepers and the 2027 draft pool</h2>
-  <p class="lede">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b> — points above replacement over 2027 in full, 2028 at 60% and 2029 at 35% — because a keeper can be kept again, so two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is the old single-season number, kept as a cross-check. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p>
-  <div class="filters"><label>Team <select id="k-owner"></select></label><span class="hint" id="k-real"></span></div>
+  <div class="filters"><label>Team <select id="k-owner"></select></label></div>
   <div class="dash" id="k-verdict"></div>
+  <div class="explain"><details><summary>How the boards below work</summary><p style="margin:6px 0 0">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b> — points above replacement over 2027 in full, 2028 at 60% and 2029 at 35% — because a keeper can be kept again, so two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is the old single-season number, kept as a cross-check. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p></details></div>
   <div class="grid2">
     <div>
       <h3>Hitter keeper board</h3>
@@ -553,10 +567,11 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
       <div class="tblwrap"><table id="t-ppool"></table></div>
     </div>
   </div>
+  <div class="dash" id="k-real-block"></div>
   <h3 id="ky-h">Inferred keepers by year</h3>
   <p class="hint" id="ky-note"></p>
   <div class="filters"><label>Year <select id="ky-year"></select></label></div>
-  <div class="tblwrap" style="max-width:820px"><table id="t-keepyear"></table></div>
+  <div class="tblwrap"><table id="t-keepyear"></table></div>
 </section>
 
 <section role="tabpanel" id="tab-drafts">
@@ -755,8 +770,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260917T0036"></script>
-<script src="data/streamers.js?v=20260917T0036"></script>
+<script src="data/lab.js?v=20260917T0145"></script>
+<script src="data/streamers.js?v=20260917T0145"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1752,7 +1767,7 @@ function renderVerdict(V, o){
         <td>${sgn(r.PAR_c)}</td><td>${sgn(r.PAR28_c)}</td><td>${sgn(r.PAR29_c)}</td>
         <td><b>${Math.round(r.DV_c)}</b><small class="yrs">'28 ${sgn(r.PAR28_c)}<br>'29 ${sgn(r.PAR29_c)}</small></td>
         <td class="${gap!=null&&gap<0?'neg':''}">${gap==null?'\u2014':sgn(gap)}</td></tr>`;}).join('');
-    return `<div class="tblwrap" style="max-height:none"><table class="mini"><thead><tr>
+    return `<div class="tblwrap" style="max-height:none"><table class="mini kbig"><thead><tr>
       <th class="l">#</th><th class="l">${kind==='p'?'Pitcher':'Hitter'}</th><th title="2027 projected points, with the model's own measured error">2027 proj</th>
       <th title="projected points above a replacement starter in 2027">vs repl</th><th title="the same, aged one year">2028</th><th title="the same, aged two years">2029</th>
       <th title="2027 + 0.6 x 2028 + 0.35 x 2029">Keeper value</th><th title="keeper value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -1769,12 +1784,41 @@ function renderVerdict(V, o){
   $$('#k-verdict td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
   $$('#k-verdict td.name[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
 }
+// Your own 2026 keepers, the seven you actually declared, put next to what they did and what the model thinks of
+// them for 2027. Only your roster has real keeper slots in the league file, so this card only exists on your team.
+function renderRealK(V, o){
+  const host = $('#k-real-block'); if(!host) return;
+  if (o !== HOME_ABBR || !REAL_K.length){ host.innerHTML = ''; return; }
+  const hmap = {}, pmap = {};
+  V.cur.forEach(r=>hmap[nk(r.name)] = r); V.pc.forEach(r=>pmap[nk(r.name)] = r);
+  const rows = REAL_K.map(k=>{
+    const key = nk(k.player), pitcher = k.slot === 'pitcher';
+    const r = pitcher ? pmap[key] : (hmap[key] || pmap[key]);
+    return {k, r, pitcher};
+  });
+  const body = rows.map(({k,r,pitcher})=>{
+    if(!r) return `<tr><td class="l">${pitcher?'P':'H'}</td><td class="l">${esc(k.player)}</td><td colspan="5" class="l hint">not in this season's pool</td></tr>`;
+    const again = r.kept_c, rank = pitcher ? r.rank_c : r.rank_c;
+    return `<tr><td class="l">${pitcher?'P':'H'}</td>
+      <td class="l name" data-${pitcher?'p':'h'}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(pitcher?'SP':(r.elig||''))} \u00b7 age ${(r.age||0).toFixed(0)}</span><span class="sub mstat">2026 ${r.pts_c!=null?Math.round(r.pts_c):'\u2014'}${rank!=null?` \u00b7 #${rank}`:''} \u00b7 2027 ${r.proj_pts!=null?Math.round(r.proj_pts):'\u2014'}</span></td>
+      <td>${r.pts_c!=null?Math.round(r.pts_c):''}</td>
+      <td>${rank!=null?'#'+rank:''}</td>
+      <td>${r.proj_pts!=null?Math.round(r.proj_pts):''}<small>\u00b1${Math.round(r.proj_sd||0)}</small></td>
+      <td><b>${Math.round(r.DV_c||0)}</b></td>
+      <td>${again?'<span class="pill g">keep again</span>':'<span class="pill n">let go</span>'}</td></tr>`;}).join('');
+  const again = rows.filter(x=>x.r && x.r.kept_c).length;
+  host.innerHTML = `<div class="dcard w12"><h3>Your actual 2026 keepers <small>what you declared, and what the model makes of them now</small></h3>
+    <p class="hint">${again} of the ${rows.length} would be kept again for 2027. Rank is where he finished 2026 among hitters, or among starters for an arm; keeper value is the same three-year number as the card at the top of this page.</p>
+    <div class="tblwrap" style="max-height:none"><table class="mini kbig"><thead><tr><th class="l">Slot</th><th class="l">Player</th><th>2026 pts</th><th>Rank</th><th>2027 proj</th><th>Keeper value</th><th class="l">2027 verdict</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  $$('#k-real-block td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
+  $$('#k-real-block td.name[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
+}
 function renderKeepers(){
   const V = computeValues(); const cur = V.cur, pc = V.pc;
   const byOwner = V.byO, pByOwner = V.pByO;
   const owners = [...new Set([...Object.keys(byOwner), ...Object.keys(pByOwner)])].sort(); const sel = $('#k-owner'); if(!sel.options.length){ sel.innerHTML = owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY)?MY:owners[0]; sel.addEventListener('change', renderKeepers); }
   renderVerdict(V, sel.value);
-  $('#k-real').textContent = sel.value===HOME_ABBR && MY===HOME_ABBR && REAL_K.length ? `Your real 2026 keepers: ${REAL_K.filter(k=>k.slot==='hitter').map(k=>k.player).join(', ')} (hitters); ${REAL_K.filter(k=>k.slot==='pitcher').map(k=>k.player).join(', ')} (pitchers). Boards below are the 2027 recommendation.` : '';
+  renderRealK(V, sel.value);
   // beyond the team's keeper slots a positive value is a trade chip, not a keeper: label it surplus
   const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
   const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 (2027 in full, 2028 at 60%, 2029 at 35%) — this is what decides the keeper order, because a keeper can be kept again'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left'}, {k:'KSV_c',l:'2027 only',render:signed,title:'projected 2027 points above the first-round draft alternative, one season, no aging'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
@@ -1791,17 +1835,10 @@ function renderKeepers(){
   const ppool = pc.slice().sort((a,b)=>b.tot_c-a.tot_c).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
   const ppcols = [{k:'pool_rank',l:'#',f:'int'}, PCI.name, PCI.age, PCI.owner, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.stuff_plus, PCI.xera, PCI.il_days_3yr];
   if(!tPPool) { tPPool = table('t-ppool', ppcols, ppool, {sort:'pool_rank', dir:1, limit:pn, color:true, pct:PPCT, ci:PCI, card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); $('#pp-n').addEventListener('change', renderKeepers); } else { tPPool.setRows(ppool.slice(0,pn)); }
-  const yrs = Object.keys(D.keepers); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
+  const yrs = Object.keys(D.keepers).filter(y=>!(D.keepers[y]||[]).every(r=>r.source==='league file')); const ky = $('#ky-year'); if(!ky.options.length){ ky.innerHTML = yrs.map(y=>`<option>${y}</option>`).join(''); ky.value = yrs[yrs.length-1]; ky.addEventListener('change', renderKeepers); }
   const kyrows = D.keepers[ky.value]||[];
-  // this block is league history, not the selected team's. 2024-25 are league-wide inferences; the league file only
-  // ever gave us one roster's real keeper slots, so labelling it by name stops it reading as whoever you are viewing.
-  const kyFile = kyrows.length && kyrows.every(r=>r.source==='league file');
-  $('#ky-h').textContent = kyFile ? `${teamLabel(HOME_ABBR)}'s actual ${ky.value} keepers` : `Inferred keepers by year`;
-  $('#ky-note').textContent = !kyFile
-    ? `League-wide, not one team: players at the top of ADP that nobody drafted, so somebody must have kept them. Whose they were is not in the data.`
-    : sel.value===HOME_ABBR
-      ? `From the league file. It is the one roster whose real keeper slots we have, which is why no other team shows one.`
-      : `From the league file, the one roster whose real keeper slots we have. These are not ${teamLabel(sel.value)}'s ${ky.value} keepers, and they do not feed the board above.`;
+  $('#ky-h').textContent = `Inferred keepers by year`;
+  $('#ky-note').textContent = `League-wide, not one team: players at the top of ADP that nobody drafted, so somebody must have kept them. Whose they were is not in the data, so nothing here is tied to the team above.`;
   const kycols = [{k:'player',l:'Player',left:true,t:'txt'}, {k:'adp_hitter_rank',l:'ADP hitter rk',f:'int'}, {k:'pts',l:'Pts that year',f:'0'}, {k:'final_hitter_rank',l:'Final rk',f:'int'}, {k:'source',l:'Source',t:'txt'}];
   if(!tKY) tKY = table('t-keepyear', kycols, kyrows, {sort:'adp_hitter_rank', dir:1}); else tKY.setRows(kyrows);
 }
@@ -2417,6 +2454,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260917T0036"></script>
+<script src="live.js?v=20260917T0145"></script>
 </body>
 </html>
