@@ -266,7 +266,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;color:var(--ink3);font
 <main id="main"></main>
 <footer id="foot"></footer>
 
-<script src="data/hr.js?v=202609171835"></script>
+<script src="data/hr.js?v=202609171940"></script>
 <script>
 "use strict";
 /* ============================================================ state */
@@ -440,9 +440,9 @@ function ksQuote(entry, series) {
   return { ask, fee, cost: Math.min(ask + fee, 0.999), mid: live ? (live[0] != null && live[1] != null ? (live[0] + live[1]) / 2 : live[2]) : entry[0], live: !!live };
 }
 function pmQuote(entry) {
-  // entry: [market price, ask, slug]
+  // entry: [market price, ask, bid, slug]
   if (!entry) return null;
-  const live = entry[2] ? S.pm[entry[2]] : null;
+  const live = entry[3] ? S.pm[entry[3]] : null;
   const ask = live ? live[1] : entry[1];
   if (!(ask > 0 && ask < 0.98)) return null;
   return { ask, cost: ask, mid: live ? live[0] : entry[0], live: !!live };
@@ -675,7 +675,7 @@ function ksTightMid(entry) {
 }
 function pmMid(entry) {
   if (!entry) return null;
-  const live = entry[2] ? S.pm[entry[2]] : null;
+  const live = entry[3] ? S.pm[entry[3]] : null;
   const m = live ? live[0] : entry[0];
   return m > 0 && m < 1 ? m : null;
 }
@@ -841,15 +841,17 @@ function viewValue(sl) {
     shown.forEach(v => { if (v.kind === "k") v.moreLines = seen.get(v.who.id) - 1; });
   }
   const nV = all.filter(v => v.verdict === 2).length, nS = all.filter(v => v.verdict === 1).length;
+  const nArb = arbScan(sl, S.aex !== false).filter(r => r.roi >= ACFG.min_roi).length;
   const dkr = sl._dkr || {};
   let body;
+  if (mode === "arb") return viewArb(sl);
   if (mode === "odds") body = oddsBoard(sl, pool);
   else body = shown.length ? `<div class="list">${shown.slice(0, S.show).map(valueCard).join("")}</div>${shown.length > S.show ? `<button class="more" data-more="1">Show more (${shown.length - S.show} left)</button>` : ""}`
     : `<div class="banner">Nothing clears the bar right now${kind !== "all" ? " for this bet type" : ""}. Prices move all day, and lineups change the numbers; check back after lineups post.</div>`;
   return `<div class="lede"><div><h2>Best bets</h2>
     <p>Every bet we can price, compared with the market, at the best price anywhere. <b>Value</b> means it should return money on average at that price, even after leaning mostly on what the market thinks. The big green number is the average return per $1.</p></div></div>
     <div class="controls">
-      <div class="seg" role="group"><button data-vmode="value" aria-pressed="${mode === "value"}">Value picks · ${nV + nS}</button><button data-vmode="all" aria-pressed="${mode === "all"}">Every bet</button><button data-vmode="odds" aria-pressed="${mode === "odds"}">Best odds</button></div>
+      <div class="seg" role="group"><button data-vmode="value" aria-pressed="${mode === "value"}">Value picks · ${nV + nS}</button><button data-vmode="all" aria-pressed="${mode === "all"}">Every bet</button><button data-vmode="odds" aria-pressed="${mode === "odds"}">Best odds</button><button data-vmode="arb" aria-pressed="${mode === "arb"}">Arbitrage${nArb ? " · " + nArb : ""}</button></div>
       <select id="vkind" aria-label="Bet type">${kinds.map(([k, t]) => `<option value="${k}" ${k === kind ? "selected" : ""}>${t}</option>`).join("")}</select>
       <span class="note">${nV} value · ${nS} slight · ${all.length} priced bets on games not yet started</span>
     </div>
@@ -884,6 +886,226 @@ function oddsBoard(sl, pool) {
     ${propRows ? `<div class="tablewrap odds-t"><table><thead><tr><th class="l">Bet</th>${sites.map(s => `<th>${s === "Polymarket" ? "Poly" : s === "DraftKings" ? "DK" : s}</th>`).join("")}<th>Best vs worst</th><th></th></tr></thead><tbody>${propRows}</tbody></table></div>` : `<p class="note">No player bet is priced at two or more sites yet.</p>`}</div>
     <div class="panel"><h3>Game lines</h3><p>${(HR.books_status || {}).configured ? "Every sportsbook and exchange we read." : "DraftKings, Kalshi and Polymarket (more sportsbooks appear once an Odds API key is added)."} Model column is our fair price.</p>
     ${gRows ? `<div class="tablewrap odds-t"><table><thead><tr><th class="l">Bet</th><th>Model</th>${gsites.map(s => `<th>${esc(s)}</th>`).join("")}<th></th></tr></thead><tbody>${gRows}</tbody></table></div>` : `<p class="note">No game lines posted yet.</p>`}</div>`;
+}
+
+/* ============================================================ arbitrage: both sides of one bet, two sites, under a dollar */
+const ACFG = Object.assign({ ks_rate: 0.07, pm_rate: 0.05, pm_min: 5, min_roi: 0.003, max_size: 1000 }, (HR && HR.arb_cfg) || {});
+const KIND_WORD = { hr: "home run", hit: "hit", tb: "total bases", k: "strikeouts" };
+const r4 = x => Math.round(x * 1e4) / 1e4;
+const money = v => (v < 0 ? "−$" : "$") + Math.abs(v).toFixed(2);
+function ksMult(series) { const m = ((slate().markets || {}).ks_fee || {})[series]; return m == null ? 0.5 : m; }
+function ksFeeAt(p, n, mult) { if (!(p > 0 && p < 1) || n <= 0) return 0; return Math.ceil(Math.round(100 * ACFG.ks_rate * mult * n * p * (1 - p) * 1e6) / 1e6) / 100; }
+function pmFeeAt(p, n) { if (!(p > 0 && p < 1) || n <= 0) return 0; return Math.round(ACFG.pm_rate * n * p * (1 - p) * 1e5) / 1e5; }
+function legFee(l, n) { return l.venue === "ks" ? ksFeeAt(l.price, n, l.mult == null ? 0.5 : l.mult) : l.venue === "pm" ? pmFeeAt(l.price, n) : 0; }
+function arbSize(a, b) {
+  // a sportsbook publishes no limit and Polymarket's feed no depth, so a pair leaning on either is priced at the
+  // smallest ticket and flagged; Kalshi showing less than Polymarket's five-share minimum cannot be done at all
+  const pm = a.venue === "pm" || b.venue === "pm", known = [a.size, b.size].filter(v => v);
+  if (!known.length) return { n: pm ? ACFG.pm_min : 1, guess: true };
+  const n = Math.floor(Math.min(Math.min.apply(null, known), ACFG.max_size));
+  if (n < 1 || (pm && n < ACFG.pm_min)) return null;
+  return { n, guess: known.length < 2 };
+}
+function arbPair(a, b) {
+  if (!a || !b) return null;
+  const s = arbSize(a, b); if (!s) return null;
+  const n = s.n, fa = legFee(a, n), fb = legFee(b, n), cost = n * (a.price + b.price) + fa + fb;
+  if (cost <= 0) return null;
+  return { size: n, guess: s.guess, cost: r4(cost), profit: r4(n - cost), roi: (n - cost) / cost, fees: r4(fa + fb),
+           legs: [Object.assign({}, a, { fee: r4(fa) }), Object.assign({}, b, { fee: r4(fb) })] };
+}
+function arbBest(A, B) {
+  // the two cheapest prices are not always a pair: they are often the two sides of one Kalshi market, and no book crosses itself
+  const srt = L => L.filter(o => o && o.price > 0 && o.price < 1).sort((x, y) => (x.price - y.price) || ((y.size || 0) - (x.size || 0))).slice(0, 6);
+  let best = null;
+  for (const a of srt(A)) for (const b of srt(B)) {
+    if (a.id && a.id === b.id) continue;
+    const p = arbPair(a, b);
+    if (p && (!best || p.roi > best.roi)) best = p;
+  }
+  return best;
+}
+function ksArb(entry, series, link, yesL, noL) {
+  if (!entry) return {};
+  const live = entry[3] ? S.ks[entry[3]] : null;
+  const bid = live ? live[0] : entry[1], ask = live ? live[1] : entry[2];
+  const bsz = live && live[3] != null ? live[3] : entry[4], asz = live && live[4] != null ? live[4] : entry[5];
+  const mult = ksMult(series), out = {};
+  if (ask > 0 && ask < 1 && asz > 0) out.yes = { venue: "ks", site: "Kalshi", side: "yes", price: ask, size: asz, mult, link, what: yesL, id: entry[3] };
+  if (bid > 0 && bid < 1 && bsz > 0) out.no = { venue: "ks", site: "Kalshi", side: "no", price: r4(1 - bid), size: bsz, mult, link, what: noL, id: entry[3] };
+  return out;
+}
+function pmArb(entry, link, yesL, noL, slug) {
+  // entry [market price, ask, bid, slug?]: the other outcome's ask is one minus this one's bid
+  if (!entry) return {};
+  const id = slug || entry[3] || null, live = id && S.pm[id] ? S.pm[id] : null;
+  const ask = live ? live[1] : entry[1], bid = live ? live[2] : entry[2], out = {};
+  if (ask > 0 && ask < 0.98) out.yes = { venue: "pm", site: "Polymarket", side: "yes", price: ask, size: null, link, what: yesL, id };
+  if (bid > 0 && bid < 0.98) out.no = { venue: "pm", site: "Polymarket", side: "no", price: r4(1 - bid), size: null, link, what: noL, id };
+  return out;
+}
+function bookArb(site, odds, link, what) {
+  const p = amerP(odds);
+  return p > 0 && p < 1 ? { venue: "book", site, side: "yes", price: r4(p), size: null, link, what: `${what} ${amerStr(fmtMl(odds))}` } : null;
+}
+function arbGameSides(sl, g) {
+  const gm = g.mk || {}, ks = gm.ks || {}, pm = gm.pm || {}, kurl = ks.urls || {}, books = (gm.books || {}).list || [];
+  const A = g.away.abbr, H = g.home.abbr, out = [], aOff = [], hOff = [], pmMl = S.pmMl[g.pk] || {};
+  for (const [side, abbr, other, mine, theirs] of [["away", A, H, aOff, hOff], ["home", H, A, hOff, aOff]]) {
+    const e = (ks.win || {})[abbr];
+    const kl = ksArb(e && e.length > 6 ? [e[0], e[1], e[2], e[4], e[5], e[6]] : null, "game", kurl.game, `${abbr} wins`, `${other} wins (No on ${abbr})`);
+    if (kl.yes) mine.push(kl.yes);
+    if (kl.no) theirs.push(kl.no);
+    const pl = pmArb(pmMl[side] || (pm.ml || {})[side], pm.url, `${abbr} wins`, `${other} wins`, (pm.ml || {}).slug);
+    if (pl.yes) mine.push(pl.yes);
+    if (pl.no) theirs.push(pl.no);
+  }
+  for (const b of books) for (const [side, abbr, mine] of [["away", A, aOff], ["home", H, hOff]]) {
+    const v = (b.ml || {})[side], o = v && v[0] != null ? bookArb(b.name, v[0], v[1] || b.link, `${abbr} moneyline`) : null;
+    if (o) mine.push(o);
+  }
+  const dk = liveLine(g), L = (dk || {}).links || {};
+  if (dk && dk.home_ml && !books.some(b => b.key === "draftkings")) {
+    for (const [side, abbr, odds, mine] of [["away", A, dk.away_ml, aOff], ["home", H, dk.home_ml, hOff]]) {
+      const o = bookArb("DraftKings", odds, L[side + "_ml"] || dk.url, `${abbr} moneyline`);
+      if (o) mine.push(o);
+    }
+  }
+  if (aOff.length && hOff.length) out.push([`${A} @ ${H}`, "moneyline", "ml", aOff, hOff, "game"]);
+  const pmTot = S.pmTot[g.pk] || {};
+  const lines = new Set([...Object.keys(ks.total || {}), ...Object.keys(pm.totals || {})]);
+  for (const line of [...lines].sort((a, b) => +a - +b)) {
+    const oOff = [], uOff = [];
+    const kl = ksArb((ks.total || {})[line], "total", kurl.total || kurl.game, `over ${line} runs`, `under ${line} runs`);
+    if (kl.yes) oOff.push(kl.yes);
+    if (kl.no) uOff.push(kl.no);
+    const t = pmTot[line] || (pm.totals || {})[line] || {};
+    for (const [side, mine, theirs] of [["over", oOff, uOff], ["under", uOff, oOff]]) {
+      const flip = side === "over" ? "under" : "over";
+      const pl = pmArb(t[side], pm.url, `${side} ${line} runs`, `${flip} ${line} runs`, ((pm.totals || {})[line] || {}).slug);
+      if (pl.yes) mine.push(pl.yes);
+      if (pl.no) theirs.push(pl.no);
+    }
+    for (const b of books) for (const [side, mine] of [["over", oOff], ["under", uOff]]) {
+      const v = (b.tot || {})[side];
+      if (!v || v[1] == null || String(+v[0]) !== line) continue;
+      const o = bookArb(b.name, v[1], v[2] || b.link, `${side} ${line}`);
+      if (o) mine.push(o);
+    }
+    if (dk && dk.total != null && String(+dk.total) === line && !books.some(b => b.key === "draftkings")) {
+      for (const [side, odds, mine] of [["over", dk.over, oOff], ["under", dk.under, uOff]]) {
+        const o = bookArb("DraftKings", odds, L[side] || dk.url, `${side} ${line}`);
+        if (o) mine.push(o);
+      }
+    }
+    if (oOff.length && uOff.length) out.push([`${A} @ ${H}`, `total runs ${line}`, "tot", oOff, uOff, "game"]);
+  }
+  return out;
+}
+function arbPropSides(sl, who, g) {
+  const gm = g.mk || {}, ks = gm.ks || {}, pm = gm.pm || {}, mkw = who.mk || {}, out = [];
+  const keys = new Set([...Object.keys(mkw.ks || {}), ...Object.keys(mkw.pm || {})]);
+  for (const key of [...keys].sort()) {
+    const series = SERIES_OF(key), n = (String(key).match(/\d+/) || ["1"])[0];
+    const yesL = `${n}+ ${KIND_WORD[series]}`, noL = `under ${n} ${KIND_WORD[series]}`, yes = [], no = [];
+    const kl = ksArb((mkw.ks || {})[key], series, (ks.urls || {})[series], yesL, noL);
+    if (kl.yes) yes.push(kl.yes);
+    if (kl.no) no.push(kl.no);
+    const pl = pmArb((mkw.pm || {})[key], pm.props_url || pm.url, yesL, noL);
+    if (pl.yes) yes.push(pl.yes);
+    if (pl.no) no.push(pl.no);
+    const d = liveDk(who, key);
+    if (d && d[1] > 0 && d[1] < 1) yes.push({ venue: "book", site: "DraftKings", side: "yes", price: r4(d[1]), size: null, link: (gm.dk || {}).url, what: `${yesL} ${amerStr(d[0])}` });
+    if (yes.length && no.length) {
+      const where = who.t && who.o ? `${who.t} ${who.h ? "vs" : "@"} ${who.o}` : `${g.away.abbr} @ ${g.home.abbr}`;
+      out.push([who.n, `${yesL} · ${where}`, series, yes, no, "player"]);
+    }
+  }
+  return out;
+}
+const ARB_RISK = {
+  player: ["Kalshi settles a scratched player at a fair price and Polymarket settles him Under, so this only truly locks if he starts and bats.",
+           "A sportsbook leg can be voided or cut to pennies; an exchange leg will not be."],
+  game: ["A game called off with no make-up pays 50-50 on Polymarket and a fair price on Kalshi, so a washout can leave a gap.",
+         "A sportsbook leg can be voided or limited; an exchange leg will not be."],
+};
+function arbScan(sl, exOnly) {
+  const games = gameMap(sl), rows = [];
+  const ok = g => g.state === "Preview" && !(g.mk || {}).pregame_as_of && !(g.mk || {}).no_pregame;
+  const jobs = [];
+  for (const g of sl.games) if (ok(g)) arbGameSides(sl, g).forEach(s => jobs.push([g, s]));
+  for (const w of sl.hitters.concat(sl.pitchers)) { const g = games[w.pk]; if (g && ok(g)) arbPropSides(sl, w, g).forEach(s => jobs.push([g, s])); }
+  for (const [g, [title, sub, kind, A, B, risk]] of jobs) {
+    const AA = exOnly ? A.filter(o => o.venue !== "book") : A, BB = exOnly ? B.filter(o => o.venue !== "book") : B;
+    const p = arbBest(AA, BB);
+    if (!p) continue;
+    const sites = [...new Set(p.legs.map(l => l.site))].sort();
+    rows.push(Object.assign(p, { kind, pk: g.pk, title, sub, risk: ARB_RISK[risk], venues: sites.join(" + "),
+                                 exchange: p.legs.every(l => l.venue !== "book"), gap: r4(1 - p.legs[0].price - p.legs[1].price),
+                                 depth: arbDepth(sl, g.pk, sub, p.legs) }));
+  }
+  return rows.sort((a, b) => b.roi - a.roi);
+}
+function arbDepth(sl, pk, sub, legs) {
+  // the build walks both order books for anything that looked arbitrable; reuse that if it is the same two legs
+  const ids = legs.map(l => l.id).filter(Boolean).sort().join("|");
+  const m = (sl.arbs || []).find(r => r.pk === pk && r.sub === sub && r.depth && r.legs.map(l => l.id).filter(Boolean).sort().join("|") === ids);
+  return m ? m.depth : null;
+}
+function arbCard(r) {
+  const [a, b] = r.legs, good = r.roi >= ACFG.min_roi;
+  const leg = l => `<a class="buy" href="${esc(l.link || "#")}" target="_blank" rel="noopener" title="${esc(l.site + " · " + l.what)}">
+    <span>${esc(l.site.toUpperCase())}</span><span class="num">${esc(l.what)} · ${cents(l.price)}</span><span class="ext">↗</span></a>`;
+  const d = r.depth;
+  const shown = r.legs.filter(l => l.size), blind = r.legs.filter(l => !l.size);
+  const sizeTxt = !blind.length ? `Both sides were showing at least ${r.size} at these prices.`
+    : shown.length ? `${esc(shown[0].site)} was showing ${shown[0].size} at that price; ${esc(blind.map(l => l.site).join(" and "))} ${blind.length > 1 ? "do" : "does"} not publish depth, so check the book before you size up.`
+    : `Neither site publishes a size here, so this is priced at the smallest ticket it will take (${r.size}).`;
+  const depthTxt = d ? `Walking both order books at the last build, ${d.size} was the most that stayed profitable: ${money(d.cost)} in, ${money(d.profit)} out (${(100 * d.roi).toFixed(2)}%), average fill ${cents(d.avg[0])} and ${cents(d.avg[1])}.` : "";
+  return `<div class="vb ${good ? "v2" : "v0"}">
+    <div><div class="t">${esc(r.title)} <span class="verdict ${good ? "v2" : "v0"}">${good ? "LOCKED" : "NO GAP"}</span><br><small>${esc(r.sub)} · ${esc(r.venues)}</small></div></div>
+    <div class="ev"><b style="color:${good ? "var(--good)" : "var(--bad)"}">${signedPct(r.roi)}</b><span>on the money</span></div>
+    <div class="nums">
+      <div class="hl"><span>Both sides cost</span><b>${cents(a.price + b.price)} + fees</b></div>
+      <div><span>You put in</span><b>${money(r.cost)}</b></div>
+      <div><span>You get back</span><b>${money(r.size)}</b></div>
+      <div><span>You keep</span><b>${money(r.profit)} <small style="color:var(--ink3)">after ${money(r.fees)} fees</small></b></div>
+    </div>
+    <div class="why">Buy <b>${esc(a.what)}</b> at ${esc(a.site)} for ${cents(a.price)} and <b>${esc(b.what)}</b> at ${esc(b.site)} for ${cents(b.price)}. One of them has to win, so ${r.size} of each pays ${money(r.size)} for ${money(r.cost)}. ${sizeTxt} ${depthTxt}
+      <span class="age">${r.risk.filter(t => r.exchange ? !/sportsbook/i.test(t) : true).map(esc).join(" ")} Prices move between the two clicks: if only one leg fills you are holding a bet, not an arbitrage.</span></div>
+    <div class="buys">${leg(a)}${leg(b)}</div>
+  </div>`;
+}
+function viewArb(sl) {
+  const exOnly = S.aex !== false;
+  const all = arbScan(sl, exOnly);
+  const hits = all.filter(r => r.roi >= ACFG.min_roi);
+  const near = all.filter(r => r.roi < ACFG.min_roi).slice(0, 8);
+  const pre = sl.games.filter(g => g.state === "Preview" && !(g.mk || {}).no_pregame).length;
+  const body = hits.length
+    ? `<div class="list">${hits.slice(0, S.show).map(arbCard).join("")}</div>`
+    : `<div class="banner">No arbitrage right now. ${all.length ? `Of ${all.length} two-sided market${all.length === 1 ? "" : "s"} priced at two places, the closest is ${(-100 * near[0].roi).toFixed(2)}% short.` : "Nothing is priced at two places yet."} That is the normal state of things: these prices watch each other.</div>`;
+  const nearRows = near.map(r => `<tr><td class="l"><b>${esc(r.title)}</b><br><small>${esc(r.sub)}</small></td>
+    <td class="num">${esc(r.legs[0].site)}<br><small>${cents(r.legs[0].price)}</small></td>
+    <td class="num">${esc(r.legs[1].site)}<br><small>${cents(r.legs[1].price)}</small></td>
+    <td class="num">${cents(r.legs[0].price + r.legs[1].price)}</td>
+    <td class="num">${signedPct(r.roi, 2)}</td></tr>`).join("");
+  return `<div class="lede"><div><h2>Arbitrage</h2>
+    <p>Both sides of the same bet, bought at two different sites. One of them has to win, so every pair pays exactly $1 a contract. When the two together cost less than $1 after fees, the difference is yours whatever happens on the field. It almost never happens, and when it does it is small and it does not last.</p></div></div>
+    <div class="controls">
+      <div class="seg" role="group"><button data-aex="1" aria-pressed="${exOnly}">Kalshi + Polymarket</button><button data-aex="0" aria-pressed="${!exOnly}">Include sportsbooks</button></div>
+      <span class="note">${hits.length} locked · ${all.length} markets priced at two places · ${pre} game${pre === 1 ? "" : "s"} not yet started</span>
+    </div>
+    <details class="wtb" style="margin:0 0 12px"><summary><b>The fees, and what can still go wrong</b></summary><div class="legend" style="margin-top:8px">
+      <div><b>Kalshi</b>Taker fee ${(100 * ACFG.ks_rate).toFixed(0)}¢ × the series multiplier (${ksMult("game")} on baseball) × contracts × price × (1 − price), rounded <i>up</i> to the next cent on the order. At one contract that rounding alone is a cent, so an arbitrage needs size.</div>
+      <div><b>Polymarket</b>Taker fee ${(100 * ACFG.pm_rate).toFixed(0)}¢ × shares × price × (1 − price) on sports, charged in USDC when the order fills. Minimum order ${ACFG.pm_min} shares.</div>
+      <div><b>Sportsbooks</b>No fee on top, their cut is already in the price. They can also void or limit a bet, which an exchange will not.</div>
+      <div><b>The catch</b>Different rulebooks. A scratched hitter is refunded at a fair price on Kalshi and settled Under on Polymarket; a washed-out game pays 50-50 on Polymarket and a fair price on Kalshi. And the second leg has to still be there when you click it.</div>
+    </div></details>
+    ${body}
+    ${nearRows ? `<div class="panel" style="margin-top:12px"><h3>Closest to crossing</h3><p>The nearest misses, fees included. A negative number is how far under water the pair is.</p>
+      <div class="tablewrap odds-t"><table><thead><tr><th class="l">Bet</th><th>One side</th><th>Other side</th><th>Both sides</th><th>Return after fees</th></tr></thead><tbody>${nearRows}</tbody></table></div></div>` : ""}
+    <p class="note">Prices are the ones on the board: Kalshi as of ${S.ksAt ? tfmt(S.ksAt) : "the last build"}, Polymarket live in your browser. For fun and research, not betting advice.</p>`;
 }
 
 /* ============================================================ view: hits & total bases */
@@ -978,7 +1200,7 @@ function gameOffers(g) {
     const url = (ks.urls || {}).game, turl = (ks.urls || {}).total || url;
     const r = { site: "Kalshi", link: url, ml: {}, tot: {}, totals: {} };
     for (const [side, ab] of [["away", A], ["home", Hh]]) {
-      const e = (ks.win || {})[ab]; const q = e ? ksQuote([e[0], e[1], e[2], e[4]], "game") : null;
+      const e = (ks.win || {})[ab]; const q = e ? ksQuote([e[0], e[1], e[2], e[4], e[5], e[6]], "game") : null;
       if (q) r.ml[side] = { cost: q.cost, label: cents(q.cost), link: url, note: `1 contract ${cents(q.ask)} + ${cents(q.fee)} fee = ${cents(q.cost)}, pays $1` };
     }
     for (const [line, e] of Object.entries(ks.total || {})) {
@@ -1173,6 +1395,9 @@ function viewHow() {
     <h3>Best bets</h3>
     <p>For each bet the <b>Best bets</b> tab puts three numbers side by side: what the best price implies, what the market thinks (every site's own odds with the margin taken out, averaged), and what our model thinks. The fair chance used for the return is mostly the market's (65% for player bets, 80% for moneylines, 85% for totals), because the markets are sharper than any model on the day and know about late news. A bet is <b>Value</b> when $1 at the best price returns +4% or more on average and the model alone also beats the price; <b>Slight value</b> is +1.5% or more. If the model is about twice as high as every market, it is capped at Slight and flagged, because that usually means news the model has not seen. A pitcher's strikeout lines count as one pick. Every pick is logged before first pitch and graded on the Scorecard, so these weights can be tuned to what actually happens.</p>
     <p>"Pts" or "edge" elsewhere is the model's chance minus the best price. Markets know things the model does not (late scratches, injuries, weather), so a big gap is a question, not a sure thing. Which sites you can use depends on your state.</p>
+    <h3>Arbitrage</h3>
+    <p>The <b>Arbitrage</b> view inside Best bets looks for the same bet priced at two sites in a way that lets you buy both sides for less than the dollar they pay. On Kalshi and Polymarket you can buy either side outright: "yes" costs the ask, and the other side costs one minus the bid. Add each site's taker fee (Kalshi ${(100 * ACFG.ks_rate).toFixed(0)}¢ × its baseball multiplier × contracts × price × (1 − price), rounded up to the next cent on the order; Polymarket ${(100 * ACFG.pm_rate).toFixed(0)}¢ × shares × price × (1 − price)), and if the pair still comes to under $1 the difference is locked whatever happens on the field. Sportsbooks can join the pair too, priced by their odds with no fee on top.</p>
+    <p>It is usually empty, which is the honest answer: two exchanges quoting the same game watch each other, and the fees alone eat about a point. When something does show, the page walks both order books at build time to say how much could really go on, not just what the top of the book advertises, and it lists what can still break the lock: Kalshi refunds a scratched hitter at a fair price while Polymarket settles him Under, a washed-out game pays 50-50 on Polymarket and a fair price on Kalshi, and the second leg has to still be there when you click it.</p>
     <h3>What it does not know</h3>
     <ul><li>Injuries or rest days announced after the build, until the lineup posts.</li><li>Opener or bullpen games beyond what the listed starter usually does.</li><li>Umpires and catcher framing.</li><li>Hot streaks: tested on the 2026 season, the last 14 days of barrels, hard contact and homers did not improve the forecast by a measurable amount, so they are shown but not scored.</li></ul>
     <p class="note">Built from Baseball Savant, the MLB Stats API, Open-Meteo, ESPN and Kalshi's public data. For fun and research, not betting advice.</p>
@@ -1181,13 +1406,14 @@ function viewHow() {
 
 /* ============================================================ events */
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-day],[data-tab],[data-open],[data-more],[data-vmode],#livebtn,#theme");
+  const t = e.target.closest("[data-day],[data-tab],[data-open],[data-more],[data-vmode],[data-aex],#livebtn,#theme");
   if (!t) return;
   if (t.dataset.day != null) { S.day = +t.dataset.day; S.game = ""; S.show = 30; render(); }
   else if (t.dataset.tab) { S.tab = t.dataset.tab; store.set("tab", S.tab); S.show = 30; render(); window.scrollTo({ top: 0 }); }
   else if (t.dataset.open) { S.open.has(t.dataset.open) ? S.open.delete(t.dataset.open) : S.open.add(t.dataset.open); render(); }
   else if (t.dataset.more) { S.show += 30; render(); }
   else if (t.dataset.vmode) { S.vmode = t.dataset.vmode; S.show = 30; render(); }
+  else if (t.dataset.aex) { S.aex = t.dataset.aex === "1"; render(); }
   else if (t.id === "livebtn") { refresh(true); }
   else if (t.id === "theme") {
     const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -1344,7 +1570,7 @@ async function liveKalshi(sl) {
       const t = kalshiTickers(sl), got = {};
       for (let i = 0; i < t.length; i += 100) {
         const j = await jget(`${HR.relay}/markets?limit=100&tickers=${encodeURIComponent(t.slice(i, i + 100).join(","))}`);
-        for (const m of j.markets || []) got[m.ticker] = [+m.yes_bid_dollars, +m.yes_ask_dollars, +m.last_price_dollars];
+        for (const m of j.markets || []) got[m.ticker] = [+m.yes_bid_dollars, +m.yes_ask_dollars, +m.last_price_dollars, +m.yes_bid_size_fp, +m.yes_ask_size_fp];
       }
       if (Object.keys(got).length) { Object.assign(S.ks, got); S.ksAt = new Date().toISOString(); S.ksSrc = "relay"; return; }
     } catch (e) {}
@@ -1358,7 +1584,7 @@ async function liveKalshi(sl) {
 function pmTrio(m) {
   const px = JSON.parse(m.outcomePrices || "[]").map(Number);
   const b = m.bestBid == null || m.bestBid === "" ? null : +m.bestBid, a = m.bestAsk == null || m.bestAsk === "" ? null : +m.bestAsk;
-  const q = (p, ask, bid) => (ask == null || ask >= 0.98 || ask <= 0) ? null : [(bid != null && bid > 0 && ask - bid <= 0.1) ? p : null, ask];
+  const q = (p, ask, bid) => (ask == null || ask >= 0.98 || ask <= 0) ? null : [(bid != null && bid > 0 && ask - bid <= 0.1) ? p : null, ask, bid];
   return [q(px[0], a, b), q(px[1], b != null ? 1 - b : null, a != null ? 1 - a : null)];
 }
 const PMK = { baseball_player_home_runs: "hr", baseball_player_hits: "hit", baseball_player_total_bases: "tb", baseball_player_strikeouts: "k" };

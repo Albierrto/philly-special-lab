@@ -16,7 +16,7 @@ import pandas as pd
 from breakout.config import DATA
 from breakout.names import key as name_key
 from breakout import streamers as ST
-from . import features as F, dataset as D, game as G, model as M, context as C, odds as O, savant, scorecard as SC, books as BK, value as VAL
+from . import features as F, dataset as D, game as G, model as M, context as C, odds as O, savant, scorecard as SC, books as BK, value as VAL, arb as ARB
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site" / "hr"
@@ -318,9 +318,19 @@ def build_slate(day: str, d: pd.DataFrame, ctx: dict) -> dict | None:
     # ---- markets
     log(f"    model {time.time()-tt:.0f}s")
     mk = markets(day, games, H, SPd, ctx)
+    tok = mk.pop("pm_tok", {})
     mk = pregame_markets(day, games, H, SPd, mk)
     log(f"    markets {time.time()-tt:.0f}s")
-    return assemble(day, games, gmeta, H, SPd, Gd, wx, mk, ctx)
+    sl = assemble(day, games, gmeta, H, SPd, Gd, wx, mk, ctx)
+    try:
+        rows = ARB.scan(sl)
+        if rows: ARB.deepen(rows, tok, log=log)
+        sl["arbs"] = rows
+        for r in rows[:6]: log("    arb:", ARB.describe(r))
+        log(f"    arbitrage {len(rows)} found ({time.time()-tt:.0f}s)")
+    except Exception as e:
+        log("    arbitrage failed:", type(e).__name__, e); sl["arbs"] = []
+    return sl
 
 
 def lineup_order(lh: pd.DataFrame) -> pd.DataFrame:
@@ -381,9 +391,9 @@ def markets(day, games, H, SPd, ctx) -> dict:
             g = out["games"].setdefault(int(r.game_pk), {}).setdefault("ks", {})
             g.setdefault("urls", {})[r.series] = r.url
             if r.series == "game":
-                g.setdefault("win", {})[r.team] = [_f(r.price), _f(r.bid), _f(r.ask), _f(r.volume), r.ticker]
+                g.setdefault("win", {})[r.team] = [_f(r.price), _f(r.bid), _f(r.ask), _f(r.volume), r.ticker, _f(r.bid_sz), _f(r.ask_sz)]
             else:
-                g.setdefault("total", {})[f"{r.line:g}"] = [_f(r.price), _f(r.bid), _f(r.ask), r.ticker]
+                g.setdefault("total", {})[f"{r.line:g}"] = [_f(r.price), _f(r.bid), _f(r.ask), r.ticker, _f(r.bid_sz), _f(r.ask_sz)]
         if len(kp):
             for r in kp.drop_duplicates(["game_pk", "series"]).itertuples():
                 out["games"].setdefault(int(r.game_pk), {}).setdefault("ks", {}).setdefault("urls", {})[r.series] = r.url
@@ -392,7 +402,7 @@ def markets(day, games, H, SPd, ctx) -> dict:
             for r in kp.dropna(subset=["pid", "line"]).itertuples():
                 kk = f"{r.series}{int(r.line)}"
                 if r.series != "k" and kk not in KEEP: continue
-                out["players"].setdefault(str(int(r.pid)), {}).setdefault("ks", {})[kk] = [_f(r.price), _f(r.bid), _f(r.ask), r.ticker]
+                out["players"].setdefault(str(int(r.pid)), {}).setdefault("ks", {})[kk] = [_f(r.price), _f(r.bid), _f(r.ask), r.ticker, _f(r.bid_sz), _f(r.ask_sz)]
             out["kalshi_unmatched"] = int(kp["pid"].isna().sum())
         out["ks_fee"] = ctx.get("ks_fee") or {}
     except Exception as e:
@@ -404,6 +414,7 @@ def markets(day, games, H, SPd, ctx) -> dict:
         for pk, v in pm.items():
             aw, hm = names.get(pk, ("", ""))
             gm = out["games"].setdefault(pk, {})
+            if v.get("tok"): out.setdefault("pm_tok", {}).update({k: t for k, t in v["tok"].items() if t})
             gm["pm"] = dict(url=v["url"], slug=v["slug"], props_url=v.get("props_url"), props_slug=v.get("props_slug"),
                             ml=_pm_ml(v["ml"], aw, hm), totals={k: dict(over=_pm_px(t["over"]), under=_pm_px(t["under"]), slug=t["slug"])
                                                              for k, t in v["totals"].items()})
@@ -428,12 +439,13 @@ def markets(day, games, H, SPd, ctx) -> dict:
 
 
 def _pm_px(trio):
-    """[market price, ask] from Polymarket's [price, ask, bid]. The ask is what one share costs right now; the market
-    price is only kept when the book is two-sided and tight (bid and ask within 10 cents), otherwise it is noise."""
+    """[market price, ask, bid] from Polymarket's [price, ask, bid]. The ask is what one share costs right now; the bid is
+    what the other side costs (one minus it); the market price is only kept when the book is two-sided and tight (within
+    10 cents), otherwise it is noise."""
     px, ask, bid = (list(trio) + [None, None, None])[:3]
     if ask is None or ask >= 0.98 or ask <= 0: return None
     mkt = px if (bid is not None and bid > 0 and ask - bid <= 0.10) else None
-    return [_f(mkt), _f(ask)]
+    return [_f(mkt), _f(ask), _f(bid)]
 
 
 def _pm_ml(ml, away_name, home_name):
@@ -669,7 +681,7 @@ def main(argv=None):
     import os
     payload = dict(built=datetime.now(timezone.utc).isoformat(timespec="seconds"), today=today, slates=slates,
                    relay=(os.environ.get("KALSHI_RELAY") or "").strip().rstrip("/") or None,
-                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG,
+                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG, arb_cfg=ARB.CFG,
                    model=model_block(mj, SC.slim_report(report)), card=card, data_through=str(d["game_date"].max().date()),
                    form_keys=FORM_KEYS)
     SITE.joinpath("data").mkdir(parents=True, exist_ok=True)

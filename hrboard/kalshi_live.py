@@ -18,20 +18,20 @@ def board() -> dict:
 
 
 def entries(payload: dict):
-    """(ticker, [bid, ask, last]) for every Kalshi price in the payload, skipping finished games."""
+    """(ticker, [bid, ask, last, bid size, ask size]) for every Kalshi price in the payload, skipping finished games."""
     for sl in payload.get("slates", []):
         live = {g["pk"] for g in sl["games"] if g.get("state") != "Final"}
         for g in sl["games"]:
             if g["pk"] not in live: continue
             ks = (g.get("mk") or {}).get("ks") or {}
             for v in (ks.get("win") or {}).values():
-                if len(v) > 4: yield v[4], [v[1], v[2], v[0]]
+                if len(v) > 4: yield v[4], [v[1], v[2], v[0], v[5] if len(v) > 5 else None, v[6] if len(v) > 6 else None]
             for v in (ks.get("total") or {}).values():
-                if len(v) > 3: yield v[3], [v[1], v[2], v[0]]
+                if len(v) > 3: yield v[3], [v[1], v[2], v[0], v[4] if len(v) > 4 else None, v[5] if len(v) > 5 else None]
         for who in sl.get("hitters", []) + sl.get("pitchers", []):
             if who.get("pk") not in live: continue
             for v in ((who.get("mk") or {}).get("ks") or {}).values():
-                if len(v) > 3: yield v[3], [v[1], v[2], v[0]]
+                if len(v) > 3: yield v[3], [v[1], v[2], v[0], v[4] if len(v) > 4 else None, v[5] if len(v) > 5 else None]
 
 
 def _get(url):
@@ -55,7 +55,8 @@ def fetch(tickers) -> dict:
     for i in range(0, len(tickers), 100):
         q = urllib.parse.urlencode(dict(tickers=",".join(tickers[i:i + 100]), limit=100))
         for m in _get(f"{API}?{q}").get("markets", []):
-            out[m["ticker"]] = [_num(m.get("yes_bid_dollars")), _num(m.get("yes_ask_dollars")), _num(m.get("last_price_dollars"))]
+            out[m["ticker"]] = [_num(m.get("yes_bid_dollars")), _num(m.get("yes_ask_dollars")), _num(m.get("last_price_dollars")),
+                                _num(m.get("yes_bid_size_fp")), _num(m.get("yes_ask_size_fp"))]
         time.sleep(0.2)
     return out
 

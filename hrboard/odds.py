@@ -163,6 +163,7 @@ def kalshi_markets(day: str, series=tuple(KALSHI_SERIES)) -> pd.DataFrame:
                 rows.append(dict(series=KALSHI_SERIES[s], series_ticker=s, url=kalshi_url(s, ev), ticker=m["ticker"], event=ev, title=m.get("title"), sub=m.get("yes_sub_title"),
                                  et_time=(mm.group(4) if mm else None), teams=(mm.group(5) if mm else None),
                                  bid=bid, ask=ask, last=last, price=price, volume=_dollars(m.get("volume_fp")),
+                                 bid_sz=_dollars(m.get("yes_bid_size_fp")), ask_sz=_dollars(m.get("yes_ask_size_fp")),
                                  oi=_dollars(m.get("open_interest_fp"))))
     return pd.DataFrame(rows)
 
@@ -191,15 +192,35 @@ def kalshi_fee(p: float, mult: float, contracts: int = 1) -> float:
 
 
 def kalshi_prices(tickers) -> dict:
-    """Current bid / ask / last for a list of market tickers (100 per request)."""
+    """Current bid / ask / last and the size resting at each for a list of market tickers (100 per request)."""
     tickers = list(dict.fromkeys(t for t in tickers if t))
     out = {}
     for i in range(0, len(tickers), 100):
         j = _get(f"{KALSHI}/markets", tickers=",".join(tickers[i:i + 100]), limit=100)
         for m in j.get("markets", []):
-            out[m["ticker"]] = [_dollars(m.get("yes_bid_dollars")), _dollars(m.get("yes_ask_dollars")), _dollars(m.get("last_price_dollars"))]
+            out[m["ticker"]] = [_dollars(m.get("yes_bid_dollars")), _dollars(m.get("yes_ask_dollars")), _dollars(m.get("last_price_dollars")),
+                                _dollars(m.get("yes_bid_size_fp")), _dollars(m.get("yes_ask_size_fp"))]
         time.sleep(0.2)
     return out
+
+
+def kalshi_book(ticker: str) -> dict:
+    """What it costs to buy each side, level by level. Kalshi keeps two books of resting bids: to buy Yes you match the
+    people bidding No, so a No bid at 57c is a Yes contract at 43c."""
+    j = _get(f"{KALSHI}/markets/{ticker}/orderbook")
+    ob = j.get("orderbook_fp") or j.get("orderbook") or {}
+    out = {}
+    for side, other in (("yes", "no_dollars"), ("no", "yes_dollars")):
+        lv = [(round(1 - float(p), 4), float(q)) for p, q in (ob.get(other) or []) if float(q) > 0]
+        out[side] = sorted(lv)          # cheapest first
+    return out
+
+
+def pm_book(token_id: str) -> list:
+    """Polymarket ask levels for one outcome token: [(cost, shares)] cheapest first."""
+    j = _get(f"{CLOB}/book", token_id=token_id)
+    lv = [(float(a["price"]), float(a["size"])) for a in (j.get("asks") or []) if float(a.get("size", 0)) > 0]
+    return sorted(lv)
 
 
 def _kalshi_series(s: str) -> list[dict]:
@@ -256,6 +277,7 @@ def _k(a):
 
 # ------------------------------------------------------------------ Polymarket (public, CORS-open, so the page also reads it live)
 GAMMA = "https://gamma-api.polymarket.com"
+CLOB = "https://clob.polymarket.com"
 PM_CODE = {"AZ": ["ari", "az"], "ATH": ["oak", "ath"], "CWS": ["cws", "chw"], "WSH": ["wsh", "was"], "KC": ["kc"], "SD": ["sd"],
            "SF": ["sf"], "TB": ["tb"], "LAA": ["laa"], "LAD": ["lad"]}
 PM_PROP = {"baseball_player_home_runs": "hr", "baseball_player_hits": "hit", "baseball_player_total_bases": "tb",
@@ -292,14 +314,16 @@ def polymarket_game(day: str, away: str, home: str) -> dict | None:
             if ev: slug = cand; break
         if ev: break
     if not ev: return None
-    out = dict(slug=slug, url=f"https://polymarket.com/event/{slug}", ml={}, totals={}, rl={}, props={}, props_slug=None)
+    out = dict(slug=slug, url=f"https://polymarket.com/event/{slug}", ml={}, totals={}, rl={}, props={}, props_slug=None, tok={})
     for m in ev.get("markets", []):
         t = m.get("sportsMarketType"); sp = pm_side_prices(m)
         if m.get("closed"): continue
         if t == "moneyline":
             out["ml"] = dict(names=_jl(m.get("outcomes")), prices=sp, slug=m.get("slug"))
+            out["tok"][m.get("slug")] = _jl(m.get("clobTokenIds"))
         elif t == "totals" and m.get("line") is not None:
             out["totals"][f"{float(m['line']):g}"] = dict(over=sp[0], under=sp[1], slug=m.get("slug"))
+            out["tok"][m.get("slug")] = _jl(m.get("clobTokenIds"))
         elif t == "spreads" and m.get("line") is not None:
             out["rl"][m.get("slug")] = dict(line=float(m["line"]), first=_jl(m.get("outcomes"))[:1], prices=sp)
     pe = _pm_event(f"{slug}-player-props")
@@ -311,6 +335,7 @@ def polymarket_game(day: str, away: str, home: str) -> dict | None:
             name = str(m.get("question", "")).split(":")[0].strip()
             n = int(float(m["line"]) + 0.5)
             out["props"].setdefault(name, {})[f"{k}{n}"] = pm_side_prices(m)[0] + [m.get("slug")]
+            out["tok"][m.get("slug")] = _jl(m.get("clobTokenIds"))
     return out
 
 
