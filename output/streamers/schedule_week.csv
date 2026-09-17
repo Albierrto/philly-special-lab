@@ -79,14 +79,14 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823979,2026-09-16,2026-09-17T01:38:00Z,Final,1,Angel Stadium,night,N,136,Seattle Mariners,False,108,Los Angeles Angels,669923.0,George Kirby,listed,579328.0,Yusei Kikuchi,listed
 825031,2026-09-16,2026-09-17T01:40:00Z,Final,15,Chase Field,night,N,109,Arizona Diamondbacks,True,146,Miami Marlins,518876.0,Merrill Kelly,listed,687473.0,Ryan Gusto,listed
 825031,2026-09-16,2026-09-17T01:40:00Z,Final,15,Chase Field,night,N,146,Miami Marlins,False,109,Arizona Diamondbacks,687473.0,Ryan Gusto,listed,518876.0,Merrill Kelly,listed
-823334,2026-09-17,2026-09-17T16:35:00Z,Pre-Game,31,PNC Park,day,N,134,Pittsburgh Pirates,True,158,Milwaukee Brewers,696062.0,Wilber Dotel,listed,690986.0,Kyle Harrison,listed
-823334,2026-09-17,2026-09-17T16:35:00Z,Pre-Game,31,PNC Park,day,N,158,Milwaukee Brewers,False,134,Pittsburgh Pirates,690986.0,Kyle Harrison,listed,696062.0,Wilber Dotel,listed
-824464,2026-09-17,2026-09-17T16:40:00Z,Pre-Game,2602,Great American Ball Park,day,N,113,Cincinnati Reds,True,119,Los Angeles Dodgers,663903.0,Brady Singer,listed,680736.0,Justin Wrobleski,listed
-824464,2026-09-17,2026-09-17T16:40:00Z,Pre-Game,2602,Great American Ball Park,day,N,119,Los Angeles Dodgers,False,113,Cincinnati Reds,680736.0,Justin Wrobleski,listed,663903.0,Brady Singer,listed
-822924,2026-09-17,2026-09-17T17:10:00Z,Pre-Game,12,Tropicana Field,day,N,139,Tampa Bay Rays,True,133,Athletics,656876.0,Drew Rasmussen,listed,605488.0,Jeffrey Springs,listed
-822924,2026-09-17,2026-09-17T17:10:00Z,Pre-Game,12,Tropicana Field,day,N,133,Athletics,False,139,Tampa Bay Rays,605488.0,Jeffrey Springs,listed,656876.0,Drew Rasmussen,listed
-824305,2026-09-17,2026-09-17T19:10:00Z,Scheduled,19,Coors Field,day,N,115,Colorado Rockies,True,135,San Diego Padres,685299.0,Tanner Gordon,listed,650633.0,Michael King,listed
-824305,2026-09-17,2026-09-17T19:10:00Z,Scheduled,19,Coors Field,day,N,135,San Diego Padres,False,115,Colorado Rockies,650633.0,Michael King,listed,685299.0,Tanner Gordon,listed
+823334,2026-09-17,2026-09-17T16:35:00Z,In Progress,31,PNC Park,day,N,134,Pittsburgh Pirates,True,158,Milwaukee Brewers,696062.0,Wilber Dotel,listed,690986.0,Kyle Harrison,listed
+823334,2026-09-17,2026-09-17T16:35:00Z,In Progress,31,PNC Park,day,N,158,Milwaukee Brewers,False,134,Pittsburgh Pirates,690986.0,Kyle Harrison,listed,696062.0,Wilber Dotel,listed
+824464,2026-09-17,2026-09-17T16:40:00Z,In Progress,2602,Great American Ball Park,day,N,113,Cincinnati Reds,True,119,Los Angeles Dodgers,663903.0,Brady Singer,listed,680736.0,Justin Wrobleski,listed
+824464,2026-09-17,2026-09-17T16:40:00Z,In Progress,2602,Great American Ball Park,day,N,119,Los Angeles Dodgers,False,113,Cincinnati Reds,680736.0,Justin Wrobleski,listed,663903.0,Brady Singer,listed
+822924,2026-09-17,2026-09-17T17:10:00Z,Warmup,12,Tropicana Field,day,N,139,Tampa Bay Rays,True,133,Athletics,656876.0,Drew Rasmussen,listed,605488.0,Jeffrey Springs,listed
+822924,2026-09-17,2026-09-17T17:10:00Z,Warmup,12,Tropicana Field,day,N,133,Athletics,False,139,Tampa Bay Rays,605488.0,Jeffrey Springs,listed,656876.0,Drew Rasmussen,listed
+824305,2026-09-17,2026-09-17T19:10:00Z,Pre-Game,19,Coors Field,day,N,115,Colorado Rockies,True,135,San Diego Padres,685299.0,Tanner Gordon,listed,650633.0,Michael King,listed
+824305,2026-09-17,2026-09-17T19:10:00Z,Pre-Game,19,Coors Field,day,N,135,San Diego Padres,False,115,Colorado Rockies,650633.0,Michael King,listed,685299.0,Tanner Gordon,listed
 823573,2026-09-17,2026-09-17T23:15:00Z,Scheduled,3289,Citi Field,night,N,121,New York Mets,True,143,Philadelphia Phillies,690997.0,Nolan McLean,listed,605400.0,Aaron Nola,listed
 823573,2026-09-17,2026-09-17T23:15:00Z,Scheduled,3289,Citi Field,night,N,143,Philadelphia Phillies,False,121,New York Mets,605400.0,Aaron Nola,listed,690997.0,Nolan McLean,listed
 824141,2026-09-17,2026-09-17T23:15:00Z,Scheduled,2392,Daikin Park,night,N,117,Houston Astros,True,118,Kansas City Royals,699044.0,Miguel Ullola,projected,607625.0,Seth Lugo,listed

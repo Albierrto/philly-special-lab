@@ -334,13 +334,20 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   #k-verdict table.mini{table-layout:fixed;width:100%}
   #k-verdict table.mini th,#k-verdict table.mini td{padding:6px 4px;font-size:12px;white-space:nowrap}
   #k-verdict table.mini td.l{white-space:normal} #k-verdict td .sub{white-space:normal;line-height:1.3}
-  #k-verdict table.mini th:nth-child(1),#k-verdict table.mini td:nth-child(1){display:none}
-  #k-verdict table.mini th:nth-child(2){width:36%} #k-verdict table.mini th:nth-child(3){width:20%}
-  #k-verdict table.mini th:nth-child(7){width:30%} #k-verdict table.mini th:nth-child(8){width:14%}
+  #k-verdict table.mini:not(.posgrid) th:nth-child(1),#k-verdict table.mini:not(.posgrid) td:nth-child(1){display:none}
+  #k-verdict table.mini:not(.posgrid) th:nth-child(2){width:36%} #k-verdict table.mini:not(.posgrid) th:nth-child(3){width:20%}
+  #k-verdict table.mini:not(.posgrid) th:nth-child(7){width:30%} #k-verdict table.mini:not(.posgrid) th:nth-child(8){width:14%}
+  /* the position table keeps the column that names the row, and the three that explain the credit */
+  #k-verdict table.posgrid th:nth-child(2),#k-verdict table.posgrid td:nth-child(2),
+  #k-verdict table.posgrid th:nth-child(3),#k-verdict table.posgrid td:nth-child(3),
+  #k-verdict table.posgrid th:nth-child(4),#k-verdict table.posgrid td:nth-child(4),
+  #k-verdict table.posgrid th:nth-child(5),#k-verdict table.posgrid td:nth-child(5){display:none}
+  #k-verdict table.posgrid th:nth-child(1){width:20%} #k-verdict table.posgrid th:nth-child(6){width:30%}
+  #k-verdict table.posgrid th:nth-child(7){width:22%} #k-verdict table.posgrid th:nth-child(8){width:28%}
   #k-verdict table.mini th{white-space:normal;line-height:1.2}
-  #k-verdict table.mini th:nth-child(4),#k-verdict table.mini td:nth-child(4),
-  #k-verdict table.mini th:nth-child(5),#k-verdict table.mini td:nth-child(5),
-  #k-verdict table.mini th:nth-child(6),#k-verdict table.mini td:nth-child(6){display:none}
+  #k-verdict table.mini:not(.posgrid) th:nth-child(4),#k-verdict table.mini:not(.posgrid) td:nth-child(4),
+  #k-verdict table.mini:not(.posgrid) th:nth-child(5),#k-verdict table.mini:not(.posgrid) td:nth-child(5),
+  #k-verdict table.mini:not(.posgrid) th:nth-child(6),#k-verdict table.mini:not(.posgrid) td:nth-child(6){display:none}
   #k-verdict .yrs{display:block;font-family:var(--font-m);font-size:10px;line-height:1.3;color:var(--ink3);font-weight:400;margin-top:1px;white-space:normal}
   #k-real-block table.mini{table-layout:fixed;width:100%}
   #k-real-block table.mini th,#k-real-block table.mini td{padding:8px 5px;font-size:12.5px;white-space:nowrap}
@@ -770,8 +777,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260917T1524"></script>
-<script src="data/streamers.js?v=20260917T1524"></script>
+<script src="data/lab.js?v=20260917T1649"></script>
+<script src="data/streamers.js?v=20260917T1649"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1774,11 +1781,24 @@ function renderVerdict(V, o){
   };
   const rp0 = Object.entries(V.replPos||{}).filter(([p])=>p!=='UT'), deep0 = Math.max(...rp0.map(([,v])=>v));
   const scarceLine = rp0.map(([p,v])=>[p, Math.round(deep0-v)]).sort((a,b)=>b[1]-a[1]).map(([p,d])=>`${p} +${d}`).join(', ');
+  // why two positions that feel nothing alike can earn the same credit
+  const pt = (V.posTable||[]).slice(); const deepR = Math.max(...pt.map(x=>x.rep), 0);
+  const dedKeys = Object.keys(V.replPos||{}).filter(k=>k!=='UT');
+  const deepP = dedKeys.length ? Math.max(...dedKeys.map(k=>V.replPos[k])) : 0;   // the credit exactly as the board applies it
+  const lgAvg = pt.length ? pt.reduce((a,x)=>a+x.avg*x.slots,0)/pt.reduce((a,x)=>a+x.slots,0) : 0;
+  const sgn0 = v => (v>=0?'+':'\u2212')+Math.round(Math.abs(v));
+  const posBlock = !pt.length ? '' : `<details style="margin-top:10px"><summary>Why a position earns what it earns</summary>
+    <p class="hint" style="margin:8px 0">Two different things get confused here. <b>Strength</b> is how good the men you actually roster at a spot are. <b>Replacement</b> is how good the next man off the pile is. Only replacement is owed a credit: a strong position is one full of men whose own projections are already high, and paying them again for it would count the same goodness twice. That is why the credit can be level between two spots that feel nothing alike.</p>
+    <div class="tblwrap" style="max-height:none"><table class="mini kbig posgrid"><thead><tr><th class="l">Pos</th><th>Slots</th><th>Best</th><th title="mean projection of the men who fill this spot across all ${TEAMS} lineups">Starters avg</th><th title="strength: starters average against the league-wide starter average">Strength</th><th title="mean of the best five men left once every lineup is full">Replacement</th><th title="how far the last startable man sits above replacement: how hard you fall if yours goes down">Cliff</th><th>Credit</th></tr></thead><tbody>
+    ${pt.slice().sort((a,b)=>a.rep-b.rep).map(x=>`<tr><td class="l"><b>${x.pos}</b></td><td>${x.slots}</td><td>${Math.round(x.best)}</td><td>${Math.round(x.avg)}</td><td class="${x.avg>=lgAvg?'':'neg'}">${sgn0(x.avg-lgAvg)}</td><td>${Math.round(x.rep)}</td><td>${Math.round(x.cliff)}</td><td><b>+${Math.round(deepP - (V.replPos[x.pos] ?? deepP))}</b></td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="hint" style="margin:8px 0 0"><b>Cliff</b> is the one thing the credit does not carry: it is how far the last startable man at a spot sits above what you would stream in, so it is the damage if yours goes down mid-season, not the value of keeping him.</p></details>`;
   const tight = (list,n) => list[n-1] && list[n] ? Math.round(list[n-1].DV_c - list[n].DV_c) : null;
   const th = tight(hs,HKEEP), tp = tight(ps,PKEEP);
   const warn = [th!=null&&th<25?`the fifth hitter slot is ${th} points from the sixth man`:'', tp!=null&&tp<25?`the ${PKEEP===2?'second':'last'} pitcher slot is ${tp} points from the next arm`:''].filter(Boolean);
   $('#k-verdict').innerHTML = `<div class="dcard w12"><h3>The ${HKEEP+PKEEP} ${esc(teamLabel(o))} would keep <small>${HKEEP} hitters and ${PKEEP} pitchers</small></h3>
     <p class="hint">Everything here is one number: points above a <b>replacement starter</b>, counted in full for 2027, then 60% of 2028 and 35% of 2029. That is why a young man beats an older one they project level on next year. Replacement is worked out <b>per position</b> by filling all ${TEAMS} lineups the best way they can be filled, then averaging the best five men left over at each spot, so a scarce position is credited: ${scarceLine}. Those are points over the deepest spot on the field. The green figure beside a hitter is his: it moves a whole position at once and never reorders men inside one, so it settles bubble cases and leaves the obvious ones alone.</p>
+    ${posBlock}
     ${block(hs, HKEEP, 'h')}${block(ps, PKEEP, 'p')}
     <p class="hint">${warn.length ? `Close: ${warn.join('; ')}. The \u00b1 on a 2027 projection is the model's own out-of-fold error, so a gap smaller than that is not a real ordering \u2014 treat those as a tie and pick on what you believe about the player.` : `The \u00b1 on a 2027 projection is the model's own out-of-fold error. A gap smaller than that is not a real ordering.`}</p></div>`;
   $$('#k-verdict td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
@@ -2186,6 +2206,29 @@ function computeValues(){
     return out;
   })();
   const replOf = r => Math.min(...slotsOf(r).map(p=> replPos[p] ?? replPos.UT));
+  // the credit is one number, but it is built from two different things and people reasonably want to see both:
+  // how good the men you actually roster at a spot are (STRENGTH), and how good the next man off the pile is
+  // (REPLACEMENT). Only the second one is owed a credit — a strong position is a position full of men whose own
+  // projections are already high, and paying them again for it would count the same goodness twice.
+  const posTable = (()=>{
+    const cap = {UT: TEAMS*UTIL}; Object.keys(DED).forEach(k=>cap[k]=TEAMS*DED[k]);
+    const occ = {}; Object.keys(cap).forEach(t=>occ[t]=[]);
+    const at = new Map();
+    const aug = (r, seen) => { for (const t of slotsOf(r)){ if(seen.has(t)) continue; seen.add(t);
+        if (occ[t].length < cap[t]){ occ[t].push(r); at.set(r,t); return true; }
+        for (const o of occ[t].slice()){ if (aug(o, seen)){ occ[t].splice(occ[t].indexOf(o),1); occ[t].push(r); at.set(r,t); return true; } } }
+      return false; };
+    for (const r of hs) aug(r, new Set());
+    const rest = hs.filter(r=>!at.has(r));
+    return Object.keys(DED).map(p=>{
+      const filled = (occ[p]||[]).map(r=>r.proj_pts).sort((a,b)=>b-a);
+      const avg = filled.length ? filled.reduce((a,b)=>a+b,0)/filled.length : 0;
+      const worst = filled.length ? filled[filled.length-1] : 0;
+      const left = rest.filter(r=>posOf(r).includes(p)).slice(0,5).map(r=>r.proj_pts);
+      const rep = left.length ? left.reduce((a,b)=>a+b,0)/left.length : replH;
+      return {pos:p, slots:cap[p], best:filled[0]||0, avg, worst, rep, cliff: worst-rep};
+    });
+  })();
   const deepest = Math.max(...Object.keys(DED).map(p=>replPos[p]));
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
     const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
@@ -2218,7 +2261,7 @@ function computeValues(){
   const picks = [null]; for (let k=1; k<=TEAMS*15; k++){ const model = Math.max(0, avail[k-1]?.par ?? 0), mdv = Math.max(0, avail[k-1]?.dv ?? 0); const h = +(hist[Math.min(k, hmax)] ?? 0);
     picks[k] = {k, round: Math.floor((k-1)/TEAMS)+1, slot: ((k-1)%TEAMS)+1, model:+model.toFixed(1), hist:+h.toFixed(1), model_dv:+mdv.toFixed(1), hist_dv:+(h*RAT).toFixed(1),
                 value:+(0.5*mdv + 0.5*h*RAT).toFixed(1), value_1yr:+(0.5*model + 0.5*h).toFixed(1), best: avail[k-1]?.name||'', bestKind: avail[k-1]?.kind}; }
-  VAL = {cur, pc, replH, replP, replPos, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
+  VAL = {cur, pc, replH, replP, replPos, posTable, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
   // ---- keep-or-draft: what a keeper slot is worth over spending that team's first pick on the best man left.
   // One number on the three-year scale, so the verdict on the Keepers tab cannot contradict the keep pill beside it.
   const first = {}; Object.keys({...byO, ...pByO}).forEach(o=>{
@@ -2467,6 +2510,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260917T1524"></script>
+<script src="live.js?v=20260917T1649"></script>
 </body>
 </html>
