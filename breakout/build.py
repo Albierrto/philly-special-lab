@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from . import sources
-from .config import SEASONS
+from .config import DATA, SEASONS
 from .names import key
 from .scoring import hitting_points
 
@@ -142,6 +142,35 @@ def player_seasons(seasons=SEASONS, scoring: dict | None = None) -> pd.DataFrame
     allp["pts_pa"] = allp["pts"] / allp["PA"].replace(0, np.nan)
     allp["final_hitter_rank"] = allp.groupby("season")["pts"].rank(ascending=False, method="min").astype(int)
     allp["elig"] = allp.apply(_elig, axis=1)
+    allp = _fantrax_elig(allp)
+    return allp
+
+
+def _fantrax_elig(allp: pd.DataFrame) -> pd.DataFrame:
+    """Take eligibility from Fantrax for the current season, because Fantrax's rule is the one the league plays by.
+
+    Deriving it from 20+ games at a spot THIS season is stricter than what Fantrax grants, and the error is entirely
+    one-sided: checked against their own export for 446 hitters, this code was never wrong about a position it gave,
+    and was missing 170 that Fantrax grants (2B 47, 3B 36, 1B 36, SS 25, OF 21, C 5). Undercounting a position's pool
+    makes it read scarcer than it is, which fed straight into the keeper credits.
+    """
+    import re as _re
+    cur_season = max(SEASONS)
+    raw = DATA / "fantrax" / f"hitters_{cur_season}_raw.txt"
+    if not raw.exists():
+        return allp
+    POS = ("C", "1B", "2B", "3B", "SS", "OF")
+    recs = _re.findall(r"([A-Z][^|]{2,40}?)\|([A-Z0-9B,]+)\|([A-Z]{2,3})\|(\d+)\|", raw.read_text(encoding="utf-8", errors="replace"))
+    fx = {}
+    for name, pos, _tm, _rk in recs:
+        e = [p for p in POS if p in pos.split(",")]
+        if e:
+            fx.setdefault(key(name), "/".join(e))
+    if not fx:
+        return allp
+    cur = allp["season"] == cur_season
+    hit = allp.loc[cur, "name"].apply(key).map(fx)
+    allp.loc[cur, "elig"] = hit.where(hit.notna(), allp.loc[cur, "elig"])
     return allp
 
 
