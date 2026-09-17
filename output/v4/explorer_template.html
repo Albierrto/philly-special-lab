@@ -2011,7 +2011,7 @@ function renderToday(){
   const lu = bestLineup(mine, day); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
   const posted = mine.filter(r=>r.lineup!=null).length;
   const nLockNow = locksOn(day);
-  $('#today-sub').innerHTML = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster · ${tot.toFixed(1)} expected points${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}
+  $('#today-sub').innerHTML = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}
     <b style="display:block;margin-top:4px;color:var(--ink2);font-weight:500">This is a recommendation — <span class="lockb" style="pointer-events:none">lock in</span> or <span class="lockb" style="pointer-events:none">sit</span> anyone and the rest re-solves around your call${nLockNow?`. ${nLockNow} override${nLockNow>1?'s':''} set for ${dayWord(day).toLowerCase()}`:''}.</b>`;
   const btn = (id, want, on, label, tip) => `<button class="lockb${on?' on':''}" data-lock="${id}" data-want="${want}" title="${esc(tip)}">${label}</button>`;
   const lockBtn = (r, where) => { const st = lockOf(day, r.mlbam_id), id = r.mlbam_id;
@@ -2022,10 +2022,17 @@ function renderToday(){
   const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)} ${lockBtn(r,'lineup')}</div><div class="mu">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} · ${esc(r.local_start||'')} ${stateChip(r.gamePk)}</div><div class="why">${whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>'}</div></div><div class="exp">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`
                               : `<div class="slotrow open"><div class="slot">${sl}</div><span class="ava" style="--tc:var(--panel3)">–</span><div><div class="nm">Open spot</div><div class="mu">nobody eligible on your roster with a game</div></div><div class="exp">0.0<small>expected</small></div></div>`;
   const ORDER = {C:0,'1B':1,'2B':2,'3B':3,SS:4,OF:5,UT:6}; const luShow = lu.slice().sort((a,b)=>ORDER[a[0]]-ORDER[b[0]]);
-  let cards = `<div class="dcard w8"><h3>Your lineup <small>${dayWord(day)} · best ten by expected points</small></h3><div class="bigstat"><b>${tot.toFixed(1)}</b><span>expected points from these ten</span></div>${luShow.map(([sl,r])=>slotRow(sl,r)).join('')}</div>`;
-  // pitchers today + the week's start count
+  // the day's points are bats plus arms; the lineup card only ever showed the bats, which is not what you score
   const myStartsWeek = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts);
   const todayStarts = myStartsWeek.filter(r=>r.date===day);
+  const pTot = todayStarts.reduce((a,r)=>a+(r.exp_pts||0), 0), dayTot = tot + pTot;
+  let cards = `<div class="ptsband" style="grid-column:1/-1;margin:0">
+    <div class="big">${dayTot.toFixed(1)}<small>expected ${dayWord(day).toLowerCase()}</small></div>
+    <div class="sp">${tot.toFixed(1)}<small>hitters <em>${lu.filter(x=>x[1]).length} of 10</em></small></div>
+    <div class="sp">${pTot.toFixed(1)}<small>pitchers <em>${todayStarts.length} start${todayStarts.length===1?'':'s'}</em></small></div>
+    ${todayStarts.length ? '' : '<div class="sp"><em style="font-size:13px">no arm going today, so the total is bats only</em></div>'}</div>`;
+  cards += `<div class="dcard w8"><h3>Your lineup <small>${dayWord(day)} · best ten by expected points</small></h3><div class="bigstat"><b>${tot.toFixed(1)}</b><span>from these ten bats${pTot?` · ${pTot.toFixed(1)} more from ${todayStarts.length} start${todayStarts.length===1?'':'s'}, ${dayTot.toFixed(1)} on the day`:''}</span></div>${luShow.map(([sl,r])=>slotRow(sl,r)).join('')}</div>`;
+  // pitchers today + the week's start count
   const keep = new Set(myStartsWeek.slice(0,10).map(r=>r.mlbam_id+'|'+r.date));
   cards += `<div class="dcard w4"><h3>Your arms <small>${dayWord(day).toLowerCase()}</small></h3>${todayStarts.length ? todayStarts.map(r=>`<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)}${r.sp_source==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}${!keep.has(r.mlbam_id+'|'+r.date)?' <span class="pill w" title="one of the starts to skip if you are over the 10-start cap">skip?</span>':''}</div><div class="sub">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${esc(r.local_start||'')} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`).join('') : '<p class="hint">None of your starters is scheduled.</p>'}
     <div class="bigstat" style="margin-top:12px"><b>${myStartsWeek.length}</b><span>starts on your roster this week · cap is 10${myStartsWeek.length>10?` · skip the ${myStartsWeek.length-10} weakest (marked)`:''}</span></div>
