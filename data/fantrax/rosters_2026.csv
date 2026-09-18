@@ -82,7 +82,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 03btv,Sandy Alcantara,MIA,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 05mru,Thomas Saggese,STL,2B,2B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 02mwm,Matt Olson,ATL,1B,1B,RESERVE,MMM,Midwest MooseKnuckle Mafia
-04y44,Josh Jung,TEX,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+04y44,Josh Jung,TEX,3B,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05gx4,Dillon Dingler,DET,C,C,RESERVE,MMM,Midwest MooseKnuckle Mafia
 04355,Yordan Alvarez,HOU,LF,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 03qyv,Jake McCarthy,COL,LF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
@@ -90,15 +90,15 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 03pir,Kyle Tucker,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01uca,Chris Sale,ATL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 061yu,Jacob Misiorowski,MIL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-01spo,Gerrit Cole,NYY,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
-03e5m,Bryan Reynolds,PIT,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-061zv,Josue De Paula,LAD,RF,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+01spo,Gerrit Cole,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+03e5m,Bryan Reynolds,PIT,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
+061zv,Josue De Paula,LAD,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
 045qo,Jazz Chisholm Jr.,NYY,2B,2B,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
-01ub6,Jose Ramirez,CLE,3B,3B,RESERVE,MMM,Midwest MooseKnuckle Mafia
+01ub6,Jose Ramirez,CLE,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 04ps7,Joe Ryan,MIN,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 01cgo,Freddie Freeman,LAD,1B,1B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-05144,Hunter Brown,HOU,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-02z0s,Aaron Judge,NYY,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
+05144,Hunter Brown,HOU,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
+02z0s,Aaron Judge,NYY,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05u6q,Cam Schlittler,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05udp,Elly De La Cruz,CIN,SS,SS,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 02hjp,Jacob deGrom,TEX,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
@@ -127,18 +127,18 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 042sz,Will Smith,LAD,C,UT,RESERVE,LTTA,Let’s try this again
 03120,Cody Bellinger,NYY,LF,OF,ACTIVE,LTTA,Let’s try this again
 01ut7,Nathan Eovaldi,TEX,SP,SP,INJURED_RESERVE,LTTA,Let’s try this again
-03poo,Peter Lambert,HOU,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
+03poo,Peter Lambert,HOU,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04ru7,Miguel Vargas,CHW,3B,3B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 01sb3,Zack Wheeler,PHI,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 05m49,Jung Hoo Lee,SF,CF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 0514f,Hayden Wesneski,HOU,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04yid,Ryne Nelson,ARI,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04cd5,MacKenzie Gore,TEX,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-060i2,Jake Bennett,BOS,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+060i2,Jake Bennett,BOS,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 041vt,Samad Taylor,SD,2B,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04y97,Kyle Stowers,MIA,LF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 03yrz,William Contreras,MIL,C,C,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-040b5,Randy Arozarena,SEA,LF,UT,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
+040b5,Randy Arozarena,SEA,LF,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04eee,Drew Rasmussen,TB,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 051wv,Pete Crow-Armstrong,CHC,CF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 060x1,Wilyer Abreu,BOS,RF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
@@ -148,7 +148,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 03mew,Luis Arraez,PHI,1B,2B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04e2u,Brent Rooker,ATH,DH,UT,INJURED_RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04ee8,Heliot Ramos,NYY,LF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-041qb,Bo Bichette,NYM,SS,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+041qb,Bo Bichette,NYM,SS,UT,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 05yby,Kevin McGonigle,DET,SS,SS,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04c0o,Jose Soriano,TOR,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 067yc,Leo De Vries,ATH,SS,UT,MINORS,Dan,Some Ting Wong
@@ -295,14 +295,14 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 06gwk,Payton Tolle,BOS,RP,SP,RESERVE,BB,Basketball
 067yn,Seth Hernandez,PIT,SP,SP,MINORS,BB,Basketball
 02yc4,Shohei Ohtani,LAD,DH,UT,INJURED_RESERVE,BB,Basketball
-04fhb,Julio Rodriguez,SEA,CF,OF,RESERVE,BB,Basketball
+04fhb,Julio Rodriguez,SEA,CF,UT,ACTIVE,BB,Basketball
 04lgp,Bobby Witt Jr.,KC,SS,SS,ACTIVE,BB,Basketball
 04n0m,Logan Gilbert,SEA,SP,SP,ACTIVE,BB,Basketball
 05rat,James Wood,WSH,LF,OF,ACTIVE,BB,Basketball
 05u9o,Sal Stewart,CIN,1B,3B,ACTIVE,BB,Basketball
 03df2,Dylan Cease,TOR,SP,SP,ACTIVE,BB,Basketball
 05rcw,Leo Bernal,STL,C,C,RESERVE,BB,Basketball
-02mw6,Corey Seager,TEX,SS,UT,ACTIVE,BB,Basketball
+02mw6,Corey Seager,TEX,SS,SS,RESERVE,BB,Basketball
 05y62,Bryan Woo,SEA,SP,SP,ACTIVE,BB,Basketball
 05uo2,Logan Henderson,MIL,SP,SP,RESERVE,BB,Basketball
 03zbh,Fernando Tatis Jr.,SD,RF,OF,ACTIVE,BB,Basketball
