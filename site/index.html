@@ -780,8 +780,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260918T0337"></script>
-<script src="data/streamers.js?v=20260918T0337"></script>
+<script src="data/lab.js?v=20260918T0342"></script>
+<script src="data/streamers.js?v=20260918T0342"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1935,7 +1935,7 @@ const initials = n => (n||'').split(' ').filter(x=>x && !/^(jr|sr|ii|iii)\.?$/i.
 // MLB's image host. A man with no photo there 404s, the image takes itself off the page, and the initials show
 // through: no broken frame, no grey silhouette, and a prospect with no MLB id never asks for one.
 const FACES = D.faces || {};
-const headshot = id => FACES[id] || `https://img.mlbstatic.com/mlb-photos/image/upload/w_144,h_144,c_fill,g_face,q_auto:good,f_jpg/v1/people/${id}/headshot/67/current`;
+const MLB_HEAD = id => `https://img.mlbstatic.com/mlb-photos/image/upload/w_144,h_144,c_fill,g_face,q_auto:good,f_jpg/v1/people/${id}/headshot/67/current`;
 // an image that cannot load takes itself off the page so the initials underneath show. This is a delegated
 // capturing listener rather than an onerror attribute because a page served under a strict content policy can
 // refuse inline handlers, and the fallback is exactly the thing that must not depend on being allowed to run.
@@ -1943,7 +1943,11 @@ document.addEventListener('error', e => { const t = e.target;
   if (t && t.tagName === 'IMG' && t.parentElement && t.parentElement.classList.contains('ava')) t.remove(); }, true);
 const ava = (name, team, size, id) => { const z = size || 32;
   const st = `--tc:${teamColor(team)};width:${z}px;height:${z}px;font-size:${Math.round(z*.36)}px`;
-  return `<span class="ava${id?' hasimg':''}" style="${st}" title="${esc(abbrOf(team))}">${esc(initials(name))}${id?`<img src="${headshot(id)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:''}</span>`; };
+  if (!id) return `<span class="ava" style="${st}" title="${esc(abbrOf(team))}">${esc(initials(name))}</span>`;
+  // only the fetched ones are lazy. An inlined face costs nothing to decode and deferring it means a tab that is
+  // not in front never paints it at all, which is exactly where this was showing empty circles.
+  const inl = FACES[id];
+  return `<span class="ava hasimg" style="${st}" title="${esc(abbrOf(team))}">${esc(initials(name))}<img src="${inl || MLB_HEAD(id)}" alt=""${inl ? '' : ' loading="lazy"'} decoding="async"></span>`; };
 function pband(name, team, sub, chips=[], id){ return `<div class="pband" style="--tc:${teamColor(team)}">${ava(name, team, 56, id)}<div><h2>${esc(name)}</h2><div class="hint">${sub}</div>${chips.length?`<div class="taglist" style="margin:6px 0 0">${chips.join(' ')}</div>`:''}</div></div>`; }
 
 // ---------- theme + settings + navigation
@@ -2571,6 +2575,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBrea
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260918T0337"></script>
+<script src="live.js?v=20260918T0342"></script>
 </body>
 </html>
