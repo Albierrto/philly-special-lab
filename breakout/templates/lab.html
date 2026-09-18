@@ -154,6 +154,9 @@ td.neg{color:var(--cold)}
 .row .val{font-family:var(--font-m);font-size:14.5px;font-weight:600;text-align:right}
 .row .val small{display:block;font-weight:400;color:var(--ink3);font-size:11px}
 .ava{width:32px;height:32px;border-radius:50%;background:var(--tc,var(--panel3));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:12px;letter-spacing:.02em;flex:0 0 auto;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
+/* the photo covers the initials rather than replacing them, so if it never loads the circle still reads */
+.ava.hasimg{position:relative;overflow:hidden}
+.ava.hasimg img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;background:var(--tc)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:10px 0}
 .ptsband{display:flex;align-items:flex-end;gap:clamp(10px,3vw,26px);flex-wrap:wrap;padding:14px 16px;margin:12px 0 4px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
 .ptsband .big{font-family:var(--font-d);font-size:clamp(30px,6vw,42px);line-height:1;font-weight:700}
@@ -1130,7 +1133,7 @@ function hitterSection(id, sub=false){
   const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `${esc(last.elig||'')} · ${esc(last.team_abbr||'')} · bats ${esc(last.bats||'?')} · age ${last.age} · owner ${esc(last.owner||'–')}${last.prospect_status?' · '+esc(last.prospect_status):''}${last.pipeline_rank?' · Pipeline #'+last.pipeline_rank:''}`;
   const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
-  const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips);
+  const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
     ${ptsBand(id, 'h', last.pts_c, last.rank_c)}
     <div class="kpis">${kp('Above repl.', Math.round(last.LPAR_c))}${kp('Luck', last.luck_c==null?'–':(last.luck_c>=0?'+':'')+Math.round(last.luck_c))}${pj}</div>
@@ -1148,7 +1151,7 @@ function hitterSection(id, sub=false){
 // ---------- prospect card (TJStats-style)
 const LVL_ORDER = {MLB:0, AAA:1, AA:2, 'A+':3, A:4};
 function prospectHeader(p){
-  return pband(p.name, (p.prospect_org||'').toUpperCase(), `${esc(p.prospect_pos||'')} · ${esc((p.prospect_org||'').toUpperCase())} · age ${p.age} · owner ${esc(p.owner||'–')} · ${esc(p.prospect_status||'')}${p.pipeline_rank?' · Pipeline #'+p.pipeline_rank:''}${p.rookie_eligible?' · rookie-eligible':''}`);
+  return pband(p.name, (p.prospect_org||'').toUpperCase(), `${esc(p.prospect_pos||'')} · ${esc((p.prospect_org||'').toUpperCase())} · age ${p.age} · owner ${esc(p.owner||'–')} · ${esc(p.prospect_status||'')}${p.pipeline_rank?' · Pipeline #'+p.pipeline_rank:''}${p.rookie_eligible?' · rookie-eligible':''}`, [], p.mlbam_id);
 }
 function prospectSection(id, primary){
   const p = PROS_BY_ID[id] || {}; const lines = (PLINES[id]||[]).slice().sort((a,b)=>(a.season-b.season)||((LVL_ORDER[a.level]??9)-(LVL_ORDER[b.level]??9))); const sc = (PSC[id]||[]).slice().sort((a,b)=>a.season-b.season);
@@ -1178,7 +1181,7 @@ function pitcherSection(id, sub){
   const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `SP · ${esc(last.throws||'')}HP · ${esc(last.team||'')} · age ${last.age} · owner ${esc(last.owner||'–')}`;
   const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
-  const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips);
+  const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
     ${ptsBand(id, 'p', last.pts_c, last.rank_c)}
     <div class="kpis">${kp('Pitching+', last.pitching_plus?.toFixed(0)??'–')}${kp('Stuff+', last.stuff_plus?.toFixed(0)??'–')}${kp('Location+', last.location_plus?.toFixed(0)??'–')}${pj}</div>
@@ -1424,17 +1427,28 @@ function _assign(cost, n, m){            // minimise; returns col -> row (1-inde
 const SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','UT','UT'];   // display order; the solver does not care
 function bestLineup(rows, date){
   const day = date || (rows[0] && rows[0].date);
-  const cand = rows.filter(r => r.lineup !== 0 && lockOf(day, r.mlbam_id) !== 'bench');
+  // Your call beats every reason the model has to leave a man out, with no exceptions. The model sits people for
+  // four different reasons and each one of them can be wrong on the day: the Fantrax sync says IL when he was
+  // activated this morning, the lineup card had not gone up when the data was built, his eligibility string is a
+  // day behind, or there is simply no game row for him. You are looking at the real thing and the model is looking
+  // at a file, so a lock is final: it overrides the IL flag, the lineup card, the missing row and eligibility.
+  const cand = rows.filter(r => { const st = lockOf(day, r.mlbam_id);
+    if (st === 'bench') return false;                      // you sat him, and that is the end of it
+    if (st === 'start') return true;                       // you started him, and that is also the end of it
+    return r.lineup !== 0 && r.active !== 0; });
   const n = SLOTS.length, P = cand.length, m = P + n;     // n dummy columns so a slot can always sit empty at no cost
-  const BIG = 1e7, LOCK_BONUS = 1e5;
+  const BIG = 1e7, LOCK_BONUS = 1e5, OFF_POS = 1e3;
   const cost = Array.from({length:n+1}, ()=>new Array(m+1).fill(0));
   for (let i=1; i<=n; i++){
     const sl = SLOTS[i-1];
     for (let j=1; j<=P; j++){
       const r = cand[j-1];
-      if (!eligIn(r, sl)) { cost[i][j] = BIG; continue; }
-      // a man you locked in must be placed, so his value is made unbeatable rather than merely large
-      cost[i][j] = -(r.exp_pts + (lockOf(day, r.mlbam_id) === 'start' ? LOCK_BONUS : 0));
+      const forced = lockOf(day, r.mlbam_id) === 'start', fits = eligIn(r, sl);
+      if (!fits && !forced) { cost[i][j] = BIG; continue; }
+      // a man you locked in must be placed, so his value is made unbeatable rather than merely large. Out of
+      // position he is still seated, just last: OFF_POS is far smaller than LOCK_BONUS, so he lands at a spot he
+      // is eligible for whenever one is free and only takes a foreign slot when nothing else is left.
+      cost[i][j] = -((r.exp_pts || 0) + (forced ? LOCK_BONUS - (fits ? 0 : OFF_POS) : 0));
     }
     for (let j=P+1; j<=m; j++) cost[i][j] = 0;            // empty slot
   }
@@ -1455,7 +1469,7 @@ function renderMyWeek(){
   // come. Sizing the bar off myStarts[9] over the whole week compared a Sunday pickup against a Monday start he can
   // never get, so the bar is now the worst start you would still use out of the slots you have left.
   const TDY = localISO();
-  const mine = SHD.filter(r=>r.owner===MY && r.active!==0); const myStarts = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts);
+  const mine = SHD.filter(r=>r.owner===MY); const myStarts = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts);
   const thrown = myStarts.filter(r=>r.date < TDY), ahead = myStarts.filter(r=>r.date >= TDY);
   const slotsLeft = Math.max(0, 10 - thrown.length);
   const faStarts = SPS.filter(r=>isFA(r.owner) && r.active!==0 && r.sp_source!=='replaced' && goodRole(r) && r.date >= TDY).sort((a,b)=>b.exp_pts-a.exp_pts);
@@ -1905,8 +1919,21 @@ const TEAM_NAME_ABBR = {'Arizona Diamondbacks':'ARI','Athletics':'ATH','Oakland 
 const abbrOf = t => !t ? '' : (TEAM_COLORS[t] ? t : (TEAM_NAME_ABBR[t] || (t.length<=3 ? t : t.split(' ').pop().slice(0,3).toUpperCase())));
 const teamColor = t => TEAM_COLORS[abbrOf(t)] || '#33415C';
 const initials = n => (n||'').split(' ').filter(x=>x && !/^(jr|sr|ii|iii)\.?$/i.test(x)).map(x=>x[0]).slice(0,2).join('').toUpperCase();
-const ava = (name, team, size) => `<span class="ava" style="--tc:${teamColor(team)}${size?`;width:${size}px;height:${size}px;font-size:${Math.round(size*.36)}px`:''}" title="${esc(abbrOf(team))}">${esc(initials(name))}</span>`;
-function pband(name, team, sub, chips=[]){ return `<div class="pband" style="--tc:${teamColor(team)}">${ava(name, team, 56)}<div><h2>${esc(name)}</h2><div class="hint">${sub}</div>${chips.length?`<div class="taglist" style="margin:6px 0 0">${chips.join(' ')}</div>`:''}</div></div>`; }
+// The circle is his initials in his club's colour; his face sits on top of it. Rostered players carry their photo
+// inside the build (see breakout/faces.py) so it shows with no network at all, and everyone else is fetched from
+// MLB's image host. A man with no photo there 404s, the image takes itself off the page, and the initials show
+// through: no broken frame, no grey silhouette, and a prospect with no MLB id never asks for one.
+const FACES = D.faces || {};
+const headshot = id => FACES[id] || `https://img.mlbstatic.com/mlb-photos/image/upload/w_144,h_144,c_fill,g_face,q_auto:good,f_jpg/v1/people/${id}/headshot/67/current`;
+// an image that cannot load takes itself off the page so the initials underneath show. This is a delegated
+// capturing listener rather than an onerror attribute because a page served under a strict content policy can
+// refuse inline handlers, and the fallback is exactly the thing that must not depend on being allowed to run.
+document.addEventListener('error', e => { const t = e.target;
+  if (t && t.tagName === 'IMG' && t.parentElement && t.parentElement.classList.contains('ava')) t.remove(); }, true);
+const ava = (name, team, size, id) => { const z = size || 32;
+  const st = `--tc:${teamColor(team)};width:${z}px;height:${z}px;font-size:${Math.round(z*.36)}px`;
+  return `<span class="ava${id?' hasimg':''}" style="${st}" title="${esc(abbrOf(team))}">${esc(initials(name))}${id?`<img src="${headshot(id)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:''}</span>`; };
+function pband(name, team, sub, chips=[], id){ return `<div class="pband" style="--tc:${teamColor(team)}">${ava(name, team, 56, id)}<div><h2>${esc(name)}</h2><div class="hint">${sub}</div>${chips.length?`<div class="taglist" style="margin:6px 0 0">${chips.join(' ')}</div>`:''}</div></div>`; }
 
 // ---------- theme + settings + navigation
 function setTheme(t){ if(t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); try{ localStorage.setItem('lab-theme', t||''); }catch(e){} }
@@ -1925,7 +1952,7 @@ $('#live-ind').addEventListener('click', ()=>{ if(window.refreshLive) window.ref
 const SEARCH_IDX = (()=>{ const m = new Map(); ROWS.filter(r=>r.season===CUR).forEach(r=>m.set('h'+r.mlbam_id, {id:r.mlbam_id, name:r.name, team:r.team_abbr, sub:`${r.elig||''} · ${Math.round(r.pts||0)} pts`, kind:'h'})); PROWS.filter(r=>r.season===CUR).forEach(r=>m.set('p'+r.mlbam_id, {id:r.mlbam_id, name:r.name, team:r.team, sub:`SP · ${Math.round(r.pts||0)} pts`, kind:'p'})); D.prospects.forEach(p=>{ if(!m.has('h'+p.mlbam_id)) m.set('h'+p.mlbam_id, {id:p.mlbam_id, name:p.name, team:(p.prospect_org||'').toUpperCase(), sub:`prospect · ${p.prospect_pos||''}`, kind:'h'}); }); return [...m.values()]; })();
 const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 (function buildSearch(){ const inp = $('#gsearch'), dd = $('#gsearch-dd'); let items=[];
-  function render(){ dd.innerHTML = items.map((x,i)=>`<button role="option" data-i="${i}">${ava(x.name,x.team,26)}<span>${esc(x.name)}</span><small>${esc(abbrOf(x.team))} · ${esc(x.sub)}</small></button>`).join(''); dd.classList.toggle('open', items.length>0);
+  function render(){ dd.innerHTML = items.map((x,i)=>`<button role="option" data-i="${i}">${ava(x.name,x.team,26,x.id)}<span>${esc(x.name)}</span><small>${esc(abbrOf(x.team))} · ${esc(x.sub)}</small></button>`).join(''); dd.classList.toggle('open', items.length>0);
     dd.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ const x=items[+b.dataset.i]; dd.classList.remove('open'); inp.value=''; (x.kind==='p'?openPitcherCard:openCard)(x.id); })); }
   inp.addEventListener('input', ()=>{ const q = fold(inp.value.trim()); if(q.length<2){ items=[]; render(); return; } items = SEARCH_IDX.filter(x=>fold(x.name).includes(q)).slice(0,8); render(); });
   inp.addEventListener('keydown', e=>{ if(e.key==='Enter' && items.length){ dd.querySelector('button').click(); } if(e.key==='Escape'){ items=[]; render(); } });
@@ -1945,8 +1972,8 @@ function renderDash(){
   const V = VAL || computeValues();
   const today = localISO(); const dates = [...new Set(SHD.map(r=>r.date))].sort(); const day = dates.find(d=>d>=today) || dates[0];
   $('#dash-asof').textContent = (SD ? `Built ${SD.meta.generated}` : `Built ${D.meta.generated}`) + (D.meta.owners_synced ? ` · Fantrax rosters synced ${fmtSync(D.meta.owners_synced)} (refreshes every morning)` : '');
-  const rowH = (r, val, sub2, extra='') => `<div class="row" data-h="${r.mlbam_id}">${ava(r.name, r.team_abbr||r.team, 32)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
-  const rowP = (r, val, sub2, extra='') => `<div class="row" data-p="${r.mlbam_id}">${ava(r.name, r.team, 32)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
+  const rowH = (r, val, sub2, extra='') => `<div class="row" data-h="${r.mlbam_id}">${ava(r.name, r.team_abbr||r.team, 32, r.mlbam_id)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
+  const rowP = (r, val, sub2, extra='') => `<div class="row" data-p="${r.mlbam_id}">${ava(r.name, r.team, 32, r.mlbam_id)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
   const tierP = t => t ? `<span class="pill ${t==='lock'?'r':t==='clear keep'?'g':t==='marginal'?'w':t==='surplus'?'b':'n'}">${esc(t)}</span>` : '';
   // worth more than the draft pool but outside this team's five and two: a trade chip, not a keeper
   const tierOf = (c, kept) => (!kept && c.KV_c > 0) ? 'surplus' : c.tier_c;
@@ -2067,23 +2094,41 @@ function renderToday(){
   if (!MY){ const owners = [...new Set([...Object.values(PROJ).map(p=>p.owner), ...Object.values(PPROJ).map(p=>p.owner)].filter(o=>o && !isFA(o)))].sort();
     $('#today-sub').textContent = 'This is the league view. Pick your Fantrax team and this page becomes your lineup for the day: who starts, who sits and why, and who on waivers beats them.';
     $('#today').innerHTML = `<div class="dcard w12" style="border-left:4px solid var(--accent)"><h3>Whose lineup? <small>pick your team once; this browser remembers it</small></h3><div class="dayseg" style="margin-top:6px">${owners.map(o=>`<button data-team="${esc(o)}">${esc(teamLabel(o))}</button>`).join('')}</div></div>
-      <div class="dcard w12"><h3>League view: best bats of the day <small>everyone, by expected points</small></h3><div class="rowlist">${SHD.filter(r=>r.date===day && r.active!==0 && r.lineup!==0).sort((a,b)=>b.exp_pts-a.exp_pts).slice(0,12).map(r=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} ${lineupPill(r)}</div><div class="sub">${esc(r.elig||'')} · ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${esc(r.opp_sp||'TBD')} ${r.opp_sp_throws||''} · ${isFA(r.owner)?'free agent':esc(r.owner)}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`).join('')}</div></div>`;
+      <div class="dcard w12"><h3>League view: best bats of the day <small>everyone, by expected points</small></h3><div class="rowlist">${SHD.filter(r=>r.date===day && r.active!==0 && r.lineup!==0).sort((a,b)=>b.exp_pts-a.exp_pts).slice(0,12).map(r=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${esc(r.name)} ${lineupPill(r)}</div><div class="sub">${esc(r.elig||'')} · ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${esc(r.opp_sp||'TBD')} ${r.opp_sp_throws||''} · ${isFA(r.owner)?'free agent':esc(r.owner)}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`).join('')}</div></div>`;
     $$('#today .row[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h))); $$('#today [data-team]').forEach(b=>b.addEventListener('click',()=>setTeam(b.dataset.team))); return; }
   const roster = [...new Map(SHD.filter(r=>r.owner===MY).map(r=>[r.mlbam_id, r])).values()];
-  const mine = SHD.filter(r=>r.owner===MY && r.active!==0 && r.date===day);
+  // everyone on the roster, IL flag and all, because you are allowed to start a man the sync thinks is hurt
+  const dayRows = SHD.filter(r=>r.owner===MY && r.date===day);
+  const have = new Set(dayRows.map(r=>r.mlbam_id));
+  // and a man with no game row at all today still gets seated if you say so; he is simply worth nothing on paper
+  const stubs = roster.filter(r=>!have.has(r.mlbam_id) && lockOf(day, r.mlbam_id)==='start')
+    .map(r=>({mlbam_id:r.mlbam_id, name:r.name, team:r.team, elig:r.elig, owner:MY, date:day, exp_pts:0, active:1, nogame:true}));
+  const mine = dayRows.concat(stubs);
   const lu = bestLineup(mine, day); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
   const posted = mine.filter(r=>r.lineup!=null).length;
   const nLockNow = locksOn(day);
   $('#today-sub').innerHTML = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}
-    <b style="display:block;margin-top:4px;color:var(--ink2);font-weight:500">This is a recommendation — <span class="lockb" style="pointer-events:none">lock in</span> or <span class="lockb" style="pointer-events:none">sit</span> anyone and the rest re-solves around your call${nLockNow?`. ${nLockNow} override${nLockNow>1?'s':''} set for ${dayWord(day).toLowerCase()}`:''}.</b>`;
+    <b style="display:block;margin-top:4px;color:var(--ink2);font-weight:500">This is a recommendation and you have the last word. <span class="lockb" style="pointer-events:none">start him</span> or <span class="lockb" style="pointer-events:none">sit</span> anyone on your roster and the other nine re-solve around it. A start you set stands over everything the model knows: the IL flag, the posted lineup card, his listed positions, even a day with no game on his schedule${nLockNow?`. ${nLockNow} override${nLockNow>1?'s':''} set for ${dayWord(day).toLowerCase()}`:''}.</b>`;
   const btn = (id, want, on, label, tip) => `<button class="lockb${on?' on':''}" data-lock="${id}" data-want="${want}" title="${esc(tip)}">${label}</button>`;
+  // both buttons on every man, everywhere. Whichever list he is in you can put him in or take him out, and
+  // clicking the state you already set clears it and hands the decision back to the model.
   const lockBtn = (r, where) => { const st = lockOf(day, r.mlbam_id), id = r.mlbam_id;
-    return where === 'lineup'
-      ? btn(id, st==='start'?'':'start', st==='start', st==='start'?'locked in':'lock in', st==='start'?'you locked him in — click to let the model decide again':'keep him in the lineup whatever the model wants')
-        + btn(id, st==='bench'?'':'bench', st==='bench', 'sit', 'take him out of today\u2019s lineup')
-      : btn(id, st==='start'?'':'start', st==='start', st==='start'?'locked in':'start him', 'put him in today\u2019s lineup whatever the model wants'); };
-  const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)} ${lockBtn(r,'lineup')}</div><div class="mu">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} · ${esc(r.local_start||'')} ${stateChip(r.gamePk)}</div><div class="why">${whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>'}</div></div><div class="exp">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`
-                              : `<div class="slotrow open"><div class="slot">${sl}</div><span class="ava" style="--tc:var(--panel3)">–</span><div><div class="nm">Open spot</div><div class="mu">nobody eligible on your roster with a game</div></div><div class="exp">0.0<small>expected</small></div></div>`;
+    const onL = where === 'lineup' ? 'locked in' : 'you started him';
+    return btn(id, st==='start'?'':'start', st==='start', st==='start'?onL:(where==='lineup'?'lock in':'start him'),
+               st==='start' ? 'your call, and it stands over the IL flag, the lineup card and his listed positions. Click to hand it back to the model.'
+                            : 'start him whatever the model thinks, even if he is flagged out or has no game today')
+         + btn(id, st==='bench'?'':'bench', st==='bench', st==='bench'?'you sat him':'sit',
+               st==='bench' ? 'you sat him. Click to hand it back to the model.' : 'take him out of the lineup and leave him out'); };
+  // why a seat is yours rather than the model's, said plainly on the row itself
+  const yourCall = (r, sl) => { if (lockOf(day, r.mlbam_id) !== 'start') return '';
+    const bits = [];
+    if (r.nogame) bits.push('no game on the schedule');
+    else if (r.active === 0) bits.push(`the sync says ${r.status || 'out'}`);
+    if (r.lineup === 0) bits.push('left off the posted lineup');
+    if (!eligIn(r, sl)) bits.push(`not listed at ${sl}`);
+    return `<span class="pill w" title="${esc(bits.length ? 'started by you over: ' + bits.join(', ') : 'you locked him in')}">your call${bits.length?' \u00b7 '+esc(bits[0]):''}</span>`; };
+  const slotRow = (sl, r) => r ? `<div class="slotrow"><div class="slot">${sl}</div>${ava(r.name,r.team,40,r.mlbam_id)}<div><div class="nm" data-h="${r.mlbam_id}">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span> ${lineupPill(r)} ${yourCall(r,sl)} ${lockBtn(r,'lineup')}</div><div class="mu">${r.nogame ? 'nothing scheduled for him today' : `${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} \u00b7 ${spTag(r.opp_sp, r.opp_sp_source)}${r.opp_sp_throws?` (${r.opp_sp_throws}HP)`:''} \u00b7 ${esc(r.local_start||'')} ${stateChip(r.gamePk)}`}</div><div class="why">${r.nogame ? '<span class="fx">no matchup to read</span>' : (whyList(r).slice(0,4).map(w=>`<span class="fx ${w.pc>0?'g':'b'}">${esc(w.txt)}</span>`).join('')||'<span class="fx">average matchup</span>')}</div></div><div class="exp">${(r.exp_pts||0).toFixed(1)}<small>expected</small></div></div>`
+                              : `<div class="slotrow open"><div class="slot">${sl}</div><span class="ava" style="--tc:var(--panel3)">\u2013</span><div><div class="nm">Open spot</div><div class="mu">nobody eligible on your roster with a game. Anyone on the bench can be forced in here with <b>start him</b>.</div></div><div class="exp">0.0<small>expected</small></div></div>`;
   const ORDER = {C:0,'1B':1,'2B':2,'3B':3,SS:4,OF:5,UT:6}; const luShow = lu.slice().sort((a,b)=>ORDER[a[0]]-ORDER[b[0]]);
   // the day's points are bats plus arms; the lineup card only ever showed the bats, which is not what you score
   const myStartsWeek = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts);
@@ -2097,23 +2142,33 @@ function renderToday(){
   cards += `<div class="dcard w8"><h3>Your lineup <small>${dayWord(day)} · best ten by expected points</small></h3><div class="bigstat"><b>${tot.toFixed(1)}</b><span>from these ten bats${pTot?` · ${pTot.toFixed(1)} more from ${todayStarts.length} start${todayStarts.length===1?'':'s'}, ${dayTot.toFixed(1)} on the day`:''}</span></div>${luShow.map(([sl,r])=>slotRow(sl,r)).join('')}</div>`;
   // pitchers today + the week's start count
   const keep = new Set(myStartsWeek.slice(0,10).map(r=>r.mlbam_id+'|'+r.date));
-  cards += `<div class="dcard w4"><h3>Your arms <small>${dayWord(day).toLowerCase()}</small></h3>${todayStarts.length ? todayStarts.map(r=>`<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)}${r.sp_source==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}${!keep.has(r.mlbam_id+'|'+r.date)?' <span class="pill w" title="one of the starts to skip if you are over the 10-start cap">skip?</span>':''}</div><div class="sub">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${esc(r.local_start||'')} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`).join('') : '<p class="hint">None of your starters is scheduled.</p>'}
+  cards += `<div class="dcard w4"><h3>Your arms <small>${dayWord(day).toLowerCase()}</small></h3>${todayStarts.length ? todayStarts.map(r=>`<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${esc(r.name)}${r.sp_source==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''}${!keep.has(r.mlbam_id+'|'+r.date)?' <span class="pill w" title="one of the starts to skip if you are over the 10-start cap">skip?</span>':''}</div><div class="sub">${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${esc(r.local_start||'')} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`).join('') : '<p class="hint">None of your starters is scheduled.</p>'}
     <div class="bigstat" style="margin-top:12px"><b>${myStartsWeek.length}</b><span>starts on your roster this week · cap is 10${myStartsWeek.length>10?` · skip the ${myStartsWeek.length-10} weakest (marked)`:''}</span></div>
     <button class="go" data-go="streamers">Whole week and two-start arms →</button></div>`;
   // bench with reasons
-  const bench = roster.filter(r=>!used.has(r.mlbam_id)).map(r=>{ const d = mine.find(x=>x.mlbam_id===r.mlbam_id); let why, exp = d ? d.exp_pts : null;
-    if (r.active===0) why = `not active (${r.status||'IL / minors'})`; else if (!d) why = 'no game'; else if (d.lineup===0) why = 'not in the posted lineup'; else { const slots = (d.elig||'').split('/'); const beaten = lu.filter(([sl,x])=>x && (slots.includes(sl)||sl==='UT')).map(([sl,x])=>x.exp_pts); const best = beaten.length?Math.min(...beaten):null; why = best!=null ? `${d.exp_pts.toFixed(1)} vs ${best.toFixed(1)} for the weakest starter at his positions` : 'no open spot at his positions'; if (whyList(d)[0] && whyList(d)[0].pc<0) why += ` · ${whyList(d)[0].txt}`; }
+  const bench = roster.filter(r=>!used.has(r.mlbam_id)).map(r=>{ const d = mine.find(x=>x.mlbam_id===r.mlbam_id); const exp = d ? d.exp_pts : null;
+    const st = lockOf(day, r.mlbam_id); let why;
+    // today's row is the one that knows today's status; r is just whichever day of his happened to be first
+    if (st === 'bench') why = 'you sat him';
+    else if (!d) why = 'no game today';
+    else if (d.active === 0) why = `the Fantrax sync says ${d.status || 'IL / minors'}`;
+    else if (d.lineup === 0) why = 'left off the posted lineup';
+    else { const slots = (d.elig||'').split('/'); const beaten = lu.filter(([sl,x])=>x && (slots.includes(sl)||sl==='UT')).map(([sl,x])=>x.exp_pts); const best = beaten.length?Math.min(...beaten):null;
+      why = best!=null ? `${d.exp_pts.toFixed(1)} vs ${best.toFixed(1)} for the weakest starter at his positions` : 'no open spot at his positions';
+      if (whyList(d)[0] && whyList(d)[0].pc<0) why += ` \u00b7 ${whyList(d)[0].txt}`; }
     return {r, d, why, exp}; }).sort((a,b)=>(b.exp??-1)-(a.exp??-1));
   const nLock = locksOn(day);
-  cards += `<div class="dcard w6 bench"><h3>Bench <small>and why they sit</small>${nLock?`<button class="go small" id="clear-locks" style="float:right;margin:0">reset my ${nLock} override${nLock>1?'s':''}</button>`:''}</h3><div class="rowlist">${bench.map(({r,d,why,exp})=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${d?' '+lineupPill(d):''}${d&&d.lineup!==0?' '+lockBtn(r,'bench'):''}</div><div class="sub">${esc(why)}</div></div><div class="val">${exp!=null?exp.toFixed(1):'–'}<small>expected</small></div></div>`).join('')||'<p class="hint">Everyone with a game is in the lineup.</p>'}</div></div>`;
+  // every man gets both buttons, including the ones with no game and the ones the sync has flagged out, because
+  // those are exactly the two cases where the file is most likely to be wrong and you are most likely to be right
+  cards += `<div class="dcard w6 bench"><h3>Bench <small>and why they sit</small>${nLock?`<button class="go small" id="clear-locks" style="float:right;margin:0">reset my ${nLock} override${nLock>1?'s':''}</button>`:''}</h3><div class="rowlist">${bench.map(({r,d,why,exp})=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc((d||r).elig||'')}</span>${d?' '+lineupPill(d):''} ${lockBtn(r,'bench')}</div><div class="sub">${esc(why)}</div></div><div class="val">${exp!=null?exp.toFixed(1):'\u2013'}<small>expected</small></div></div>`).join('')||'<p class="hint">Everyone with a game is in the lineup.</p>'}</div></div>`;
   // waiver upgrades for today
   const fa = SHD.filter(r=>r.date===day && isFA(r.owner) && r.active!==0 && r.lineup!==0);
   const ups = []; for (const [sl,r] of lu){ const need = r ? r.exp_pts + 0.4 : 0; const c = fa.filter(x=>(sl==='UT'||(x.elig||'').split('/').includes(sl)) && x.exp_pts>need).sort((a,b)=>b.exp_pts-a.exp_pts)[0]; if(c && !ups.some(u=>u.c.mlbam_id===c.mlbam_id)) ups.push({sl, r, c}); }
   ups.sort((a,b)=>(b.c.exp_pts-(b.r?b.r.exp_pts:0))-(a.c.exp_pts-(a.r?a.r.exp_pts:0)));
-  cards += `<div class="dcard w6"><h3>Better bats off waivers <small>free agents who beat a starter ${dayWord(day).toLowerCase()}</small></h3><div class="rowlist">${ups.slice(0,6).map(({sl,r,c})=>`<div class="row" data-h="${c.mlbam_id}">${ava(c.name,c.team,32)}<div><div class="nm">${esc(c.name)} <span class="hint">${esc(c.elig||'')}</span> ${lineupPill(c)}</div><div class="sub">${c.home?'vs':'@'} ${esc(abbrOf(c.opp))} · ${esc(c.opp_sp||'TBD')} ${c.opp_sp_throws||''} · ${whyList(c).slice(0,2).map(w=>w.txt).join(' · ')} · over ${r?esc(r.name)+' at '+sl:'an open '+sl}</div></div><div class="val">${c.exp_pts.toFixed(1)}<small>vs ${r?r.exp_pts.toFixed(1):'0.0'}</small></div></div>`).join('')||'<p class="hint">Nobody on waivers beats your starters today.</p>'}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
+  cards += `<div class="dcard w6"><h3>Better bats off waivers <small>free agents who beat a starter ${dayWord(day).toLowerCase()}</small></h3><div class="rowlist">${ups.slice(0,6).map(({sl,r,c})=>`<div class="row" data-h="${c.mlbam_id}">${ava(c.name,c.team,32,c.mlbam_id)}<div><div class="nm">${esc(c.name)} <span class="hint">${esc(c.elig||'')}</span> ${lineupPill(c)}</div><div class="sub">${c.home?'vs':'@'} ${esc(abbrOf(c.opp))} · ${esc(c.opp_sp||'TBD')} ${c.opp_sp_throws||''} · ${whyList(c).slice(0,2).map(w=>w.txt).join(' · ')} · over ${r?esc(r.name)+' at '+sl:'an open '+sl}</div></div><div class="val">${c.exp_pts.toFixed(1)}<small>vs ${r?r.exp_pts.toFixed(1):'0.0'}</small></div></div>`).join('')||'<p class="hint">Nobody on waivers beats your starters today.</p>'}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
   // rotation this week: which starts to use under the cap
   const byDay = myStartsWeek.slice().sort((a,b)=>a.date.localeCompare(b.date)||b.exp_pts-a.exp_pts);
-  cards += `<div class="dcard w6"><h3>Your rotation this week <small>${myStartsWeek.length} scheduled starts · cap 10</small></h3><div class="rowlist">${byDay.map(r=>{ const use = keep.has(r.mlbam_id+'|'+r.date); return `<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)}${r.two_start?' <span class="pill b" title="two starts this week">2</span>':''}${r.sp_source==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''} <span class="pill ${use?'g':'w'}">${use?'start':'skip'}</span></div><div class="sub">${dayWord(r.date)} · ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'}${r.pl_tier?' · PL: '+esc(r.pl_tier):''}${r.cbs?' · CBS '+esc(r.cbs):''}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`; }).join('')||'<p class="hint">No starts scheduled for your pitchers this week.</p>'}</div>${myStartsWeek.length>10?`<p class="hint" style="margin-top:8px">You have ${myStartsWeek.length} starts for 10 slots: the ${myStartsWeek.length-10} marked <b>skip</b> are the weakest matchups.</p>`:myStartsWeek.length<10?`<p class="hint" style="margin-top:8px">${10-myStartsWeek.length} start${10-myStartsWeek.length===1?'':'s'} unused this week: the arms below would fill ${10-myStartsWeek.length===1?'it':'them'}.</p>`:''}</div>`;
+  cards += `<div class="dcard w6"><h3>Your rotation this week <small>${myStartsWeek.length} scheduled starts · cap 10</small></h3><div class="rowlist">${byDay.map(r=>{ const use = keep.has(r.mlbam_id+'|'+r.date); return `<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${esc(r.name)}${r.two_start?' <span class="pill b" title="two starts this week">2</span>':''}${r.sp_source==='projected'?' <span class="pill n" title="projected from rotation order">P</span>':''} <span class="pill ${use?'g':'w'}">${use?'start':'skip'}</span></div><div class="sub">${dayWord(r.date)} · ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'}${r.pl_tier?' · PL: '+esc(r.pl_tier):''}${r.cbs?' · CBS '+esc(r.cbs):''}</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected</small></div></div>`; }).join('')||'<p class="hint">No starts scheduled for your pitchers this week.</p>'}</div>${myStartsWeek.length>10?`<p class="hint" style="margin-top:8px">You have ${myStartsWeek.length} starts for 10 slots: the ${myStartsWeek.length-10} marked <b>skip</b> are the weakest matchups.</p>`:myStartsWeek.length<10?`<p class="hint" style="margin-top:8px">${10-myStartsWeek.length} start${10-myStartsWeek.length===1?'':'s'} unused this week: the arms below would fill ${10-myStartsWeek.length===1?'it':'them'}.</p>`:''}</div>`;
   // better arms off waivers: free-agent starts that beat the start you would otherwise use
   const cutStart = myStartsWeek.length>=10 ? (myStartsWeek[9]?.exp_pts ?? 0) : (myStartsWeek.length ? Math.min(...myStartsWeek.map(r=>r.exp_pts))*0.9 : 0);
   const faStarts = SPS.filter(r=>isFA(r.owner) && r.active!==0 && r.sp_source!=='replaced' && goodRole(r) && r.exp_pts>cutStart).sort((a,b)=>b.exp_pts-a.exp_pts).slice(0,8);
@@ -2123,18 +2178,18 @@ function renderToday(){
     const arms = Object.values(byArm).sort((a,b)=>(b.pts/b.starts.length)-(a.pts/a.starts.length)); const chosen = []; let got = 0;
     for (const a of arms){ if (got >= need) break; if (got + a.starts.length > need && a.starts.length > 1) continue; chosen.push(a); got += a.starts.length; }
     if (chosen.length) plan = `<div class="explain" style="margin:0 0 10px;border-left-color:var(--good)"><b>To reach 10 starts, add:</b> ${chosen.map(a=>`<b>${esc(a.name)}</b> (${a.starts.map(r=>`${dayWord(r.date)} ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))}`).join(', ')}; ${a.pts.toFixed(1)} exp)`).join(', ')}. That fills ${got} of the ${need} open start${need===1?'':'s'} for about <b>+${chosen.reduce((x,a)=>x+a.pts,0).toFixed(1)}</b> expected points.</div>`; }
-  cards += `<div class="dcard w6"><h3>Better arms off waivers <small>free-agent starts this week that beat ${myStartsWeek.length>=10?'your 10th-best start':'your weakest start'} (${cutStart.toFixed(1)})</small></h3>${plan}<div class="rowlist">${faStarts.map(r=>`<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)}${r.two_start?' <span class="pill b" title="two starts this week">2</span>':''}${r.sp_source==='projected'?' <span class="pill n">P</span>':''}${r.pl_tier?` <span class="pill ${r.pl_tier==='Auto'?'g':r.pl_tier==='Solid'?'b':'n'}">${esc(r.pl_tier)}</span>`:''}${r.cbs?` <span class="pill b">CBS ${esc(r.cbs)}</span>`:''}</div><div class="sub">${dayWord(r.date)} · ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'} · ${(r.pts_gs_2026??r.base_gs??0).toFixed(1)} pts/start this year</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected${r.two_start?` · wk ${(r.week_pts||0).toFixed(1)}`:''}</small></div></div>`).join('')||'<p class="hint">Nobody on waivers beats the starts you already have.</p>'}</div><button class="go" data-go="streamers">Whole pitcher slate →</button></div>`;
+  cards += `<div class="dcard w6"><h3>Better arms off waivers <small>free-agent starts this week that beat ${myStartsWeek.length>=10?'your 10th-best start':'your weakest start'} (${cutStart.toFixed(1)})</small></h3>${plan}<div class="rowlist">${faStarts.map(r=>`<div class="row" data-p="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${esc(r.name)}${r.two_start?' <span class="pill b" title="two starts this week">2</span>':''}${r.sp_source==='projected'?' <span class="pill n">P</span>':''}${r.pl_tier?` <span class="pill ${r.pl_tier==='Auto'?'g':r.pl_tier==='Solid'?'b':'n'}">${esc(r.pl_tier)}</span>`:''}${r.cbs?` <span class="pill b">CBS ${esc(r.cbs)}</span>`:''}</div><div class="sub">${dayWord(r.date)} · ${r.home?'vs':'@'} ${esc(abbrOf(r.opp))} · ${whyListP(r).slice(0,2).map(w=>w.txt).join(' · ')||'average matchup'} · ${(r.pts_gs_2026??r.base_gs??0).toFixed(1)} pts/start this year</div></div><div class="val">${r.exp_pts.toFixed(1)}<small>expected${r.two_start?` · wk ${(r.week_pts||0).toFixed(1)}`:''}</small></div></div>`).join('')||'<p class="hint">Nobody on waivers beats the starts you already have.</p>'}</div><button class="go" data-go="streamers">Whole pitcher slate →</button></div>`;
   // best bats to add for the week (free agents vs your weakest likely starter)
   const weekOf = rows => Object.values(rows.reduce((a,r)=>{ (a[r.mlbam_id] ||= {...r, week:0, g:0}); a[r.mlbam_id].week += r.exp_pts; a[r.mlbam_id].g++; return a; },{}));
   const mineWeek = weekOf(SHD.filter(r=>r.owner===MY && r.active!==0)).sort((a,b)=>b.week-a.week); const cutBat = mineWeek[9]?.week ?? mineWeek[mineWeek.length-1]?.week ?? 0;
   const faWeek = weekOf(SHD.filter(r=>isFA(r.owner) && r.active!==0)).filter(r=>r.week>cutBat).sort((a,b)=>b.week-a.week).slice(0,8);
-  cards += `<div class="dcard w6"><h3>Best bats to add for the week <small>free agents whose week beats your 10th-best hitter (${cutBat.toFixed(1)})</small></h3><div class="rowlist">${faWeek.map(r=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${r.cbs?` <span class="pill b">CBS ${esc(r.cbs)}</span>`:''}</div><div class="sub">${r.g} games · ${(r.base_rate||0).toFixed(2)} pts/PA · 30-day wOBA ${r.woba_30!=null?r.woba_30.toFixed(3):'–'}</div></div><div class="val">${r.week.toFixed(1)}<small>week expected</small></div></div>`).join('')||'<p class="hint">No free-agent bat projects better than your ten this week.</p>'}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
-  cards += `<div class="dcard w6"><h3>Your ten this week <small>your hitters by expected points, whole week</small></h3><div class="rowlist">${mineWeek.slice(0,12).map((r,i)=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32)}<div><div class="nm">${i+1}. ${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span></div><div class="sub">${r.g} game${r.g===1?'':'s'} · ${(r.base_rate||0).toFixed(2)} pts/PA</div></div><div class="val">${r.week.toFixed(1)}<small>week expected</small></div></div>`).join('')}</div></div>`;
+  cards += `<div class="dcard w6"><h3>Best bats to add for the week <small>free agents whose week beats your 10th-best hitter (${cutBat.toFixed(1)})</small></h3><div class="rowlist">${faWeek.map(r=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span>${r.cbs?` <span class="pill b">CBS ${esc(r.cbs)}</span>`:''}</div><div class="sub">${r.g} games · ${(r.base_rate||0).toFixed(2)} pts/PA · 30-day wOBA ${r.woba_30!=null?r.woba_30.toFixed(3):'–'}</div></div><div class="val">${r.week.toFixed(1)}<small>week expected</small></div></div>`).join('')||'<p class="hint">No free-agent bat projects better than your ten this week.</p>'}</div><button class="go" data-go="streamers">All streamers →</button></div>`;
+  cards += `<div class="dcard w6"><h3>Your ten this week <small>your hitters by expected points, whole week</small></h3><div class="rowlist">${mineWeek.slice(0,12).map((r,i)=>`<div class="row" data-h="${r.mlbam_id}">${ava(r.name,r.team,32,r.mlbam_id)}<div><div class="nm">${i+1}. ${esc(r.name)} <span class="hint">${esc(r.elig||'')}</span></div><div class="sub">${r.g} game${r.g===1?'':'s'} · ${(r.base_rate||0).toFixed(2)} pts/PA</div></div><div class="val">${r.week.toFixed(1)}<small>week expected</small></div></div>`).join('')}</div></div>`;
   $('#today').innerHTML = cards;
   // your overrides, before the card-opening handler so a click on the button does not also open the player
   $$('#today .lockb').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation();
-    setLock(day, +b.dataset.lock, b.dataset.want || null); renderToday(); renderDash(); }));
-  const cl = $('#clear-locks'); if(cl) cl.addEventListener('click', e=>{ e.stopPropagation(); clearLocks(day); renderToday(); renderDash(); });
+    setLock(day, +b.dataset.lock, b.dataset.want || null); renderToday(); renderDash(); if(typeof renderMyWeek==='function') renderMyWeek(); }));
+  const cl = $('#clear-locks'); if(cl) cl.addEventListener('click', e=>{ e.stopPropagation(); clearLocks(day); renderToday(); renderDash(); if(typeof renderMyWeek==='function') renderMyWeek(); });
   $$('#today [data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
   $$('#today [data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
   $$('#today .go').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)));
@@ -2416,7 +2471,7 @@ function findDeals(me){
 function renderFinder(){
   const me = tr.a, list = findDeals(me); const nMe = teamLabel(me).replace(/ \(.*\)$/,'');
   const leg = (arr, dir) => `<span class="leg"><span class="arrow">${dir}</span>${arr.map(a=>a.type==='pick'
-      ? `<b>${a.year} round ${a.round}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
+      ? `<b>${a.year} round ${a.round}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22, a.r.mlbam_id)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
   const give = arr => leg(arr, 'send'), get = arr => leg(arr, 'get');
   const why = d => { const bits = [];
     const surp = d.give.filter(a=>a.type!=='pick' && !VAL.kept.has(a.type+a.id)).map(a=>lastName(a.r.name));
@@ -2451,7 +2506,7 @@ function renderTrade(){
     const items = give.map((a,i)=>{ const o = assetObj(a); if(!o) return ''; const kept = a.type!=='pick' && evOther.keptAfter.has(a.type+a.id); const surplus = a.type!=='pick' && !ev.keptBefore.has(a.type+a.id);
       const got = a.type==='pick' ? pickFit(a, evOther.after.hs, evOther.after.ps) : playerFit(other, o.r, a.type, new Set(give.filter(x=>x.type!=='pick' && x!==a).map(x=>x.type+x.id)));
       const bm = bestMarket(a);
-      return `<div class="asset">${a.type==='pick'?`<span class="ava" style="--tc:var(--panel3)">R${a.round}</span>`:ava(o.name, o.r.team_abbr||o.r.team, 36)}<div><div class="nm">${esc(o.name)}${a.type!=='pick'?` <span class="pill ${kept?'g':'n'}" title="${kept?'would be in the other team\'s keeper group':'would not make the other team\'s keeper group, so he goes back in the draft pool at the keeper deadline and is worth almost nothing to them'}">${kept?'keeper for them':'not a keeper for them'}</span>${surplus?` <span class="pill b" title="already outside this team's best ${HKEEP} hitters / ${PKEEP} pitchers, so he adds nothing to their own keeper group — pure trade currency, but still worth full value to a team with a slot open">surplus for them</span>`:''}`:''}</div><div class="sub">${esc(o.sub)}</div></div><div class="v" title="${a.type==='pick'?`the player taken at #${pickOverall(a.team,a.round)} is on ${esc(nOther)}'s roster all of ${a.year} whether or not he is kept; the later years count only if he would crack their keeper group`:`change in ${esc(nOther)}'s best ${HKEEP} hitters + ${PKEEP} pitchers if they add him`}${bm.v>got+1?` · best fit in the league: ${bm.v}${bm.team?' ('+esc(teamLabel(bm.team).replace(/ \(.*\)$/,''))+')':''}`:''}">${got}<small>to ${esc(nOther)}</small></div><button class="x" data-side="${key}" data-i="${i}" title="remove">✕</button></div>`; }).join('');
+      return `<div class="asset">${a.type==='pick'?`<span class="ava" style="--tc:var(--panel3)">R${a.round}</span>`:ava(o.name, o.r.team_abbr||o.r.team, 36, o.r.mlbam_id)}<div><div class="nm">${esc(o.name)}${a.type!=='pick'?` <span class="pill ${kept?'g':'n'}" title="${kept?'would be in the other team\'s keeper group':'would not make the other team\'s keeper group, so he goes back in the draft pool at the keeper deadline and is worth almost nothing to them'}">${kept?'keeper for them':'not a keeper for them'}</span>${surplus?` <span class="pill b" title="already outside this team's best ${HKEEP} hitters / ${PKEEP} pitchers, so he adds nothing to their own keeper group — pure trade currency, but still worth full value to a team with a slot open">surplus for them</span>`:''}`:''}</div><div class="sub">${esc(o.sub)}</div></div><div class="v" title="${a.type==='pick'?`the player taken at #${pickOverall(a.team,a.round)} is on ${esc(nOther)}'s roster all of ${a.year} whether or not he is kept; the later years count only if he would crack their keeper group`:`change in ${esc(nOther)}'s best ${HKEEP} hitters + ${PKEEP} pitchers if they add him`}${bm.v>got+1?` · best fit in the league: ${bm.v}${bm.team?' ('+esc(teamLabel(bm.team).replace(/ \(.*\)$/,''))+')':''}`:''}">${got}<small>to ${esc(nOther)}</small></div><button class="x" data-side="${key}" data-i="${i}" title="remove">✕</button></div>`; }).join('');
     return `<div class="tside"><h3>${esc(teamLabel(team))} gives ${sel('tr-'+key, team)}</h3><div class="assets">${items||'<p class="hint">Nothing yet. Add players or picks below.</p>'}</div>
       <div class="addbar"><input type="search" placeholder="Add a player from ${esc(teamLabel(team))}" data-side="${key}" class="tr-q" autocomplete="off"><div class="dd" id="tr-dd-${key}"></div><select class="tr-round" data-side="${key}">${Array.from({length:15},(_,i)=>`<option value="${i+1}">round ${i+1}</option>`).join('')}</select><select class="tr-year" data-side="${key}"><option value="${CUR+1}">${CUR+1}</option><option value="${CUR+2}">${CUR+2}</option></select><button class="btn small tr-addpick" data-side="${key}">+ pick</button></div>
       <div class="hint" style="margin-top:10px">Keeper group now: ${ev.before.hs.map(r=>esc(lastName(r.name))).join(', ')} · ${ev.before.ps.map(r=>esc(lastName(r.name))).join(', ')} (${Math.round(ev.before.v)}) → after: ${ev.after.hs.map(r=>esc(lastName(r.name))).join(', ')} · ${ev.after.ps.map(r=>esc(lastName(r.name))).join(', ')} (${Math.round(ev.after.v)})</div></div>`; };
@@ -2492,7 +2547,7 @@ function renderTrade(){
   $$('#trade .tr-addpick').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.side; const team = k==='a'?tr.a:tr.b; const round = +$(`.tr-round[data-side="${k}"]`).value, year = +$(`.tr-year[data-side="${k}"]`).value; if(!tr.give[k].some(a=>a.type==='pick'&&a.round===round&&a.year===year)) tr.give[k].push({type:'pick', team, round, year}); renderTrade(); }));
   $$('#trade .tr-q').forEach(inp=>{ const k = inp.dataset.side, team = k==='a'?tr.a:tr.b, dd = $(`#tr-dd-${k}`); const tp = teamPlayers(team);
     const items = [...tp.h.map(r=>({type:'h', id:r.mlbam_id, name:r.name, team:r.team_abbr, sub:`${r.elig||''} · 2027 proj ${Math.round(r.proj_pts)} · value ${r.DV_c.toFixed(0)}`})), ...tp.p.map(r=>({type:'p', id:r.mlbam_id, name:r.name, team:r.team, sub:`SP · 2027 proj ${Math.round(r.tot_c??r.proj_pts)} · value ${r.DV_c.toFixed(0)}`}))];
-    const show = list => { dd.innerHTML = list.map((x,i)=>`<button data-i="${i}">${ava(x.name,x.team,26)}<span>${esc(x.name)}</span><small>${esc(x.sub)}</small></button>`).join(''); dd.classList.toggle('open', list.length>0); dd.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ const x=list[+b.dataset.i]; if(!tr.give[k].some(a=>a.type===x.type&&a.id===x.id)) tr.give[k].push({type:x.type, id:x.id}); renderTrade(); })); };
+    const show = list => { dd.innerHTML = list.map((x,i)=>`<button data-i="${i}">${ava(x.name,x.team,26,x.id)}<span>${esc(x.name)}</span><small>${esc(x.sub)}</small></button>`).join(''); dd.classList.toggle('open', list.length>0); dd.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ const x=list[+b.dataset.i]; if(!tr.give[k].some(a=>a.type===x.type&&a.id===x.id)) tr.give[k].push({type:x.type, id:x.id}); renderTrade(); })); };
     inp.addEventListener('focus', ()=>show(items.sort((a,b)=>a.name.localeCompare(b.name)).slice(0,12)));
     inp.addEventListener('input', ()=>{ const q = fold(inp.value.trim()); show(items.filter(x=>fold(x.name).includes(q)).slice(0,12)); });
   });
