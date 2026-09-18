@@ -285,9 +285,9 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ahe,Curtis Mead,BOS,1B,3B,INJURED_RESERVE,GK,Gotham Knights
 050w9,Gunnar Henderson,BAL,SS,SS,ACTIVE,GK,Gotham Knights
 05vy5,Carter Jensen,KC,C,C,ACTIVE,BB,Basketball
-05yb0,T.J. Rumfield,COL,1B,UT,ACTIVE,BB,Basketball
+05yb0,T.J. Rumfield,COL,1B,1B,ACTIVE,BB,Basketball
 066eo,Cole Carrigg,COL,CF,OF,ACTIVE,BB,Basketball
-03whq,Ty France,SD,1B,1B,ACTIVE,BB,Basketball
+03whq,Ty France,SD,1B,1B,RESERVE,BB,Basketball
 03qjy,Brandon Lowe,PIT,2B,2B,ACTIVE,BB,Basketball
 02btx,Tyler Glasnow,LAD,SP,SP,ACTIVE,BB,Basketball
 051ui,Jacob Lopez,ATH,SP,SP,RESERVE,BB,Basketball
@@ -301,7 +301,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05rat,James Wood,WSH,LF,OF,ACTIVE,BB,Basketball
 05u9o,Sal Stewart,CIN,1B,3B,ACTIVE,BB,Basketball
 03df2,Dylan Cease,TOR,SP,SP,ACTIVE,BB,Basketball
-05rcw,Leo Bernal,STL,C,C,RESERVE,BB,Basketball
+05rcw,Leo Bernal,STL,C,UT,ACTIVE,BB,Basketball
 02mw6,Corey Seager,TEX,SS,SS,RESERVE,BB,Basketball
 05y62,Bryan Woo,SEA,SP,SP,ACTIVE,BB,Basketball
 05uo2,Logan Henderson,MIL,SP,SP,RESERVE,BB,Basketball
