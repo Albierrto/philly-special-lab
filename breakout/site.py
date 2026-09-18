@@ -10,7 +10,7 @@ import argparse, json, shutil, sys, time
 import pandas as pd
 from pathlib import Path
 from . import config as C
-from . import picks, ownership
+from . import picks, ownership, faces
 from .assemble import HD_COLS, PS_COLS, G_COLS, columnar
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,8 +51,16 @@ jobs:
       # runs itself every Monday morning, and still on demand with full=true.
       - name: Full model rebuild (Mondays, or on demand)
         if: ${{ github.event.inputs.full == 'true' || github.event.schedule == '17 8 * * 1' }}
-        timeout-minutes: 60     # it takes ~2 min from a cold runner; this is only a runaway guard
-        run: python -m breakout.pipeline3
+        timeout-minutes: 60     # it takes ~10 min from a cold runner; this is only a runaway guard
+        # All three, in this order. pipeline3 reads data/player_seasons.parquet and data/prepared.parquet straight
+        # off the repo, so on its own it rebuilds the MODELS on top of a frozen table: any change to how a
+        # player-season is built (eligibility, scoring, a new source column) was invisible to every "full" rebuild
+        # this workflow has ever run, Mondays included. cli run rewrites player_seasons.parquet from the raw
+        # sources and pipeline2 rewrites prepared.parquet from that, so now full means full.
+        run: |
+          python -m breakout.cli run
+          python -m breakout.pipeline2
+          python -m breakout.pipeline3
       # The two lists no API gives us. One Anthropic API call with web search reads this week's PitcherList tiers and
       # Scott White's CBS columns and writes a validated CSV; without the secret it prints one line and does nothing,
       # and a list that fails validation is thrown away rather than published, so this can never fail the build.
@@ -79,7 +87,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard
+          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           # someone (or another run) can land a commit on main while this one is building, and a plain push then dies
@@ -189,7 +197,8 @@ open site/index.html
 `python -m breakout.pipeline3` rebuilds the season models (25 minutes with a warm cache).
 '''
 
-REQS = "pandas>=2.2\nnumpy>=1.26\nrequests>=2.31\nscikit-learn>=1.4\npyarrow>=15\nscipy>=1.11\n"
+# tabulate: pandas.to_markdown imports it lazily, and report.py writes REPORT.md with it
+REQS = "pandas>=2.2\nnumpy>=1.26\nrequests>=2.31\nscikit-learn>=1.4\npyarrow>=15\nscipy>=1.11\ntabulate>=0.9\n"
 GITIGNORE = """__pycache__/
 *.pyc
 .DS_Store
@@ -223,6 +232,7 @@ def build(default_team: str):
     s = ownership.stamp_streamers(json.loads((C.OUT / "streamers" / "streamers.json").read_text()))
     stream = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
                   park_factors=s["park_factors"], venues=s.get("venues", []), logs=s.get("logs", {}))
+    data["faces"] = faces.build(data)          # inline headshots for the rostered players (see breakout/faces.py)
     (site / "data" / "lab.js").write_text("window.__LAB__=" + json.dumps(data, separators=(",", ":")) + ";", encoding="utf-8")
     (site / "data" / "streamers.js").write_text("window.__STREAM__=" + json.dumps(stream, separators=(",", ":")) + ";", encoding="utf-8")
     # site index: data comes from the two script files; live layer after boot

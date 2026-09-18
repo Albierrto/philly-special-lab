@@ -3,7 +3,7 @@ from __future__ import annotations
 import json, sys
 import pandas as pd
 from . import config as C
-from . import picks, ownership
+from . import picks, ownership, faces
 
 HD_COLS = ["mlbam_id", "name", "team", "bats", "elig", "owner", "date", "gamePk", "home", "opp", "opp_sp", "opp_sp_throws", "opp_sp_source", "sp_xwoba", "sp_k", "sp_pitching_plus",
            "park_runs", "park_hr", "temp_f", "wind_mph", "wind_out", "precip_prob", "roof", "local_start", "base_rate", "pa_g", "f_sp", "f_park", "f_wx", "f_platoon", "f_form", "mult", "exp_pts", "woba_30", "pa_30", "active", "status", "cbs"]
@@ -34,6 +34,8 @@ def main(argv=None):
     data["scorecard"] = pd.read_csv(sc).to_dict(orient="records") if sc.exists() else []
     ml = C.DATA / "scorecard" / "matchup_log.csv"
     data["matchup_log"] = pd.read_csv(ml).to_dict(orient="records") if ml.exists() else []
+    # headshots for everyone on a roster, inline, because an artifact cannot reach an outside image host
+    data["faces"] = faces.build(data)
     tpl_txt = tpl.read_text(encoding="utf-8")
     # Bort's edition (defaults to his team) and a league edition (defaults to league view, a different title)
     data["meta"]["default_team"] = data["meta"].get("my_abbrev", "BB")
