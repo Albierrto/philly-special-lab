@@ -51,8 +51,8 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 0510l,Emerson Hancock,SEA,SP,SP,INJURED_RESERVE,CH,Charlie Hustle
 03qpi,Patrick Sandoval,BOS,SP,SP,ACTIVE,CH,Charlie Hustle
 04pst,Jarren Duran,BOS,LF,OF,ACTIVE,CH,Charlie Hustle
-04yig,Brooks Lee,MIN,SS,UT,ACTIVE,BAMBI,The Great Bambi
-06plc,Sam Antonacci,CHW,2B,UT,RESERVE,BAMBI,The Great Bambi
+04yig,Brooks Lee,MIN,SS,UT,RESERVE,BAMBI,The Great Bambi
+06plc,Sam Antonacci,CHW,2B,2B,ACTIVE,BAMBI,The Great Bambi
 041ma,Cole Ragans,KC,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 02i2k,Byron Buxton,MIN,CF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
 05r8n,Yoshinobu Yamamoto,LAD,SP,SP,ACTIVE,BAMBI,The Great Bambi
@@ -62,7 +62,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ydp,Kade Anderson,SEA,SP,SP,RESERVE,BAMBI,The Great Bambi
 0630d,Drake Baldwin,ATL,C,C,ACTIVE,BAMBI,The Great Bambi
 02bqr,Blake Snell,LAD,SP,SP,RESERVE,BAMBI,The Great Bambi
-024m0,Jose Altuve,HOU,2B,2B,ACTIVE,BAMBI,The Great Bambi
+024m0,Jose Altuve,HOU,2B,UT,ACTIVE,BAMBI,The Great Bambi
 05r1m,Jordan Lawlar,ARI,3B,SS,RESERVE,BAMBI,The Great Bambi
 05aoc,Eury Perez,MIA,SP,SP,ACTIVE,BAMBI,The Great Bambi
 05tzn,Parker Messick,CLE,SP,SP,ACTIVE,BAMBI,The Great Bambi
@@ -88,14 +88,14 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 03qyv,Jake McCarthy,COL,LF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05ynb,Liam Hicks,TB,C,C,RESERVE,MMM,Midwest MooseKnuckle Mafia
 03pir,Kyle Tucker,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-01uca,Chris Sale,ATL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+01uca,Chris Sale,ATL,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 061yu,Jacob Misiorowski,MIL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01spo,Gerrit Cole,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 03e5m,Bryan Reynolds,PIT,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
 061zv,Josue De Paula,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 045qo,Jazz Chisholm Jr.,NYY,2B,2B,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
 01ub6,Jose Ramirez,CLE,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-04ps7,Joe Ryan,MIN,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
+04ps7,Joe Ryan,MIN,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01cgo,Freddie Freeman,LAD,1B,1B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05144,Hunter Brown,HOU,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 02z0s,Aaron Judge,NYY,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
