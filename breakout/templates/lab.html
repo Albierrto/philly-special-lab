@@ -440,6 +440,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
     <label>Min PA <input type="number" id="f-minpa" value="200" min="0" step="50"></label>
     <label>Age <input type="number" id="f-agemin" value="18" min="17" max="45"> – <input type="number" id="f-agemax" value="45" min="17" max="45"></label>
     <label>Positions <span class="chips" id="f-pos"></span></label>
+    <label>On rehab <input type="checkbox" id="f-rehab" title="only players MLB currently has on a rehab assignment"></label>
     <label>Fantrax owner <select id="f-owner"><option value="">any</option></select></label>
     <label>Status <select id="f-status"><option value="">any</option></select></label>
     <input type="search" id="f-q" placeholder="Search name" aria-label="Search name">
@@ -506,6 +507,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
     <label>Min GS <input type="number" id="pf-mings" value="10" min="0" step="5"></label>
     <label>Age <input type="number" id="pf-agemin" value="18" min="17" max="45"> – <input type="number" id="pf-agemax" value="45" min="17" max="45"></label>
     <label>Fantrax owner <select id="pf-owner"><option value="">any</option></select></label>
+    <label>On rehab <input type="checkbox" id="pf-rehab" title="only pitchers MLB currently has on a rehab assignment"></label>
     <input type="search" id="pf-q" placeholder="Search name" aria-label="Search pitcher name">
     <button class="btn small" id="p-toggle-cols">Columns</button>
     <button class="btn small" id="p-add-rf">+ stat filter</button>
@@ -582,6 +584,25 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <div class="tblwrap"><table id="t-drafts"></table></div>
   <h3>League pick curve</h3>
   <div id="pickcurve"></div>
+</section>
+
+<section role="tabpanel" id="tab-rehab">
+  <div class="pagehead"><div><h2>Rehab assignments</h2>
+  <p class="lede" id="rh-lede"></p></div></div>
+  <div class="explain"><details><summary>Reading this page</summary><ul>
+    <li>Straight from MLB's own transactions feed and minor-league box scores, not from anyone's write-up. A club files an assignment and it is here on the next refresh, with the outings as they happen.</li>
+    <li><b>Day 14 of 20</b> is the real clock: a rehab assignment is capped at 20 days for a position player and 30 for a pitcher, so the window is a harder deadline than any report. An arm past his window is usually on a second assignment or an agreed extension rather than about to be activated.</li>
+    <li><b>The outings are the tell.</b> For a pitcher watch the pitch count climb, not the line: 1 inning on 15 pitches is a man several outings away, 5 innings on 75 is a man about to be activated. For a bat, watch at-bats per game reach a full game's worth.</li>
+    <li><b>Setback</b> means he has not played in ten days or more. The clock stops when a man stops playing, and nobody files a transaction saying so.</li>
+    <li>An assignment closes itself: a rehab ends when the club activates, recalls, options or reassigns him, and the 40-man roster status is checked too, so a man who is off the injured list drops off this board whatever the last transaction said.</li></ul></details></div>
+  <div class="filters">
+    <label>Show <select id="rh-avail"><option value="">everyone</option><option value="mine">my roster</option><option value="FA">free agents in my league</option><option value="owned">owned in my league</option></select></label>
+    <label>Type <select id="rh-kind"><option value="">bats and arms</option><option value="h">bats</option><option value="p">arms</option></select></label>
+    <label>Status <select id="rh-state"><option value="live">clock running</option><option value="">everyone on assignment</option><option value="stalled">setbacks only</option></select></label>
+    <label>Search <input id="rh-q" placeholder="name"></label>
+    <span class="count" id="rh-count"></span>
+  </div>
+  <div id="rh-out"></div>
 </section>
 
 <section role="tabpanel" id="tab-prospects">
@@ -1004,13 +1025,14 @@ function table(id, cols, rows, opts={}){
 
 // ---------- explorer state
 const posList = ['C','1B','2B','3B','SS','OF','UT'];
-const state = { season: CUR, minpa: 200, agemin: 18, agemax: 45, pos: new Set(), owner: '', status: '', q: '', rf: [] };
+const state = { season: CUR, minpa: 200, agemin: 18, agemax: 45, pos: new Set(), owner: '', status: '', q: '', rf: [], rehab: false };
 function explorerRows(){
   return ROWS.filter(r => (state.season==='all' || r.season===state.season) && r.PA>=state.minpa && r.age>=state.agemin && r.age<=state.agemax
     && (!state.pos.size || [...state.pos].some(p => (r.elig||'').split('/').includes(p)))
     && (!state.owner || (state.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===state.owner))
     && (!state.status || r.prospect_status===state.status)
     && (!state.q || r.name.toLowerCase().includes(state.q))
+    && (!state.rehab || (r.season===CUR && onRehab(r.mlbam_id)))
     && state.rf.every(f => f.k && ((f.min==null || f.min==='' || r[f.k]>=+f.min) && (f.max==null || f.max==='' || r[f.k]<=+f.max))));
 }
 let tExplore;
@@ -1019,6 +1041,7 @@ function buildExplorer(){
   const ss = $('#f-season'); ss.innerHTML = SEASONS.slice().reverse().map(s=>`<option value="${s}">${s}</option>`).join('') + '<option value="all">all seasons</option>'; ss.value = String(CUR);
   ss.addEventListener('change', e=>{ state.season = e.target.value==='all'?'all':+e.target.value; renderExplorer(); });
   $('#f-minpa').addEventListener('input', e=>{ state.minpa=+e.target.value||0; renderExplorer(); });
+  $('#f-rehab').addEventListener('change', e=>{ state.rehab = e.target.checked; renderExplorer(); });
   $('#f-agemin').addEventListener('input', e=>{ state.agemin=+e.target.value||0; renderExplorer(); });
   $('#f-agemax').addEventListener('input', e=>{ state.agemax=+e.target.value||99; renderExplorer(); });
   $('#f-pos').innerHTML = posList.map(p=>`<span class="chip" role="button" tabindex="0" aria-pressed="false" data-p="${p}">${p}</span>`).join('');
@@ -1072,9 +1095,16 @@ function renderWts(){
   $('#wts').innerHTML = EVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${W[e]??0}"></label>`).join(''); $$('#wts input').forEach(i=>i.addEventListener('input',e=>{ W[e.target.dataset.e]=+e.target.value||0; $('#preset').value='custom'; refreshAll(); }));
   $('#pwts').innerHTML = PEVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${PW[e]??0}"></label>`).join(''); $$('#pwts input').forEach(i=>i.addEventListener('input',e=>{ PW[e.target.dataset.e]=+e.target.value||0; $('#ppreset').value='custom'; refreshAll(); }));
 }
-function refreshAll(){ rescore(); prescore(); buildPct(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); }
+function refreshAll(){ rescore(); prescore(); buildPct(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); if (typeof renderRehab==='function' && $('#rh-out')) renderRehab(); }
 
 // ---------- player card
+// a man on a rehab assignment, said on his own card, because that is where you look before deciding to sit him
+function rehabChip(id){ const r = (typeof onRehab === 'function') ? onRehab(id) : null; if (!r) return '';
+  const when = r.stalled ? (r.since_outing==null ? 'no game since it was filed' : `setback, ${r.since_outing} days since a game`)
+             : r.over ? `day ${r.day}, past the ${r.cap}-day window`
+             : `day ${r.day} of ${r.cap}, ${r.left} left`;
+  return `<span class="pill ${r.stalled?'r':'w'}" title="${esc(`on a rehab assignment at ${r.to||''} since ${r.started}${r.reason?' \u00b7 '+r.reason:''}`)}">rehab \u00b7 ${esc(when)}</span>`; }
+
 // how many points he has actually put up in this league — the first thing anyone wants when they open a player
 function ptsBand(id, kind, seasonPts, rank, extra){
   const L = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)] || {}; const su = L.s || {};
@@ -1133,7 +1163,7 @@ function hitterSection(id, sub=false){
   const pj2 = p ? `<div class="kpis">${kp('2027 rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / 600 PA', p.proj_pts_600??'–')}${kp('2027 PA', p.proj_PA??'–')}${kp('Keeper value (2nd)', p.KSV_2nd==null?'–':(p.KSV_2nd>=0?'+':'')+p.KSV_2nd)}</div>` : '';
   const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `${esc(last.elig||'')} · ${esc(last.team_abbr||'')} · bats ${esc(last.bats||'?')} · age ${last.age} · owner ${esc(last.owner||'–')}${last.prospect_status?' · '+esc(last.prospect_status):''}${last.pipeline_rank?' · Pipeline #'+last.pipeline_rank:''}`;
-  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
+  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
     ${ptsBand(id, 'h', last.pts_c, last.rank_c)}
@@ -1181,7 +1211,7 @@ function pitcherSection(id, sub){
   const pj2 = p ? `<div class="kpis">${kp('2027 SP rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / start', p.proj_pts_gs??'–')}${kp('2027 starts', p.proj_GS??'–')}${(p.proj_pts_hitting||0)>0?kp('+ hitting', Math.round(p.proj_pts_hitting)):''}</div>` : '';
   const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `SP · ${esc(last.throws||'')}HP · ${esc(last.team||'')} · age ${last.age} · owner ${esc(last.owner||'–')}`;
-  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:''].filter(Boolean);
+  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
     ${ptsBand(id, 'p', last.pts_c, last.rank_c)}
@@ -1244,18 +1274,19 @@ $$('[data-bpool]').forEach(b=>b.addEventListener('click',()=>{ bpool=b.dataset.b
 $$('[data-bview]').forEach(b=>b.addEventListener('click',()=>{ bview=b.dataset.bview; $$('[data-bview]').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBreak(); }));
 
 // ---------- pitchers tab
-const pstate = { view:'explore', season: CUR, mings: 10, agemin: 18, agemax: 45, owner: '', q: '', rf: [] };
+const pstate = { view:'explore', season: CUR, mings: 10, agemin: 18, agemax: 45, owner: '', q: '', rf: [], rehab: false };
 let tPitch;
 function pitchRows(){
   return PROWS.filter(r => (pstate.season==='all' || r.season===pstate.season) && r.GS>=pstate.mings && r.age>=pstate.agemin && r.age<=pstate.agemax
     && (!pstate.owner || (pstate.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===pstate.owner))
     && (!pstate.q || r.name.toLowerCase().includes(pstate.q))
+    && (!pstate.rehab || (r.season===CUR && onRehab(r.mlbam_id)))
     && pstate.rf.every(f => f.k && ((f.min==null || f.min==='' || r[f.k]>=+f.min) && (f.max==null || f.max==='' || r[f.k]<=+f.max))));
 }
 function renderPitch(){
   if(!tPitch) return;
   if (pstate.view==='break'){
-    const rows = PROWS.filter(r=>r.season===CUR && r.BI!=null && r.GS>=Math.max(10,pstate.mings) && r.age>=pstate.agemin && r.age<=pstate.agemax && (!pstate.owner || (pstate.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===pstate.owner)) && (!pstate.q || r.name.toLowerCase().includes(pstate.q)));
+    const rows = PROWS.filter(r=>r.season===CUR && r.BI!=null && r.GS>=Math.max(10,pstate.mings) && r.age>=pstate.agemin && r.age<=pstate.agemax && (!pstate.owner || (pstate.owner==='FA' ? (r.owner==='FA'||r.owner==='W (Sun)') : r.owner===pstate.owner)) && (!pstate.q || r.name.toLowerCase().includes(pstate.q)) && (!pstate.rehab || onRehab(r.mlbam_id)));
     $('#p-count').textContent = `${rows.length} starters (10+ GS)`;
     const cols = [PCI.name, PCI.age, PCI.owner, PCI.GS, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'career_best_gs',l:'Career best / start',f:'1',dir:1}, {k:'pts_gs_c',l:'2026 pts / start',f:'1',dir:1}, {k:'BI',l:'Breakout %',f:'1',dir:1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'proj_pts_gs',l:'2027 / start',f:'1',dir:1}, {k:'ip_gs_last',l:'IP / start',f:'2',dir:1,title:'how long they let him go this year; a short leash mostly comes off, so the track record is carried per inning and re-expressed at a normal one'}, {k:'comeback',l:'1st yr back',render:v=>v?'<span class="pill w" title="last season was lost; this cohort beat the model by 1.5 points a start on 11 cases, too few to bake in">back</span>':''}, PCI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, PCI.pitching_plus, PCI.stuff_plus, PCI.location_plus, PCI.yoy_stuff_change, PCI.yoy_velo_change, PCI.k_minus_bb, PCI.xera, PCI.fb_velo, PCI.il_days_3yr, {k:'gap_to_best',l:'Gap',f:'1',dir:1}];
     tPitch.setCols(cols); tPitch.setRows(rows); return;
@@ -1266,13 +1297,14 @@ function buildPitch(){
   const ss = $('#pf-season'); ss.innerHTML = PSEASONS.slice().reverse().map(s=>`<option value="${s}">${s}</option>`).join('') + '<option value="all">all seasons</option>'; ss.value = String(CUR);
   ss.addEventListener('change', e=>{ pstate.season = e.target.value==='all'?'all':+e.target.value; renderPitch(); });
   $('#pf-mings').addEventListener('input', e=>{ pstate.mings=+e.target.value||0; renderPitch(); });
+  $('#pf-rehab').addEventListener('change', e=>{ pstate.rehab = e.target.checked; renderPitch(); });
   $('#pf-agemin').addEventListener('input', e=>{ pstate.agemin=+e.target.value||0; renderPitch(); });
   $('#pf-agemax').addEventListener('input', e=>{ pstate.agemax=+e.target.value||99; renderPitch(); });
   const owners = [...new Set(Object.values(PPROJ).map(p=>p.owner).filter(Boolean))].sort();
   $('#pf-owner').innerHTML = '<option value="">any</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join('');
   $('#pf-owner').addEventListener('change', e=>{ pstate.owner=e.target.value; renderPitch(); });
   $('#pf-q').addEventListener('input', e=>{ pstate.q=e.target.value.trim().toLowerCase(); renderPitch(); });
-  $('#p-reset').addEventListener('click', ()=>{ Object.assign(pstate,{mings:10,agemin:18,agemax:45,owner:'',q:'',rf:[]}); $('#pf-mings').value=10; $('#pf-agemin').value=18; $('#pf-agemax').value=45; $('#pf-owner').value=''; $('#pf-q').value=''; renderPRF(); renderPitch(); });
+  $('#p-reset').addEventListener('click', ()=>{ Object.assign(pstate,{mings:10,agemin:18,agemax:45,owner:'',q:'',rf:[],rehab:false}); $('#pf-rehab').checked=false; $('#pf-mings').value=10; $('#pf-agemin').value=18; $('#pf-agemax').value=45; $('#pf-owner').value=''; $('#pf-q').value=''; renderPRF(); renderPitch(); });
   $$('[data-pview]').forEach(b=>b.addEventListener('click',()=>{ pstate.view=b.dataset.pview; $$('[data-pview]').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('#pf-season').disabled = pstate.view==='break'; renderPitch(); tPitch.setSort(pstate.view==='break'?'BI':'pts_c', -1); }));
   const groups = [...new Set(PCOLS.map(c=>c.g))];
   $('#p-colpicker').innerHTML = groups.map(g=>`<div class="grp"><b>${g}</b>${PCOLS.filter(c=>c.g===g && c.t!=='name').map(c=>`<label><input type="checkbox" data-k="${c.k}" ${pvisible.has(c.k)?'checked':''}> ${c.l}</label>`).join('')}</div>`).join('');
@@ -1747,6 +1779,101 @@ function renderMLog(){
   const mae = k => scored.reduce((a,r)=>a+Math.abs(r[k]),0)/scored.length;
   $('#m-score').innerHTML = `<p class="hint">Over <b>${scored.length}</b> logged period${scored.length===1?'':'s'}: this model was closer <b>${mineW}</b> time${mineW===1?'':'s'}, Fantrax <b>${scored.length-mineW}</b>. Average miss — this model <b>${mae('err_mine').toFixed(1)}</b>, Fantrax <b>${mae('err_fx').toFixed(1)}</b>. ${scored.length<4?'Too few weeks to mean anything yet.':''}</p>`;
 }
+// ---------- rehab assignments: who is out there, how it is going, and when the window runs out
+// The data is MLB's own (breakout/rehab.py): the transaction that filed the assignment, the game log at the
+// affiliate, and the 40-man roster status that says whether he is still on the injured list at all.
+const REHAB = D.rehab || {asof:null, open:[], returned:[]};
+const RH_OPEN = new Map(REHAB.open.map(r=>[r.mlbam_id, r]));
+const onRehab = id => RH_OPEN.get(id) || null;
+const rhstate = { avail:'', kind:'', state:'live', q:'' };
+
+// his club and owner, taken from the tables this page already has rather than trusted from the feed
+function rhWho(r){
+  const h = ROWS.find(x=>x.mlbam_id===r.mlbam_id && x.season===CUR), pp = PPROJ[r.mlbam_id], hp = PROJ[r.mlbam_id];
+  const pr = PROWS.find(x=>x.mlbam_id===r.mlbam_id && x.season===CUR);
+  return { team: (h && h.team_abbr) || (pr && pr.team) || '', owner: (hp && hp.owner) || (pp && pp.owner) || null,
+           known: !!(hp || pp) };
+}
+const rhLine = (o, pitcher) => pitcher
+  ? `${o.ip ?? '–'} IP, ${o.h ?? 0} H, ${o.er ?? 0} ER, ${o.k ?? 0} K, ${o.bb ?? 0} BB${o.pitches ? ` · ${o.pitches} pitches` : ''}`
+  : `${o.ab ?? 0} AB, ${o.h ?? 0} H${o.hr ? `, ${o.hr} HR` : ''}${o.bb ? `, ${o.bb} BB` : ''}${o.k ? `, ${o.k} K` : ''}`;
+
+// the one number that says how close he is: pitchers build pitch counts, bats build at-bats
+function rhRamp(r){
+  const og = r.outings || []; if (!og.length) return 'no game yet';
+  if (r.pitcher){
+    const p = og.map(o=>+o.pitches||0).filter(Boolean);
+    if (!p.length) return `${og.length} outing${og.length===1?'':'s'}`;
+    const top = Math.max(...p), last = p[p.length-1];
+    return `pitch count ${p.length>1?`${p[0]} → ${last}`:last}${top>=70?', stretched out':top>=45?', building':', still short'}`;
+  }
+  const ab = og.reduce((a,o)=>a+(+o.ab||0),0), h = og.reduce((a,o)=>a+(+o.h||0),0);
+  const last3 = og.slice(-3).reduce((a,o)=>a+(+o.ab||0),0) / Math.min(3, og.length);
+  return `${h} for ${ab} in ${og.length} game${og.length===1?'':'s'}, ${last3.toFixed(1)} AB a game lately${last3>=3.5?', playing full games':''}`;
+}
+function rhClock(r){
+  if (r.stalled) return {txt: r.since_outing==null ? 'no game since the assignment' : `setback · ${r.since_outing} days since his last game`, cls:'r'};
+  if (r.over) return {txt:`past the ${r.cap}-day window · day ${r.day}`, cls:'w'};
+  return {txt:`day ${r.day} of ${r.cap} · ${r.left} day${r.left===1?'':'s'} left`, cls: r.left<=7 ? 'g' : 'b'};
+}
+function renderRehab(){
+  const out = $('#rh-out'); if (!out) return;
+  if (!REHAB.open.length && !REHAB.returned.length){
+    $('#rh-lede').textContent = 'No rehab data in this build.'; out.innerHTML = ''; return; }
+  const q = (rhstate.q||'').trim().toLowerCase();
+  const keep = r => {
+    const w = rhWho(r);
+    if (rhstate.kind === 'h' && r.pitcher) return false;
+    if (rhstate.kind === 'p' && !r.pitcher) return false;
+    if (rhstate.state === 'live' && r.stalled) return false;
+    if (rhstate.state === 'stalled' && !r.stalled) return false;
+    if (rhstate.avail === 'mine' && w.owner !== MY) return false;
+    if (rhstate.avail === 'FA' && !(w.known && isFA(w.owner))) return false;
+    if (rhstate.avail === 'owned' && !(w.owner && !isFA(w.owner))) return false;
+    if (q && !fold(r.name).includes(fold(q))) return false;
+    return true;
+  };
+  const rows = REHAB.open.filter(keep);
+  const nLive = REHAB.open.filter(r=>!r.stalled).length;
+  $('#rh-lede').innerHTML = `<b>${REHAB.open.length}</b> players are on a rehab assignment${REHAB.asof?` as of ${dayLabel(REHAB.asof)}`:''} — <b>${nLive}</b> with the clock running and <b>${REHAB.open.length-nLive}</b> who have stopped playing. <b>${REHAB.returned.length}</b> came off the injured list in the last two weeks. Every line is MLB's own filing and his actual box scores at the affiliate.`;
+  $('#rh-count').textContent = `${rows.length} shown`;
+
+  const card = r => { const w = rhWho(r), c = rhClock(r), og = (r.outings||[]).slice(-8).reverse();
+    const ownPill = w.owner ? (w.owner===MY ? '<span class="pill g">yours</span>' : isFA(w.owner) ? '<span class="pill b">free agent</span>' : `<span class="pill n">${esc(teamLabel(w.owner).replace(/ \(.*\)$/,''))}</span>`) : '';
+    return `<div class="dcard w6">
+      <div class="row" data-${r.pitcher?'p':'h'}="${r.mlbam_id}" style="padding-top:0">
+        ${ava(r.name, w.team || r.club, 40, r.mlbam_id)}
+        <div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.pos)}</span> ${ownPill}</div>
+        <div class="sub">${esc(r.club || '')}${r.il?` · <span class="pill r">${esc(r.il.replace('D','') )}-day IL</span>`:''}${r.reason?` · ${esc(r.reason)}`:''}</div></div>
+        <div class="val"><span class="pill ${c.cls}">${esc(c.txt)}</span></div></div>
+      <p class="hint" style="margin:6px 0 2px">At <b>${esc(r.to||'')}</b>${r.level?` (${esc(r.level)})`:''}${r.moved?', after moving up':''} since ${dayLabel(r.started)}. ${r.stalled?'':`Window closes <b>${dayLabel(r.deadline)}</b>.`} ${esc(rhRamp(r))}.</p>
+      ${og.length ? `<details${r.stalled?'':' open'}><summary>${og.length} most recent outing${og.length===1?'':'s'}</summary><table class="mini"><tbody>${
+        og.map(o=>`<tr><td class="l" style="width:92px">${dayLabel(o.date).replace(/,.*/,'')} ${o.date.slice(5)}</td><td class="l">${esc(rhLine(o, r.pitcher))}</td><td class="l hint">${esc(o.level||'')}</td></tr>`).join('')
+      }</tbody></table></details>` : '<p class="hint">He has not played a minor-league game since the assignment was filed.</p>'}
+    </div>`; };
+
+  let h = rows.length ? `<div class="dgrid">${rows.map(card).join('')}</div>`
+                      : '<p class="hint">Nobody on a rehab assignment matches that filter.</p>';
+  const back = REHAB.returned.filter(r=>{ const w = rhWho(r);
+    if (rhstate.avail==='mine' && w.owner!==MY) return false;
+    if (rhstate.avail==='FA' && !(w.known && isFA(w.owner))) return false;
+    if (rhstate.avail==='owned' && !(w.owner && !isFA(w.owner))) return false;
+    if (q && !fold(r.name).includes(fold(q))) return false; return true; });
+  if (back.length) h += `<div class="dgrid"><div class="dcard w12"><h3>Back in the last two weeks <small>off the injured list, so they are playable again</small></h3><div class="rowlist">${
+    back.map(r=>{ const w = rhWho(r);
+      const ownPill = w.owner ? (w.owner===MY?'<span class="pill g">yours</span>':isFA(w.owner)?'<span class="pill b">free agent</span>':`<span class="pill n">${esc(teamLabel(w.owner).replace(/ \(.*\)$/,''))}</span>`) : '';
+      return `<div class="row" data-h="${r.mlbam_id}">${ava(r.name, w.team || r.club, 32, r.mlbam_id)}<div><div class="nm">${esc(r.name)} <span class="hint">${esc(r.pos)}</span> ${ownPill}</div><div class="sub">${esc(r.how||'')}</div></div><div class="val">${dayLabel(r.back).replace(/,.*/,'')}<small>${r.back.slice(5)}</small></div></div>`; }).join('')
+  }</div></div></div>`;
+  out.innerHTML = h;
+  $$('#rh-out [data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
+  $$('#rh-out [data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
+}
+function buildRehab(){
+  if (!$('#rh-out')) return;
+  const bind = (id, key) => { const e = $(id); if(!e) return; e.addEventListener(id==='#rh-q'?'input':'change', ()=>{ rhstate[key] = e.value; renderRehab(); }); };
+  bind('#rh-avail','avail'); bind('#rh-kind','kind'); bind('#rh-state','state'); bind('#rh-q','q');
+  renderRehab();
+}
 function buildMatchup(){
   if (!$('#m-me')) return;
   ['#m-me','#m-opp'].forEach(s=>$(s).addEventListener('change', e=>{ MST[s==='#m-me'?'me':'opp'] = e.target.value; renderMatchup(); }));
@@ -2086,9 +2213,10 @@ const NAV_ICON = {
  formulas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg>',
  glossary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5"/><path d="M12 17h.01"/></svg>',
  matchup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9M9 20V4M15 20v-7M20 20v-4"/></svg>',
+ rehab:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2.5-5H21"/></svg>',
  scorecard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V9m5 10V5m5 14v-6"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>'};
-const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
+const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['rehab','Rehab','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
 (function buildNav(){
   const btn = (k,l) => `<button class="navbtn" role="tab" aria-selected="false" data-tab="${k}">${NAV_ICON[k]}<span>${l}</span></button>`;
   let h = '', g = '';
@@ -2579,5 +2707,5 @@ function renderValues(){ computeValues(); renderPicks(); renderTrade(); renderFi
 
 // ---------- tabs + boot
 buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
-renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
+renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); buildRehab(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
