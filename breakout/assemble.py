@@ -34,6 +34,8 @@ def main(argv=None):
     data["scorecard"] = pd.read_csv(sc).to_dict(orient="records") if sc.exists() else []
     ml = C.DATA / "scorecard" / "matchup_log.csv"
     data["matchup_log"] = pd.read_csv(ml).to_dict(orient="records") if ml.exists() else []
+    rp = C.DATA / "rehab" / f"rehab_{data['meta']['season']}.json"
+    data["rehab"] = json.loads(rp.read_text()) if rp.exists() else {"asof": None, "open": [], "returned": []}
     # headshots for everyone on a roster, inline, because an artifact cannot reach an outside image host
     data["faces"] = faces.build(data)
     tpl_txt = tpl.read_text(encoding="utf-8")

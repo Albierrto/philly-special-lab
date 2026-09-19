@@ -78,6 +78,12 @@ jobs:
       - name: Forecast scorecard
         continue-on-error: true
         run: python -m breakout.scorecard
+      # Rehab assignments: MLB's transaction feed says who was sent out and when, the affiliate's box scores say how
+      # the outings have gone, and the 40-man roster status says whether he is still on the injured list at all.
+      # Never fails the build: a board a few hours stale beats no site.
+      - name: Rehab assignments and minor-league outings
+        continue-on-error: true
+        run: python -m breakout.rehab
       - name: Assemble the site
         run: |
           python -m breakout.build_v4
@@ -87,7 +93,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces
+          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces data/rehab
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           # someone (or another run) can land a commit on main while this one is building, and a plain push then dies
@@ -232,6 +238,8 @@ def build(default_team: str):
     s = ownership.stamp_streamers(json.loads((C.OUT / "streamers" / "streamers.json").read_text()))
     stream = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
                   park_factors=s["park_factors"], venues=s.get("venues", []), logs=s.get("logs", {}))
+    rp = C.DATA / "rehab" / f"rehab_{data['meta']['season']}.json"
+    data["rehab"] = json.loads(rp.read_text()) if rp.exists() else {"asof": None, "open": [], "returned": []}
     data["faces"] = faces.build(data)          # inline headshots for the rostered players (see breakout/faces.py)
     (site / "data" / "lab.js").write_text("window.__LAB__=" + json.dumps(data, separators=(",", ":")) + ";", encoding="utf-8")
     (site / "data" / "streamers.js").write_text("window.__STREAM__=" + json.dumps(stream, separators=(",", ":")) + ";", encoding="utf-8")
