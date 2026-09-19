@@ -61,6 +61,12 @@ jobs:
       - name: Forecast scorecard
         continue-on-error: true
         run: python -m breakout.scorecard
+      # Rehab assignments: MLB's transaction feed says who was sent out and when, the affiliate's box scores say how
+      # the outings have gone, and the 40-man roster status says whether he is still on the injured list at all.
+      # Never fails the build: a board a few hours stale beats no site.
+      - name: Rehab assignments and minor-league outings
+        continue-on-error: true
+        run: python -m breakout.rehab
       - name: Assemble the site
         run: |
           python -m breakout.build_v4
@@ -70,7 +76,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces
+          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces data/rehab
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           # someone (or another run) can land a commit on main while this one is building, and a plain push then dies
