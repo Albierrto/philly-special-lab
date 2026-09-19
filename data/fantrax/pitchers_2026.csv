@@ -131,7 +131,7 @@ Peter Lambert,SP,HOU,GLIZZY,ACTIVE
 Miguel Vargas,3B,CHW,GLIZZY,ACTIVE
 Zack Wheeler,SP,PHI,GLIZZY,ACTIVE
 Jung Hoo Lee,CF,SF,GLIZZY,RESERVE
-Hayden Wesneski,SP,HOU,GLIZZY,RESERVE
+Hayden Wesneski,SP,HOU,GLIZZY,ACTIVE
 Ryne Nelson,SP,ARI,GLIZZY,RESERVE
 MacKenzie Gore,SP,TEX,GLIZZY,RESERVE
 Jake Bennett,SP,BOS,GLIZZY,RESERVE
@@ -139,7 +139,7 @@ Samad Taylor,2B,SD,GLIZZY,ACTIVE
 Kyle Stowers,LF,MIA,GLIZZY,ACTIVE
 William Contreras,C,MIL,GLIZZY,ACTIVE
 Randy Arozarena,LF,SEA,GLIZZY,ACTIVE
-Drew Rasmussen,SP,TB,GLIZZY,ACTIVE
+Drew Rasmussen,SP,TB,GLIZZY,RESERVE
 Pete Crow-Armstrong,CF,CHC,GLIZZY,ACTIVE
 Wilyer Abreu,RF,BOS,GLIZZY,ACTIVE
 Taj Bradley,SP,MIN,GLIZZY,ACTIVE
@@ -287,25 +287,25 @@ Gunnar Henderson,SS,BAL,GK,ACTIVE
 Carter Jensen,C,KC,BB,ACTIVE
 T.J. Rumfield,1B,COL,BB,ACTIVE
 Cole Carrigg,CF,COL,BB,ACTIVE
-Ty France,1B,SD,BB,RESERVE
-Brandon Lowe,2B,PIT,BB,ACTIVE
-Tyler Glasnow,SP,LAD,BB,ACTIVE
-Jacob Lopez,SP,ATH,BB,RESERVE
-Trevor Rogers,SP,BAL,BB,RESERVE
-Payton Tolle,RP,BOS,BB,RESERVE
+Ty France,1B,SD,BB,ACTIVE
+Brandon Lowe,2B,PIT,BB,RESERVE
+Tyler Glasnow,SP,LAD,BB,RESERVE
+Jacob Lopez,SP,ATH,BB,ACTIVE
+Trevor Rogers,SP,BAL,BB,ACTIVE
+Payton Tolle,RP,BOS,BB,ACTIVE
 Seth Hernandez,SP,PIT,BB,MINORS
 Shohei Ohtani,DH,LAD,BB,INJURED_RESERVE
 Julio Rodriguez,CF,SEA,BB,ACTIVE
 Bobby Witt Jr.,SS,KC,BB,ACTIVE
-Logan Gilbert,SP,SEA,BB,ACTIVE
+Logan Gilbert,SP,SEA,BB,RESERVE
 James Wood,LF,WSH,BB,ACTIVE
 Sal Stewart,1B,CIN,BB,ACTIVE
 Dylan Cease,SP,TOR,BB,ACTIVE
-Leo Bernal,C,STL,BB,ACTIVE
-Corey Seager,SS,TEX,BB,RESERVE
+Leo Bernal,C,STL,BB,RESERVE
+Corey Seager,SS,TEX,BB,ACTIVE
 Bryan Woo,SP,SEA,BB,ACTIVE
 Logan Henderson,SP,MIL,BB,RESERVE
 Fernando Tatis Jr.,RF,SD,BB,ACTIVE
 Nick Kurtz,1B,ATH,BB,INJURED_RESERVE
-Ian Seymour,RP,TB,BB,ACTIVE
+Ian Seymour,RP,TB,BB,RESERVE
 Rainiel Rodriguez,C,STL,BB,MINORS
