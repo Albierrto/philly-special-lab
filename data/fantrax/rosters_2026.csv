@@ -62,7 +62,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ydp,Kade Anderson,SEA,SP,SP,RESERVE,BAMBI,The Great Bambi
 0630d,Drake Baldwin,ATL,C,C,ACTIVE,BAMBI,The Great Bambi
 02bqr,Blake Snell,LAD,SP,SP,RESERVE,BAMBI,The Great Bambi
-024m0,Jose Altuve,HOU,2B,UT,ACTIVE,BAMBI,The Great Bambi
+024m0,Jose Altuve,HOU,2B,2B,RESERVE,BAMBI,The Great Bambi
 05r1m,Jordan Lawlar,ARI,3B,SS,RESERVE,BAMBI,The Great Bambi
 05aoc,Eury Perez,MIA,SP,SP,ACTIVE,BAMBI,The Great Bambi
 05tzn,Parker Messick,CLE,SP,SP,ACTIVE,BAMBI,The Great Bambi
@@ -73,7 +73,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 060pm,Wyatt Langford,TEX,LF,OF,ACTIVE,BAMBI,The Great Bambi
 05rcf,Joshua Baez,STL,RF,OF,RESERVE,BAMBI,The Great Bambi
 04q2n,Adley Rutschman,BOS,C,UT,RESERVE,BAMBI,The Great Bambi
-05t9v,Jonathan Aranda,TB,1B,1B,RESERVE,BAMBI,The Great Bambi
+05t9v,Jonathan Aranda,TB,1B,UT,ACTIVE,BAMBI,The Great Bambi
 05xch,Junior Caminero,TB,3B,3B,ACTIVE,BAMBI,The Great Bambi
 06ibv,Jesus Made,MIL,SS,SS,MINORS,BAMBI,The Great Bambi
 05uc4,Troy Melton,DET,RP,SP,ACTIVE,BAMBI,The Great Bambi
