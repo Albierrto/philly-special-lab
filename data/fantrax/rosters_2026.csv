@@ -56,10 +56,10 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 041ma,Cole Ragans,KC,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 02i2k,Byron Buxton,MIN,CF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
 05r8n,Yoshinobu Yamamoto,LAD,SP,SP,ACTIVE,BAMBI,The Great Bambi
-060u3,Andrew Alvarez,WSH,SP,SP,ACTIVE,BAMBI,The Great Bambi
+060u3,Andrew Alvarez,WSH,SP,SP,RESERVE,BAMBI,The Great Bambi
 0622w,Chandler Simpson,TB,CF,OF,ACTIVE,BAMBI,The Great Bambi
 06apx,Trey Yesavage,TOR,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
-05ydp,Kade Anderson,SEA,SP,SP,RESERVE,BAMBI,The Great Bambi
+05ydp,Kade Anderson,SEA,SP,SP,ACTIVE,BAMBI,The Great Bambi
 0630d,Drake Baldwin,ATL,C,C,ACTIVE,BAMBI,The Great Bambi
 02bqr,Blake Snell,LAD,SP,SP,RESERVE,BAMBI,The Great Bambi
 024m0,Jose Altuve,HOU,2B,2B,RESERVE,BAMBI,The Great Bambi
@@ -95,9 +95,9 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 061zv,Josue De Paula,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 045qo,Jazz Chisholm Jr.,NYY,2B,2B,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
 01ub6,Jose Ramirez,CLE,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-04ps7,Joe Ryan,MIN,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+04ps7,Joe Ryan,MIN,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 01cgo,Freddie Freeman,LAD,1B,1B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-05144,Hunter Brown,HOU,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
+05144,Hunter Brown,HOU,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 02z0s,Aaron Judge,NYY,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
 05u6q,Cam Schlittler,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05udp,Elly De La Cruz,CIN,SS,SS,ACTIVE,MMM,Midwest MooseKnuckle Mafia
@@ -285,27 +285,26 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ahe,Curtis Mead,BOS,1B,3B,INJURED_RESERVE,GK,Gotham Knights
 050w9,Gunnar Henderson,BAL,SS,SS,ACTIVE,GK,Gotham Knights
 05vy5,Carter Jensen,KC,C,C,ACTIVE,BB,Basketball
-05yb0,T.J. Rumfield,COL,1B,1B,ACTIVE,BB,Basketball
-066eo,Cole Carrigg,COL,CF,OF,ACTIVE,BB,Basketball
-03whq,Ty France,SD,1B,UT,ACTIVE,BB,Basketball
-03qjy,Brandon Lowe,PIT,2B,2B,RESERVE,BB,Basketball
-02btx,Tyler Glasnow,LAD,SP,SP,RESERVE,BB,Basketball
-051ui,Jacob Lopez,ATH,SP,SP,ACTIVE,BB,Basketball
-04ak5,Trevor Rogers,BAL,SP,SP,ACTIVE,BB,Basketball
-06gwk,Payton Tolle,BOS,RP,SP,ACTIVE,BB,Basketball
-067yn,Seth Hernandez,PIT,SP,SP,MINORS,BB,Basketball
 02yc4,Shohei Ohtani,LAD,DH,UT,INJURED_RESERVE,BB,Basketball
 04fhb,Julio Rodriguez,SEA,CF,OF,ACTIVE,BB,Basketball
 04lgp,Bobby Witt Jr.,KC,SS,SS,ACTIVE,BB,Basketball
 04n0m,Logan Gilbert,SEA,SP,SP,RESERVE,BB,Basketball
+05yb0,T.J. Rumfield,COL,1B,1B,ACTIVE,BB,Basketball
+066eo,Cole Carrigg,COL,CF,OF,ACTIVE,BB,Basketball
+03whq,Ty France,SD,1B,UT,ACTIVE,BB,Basketball
+03qjy,Brandon Lowe,PIT,2B,2B,ACTIVE,BB,Basketball
+02btx,Tyler Glasnow,LAD,SP,SP,RESERVE,BB,Basketball
 05rat,James Wood,WSH,LF,OF,ACTIVE,BB,Basketball
 05u9o,Sal Stewart,CIN,1B,3B,ACTIVE,BB,Basketball
 03df2,Dylan Cease,TOR,SP,SP,ACTIVE,BB,Basketball
 05rcw,Leo Bernal,STL,C,C,RESERVE,BB,Basketball
-02mw6,Corey Seager,TEX,SS,UT,ACTIVE,BB,Basketball
+02mw6,Corey Seager,TEX,SS,SS,RESERVE,BB,Basketball
 05y62,Bryan Woo,SEA,SP,SP,ACTIVE,BB,Basketball
 05uo2,Logan Henderson,MIL,SP,SP,RESERVE,BB,Basketball
-03zbh,Fernando Tatis Jr.,SD,RF,2B,ACTIVE,BB,Basketball
+03zbh,Fernando Tatis Jr.,SD,RF,UT,ACTIVE,BB,Basketball
+04ak5,Trevor Rogers,BAL,SP,SP,ACTIVE,BB,Basketball
 062k5,Nick Kurtz,ATH,1B,UT,INJURED_RESERVE,BB,Basketball
 05jpd,Ian Seymour,TB,RP,SP,RESERVE,BB,Basketball
+06gwk,Payton Tolle,BOS,RP,SP,ACTIVE,BB,Basketball
 06mnp,Rainiel Rodriguez,STL,C,C,MINORS,BB,Basketball
+067yn,Seth Hernandez,PIT,SP,SP,MINORS,BB,Basketball

@@ -1,17 +1,17 @@
 player,pos,mlb,nkey,age,PA,pts,final_hitter_rank,proj_pts,proj_rank,proj_pts_600pa,proj_rank_600pa,skills_score,breakout_score,tag
-Bobby Witt Jr.,SS,KC,bobby witt,26.0,590.0,697.0,20.0,817.0,1.0,805.0,1.0,3.964033451413756,4.004033451413756,unlucky (xwOBA >> wOBA); elite contact quality; plus speed
-Fernando Tatis Jr.,RF,SD,fernando tatis,27.5,664.0,780.0,3.0,751.0,2.0,704.0,5.0,4.99333004076481,5.013330040764809,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; plus speed
-James Wood,LF,WSH,james wood,23.8,585.0,721.0,11.0,750.0,3.0,743.0,3.0,6.200536166973428,6.360536166973428,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; young
-Shohei Ohtani,DH,LAD,shohei ohtani,32.0,596.0,689.0,23.0,728.0,6.0,702.0,7.0,1.4254538465135074,1.3254538465135073,unlucky (xwOBA >> wOBA); elite contact quality
-Julio Rodriguez,CF,SEA,julio rodriguez,25.5,619.0,617.0,46.0,622.0,28.0,586.0,148.0,2.8360899758829636,2.4360899758829637,unlucky (xwOBA >> wOBA); elite bat speed; plus speed
-Brandon Lowe,2B,PIT,brandon lowe,32.0,619.0,643.0,38.0,581.0,57.0,575.0,178.0,-1.1238701036541179,-1.5038701036541178,elite contact quality
-Sal Stewart,1B,CIN,sal stewart,22.6,659.0,736.0,6.0,574.0,60.0,639.0,41.0,1.4250812108227044,0.3450812108227044,young
-T.J. Rumfield,1B,COL,tj rumfield,26.1,597.0,594.0,58.0,546.0,74.0,549.0,275.0,-2.60250664245324,-2.9225066424532398,plus approach
-Nick Kurtz,1B,ATH,nick kurtz,23.3,434.0,491.0,120.0,515.0,94.0,695.0,8.0,4.7029618099301285,3.1429618099301284,elite bat speed; elite contact quality; needs playing time; young
-Carter Jensen,C,KC,carter jensen,23.0,567.0,591.0,63.0,445.0,146.0,571.0,192.0,1.5987514993952674,-0.06124850060473275,young
-Ty France,1B,SD,ty france,32.0,456.0,487.0,125.0,411.0,166.0,533.0,328.0,-1.8657704242756723,-2.685770424275672,
-Corey Seager,SS,TEX,corey seager,32.2,393.0,376.0,194.0,351.0,209.0,523.0,352.0,-0.7599673313768124,-3.7599673313768123,unlucky (xwOBA >> wOBA); elite contact quality; needs playing time
-Cole Carrigg,CF,COL,cole carrigg,24.1,331.0,368.0,201.0,325.0,226.0,590.0,133.0,0.2790490757665497,-0.2209509242334503,plus speed; needs playing time; young
+Bobby Witt Jr.,SS,KC,bobby witt,26.0,603.0,712.0,20.0,749.0,2.0,725.0,2.0,3.951563942596076,3.971563942596076,unlucky (xwOBA >> wOBA); elite contact quality; plus speed
+Fernando Tatis Jr.,RF,SD,fernando tatis,27.5,678.0,801.0,3.0,744.0,3.0,697.0,3.0,5.060009073611095,5.060009073611095,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; plus speed
+Julio Rodriguez,CF,SEA,julio rodriguez,25.5,627.0,622.0,48.0,700.0,6.0,656.0,15.0,2.7881347792797344,2.8281347792797344,unlucky (xwOBA >> wOBA); elite bat speed; plus speed
+Shohei Ohtani,DH,LAD,shohei ohtani,32.0,596.0,689.0,27.0,697.0,9.0,672.0,9.0,1.4449111961411822,1.2849111961411823,unlucky (xwOBA >> wOBA); elite contact quality
+James Wood,LF,WSH,james wood,23.8,594.0,731.0,12.0,693.0,10.0,679.0,6.0,6.167485388627729,6.207485388627729,unlucky (xwOBA >> wOBA); elite bat speed; elite contact quality; skills trending up; young
+Brandon Lowe,2B,PIT,brandon lowe,32.0,630.0,666.0,33.0,578.0,59.0,564.0,209.0,-1.071636142757687,-1.591636142757687,elite contact quality
+Sal Stewart,1B,CIN,sal stewart,22.6,669.0,742.0,9.0,553.0,71.0,607.0,79.0,1.4751167319877065,0.23511673198770655,young
+T.J. Rumfield,1B,COL,tj rumfield,26.1,609.0,604.0,61.0,537.0,84.0,529.0,324.0,-2.588247842601478,-3.048247842601478,plus approach
+Carter Jensen,C,KC,carter jensen,23.0,580.0,605.0,59.0,481.0,125.0,604.0,87.0,1.5143704072448676,0.19437040724486754,young
+Nick Kurtz,1B,ATH,nick kurtz,23.3,434.0,491.0,125.0,480.0,127.0,647.0,23.0,4.727725525940814,2.5077255259408138,elite bat speed; elite contact quality; needs playing time; young
+Ty France,1B,SD,ty france,32.0,469.0,516.0,116.0,412.0,168.0,523.0,338.0,-1.9763492361879025,-3.0163492361879025,
+Corey Seager,SS,TEX,corey seager,32.2,406.0,388.0,191.0,385.0,186.0,558.0,228.0,-0.6614481316549276,-3.2614481316549275,unlucky (xwOBA >> wOBA); elite contact quality; needs playing time
+Cole Carrigg,CF,COL,cole carrigg,24.1,344.0,388.0,191.0,353.0,209.0,616.0,53.0,0.20493549545120587,-0.1550645045487941,plus speed; needs playing time; young
 Tyler Glasnow,SP,LAD,tyler glasnow,,,,,,,,,,,
 Jacob Lopez,SP,ATH,jacob lopez,,,,,,,,,,,
 Trevor Rogers,SP,BAL,trevor rogers,,,,,,,,,,,
