@@ -161,10 +161,10 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823570,2026-09-20,2026-09-20T17:10:00Z,Scheduled,3289,Citi Field,day,N,143,Philadelphia Phillies,False,121,New York Mets,650911.0,Cristopher Sánchez,listed,804636.0,Jonah Tong,listed
 823329,2026-09-20,2026-09-20T17:35:00Z,Scheduled,31,PNC Park,day,N,134,Pittsburgh Pirates,True,118,Kansas City Royals,669199.0,Lake Bachar,listed,608379.0,Michael Wacha,listed
 823329,2026-09-20,2026-09-20T17:35:00Z,Scheduled,31,PNC Park,day,N,118,Kansas City Royals,False,134,Pittsburgh Pirates,608379.0,Michael Wacha,listed,669199.0,Lake Bachar,listed
-822922,2026-09-20,2026-09-20T17:40:00Z,Scheduled,12,Tropicana Field,day,N,139,Tampa Bay Rays,True,111,Boston Red Sox,643377.0,Griffin Jax,listed,663776.0,Patrick Sandoval,listed
-822922,2026-09-20,2026-09-20T17:40:00Z,Scheduled,12,Tropicana Field,day,N,111,Boston Red Sox,False,139,Tampa Bay Rays,663776.0,Patrick Sandoval,listed,643377.0,Griffin Jax,listed
-824381,2026-09-20,2026-09-20T17:40:00Z,Scheduled,5,Progressive Field,day,N,114,Cleveland Guardians,True,133,Athletics,668909.0,Gavin Williams,listed,678022.0,Jack Perkins,listed
-824381,2026-09-20,2026-09-20T17:40:00Z,Scheduled,5,Progressive Field,day,N,133,Athletics,False,114,Cleveland Guardians,678022.0,Jack Perkins,listed,668909.0,Gavin Williams,listed
+822922,2026-09-20,2026-09-20T17:40:00Z,Pre-Game,12,Tropicana Field,day,N,139,Tampa Bay Rays,True,111,Boston Red Sox,643377.0,Griffin Jax,listed,663776.0,Patrick Sandoval,listed
+822922,2026-09-20,2026-09-20T17:40:00Z,Pre-Game,12,Tropicana Field,day,N,111,Boston Red Sox,False,139,Tampa Bay Rays,663776.0,Patrick Sandoval,listed,643377.0,Griffin Jax,listed
+824381,2026-09-20,2026-09-20T17:40:00Z,Pre-Game,5,Progressive Field,day,N,114,Cleveland Guardians,True,133,Athletics,668909.0,Gavin Williams,listed,678022.0,Jack Perkins,listed
+824381,2026-09-20,2026-09-20T17:40:00Z,Pre-Game,5,Progressive Field,day,N,133,Athletics,False,114,Cleveland Guardians,678022.0,Jack Perkins,listed,668909.0,Gavin Williams,listed
 824462,2026-09-20,2026-09-20T17:40:00Z,Scheduled,2602,Great American Ball Park,day,N,113,Cincinnati Reds,True,112,Chicago Cubs,695076.0,Rhett Lowder,listed,656849.0,David Peterson,projected
 824462,2026-09-20,2026-09-20T17:40:00Z,Scheduled,2602,Great American Ball Park,day,N,112,Chicago Cubs,False,113,Cincinnati Reds,656849.0,David Peterson,projected,695076.0,Rhett Lowder,listed
 824139,2026-09-20,2026-09-20T18:10:00Z,Scheduled,2392,Daikin Park,day,N,117,Houston Astros,True,144,Atlanta Braves,686613.0,Hunter Brown,listed,527048.0,Martín Pérez,listed
