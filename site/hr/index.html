@@ -277,7 +277,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;color:var(--ink3);font
 <main id="main"></main>
 <footer id="foot"></footer>
 
-<script src="data/hr.js?v=202609200140"></script>
+<script src="data/hr.js?v=202609200330"></script>
 <script>
 "use strict";
 /* ============================================================ state */
@@ -289,7 +289,7 @@ const store = { get(k, d) { try { const v = localStorage.getItem("hrb:" + k); re
 const TABS = [["hr", "Home runs"], ["value", "Best bets"], ["arb", "Arbitrage"], ["hits", "Hits & bases"], ["ks", "Strikeouts"], ["games", "Games & odds"], ["card", "Scorecard"], ["how", "How it works"]];
 const S = { day: 0, tab: store.get("tab", "hr"), game: "", q: "", confirmed: store.get("confirmed", false), sort: "model", show: 30,
             open: new Set(), live: { state: "", at: null, err: "" }, homered: {}, liveLines: {}, liveProps: {}, inGame: {}, startedPk: new Set(),
-            ks: {}, ksAt: null, ksSrc: "", pm: {}, pmMl: {}, pmTot: {}, pmAt: null };
+            ks: {}, ksAt: null, ksSrc: "", pm: {}, pmMl: {}, pmTot: {}, pmAt: null, pmTok: {}, pmBook: {} };
 const MD = HR ? HR.model : null;
 const ORDER = ["out", "k", "bb", "s1", "xb", "hr"], IK = 1, IS1 = 3, IXB = 4, IHR = 5;
 
@@ -450,13 +450,16 @@ function ksQuote(entry, series) {
   const fee = ksFee(ask, series);
   return { ask, fee, cost: Math.min(ask + fee, 0.999), mid: live ? (live[0] != null && live[1] != null ? (live[0] + live[1]) / 2 : live[2]) : entry[0], live: !!live };
 }
+function pmFee(p) { const r = (VCFG && VCFG.pm_fee) || 0.05; return p > 0 && p < 1 ? Math.floor(r * p * (1 - p) * 1e5 + 0.5) / 1e5 : 0; }
+function pmCost(ask) { return ask > 0 && ask < 0.98 ? Math.min(ask + pmFee(ask), 0.999) : null; }
 function pmQuote(entry) {
-  // entry: [market price, ask, bid, slug]
+  // entry: [market price, ask, bid, slug]; Polymarket's taker fee rides on the cost, as Kalshi's does
   if (!entry) return null;
   const live = entry[3] ? S.pm[entry[3]] : null;
   const ask = live ? live[1] : entry[1];
-  if (!(ask > 0 && ask < 0.98)) return null;
-  return { ask, cost: ask, mid: live ? live[0] : entry[0], live: !!live };
+  const cost = pmCost(ask);
+  if (cost == null) return null;
+  return { ask, fee: pmFee(ask), cost, mid: live ? live[0] : entry[0], live: !!live };
 }
 function playerOffers(sl, who, key) {
   const g = gameMap(sl)[who.pk], gm = g.mk || {}, series = SERIES_OF(key), out = [];
@@ -466,8 +469,8 @@ function playerOffers(sl, who, key) {
   if (kq) out.push({ site: "Kalshi", short: "KALSHI", cost: kq.cost, label: cents(kq.cost), link: ((gm.ks || {}).urls || {})[series] || "https://kalshi.com/sports/baseball",
                      note: `Cheapest bet: 1 contract at ${cents(kq.ask)} + ${cents(kq.fee)} fee = ${cents(kq.ask + kq.fee)}, pays $1.00 (${costToAmer(kq.cost)})`, kq });
   const pq = pmQuote(mkv(who, "pm", key));
-  if (pq) out.push({ site: "Polymarket", short: "POLY", cost: pq.cost, label: cents(pq.ask), link: (gm.pm || {}).props_url || (gm.pm || {}).url,
-                     note: `1 share at ${cents(pq.ask)} pays $1.00 (${costToAmer(pq.cost)})` });
+  if (pq) out.push({ site: "Polymarket", short: "POLY", cost: pq.cost, label: cents(pq.cost), link: (gm.pm || {}).props_url || (gm.pm || {}).url,
+                     note: `1 share at ${cents(pq.ask)} + ${cents(pq.fee)} fee = ${cents(pq.cost)}, pays $1.00 (${costToAmer(pq.cost)})`, pq });
   out.sort((a, b) => a.cost - b.cost);
   return out;
 }
@@ -672,9 +675,9 @@ function hrDetail(sl, h) {
 
 /* ============================================================ value: model vs market, at the best price */
 const VCFG = Object.assign({
-  w: { hr: 0.35, hit: 0.3, tb: 0.3, k: 0.4, ml: 0.2, tot: 0.15 },
+  w: { hr: 0.15, hit: 0.1, tb: 0.1, k: 0.15, ml: 0.05, tot: 0.05 },
   dk_ratio: { hr: 1.2, hit: 1.07, tb: 1.11, k: 1.06 },
-  good: 0.04, lean: 0.015, ks_tight: 0.06, min_ratio_pairs: 8, wild_ratio: 1.9,
+  good: 0.04, lean: 0.015, price_good: 0.02, price_lean: 0, cap_ratio: 1.6, ks_tight: 0.06, min_ratio_pairs: 8, pm_fee: 0.05,
 }, (HR && HR.value_cfg) || {});
 const KIND_NAME = { hr: "to homer", hit: "1+ hit", tb: "2+ total bases", k: "strikeouts", ml: "to win", tot: "total" };
 const KIND_KEY = { hr: "hr1", hit: "hit1", tb: "tb2" };
@@ -715,20 +718,21 @@ function propFair(sl, who, key) {
   if (!F.length) return null;
   return { p: F.reduce((a, x) => a + x[1], 0) / F.length, parts: F };
 }
+const oddsOf = p => p / (1 - p);
 function assess(kind, pModel, fair, offers, push = 0) {
-  // pModel and fair are chances of winning given no push. EV is per $1 staked at the best price.
-  if (!offers.length || fair == null || pModel == null) return null;
+  // pModel and fair are chances of winning given no push. Return is per $1 at the best price, fees included.
+  // The market's own number is the anchor; the model is a small tilt; the best price beating the market is the edge.
+  // When the model sits far above every market, the record says that gap is a warning, not an edge: no verdict.
+  if (!offers.length || fair == null || pModel == null || !(fair > 0 && fair < 1) || !(pModel > 0 && pModel < 1)) return null;
   const w = VCFG.w[kind], best = offers[0];
   const blend = w * pModel + (1 - w) * fair;
   const ev = blend * (1 - push) / best.cost + push - 1;
   const priceEdge = fair * (1 - push) / best.cost + push - 1;
-  let verdict = ev >= VCFG.good && pModel >= best.cost ? 2 : ev >= VCFG.lean ? 1 : 0;
-  // when the model is twice as high as every market, the market usually knows something (a pitch count, a sore wrist)
-  const wild = pModel >= VCFG.wild_ratio * fair && fair < 0.3;
-  if (wild && verdict === 2) verdict = 1;
-  return { pModel, fair, blend, best, ev, priceEdge, verdict, push, w, wild };
+  const ratio = oddsOf(pModel) / oddsOf(fair), capped = ratio >= VCFG.cap_ratio;
+  const verdict = capped ? 0 : (priceEdge >= VCFG.price_good && ev >= VCFG.good) ? 2 : (priceEdge >= VCFG.price_lean && ev >= VCFG.lean) ? 1 : 0;
+  return { pModel, fair, blend, best, ev, priceEdge, ratio, capped, verdict, push, w };
 }
-function verdictPill(v) { return v == null ? "" : `<span class="verdict v${v.verdict}">${["No value", "Slight value", "Value"][v.verdict]}</span>`; }
+function verdictPill(v) { return v == null ? "" : `<span class="verdict v${v.verdict}">${v.capped ? "Market disagrees" : ["No value", "Slight value", "Value"][v.verdict]}</span>`; }
 function signedPct(x, d = 1) { return (x >= 0 ? "+" : "−") + Math.abs(100 * x).toFixed(d) + "%"; }
 function propValue(sl, who, key, pModel) { return assess(SERIES_OF(key), pModel, (propFair(sl, who, key) || {}).p, playerOffers(sl, who, key)); }
 function gameFair(g, W, kind, side) {
@@ -803,12 +807,44 @@ function valueBets(sl) {
         const fair = gameFair(g, W, "tot", side);
         const pM = (side === "over" ? pO : pU) / Math.max(1e-6, 1 - pP);
         const v = assess("tot", pM, fair && fair.p, offers, pP); if (!v) continue;
-        out.push(Object.assign(v, { kind: "tot", key: side, who: g, pk: g.pk, id: `tot-${g.pk}-${side}`, offers, fairParts: fair.parts, confirmed: true,
+        out.push(Object.assign(v, { kind: "tot", key: side, line: L, who: g, pk: g.pk, id: `tot-${g.pk}-${side}`, offers, fairParts: fair.parts, confirmed: true,
           title: `${side === "over" ? "Over" : "Under"} ${L} · ${g.away.abbr} @ ${g.home.abbr}`, sub: `model ${(g._m.muA + g._m.muH).toFixed(1)} runs · ${tfmt(g.time)}` }));
       }
     }
   }
   return out.sort((a, b) => b.ev - a.ev);
+}
+
+/* Polymarket's order book (CORS-open): how much of the price on the card is really there */
+function pmSlugOf(v) {
+  if (["hr", "hit", "tb", "k"].includes(v.kind)) { const e = mkv(v.who, "pm", v.key); return e ? e[3] : null; }
+  const pm = (v.who.mk || {}).pm || {};
+  if (v.kind === "ml") return (pm.ml || {}).slug || null;
+  if (v.kind === "tot") return ((pm.totals || {})[String(v.line)] || {}).slug || null;
+  return null;
+}
+async function pmDepth(cards) {
+  // props and totals only: their first outcome is the "over / yes" token; a moneyline's token order follows the team names
+  const want = cards.filter(v => v.best && v.best.site === "Polymarket" && v.kind !== "ml").map(v => [pmSlugOf(v), v]).filter(([slug]) => slug && S.pmTok[slug] && !(S.pmBook[slug] && Date.now() - S.pmBook[slug].at < 4 * 60000));
+  if (!want.length) return false;
+  await Promise.all(want.slice(0, 16).map(async ([slug, v]) => {
+    try {
+      const toks = JSON.parse(S.pmTok[slug] || "[]"); const yes = v.kind === "tot" && v.key === "under" ? toks[1] : toks[0];
+      if (!yes) return;
+      const j = await jget(`https://clob.polymarket.com/book?token_id=${yes}`);
+      const asks = (j.asks || []).map(a => [+a.price, +a.size]).filter(([p, q]) => p > 0 && q > 0).sort((a, b) => a[0] - b[0]);
+      const ask = asks.length ? asks[0][0] : null, near = asks.filter(([p]) => ask != null && p <= ask + 0.0101).reduce((t, [, q]) => t + q, 0);
+      S.pmBook[slug] = { at: Date.now(), ask, size: near, min: +(j.min_order_size || 5) };
+    } catch (e) { S.pmBook[slug] = { at: Date.now(), ask: null, size: null }; }
+  }));
+  return true;
+}
+function depthNote(v) {
+  if (!v.best || v.best.site !== "Polymarket" || v.kind === "ml") return "";
+  const slug = pmSlugOf(v), b = slug ? S.pmBook[slug] : null;
+  if (!b || b.ask == null) return ` <span class="age">Polymarket depth not checked yet.</span>`;
+  const worth = b.size * b.ask;
+  return ` <span class="age">Polymarket had <b>${Math.round(b.size)} shares</b> within a cent of that price (about $${worth.toFixed(0)}), minimum order ${b.min}.</span>`;
 }
 
 /* ============================================================ view: best bets */
@@ -829,18 +865,21 @@ function valueCard(v) {
   const d = Math.max(c, v.fair, v.pModel) < 0.1 ? 1 : 0;      // one decimal count for every percentage on the card
   const pc = x => pct(x, d);
   const fairTxt = v.fairParts.map(([s, p]) => `${s} ${pc(p)}`).join(" · ");
-  const why = v.wild
-    ? `<b>We make it ${pc(v.pModel)} and every market says ${pc(v.fair)}. A gap that big usually means news we have not seen (a pitch count, a sore wrist, a lineup change), so it is held to a slight edge until something explains it.</b>`
+  const pe = signedPct(v.priceEdge), others = v.offers.length > 1 ? ` (the other site${v.offers.length > 2 ? "s" : ""}: ${v.offers.slice(1).map(o => `${o.site} ${pct(o.cost, d)}`).join(", ")})` : "";
+  const why = v.capped
+    ? `<b>Our model has this at ${v.ratio.toFixed(1)}× the market's odds (${pc(v.pModel)} against ${pc(v.fair)}). On the record so far, gaps that wide have been the model's mistakes, not the market's: picks like it lost. Not a bet.</b>`
     : v.verdict === 2
-      ? `The market prices this at ${pc(v.fair)}; we make it ${pc(v.pModel)}. Even leaning ${Math.round(100 * (1 - v.w))}% on the market, ${esc(b.label)} at ${esc(b.site)} is too cheap.`
+      ? `The market's own number is ${pc(v.fair)}, and ${esc(b.site)} is selling it for ${pc(c)}${others}. That price alone returns ${pe} before our model says a word; we make it ${pc(v.pModel)}, which nudges it further.`
     : v.verdict === 1
-      ? `A small edge. ${v.priceEdge > 0.01 ? `${esc(b.site)} is cheaper than the other sites, and w` : "W"}e make it ${pc(v.pModel)} against a market at ${pc(v.fair)}.`
-      : `No edge here: it needs ${pc(c)} to break even and the honest number is ${pc(v.blend)}.`;
+      ? `A small price edge: ${esc(b.site)} at ${pc(c)} is a touch under the market's ${pc(v.fair)} (${pe} on price alone)${others}. We make it ${pc(v.pModel)}.`
+      : v.priceEdge < 0
+        ? `No edge: the cheapest price implies ${pc(c)} and the market itself only says ${pc(v.fair)}. We make it ${pc(v.pModel)}, but the market is what pays.`
+        : `Not enough: the price is only ${pe} under the market and the blended chance (${pc(v.blend)}) does not clear the bar.`;
   return `<div class="vb v${v.verdict}">
     <div><div class="t">${esc(v.title)} ${verdictPill(v)}<br><small>${v.sub}${v.moreLines ? ` · ${v.moreLines} more of his lines look the same` : ""}</small></div></div>
-    <div class="ev"><b style="color:${v.ev >= 0 ? "var(--good)" : "var(--bad)"}">$${back.toFixed(2)}</b><span>back on a $10 bet, on average</span></div>
+    <div class="ev"><b style="color:${v.capped ? "var(--ink3)" : v.ev >= 0 ? "var(--good)" : "var(--bad)"}">$${back.toFixed(2)}</b><span>${v.capped ? "on paper, not trusted" : "back on a $10 bet, on average"}</span></div>
     ${chanceBars(v, d)}
-    <div class="bet1">Bet <b>$10</b> at <b>${esc(b.site)}</b> (${esc(b.label)}) and it pays <b>$${win.toFixed(2)}</b> if it hits, nothing if it does not${n ? ` — about a <b>1 in ${n}</b> shot` : ""}.${v.push ? ` Your stake comes back on the push, ${pct(v.push)} of the time.` : ""}</div>
+    <div class="bet1">Bet <b>$10</b> at <b>${esc(b.site)}</b> (${esc(b.label)}) and it pays <b>$${win.toFixed(2)}</b> if it hits, nothing if it does not${n ? ` — about a <b>1 in ${n}</b> shot` : ""}.${v.push ? ` Your stake comes back on the push, ${pct(v.push)} of the time.` : ""}${depthNote(v)}</div>
     <div class="why">${why}</div>
     <div class="why"><span class="age">What each market says: ${esc(fairTxt)}${v.confirmed ? "" : " · lineup not posted yet"}</span></div>
     <div class="buys">${v.offers.map((o, i) => `<a class="buy ${i === 0 && v.offers.length > 1 ? "best" : ""}" href="${esc(o.link || "#")}" target="_blank" rel="noopener" title="${esc(o.note || "")}"><span>${i === 0 && v.offers.length > 1 ? "BEST · " : ""}${esc(o.short === "DK" ? "DK" : o.site.toUpperCase())}</span><span class="num">${esc(o.label)}</span><span class="ext">↗</span></a>`).join("")}</div>
@@ -866,10 +905,20 @@ function viewValue(sl) {
   const dkr = sl._dkr || {};
   let body;
   if (mode === "odds") body = oddsBoard(sl, pool);
-  else body = shown.length ? `<div class="list">${shown.slice(0, S.show).map(valueCard).join("")}</div>${shown.length > S.show ? `<button class="more" data-more="1">Show more (${shown.length - S.show} left)</button>` : ""}`
-    : `<div class="banner">Nothing clears the bar right now${kind !== "all" ? " for this bet type" : ""}. Prices move all day, and lineups change the numbers; check back after lineups post.</div>`;
+  else {
+    const cards = shown.slice(0, S.show);
+    if (cards.length) body = `<div class="list">${cards.map(valueCard).join("")}</div>${shown.length > S.show ? `<button class="more" data-more="1">Show more (${shown.length - S.show} left)</button>` : ""}`;
+    else {
+      // nothing is under the market: say so, and show what came closest so the page still tells you something
+      const near = pool.filter(v => !v.capped).sort((a, b) => b.priceEdge - a.priceEdge).slice(0, 6);
+      const rows = near.map(v => `<tr><td class="l"><b>${esc(v.title)}</b><br><small>${v.sub}</small></td><td class="num">${esc(v.best.site)}<br><small>${pct(v.best.cost, 1)}</small></td><td class="num">${pct(v.fair, 1)}</td><td class="num">${pct(v.pModel, 1)}</td><td class="num">${signedPct(v.priceEdge)}</td><td class="num">$${(10 * (1 + v.ev)).toFixed(2)}</td></tr>`).join("");
+      body = `<div class="banner">Nothing is selling under the market right now${kind !== "all" ? " for this bet type" : ""}. That is the usual state: the sites watch each other, and the fee alone puts an exchange's price a point or two over its own midpoint. Edges show up when one site is slow to move, usually after lineups post and Polymarket's player markets open.</div>
+        ${rows ? `<div class="panel" style="margin-top:12px"><h3>Closest to the bar</h3><p>The cheapest price against the market's own number, best first. Negative means the price is still over the market.</p><div class="tablewrap odds-t"><table><thead><tr><th class="l">Bet</th><th>Best price</th><th>Market</th><th>Model</th><th>Price vs market</th><th>$10 returns</th></tr></thead><tbody>${rows}</tbody></table></div></div>` : ""}`;
+    }
+    pmDepth(cards).then(got => { if (got && S.tab === "value") render(); }).catch(() => {});
+  }
   return `<div class="lede"><div><h2>Best bets</h2>
-    <p>Every bet we can price, next to what it costs at the cheapest site. Three numbers decide it: how often the price needs it to hit, how often the market says it will, and how often we say it will. The big green number is what a $10 bet gives back on average over the long run.</p></div></div>
+    <p>Every bet we can price, next to what it costs at the cheapest site. Three numbers decide it: how often the price needs it to hit, how often the market says it will, and how often we say it will. A bet is <b>Value</b> when the cheapest site is selling it for less than the market's own number, which is where the money has actually been. The big green number is what a $10 bet gives back on average over the long run.</p></div></div>
     <div class="controls">
       <div class="seg" role="group"><button data-vmode="value" aria-pressed="${mode === "value"}">Value picks · ${nV + nS}</button><button data-vmode="all" aria-pressed="${mode === "all"}">Every bet</button><button data-vmode="odds" aria-pressed="${mode === "odds"}">Best odds</button></div>
       <select id="vkind" aria-label="Bet type">${kinds.map(([k, t]) => `<option value="${k}" ${k === kind ? "selected" : ""}>${t}</option>`).join("")}</select>
@@ -878,9 +927,9 @@ function viewValue(sl) {
     <details class="wtb" style="margin:0 0 12px"><summary><b>How to read a card</b></summary><div class="legend" style="margin-top:8px">
       <div><b>Break even</b>How often the bet has to hit just to get your money back. A +400 price or a 20¢ contract needs it one time in five.</div>
       <div><b>Market says</b>Every site's own odds with their margin taken out, averaged. DraftKings player prices run about ${pct((dkr.hr || {}).r ? dkr.hr.r - 1 : VCFG.dk_ratio.hr - 1)} rich on homers today, so they are marked down before averaging.</div>
-      <div><b>Our model</b>What the model makes it, having never looked at a price. When it sits well above break even, the bet is cheap.</div>
-      <div><b>$ back on $10</b>The long-run average, using a chance that is mostly the market's: ${Math.round(100 * (1 - VCFG.w.hr))}% market and ${Math.round(100 * VCFG.w.hr)}% our model on homers, ${Math.round(100 * (1 - VCFG.w.ml))}/${Math.round(100 * VCFG.w.ml)} on moneylines where the books are sharpest. Over $10 means it makes money on average; it says nothing about tonight.</div>
-      <div><b><span class="verdict v2">Value</span> / <span class="verdict v1">Slight value</span></b>Value: $10.40 back or better, and our model agrees the price is low. Slight: $10.15 or better. Most of these still lose the individual bet — a 1-in-5 shot misses four times out of five.</div>
+      <div><b>Our model</b>What the model makes it, having never looked at a price. It is a small tilt on the market's number (${Math.round(100 * VCFG.w.hr)}% of the blend on homers, ${Math.round(100 * VCFG.w.k)}% on strikeouts, ${Math.round(100 * VCFG.w.ml)}% on moneylines), because on the graded record the markets have known slightly more than it does.</div>
+      <div><b>$ back on $10</b>The long-run average at the cheapest price, both exchanges' fees included. Over $10 means it makes money on average; it says nothing about tonight.</div>
+      <div><b><span class="verdict v2">Value</span> / <span class="verdict v1">Slight value</span></b>Value: the cheapest site is at least ${(100 * VCFG.price_good).toFixed(0)}% under the market's own number and $10 comes back as $${(10 * (1 + VCFG.good)).toFixed(2)} or better. Slight: under the market at all, $${(10 * (1 + VCFG.lean)).toFixed(2)} or better. <span class="verdict v0">Market disagrees</span>: our model is ${VCFG.cap_ratio}× the market's odds or more; on the record so far those have lost, so they get no verdict however good they look.</div>
     </div></details>
     ${body}
     <p class="note">Only games that have not started. Player bets use the chance he homers <i>if he plays</i>, because DraftKings voids and Kalshi refunds a player who sits. For fun and research, not betting advice; check that a site is legal where you are.</p>`;
@@ -1239,14 +1288,14 @@ function gameOffers(g) {
     const r = { site: "Polymarket", link: pm.url, ml: {}, tot: {}, totals: {} };
     const liveMl = S.pmMl[g.pk] || {};
     for (const side of ["away", "home"]) {
-      const e = liveMl[side] || (pm.ml || {})[side];
-      if (e && e[1] > 0 && e[1] < 0.98) r.ml[side] = { cost: e[1], label: cents(e[1]), link: pm.url };
+      const e = liveMl[side] || (pm.ml || {})[side], c = e ? pmCost(e[1]) : null;
+      if (c != null) r.ml[side] = { cost: c, label: cents(c), link: pm.url, note: `1 share at ${cents(e[1])} + ${cents(pmFee(e[1]))} fee = ${cents(c)}, pays $1` };
     }
     const liveTot = S.pmTot[g.pk] || {};
     for (const [line, t] of Object.entries(pm.totals || {})) {
       const lt = liveTot[line] || t;
       r.totals[line] = {};
-      for (const side of ["over", "under"]) { const e = lt[side]; if (e && e[1] > 0 && e[1] < 0.98) r.totals[line][side] = { line: +line, cost: e[1], label: cents(e[1]), link: pm.url }; }
+      for (const side of ["over", "under"]) { const e = lt[side], c = e ? pmCost(e[1]) : null; if (c != null) r.totals[line][side] = { line: +line, cost: c, label: cents(c), link: pm.url, note: `1 share at ${cents(e[1])} + ${cents(pmFee(e[1]))} fee = ${cents(c)}, pays $1` }; }
     }
     rows.push(r);
   }
@@ -1414,7 +1463,8 @@ function viewHow() {
       <li><b>FanDuel, BetMGM, Caesars, Fanatics, BetRivers, theScore Bet, Hard Rock, Novig, ProphetX</b>: moneyline, run line and total ${(HR.books_status || {}).configured ? "from The Odds API, a few times a day" : "appear once an Odds API key is added"}. Player bets from these books need a paid plan, so they are not shown.</li>
     </ul>
     <h3>Best bets</h3>
-    <p>Each card on the <b>Best bets</b> tab puts three numbers on one scale: <b>break even</b> (how often the best price needs it to hit just to return your stake), <b>market says</b> (every site's own odds with the margin taken out, averaged), and <b>our model</b>. The dollar figure is what a $10 bet returns on average over the long run, and the line under the bars says what that bet actually pays and how long a shot it is. The fair chance used for the return is mostly the market's (65% for player bets, 80% for moneylines, 85% for totals), because the markets are sharper than any model on the day and know about late news. A bet is <b>Value</b> when $1 at the best price returns +4% or more on average and the model alone also beats the price; <b>Slight value</b> is +1.5% or more. If the model is about twice as high as every market, it is capped at Slight and flagged, because that usually means news the model has not seen. A pitcher's strikeout lines count as one pick. Every pick is logged before first pitch and graded on the Scorecard, so these weights can be tuned to what actually happens.</p>
+    <p>Each card on the <b>Best bets</b> tab puts three numbers on one scale: <b>break even</b> (how often the best price needs it to hit just to return your stake), <b>market says</b> (every site's own odds with the margin taken out, averaged), and <b>our model</b>. The dollar figure is what a $10 bet returns on average over the long run, with Kalshi's and Polymarket's taker fees inside the price, and the line under the bars says what that bet actually pays and how long a shot it is.</p>
+    <p>The verdict is driven by <b>price against the market</b>, not by the model against the market. The first four graded days (842 hitter-games, 94 starts, 222 settled picks) said so plainly: the weight that best combines our model with the markets is close to zero for every bet type, and the further the model sat above the market on a pick, the worse the pick did (under 1.15× the market's odds the picks returned +62%; over 2× they lost 81%). Picking on disagreement picks the model's mistakes. So <b>Value</b> now means the cheapest site is selling the bet under the market's own number by 2% or more; the model is a ${Math.round(100 * VCFG.w.hr)}% tilt on homers and ${Math.round(100 * VCFG.w.ml)}% on moneylines; and anything where the model is ${VCFG.cap_ratio}× the market's odds or more is marked <i>Market disagrees</i> and gets no verdict. Every pick is still logged before first pitch and graded on the Scorecard, so these settings get refit as the record grows.</p>
     <p>"Pts" or "edge" elsewhere is the model's chance minus the best price. Markets know things the model does not (late scratches, injuries, weather), so a big gap is a question, not a sure thing. Which sites you can use depends on your state.</p>
     <h3>Arbitrage</h3>
     <p>The <b>Arbitrage</b> tab looks for the same bet priced at two sites in a way that lets you buy both sides for less than the dollar they pay. On Kalshi and Polymarket you can buy either side outright: "yes" costs the ask, and the other side costs one minus the bid. Add each site's taker fee (Kalshi ${(100 * ACFG.ks_rate).toFixed(0)}¢ × its baseball multiplier × contracts × price × (1 − price), rounded up to the next cent on the order; Polymarket ${(100 * ACFG.pm_rate).toFixed(0)}¢ × shares × price × (1 − price)), and if the pair still comes to under $1 the difference is locked whatever happens on the field. Sportsbooks can join the pair too, priced by their odds with no fee on top.</p>
@@ -1627,14 +1677,14 @@ async function livePoly(sl) {
             if (n === hf || (hl !== al && last === hl)) ml.home = t[i];
             else if (n === af || (hl !== al && last === al)) ml.away = t[i];
           });
-          S.pmMl[g.pk] = ml;
+          S.pmMl[g.pk] = ml; S.pmTok[m.slug] = m.clobTokenIds;
         } else if (m.sportsMarketType === "totals" && m.line != null) {
-          (S.pmTot[g.pk] = S.pmTot[g.pk] || {})[String(+m.line)] = { over: t[0], under: t[1] };
+          (S.pmTot[g.pk] = S.pmTot[g.pk] || {})[String(+m.line)] = { over: t[0], under: t[1] }; S.pmTok[m.slug] = m.clobTokenIds;
         }
       }
       if (g.mk.pm.props_slug) {
         const [pe] = await jget(`https://gamma-api.polymarket.com/events?slug=${g.mk.pm.props_slug}`);
-        if (pe) for (const m of pe.markets || []) if (PMK[m.sportsMarketType] && !m.closed) { const t = pmTrio(m); if (t[0]) S.pm[m.slug] = t[0]; }
+        if (pe) for (const m of pe.markets || []) if (PMK[m.sportsMarketType] && !m.closed) { const t = pmTrio(m); if (t[0]) { S.pm[m.slug] = t[0]; S.pmTok[m.slug] = m.clobTokenIds; } }
       }
     } catch (e) {}
   }));

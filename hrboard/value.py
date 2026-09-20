@@ -4,9 +4,19 @@ build can log its value picks and the scorecard can grade them (profit per $1 at
 fair chance  = average of the markets' own chances, margins removed (exchange midpoints when tight; DraftKings'
                one-sided player prices divided by how rich they run against Kalshi today; sportsbook two-way lines
                de-vigged side against side)
-blend        = w x model + (1 - w) x fair          (w by bet type, VALUE_CFG)
-return / $1  = blend x (1 - push) / cost + push - 1  (cost = what a $1 payout costs at the best site, fees included)
-Value        = return >= +4% and the model alone also beats the price; Slight = return >= +1.5%.
+blend        = w x model + (1 - w) x fair          (w by bet type, VALUE_CFG; small, see below)
+cost         = what a $1 payout costs at the best site, both exchanges' taker fees included
+return / $1  = blend x (1 - push) / cost + push - 1
+price edge   = fair  x (1 - push) / cost + push - 1   (the market's own number against the best price: line shopping)
+Value        = price edge >= +2% and return >= +4%;  Slight = price edge >= 0 and return >= +1.5%
+capped       = model odds >= 1.6 x market odds -> no verdict, whatever the return
+
+Why the weights are small and the cap exists (fitted 2026-09-20 on the first four graded days, 842 hitter-games and 94
+starts with model, DraftKings and Kalshi side by side): the weight that minimises log loss is 0.00-0.13 for every bet
+type, with 80% bands reaching 0.3-0.5, so the model adds little the markets do not already know. And on the 222 settled
+picks the return fell monotonically with how far the model sat above the market: under 1.15x the market's odds +62%,
+1.15-1.3x +16%, 1.3-1.6x +9%, 1.6-2x -43%, over 2x -81%. Selecting on disagreement selects the model's mistakes. The
+picks that paid were the ones where the best PRICE beat the market's own number.
 """
 from __future__ import annotations
 import math
@@ -14,9 +24,10 @@ from collections import Counter
 from statistics import median
 
 VALUE_CFG = dict(
-    w=dict(hr=0.35, hit=0.3, tb=0.3, k=0.4, ml=0.2, tot=0.15),
+    w=dict(hr=0.15, hit=0.10, tb=0.10, k=0.15, ml=0.05, tot=0.05),
     dk_ratio=dict(hr=1.2, hit=1.07, tb=1.11, k=1.06),
-    good=0.04, lean=0.015, ks_tight=0.06, min_ratio_pairs=8, wild_ratio=1.9,
+    good=0.04, lean=0.015, price_good=0.02, price_lean=0.0, cap_ratio=1.6,
+    ks_tight=0.06, min_ratio_pairs=8, pm_fee=0.05,
 )
 KIND_KEY = dict(hr="hr1", hit="hit1", tb="tb2")
 
@@ -57,6 +68,16 @@ def pm_mid(entry):
     return m if (m is not None and 0 < m < 1) else None
 
 
+def pm_fee(p, rate=VALUE_CFG["pm_fee"]):
+    """Polymarket's taker fee on sports, per share, charged when the order fills."""
+    if p is None or not (0 < p < 1): return 0.0
+    return math.floor(rate * p * (1 - p) * 1e5 + 0.5) / 1e5
+
+
+def pm_cost(ask, cfg=VALUE_CFG):
+    return None if (ask is None or not (0 < ask < 0.98)) else min(ask + pm_fee(ask, cfg["pm_fee"]), 0.999)
+
+
 def mk(who, src, key):
     v = ((who.get("mk") or {}).get(src) or {}).get(key)
     return v if v else None
@@ -72,8 +93,9 @@ def player_offers(sl, who, key, games):
     if kq:
         out.append(dict(site="Kalshi", cost=kq["cost"], label=f"{round(kq['cost'] * 100)}c"))
     pm = mk(who, "pm", key)
-    if pm and pm[1] is not None and 0 < pm[1] < 0.98:
-        out.append(dict(site="Polymarket", cost=pm[1], label=f"{round(pm[1] * 100)}c"))
+    pc = pm_cost(pm[1]) if pm else None
+    if pc is not None:
+        out.append(dict(site="Polymarket", cost=pc, label=f"{round(pc * 100)}c"))
     return sorted(out, key=lambda o: o["cost"])
 
 
@@ -100,16 +122,24 @@ def prop_fair(who, key, ratios, cfg):
     return sum(F) / len(F) if F else None
 
 
+def odds(p):
+    return p / (1 - p)
+
+
 def assess(kind, p_model, fair, offers, cfg, push=0.0):
-    if not offers or fair is None or p_model is None: return None
+    if not offers or fair is None or p_model is None or not (0 < fair < 1) or not (0 < p_model < 1): return None
     w = cfg["w"][kind]; best = offers[0]
     blend = w * p_model + (1 - w) * fair
     ev = blend * (1 - push) / best["cost"] + push - 1
-    verdict = 2 if (ev >= cfg["good"] and p_model >= best["cost"]) else 1 if ev >= cfg["lean"] else 0
-    wild = p_model >= cfg["wild_ratio"] * fair and fair < 0.3
-    if wild and verdict == 2: verdict = 1
+    price_edge = fair * (1 - push) / best["cost"] + push - 1
+    ratio = odds(p_model) / odds(fair)
+    capped = ratio >= cfg["cap_ratio"]
+    if capped: verdict = 0
+    elif price_edge >= cfg["price_good"] and ev >= cfg["good"]: verdict = 2
+    elif price_edge >= cfg["price_lean"] and ev >= cfg["lean"]: verdict = 1
+    else: verdict = 0
     return dict(p_model=p_model, fair=fair, blend=blend, site=best["site"], cost=best["cost"], label=best["label"], ev=ev,
-                verdict=verdict, push=push, wild=wild, n_sites=len(offers))
+                price_edge=price_edge, ratio=ratio, capped=capped, verdict=verdict, push=push, n_sites=len(offers))
 
 
 def game_rows(sl, g):
@@ -153,12 +183,14 @@ def game_rows(sl, g):
         r = dict(site="Polymarket", ml={}, tot={}, totals={}, ex=True)
         for side in ("away", "home"):
             e = (pm.get("ml") or {}).get(side)
-            if e and e[1] is not None and 0 < e[1] < 0.98: r["ml"][side] = e[1]
+            c = pm_cost(e[1]) if e else None
+            if c is not None: r["ml"][side] = c
         for line, t in (pm.get("totals") or {}).items():
             r["totals"][line] = {}
             for side in ("over", "under"):
                 e = t.get(side)
-                if e and e[1] is not None and 0 < e[1] < 0.98: r["totals"][line][side] = (float(line), e[1])
+                c = pm_cost(e[1]) if e else None
+                if c is not None: r["totals"][line][side] = (float(line), c)
         rows.append(r)
     lines = [(r["tot"].get("over") or r["tot"].get("under"))[0] for r in rows if (r["tot"].get("over") or r["tot"].get("under"))]
     if dk.get("total") is not None:

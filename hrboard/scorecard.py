@@ -40,7 +40,7 @@ def log_picks(slate: dict, folder: Path) -> None:
     for v in VAL.value_bets(slate):
         if v["verdict"] < 1: continue
         vb.setdefault(str(v["pk"]), []).append({k: (round(x, 4) if isinstance(x, float) else x) for k, x in v.items()
-                                                if k in ("kind", "key", "id", "name", "site", "cost", "ev", "verdict", "p_model", "fair", "push", "line", "confirmed", "wild")})
+                                                if k in ("kind", "key", "id", "name", "site", "cost", "ev", "verdict", "p_model", "fair", "push", "line", "confirmed", "capped", "price_edge", "ratio")})
     out = dict(old)
     for pk, g in games.items():
         prev = old.get(pk)
