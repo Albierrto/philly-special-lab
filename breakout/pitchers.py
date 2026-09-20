@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import requests
-from sklearn.ensemble import HistGradientBoostingRegressor, HistGradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import roc_auc_score
 
@@ -196,12 +196,18 @@ def fit_pitching_plus(d: pd.DataFrame) -> pd.DataFrame:
 
 
 def cross_validate(d: pd.DataFrame) -> pd.DataFrame:
+    """Scores the model the projection actually uses: the three-term ridge in project() (skills, own track, age).
+
+    Until September 2026 this table scored a boosted tree the projection had already stopped using, so the Methods
+    page was grading a model nobody was reading. Same fit as project(), held out a season at a time."""
     pr = _pairs(d)
+    pr["track3"] = track3(d, pr)
+    pr["skills"] = pr["pitching_plus_raw"].fillna(pr["track3"]) if "pitching_plus_raw" in pr.columns else pr["track3"]
     rows = []
     for s in sorted(pr["season"].unique()):
         tr, te = pr[pr["season"] != s], pr[pr["season"] == s]
-        m = HistGradientBoostingRegressor(max_depth=3, learning_rate=0.05, max_iter=300, min_samples_leaf=15, l2_regularization=1.0, random_state=7)
-        m.fit(tr[PITCH_FEATURES], tr["next_pts_gs"]); p = m.predict(te[PITCH_FEATURES])
+        rr = Ridge(alpha=1.0).fit(np.c_[tr["skills"], tr["track3"], tr["age"]], tr["next_pts_gs"])
+        p = rr.predict(np.c_[te["skills"], te["track3"], te["age"]])
         rows.append(dict(held_out=f"{s}->{s+1}", n=len(te), r_model=round(np.corrcoef(p, te["next_pts_gs"])[0, 1], 3),
                          r_carry_over=round(np.corrcoef(te["pts_gs"], te["next_pts_gs"])[0, 1], 3),
                          r_pitching_plus=round(np.corrcoef(te["pitching_plus"].fillna(100), te["next_pts_gs"])[0, 1], 3),

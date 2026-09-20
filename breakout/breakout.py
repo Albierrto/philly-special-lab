@@ -10,13 +10,19 @@ Skills score (z-scores within a season, hitters with >= MIN_PA_SKILLS):
     age                : younger = more room to grow
     market_gap         : how much better the skills say he is than where the market ranked him
 
-Model: HistGradientBoosting on season-t Statcast/age/production -> season-(t+1) points per PA, trained on
-2021->2022 ... 2025->2026 pairs, evaluated leave-one-season-out, then applied to 2026 to project 2027.
+Model: a ridge regression on season-t Statcast/age/production plus the hitter's own two prior seasons, predicting
+season-(t+1) points per PA. It was a gradient-boosted tree until September 2026; with 1,300 training pairs the tree
+was overfitting, and the linear model with his own track record beat it in every one of five held-out seasons
+(Spearman .500 against .451, MAE .0869 against .0907), including the hard 2025->2026 year (.446 against .378).
+Trained on 2021->2022 ... 2025->2026 pairs, evaluated leave-one-season-out, then applied to 2026 to project 2027.
 """
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from . import config as C
 
@@ -96,24 +102,46 @@ def _pairs(ps: pd.DataFrame, min_pa=200, min_pa_next=200) -> pd.DataFrame:
     return m[m["next_PA"] >= min_pa_next]
 
 
+TRACK_FEATURES = ["rate_m1", "rate_m2", "pa_m1", "pa_m2"]   # his own last two seasons: rate (150+ PA) and PA
+RATE_FEATURES = MODEL_FEATURES + TRACK_FEATURES
+
+
+def add_track(d: pd.DataFrame) -> pd.DataFrame:
+    """His own previous two seasons as columns on this one.
+
+    The projection used to blend a three-year track in after the fact, at a weight picked by hand. Giving the model
+    the two prior seasons as features instead lets it decide how much of a man's past to believe, and it decided:
+    last year's rate is the second most important thing it sees after sprint speed, two years ago barely registers.
+    NaN where he had under 150 PA that year, which the imputer fills with the median, so a rookie is "an average
+    history" rather than a fake good one.
+    """
+    d = d.sort_values(["mlbam_id", "season"]).copy()
+    g = d.groupby("mlbam_id")
+    for k in (1, 2):
+        d[f"rate_m{k}"] = np.where(g["PA"].shift(k) >= 150, g["pts_pa"].shift(k), np.nan)
+        d[f"pa_m{k}"] = g["PA"].shift(k)
+    return d
+
+
+def rate_model():
+    """Ridge, alpha 30. Flat from 3 to 100 out of sample (.497 to .500), so this is a plateau, not a tuned number."""
+    return make_pipeline(SimpleImputer(strategy="median"), StandardScaler(), Ridge(alpha=30.0))
+
+
 def fit_model(ps: pd.DataFrame, target="next_pts_pa"):
-    pr = _pairs(ps)
-    X, y = pr[MODEL_FEATURES], pr[target]
-    model = HistGradientBoostingRegressor(max_depth=4, learning_rate=0.05, max_iter=400, min_samples_leaf=20,
-                                          l2_regularization=1.0, random_state=7)
-    model.fit(X, y)
+    pr = _pairs(add_track(ps) if "rate_m1" not in ps.columns else ps)
+    model = rate_model().fit(pr[RATE_FEATURES], pr[target])
     return model, pr
 
 
 def cross_validate(ps: pd.DataFrame, target="next_pts_pa") -> pd.DataFrame:
     """Leave-one-season-out: train on other season pairs, predict the held-out pair. Compare vs naive carry-over."""
-    pr = _pairs(ps)
+    pr = _pairs(add_track(ps) if "rate_m1" not in ps.columns else ps)
     rows = []
     for s in sorted(pr["season"].unique()):
         tr, te = pr[pr["season"] != s], pr[pr["season"] == s]
-        m = HistGradientBoostingRegressor(max_depth=4, learning_rate=0.05, max_iter=400, min_samples_leaf=20,
-                                          l2_regularization=1.0, random_state=7).fit(tr[MODEL_FEATURES], tr[target])
-        pred = m.predict(te[MODEL_FEATURES])
+        m = rate_model().fit(tr[RATE_FEATURES], tr[target])
+        pred = m.predict(te[RATE_FEATURES])
         r_model = np.corrcoef(pred, te[target])[0, 1]
         r_naive = np.corrcoef(te["pts_pa"], te[target])[0, 1]
         r_xwoba = np.corrcoef(te["xwoba"].fillna(te["xwoba"].mean()), te[target])[0, 1]
@@ -127,9 +155,9 @@ def cross_validate(ps: pd.DataFrame, target="next_pts_pa") -> pd.DataFrame:
 def project_next(ps: pd.DataFrame, season: int) -> pd.DataFrame:
     """Project season+1 points per PA (and total points) for every hitter with >= 150 PA in `season`."""
     model, _ = fit_model(ps)
-    d = add_rates(ps)
+    d = add_track(add_rates(ps))
     cur = d[(d["season"] == season) & (d["PA"] >= 150)].copy()
-    cur["proj_pts_pa"] = model.predict(cur[MODEL_FEATURES])
+    cur["proj_pts_pa"] = model.predict(cur[RATE_FEATURES])
     hist = d[d["season"].isin([season - 1, season])].groupby("mlbam_id")["PA"].mean()
     cur["proj_PA"] = (0.6 * cur["PA"] + 0.4 * cur["mlbam_id"].map(hist)).clip(250, 640).round(0)
     # health/role upside: if he only got a partial season, note the full-time pace

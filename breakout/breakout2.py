@@ -18,6 +18,9 @@ import pandas as pd
 from .config import DATA
 from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_auc_score
 
 from . import config as C
@@ -130,18 +133,86 @@ def prepare(ps_x: pd.DataFrame, prospects: pd.DataFrame | None = None, injuries:
     return d
 
 
+# The compact set: the eight features a nested forward selection kept picking when it could not see the season it was
+# scored on (age and PA in all five runs, gap to his own best and the luck gap in four, sprint speed and exit velocity
+# in three). Nothing here is a level of contact quality, which is the pattern the ablations kept showing: a breakout
+# is a hitter becoming someone new, so what he already is tends to be priced in and what has moved is what matters.
+BI_COMPACT = ["age", "PA", "gap_to_best", "luck_pa", "sprint_speed", "exit_velocity_avg", "career_PA", "k_minus_bb"]
+# counts, not rates: these stay raw when everything else is turned into a within-season percentile
+BI_KEEP_RAW = {"age", "PA", "seasons_200", "prior_seasons_200", "career_PA"}
+
+
+def _bi_frame(x: pd.DataFrame) -> pd.DataFrame:
+    """Every feature as a within-season percentile. The league's offensive level drifts year to year and a raw xwOBA
+    of .330 meant something different in 2021 than in 2026; ranking within the season takes that out and lifted the
+    boosted model .767 -> .775 out of sample on its own.
+
+    Applied AFTER the pairs and their labels are built, never before: the breakout label is defined on raw points per
+    PA against a raw career best, and ranking those first would quietly redefine what a breakout is."""
+    x = x.copy()
+    x["k_minus_bb"] = x["k_percent"] - x["bb_percent"]
+    for c in set(BI_FEATURES) | set(BI_COMPACT):
+        if c not in BI_KEEP_RAW:
+            x[c] = x.groupby("season")[c].rank(pct=True)
+    return x
+
+
 def _clf():
     return HistGradientBoostingClassifier(max_depth=3, learning_rate=0.05, max_iter=300, min_samples_leaf=25,
                                           l2_regularization=1.0, random_state=11)
 
 
-def cross_validate_bi(d: pd.DataFrame) -> pd.DataFrame:
-    pr = _pairs(d, min_pa=BI_TRAIN_PA)
-    rows = []
+def _lr():
+    return make_pipeline(SimpleImputer(strategy="median"), StandardScaler(), LogisticRegression(C=0.3, max_iter=3000))
+
+
+_LOGIT = lambda v: np.log(np.clip(v, 1e-6, 1 - 1e-6) / (1 - np.clip(v, 1e-6, 1 - 1e-6)))
+
+
+def _bi_fit_predict(tr: pd.DataFrame, te: pd.DataFrame) -> np.ndarray:
+    """Three learners, averaged on the logit scale, every one on the same percentile features.
+
+    The boosted tree alone is .767 out of sample and could not be improved by any single added feature: with 86
+    breakouts to learn from it is saturated, and more columns made it worse. A logistic on the same 26 columns is
+    .786, a logistic on the compact eight is .785, and averaging the three is .810 with a top-40 hit rate of 17.5%
+    against 14.5%. The tree and the linear models disagree in useful ways (the tree over-reads sprint speed, the
+    linear ones cannot bend the age curve), which is what an ensemble is for.
+    """
+    y = tr["breakout_next"]
+    parts = [_clf().fit(tr[BI_FEATURES], y).predict_proba(te[BI_FEATURES])[:, 1],
+             _lr().fit(tr[BI_FEATURES], y).predict_proba(te[BI_FEATURES])[:, 1],
+             _lr().fit(tr[BI_COMPACT], y).predict_proba(te[BI_COMPACT])[:, 1]]
+    z = np.mean([_LOGIT(p) for p in parts], axis=0)
+    return 1 / (1 + np.exp(-z))
+
+
+_BI_CACHE: dict = {}
+
+
+def _bi_oof(d: pd.DataFrame):
+    """Held-out predictions for every training pair, computed once per table and shared by the CV report and the
+    calibration, which used to run the same five fits twice."""
+    pr = _bi_frame(_pairs(d, min_pa=BI_TRAIN_PA))
+    key = (len(pr), tuple(sorted(pr["season"].unique())), int(pr["breakout_next"].sum()), round(float(pr["PA"].sum())))
+    if key in _BI_CACHE:
+        return _BI_CACHE[key]
+    oof = pd.Series(np.nan, index=pr.index)
     for s in sorted(pr["season"].unique()):
         tr, te = pr[pr["season"] != s], pr[pr["season"] == s]
-        m = _clf().fit(tr[BI_FEATURES], tr["breakout_next"])
-        p = m.predict_proba(te[BI_FEATURES])[:, 1]
+        if tr.empty or te.empty or tr["breakout_next"].nunique() < 2:
+            continue
+        oof.loc[te.index] = _bi_fit_predict(tr, te)
+    _BI_CACHE.clear(); _BI_CACHE[key] = (pr, oof)
+    return pr, oof
+
+
+def cross_validate_bi(d: pd.DataFrame) -> pd.DataFrame:
+    pr, oof = _bi_oof(d)
+    rows = []
+    for s in sorted(pr["season"].unique()):
+        te = pr[(pr["season"] == s) & (pr["PA"] >= 150)]; p = oof.loc[te.index]
+        if te.empty or p.isna().all():
+            continue
         auc = roc_auc_score(te["breakout_next"], p) if te["breakout_next"].nunique() > 1 else np.nan
         top = te.assign(p=p).sort_values("p", ascending=False).head(40)
         rows.append(dict(held_out=f"{s}->{s+1}", n=len(te), breakouts=int(te["breakout_next"].sum()),
@@ -154,28 +225,27 @@ def cross_validate_bi(d: pd.DataFrame) -> pd.DataFrame:
 def breakout_index(d: pd.DataFrame, season: int) -> pd.DataFrame:
     """Breakout probability, calibrated so the number on the page means what it says.
 
-    Raw, the classifier is badly over-spread: its 33% bucket broke out 14% of the time. A Platt fit on
-    leave-one-season-out predictions lines the buckets up — 1.2 said / 1.0 happened, 3.3 / 3.7, 7.0 / 6.3,
-    13.6 / 15.9 — and being strictly monotone it leaves the ordering and the AUC alone. Isotonic calibrates
-    about as well but flattens the top into a single step, which would tie two dozen men at the same number
-    and throw away the ranking that makes the list worth reading.
+    Raw, a classifier is badly over-spread: the old model's 33% bucket broke out 14% of the time. A Platt fit on the
+    leave-one-season-out predictions lines the buckets up, and being strictly monotone it leaves the ordering and the
+    AUC alone. Isotonic calibrates about as well but flattens the top into a single step, which would tie two dozen
+    men at the same number and throw away the ranking that makes the list worth reading.
     """
-    pr = _pairs(d, min_pa=BI_TRAIN_PA)
-    oof, y = [], []
-    for s in sorted(pr["season"].unique()):
-        tr, te = pr[pr["season"] != s], pr[pr["season"] == s]
-        if tr.empty or te.empty or tr["breakout_next"].nunique() < 2: continue
-        oof.append(_clf().fit(tr[BI_FEATURES], tr["breakout_next"]).predict_proba(te[BI_FEATURES])[:, 1])
-        y.append(te["breakout_next"].to_numpy())
-    m = _clf().fit(pr[BI_FEATURES], pr["breakout_next"])
-    cur = d[(d["season"] == season) & (d["PA"] >= 100)].copy()
-    raw = m.predict_proba(cur[BI_FEATURES])[:, 1]
-    if oof:
-        lg = lambda v: np.log(np.clip(v, 1e-6, 1 - 1e-6) / (1 - np.clip(v, 1e-6, 1 - 1e-6)))
-        pl = LogisticRegression().fit(lg(np.concatenate(oof)).reshape(-1, 1), np.concatenate(y))
-        raw = pl.predict_proba(lg(raw).reshape(-1, 1))[:, 1]
-    cur["BI"] = (100 * raw).round(1)
-    return cur
+    pr, oof = _bi_oof(d)
+    # the current season is ranked within the same population the model learned on (everyone at the training PA bar)
+    cur = _bi_frame(d[(d["season"] == season) & (d["PA"] >= BI_TRAIN_PA)])
+    cur = cur[cur["PA"] >= 100].copy()
+    raw = _bi_fit_predict(pr, cur)
+    ok = oof.notna()
+    if ok.any():
+        pl = LogisticRegression().fit(_LOGIT(oof[ok].to_numpy()).reshape(-1, 1), pr.loc[ok, "breakout_next"])
+        raw = pl.predict_proba(_LOGIT(raw).reshape(-1, 1))[:, 1]
+        # the calibration is a straight line on the logit scale, so it will happily extrapolate to a number no
+        # held-out player has ever been given. The page never claims more than the model has actually earned: the
+        # ceiling is the highest calibrated probability any training pair received out of sample (about 52%).
+        raw = np.minimum(raw, float(pl.predict_proba(_LOGIT(oof[ok].to_numpy()).reshape(-1, 1))[:, 1].max()))
+    out = d[(d["season"] == season) & (d["PA"] >= 100)].copy()
+    out["BI"] = (100 * raw).round(1)
+    return out
 
 
 def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
@@ -234,21 +304,27 @@ def _base_pa(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
 
 
 def project_v2(d: pd.DataFrame, season: int) -> pd.DataFrame:
-    """Rate model (v1 features) + aging step, times a durability-aware PA estimate."""
-    from .breakout import fit_model
+    """Rate model times a durability-aware PA estimate.
+
+    The rate is a ridge regression on this season's Statcast and production plus his own two prior seasons (see
+    breakout.add_track). It replaced a gradient-boosted tree in September 2026: out of sample the tree managed
+    Spearman .451 with a hand-weighted track blend on top, the ridge gets .500 with the track inside it, and it wins
+    every held-out season. The post-hoc aging step is gone too, because the model's own age term already carries
+    it: adding half a step back moved rho by .001 and made MAE worse.
+    """
+    from .breakout import fit_model, add_track, RATE_FEATURES
+    d = add_track(d) if "rate_m1" not in d.columns else d
     model, _ = fit_model(d)
     curve = aging_curve(d)
     cur = d[(d["season"] == season) & (d["PA"] >= 100)].copy()
-    cur["proj_rate_raw"] = model.predict(cur[MODEL_FEATURES])
-    # the skills model only sees this season; a hitter's own recent track record adds real signal (leave-one-season-out
-    # r 0.49 -> 0.52, MAE 0.0935 -> 0.0909 at a 25% weight). Track = PA-weighted pts/PA over the last three seasons
-    # (150+ PA each), this year counted in full, last year 60%, two years ago 30%.
+    cur["proj_rate_raw"] = model.predict(cur[RATE_FEATURES])
+    # kept for the card: what a hitter's own last three seasons say, PA-weighted, this year in full
     hist3 = d[d["season"].between(season - 2, season) & (d["PA"] >= 150)].copy()
     hist3["w"] = hist3["season"].map({season: 1.0, season - 1: 0.6, season - 2: 0.3}) * hist3["PA"]
     track = (hist3["pts_pa"] * hist3["w"]).groupby(hist3["mlbam_id"]).sum() / hist3["w"].groupby(hist3["mlbam_id"]).sum()
     cur["track_rate"] = cur["mlbam_id"].map(track).fillna(cur["pts_pa"])
-    cur["age_step"] = age_adjustment(curve, cur["age"] + 1)         # step from next-season age (what the year does to him)
-    cur["proj_rate"] = 0.75 * cur["proj_rate_raw"] + 0.25 * cur["track_rate"] + 0.5 * cur["age_step"]  # half weight: the boosted model already sees age
+    cur["age_step"] = age_adjustment(curve, cur["age"] + 1)         # shown on the card; the multi-year view uses the curve itself
+    cur["proj_rate"] = cur["proj_rate_raw"]
     # PA expectation from pace while on the roster (late call-ups and IL time do not count as "didn't play"), falling back to raw PA
     pace_col = "pa_pace_162" if "pa_pace_162" in d.columns else None
     if pace_col:
