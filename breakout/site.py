@@ -257,7 +257,12 @@ def build(default_team: str):
     (site / ".nojekyll").write_text("")
     # repo scaffolding
     wf = ROOT / ".github" / "workflows"; wf.mkdir(parents=True, exist_ok=True); (wf / "refresh.yml").write_text(WORKFLOW); (wf / "pages.yml").write_text(PAGES_WORKFLOW)
-    (ROOT / "README.md").write_text(README); (ROOT / "requirements.txt").write_text(REQS); (ROOT / ".gitignore").write_text(GITIGNORE)
+    (ROOT / "requirements.txt").write_text(REQS)
+    # README and .gitignore are scaffolding for a fresh checkout, written once: both have since been edited by hand in
+    # the repo (the Home Run Board section, its ignore rules) and a build must not quietly revert those edits
+    for name, text in (("README.md", README), (".gitignore", GITIGNORE)):
+        if not (ROOT / name).exists():
+            (ROOT / name).write_text(text)
     print("site ->", site, "index", round((site / "index.html").stat().st_size / 1e6, 2), "MB; data",
           round(sum(p.stat().st_size for p in (site / "data").iterdir()) / 1e6, 2), "MB")
 

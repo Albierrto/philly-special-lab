@@ -244,32 +244,54 @@ def breakout_index(d: pd.DataFrame, season: int) -> pd.DataFrame:
         # ceiling is the highest calibrated probability any training pair received out of sample (about 52%).
         raw = np.minimum(raw, float(pl.predict_proba(_LOGIT(oof[ok].to_numpy()).reshape(-1, 1))[:, 1].max()))
     out = d[(d["season"] == season) & (d["PA"] >= 100)].copy()
+    out.attrs["raw_pairs"] = _pairs(d, min_pa=BI_TRAIN_PA)         # real numbers, for the comparables
     out["BI"] = (100 * raw).round(1)
     # what the number is a chance OF, and why he has it
     base = out["career_best_pa"].fillna(out["pts_pa"])
     base = np.where(out["seasons_200"] == 0, np.minimum(out["pts_pa"], 0.35), base)
     out["bi_line"] = (base + JUMP).round(3)                      # the rate that would count as a breakout
     out["bi_why"] = _bi_reasons(pr, cur, out)
+    out["bi_skills"] = _bi_skills(d, out, season)
+    out["bi_comps"] = _bi_comps(pr, out)
     return out
 
 
 # how each compact-model input is said in words. The sign is the sign of its contribution for THIS player: the
-# same column can be a reason for or against, and the wording follows.
+# same column can be a reason for or against, and the wording follows. Every template gets the player's raw row, the
+# within-season percentile of the input, and a context dict (the empirical jump rate at his age, from the training pairs).
 _WHY = {
-    "age":               (lambda r, pct: f"{r['age']:.0f} years old", lambda r, pct: f"already {r['age']:.0f}"),
-    "PA":                (lambda r, pct: f"{int(r['PA'])} PA, the job is already his", lambda r, pct: f"only {int(r['PA'])} PA, needs a full-time job first"),
-    "gap_to_best":       (lambda r, pct: "this season is his best yet, so the bar is only a step up", lambda r, pct: f"{abs(r['gap_to_best']):.2f} pts/PA under his own best season, so the bar sits higher"),
-    "luck_pa":           (lambda r, pct: f"deserved {abs(r['luck_pa']):.2f} more per PA than he got", lambda r, pct: f"ran {abs(r['luck_pa']):.2f} per PA hot"),
-    "sprint_speed":      (lambda r, pct: f"sprint speed {pct:.0f}th percentile", lambda r, pct: f"sprint speed only {pct:.0f}th percentile"),
-    "exit_velocity_avg": (lambda r, pct: f"exit velocity {pct:.0f}th percentile", lambda r, pct: f"exit velocity only {pct:.0f}th percentile"),
-    "career_PA":         (lambda r, pct: f"{int(r['career_PA']):,} career PA, early in his curve", lambda r, pct: f"{int(r['career_PA']):,} career PA, a known quantity"),
-    "k_minus_bb":        (lambda r, pct: f"K minus BB in the best {max(1, pct):.0f}%", lambda r, pct: f"K minus BB in the worst {max(1, 100 - pct):.0f}%"),
+    "age":               (lambda r, pct, cx: f"{r['age']:.0f} years old, an age that jumps {cx['age_rate']:.0%} of the time",
+                          lambda r, pct, cx: f"already {r['age']:.0f}, an age that jumps {cx['age_rate']:.0%} of the time"),
+    "PA":                (lambda r, pct, cx: f"{int(r['PA'])} PA{' in his first season' if r.get('career_PA', 0) <= r['PA'] + 1 else ''}, already has the job",
+                          lambda r, pct, cx: f"only {int(r['PA'])} PA{' in his first season' if r.get('career_PA', 0) <= r['PA'] + 1 else ''}, and a breakout needs 350 next year"),
+    "gap_to_best":       (lambda r, pct, cx: f"{r['pts_pa']:.2f}/PA is his best rate yet, so the bar is one step up",
+                          lambda r, pct, cx: f"{r['pts_pa']:.2f}/PA this year against {r['career_best_pa']:.2f} at his best, two steps to clear"),
+    "luck_pa":           (lambda r, pct, cx: f"deserved {r['xLP_pa']:.2f}/PA on contact quality, got {r['pts_pa']:.2f}",
+                          lambda r, pct, cx: f"got {r['pts_pa']:.2f}/PA but deserved {r['xLP_pa']:.2f}"),
+    "sprint_speed":      (lambda r, pct, cx: f"sprint {r['sprint_speed']:.1f} ft/s ({_ord(pct)} pct)",
+                          lambda r, pct, cx: f"sprint {r['sprint_speed']:.1f} ft/s ({_ord(pct)} pct)"),
+    "exit_velocity_avg": (lambda r, pct, cx: f"avg EV {r['exit_velocity_avg']:.1f} ({_ord(pct)} pct)",
+                          lambda r, pct, cx: f"avg EV {r['exit_velocity_avg']:.1f} ({_ord(pct)} pct)"),
+    "career_PA":         (lambda r, pct, cx: f"{int(r['career_PA']):,} career PA, still new",
+                          lambda r, pct, cx: f"{int(r['career_PA']):,} career PA, a known quantity"),
+    "k_minus_bb":        (lambda r, pct, cx: f"K {r['k_percent']:.0f}% / BB {r['bb_percent']:.0f}%, controls the zone",
+                          lambda r, pct, cx: f"K {r['k_percent']:.0f}% / BB {r['bb_percent']:.0f}%, swing and miss"),
 }
 # every template pair is (positive contribution, negative contribution). The coefficient signs the compact model
 # learned, for the record: age -, PA +, gap to best + (being AT your best means the bar is one step up rather than
 # two), luck - (luck is actual minus deserved, so negative is unlucky), sprint +, exit velocity +, career PA -,
 # K minus BB -. So "PA positive" means MORE plate appearances, which reads as odd for a breakout until you remember
 # the label needs 350 next year: a man who already has the job is far likelier to clear it.
+
+
+def _age_rates(pr: pd.DataFrame) -> dict:
+    """How often each age actually jumped, from the training pairs at 150+ PA, smoothed over the neighbouring ages.
+
+    22-year-olds cleared the bar 18% of the time, 24-year-olds 7%, anyone 26 or older 3 to 5%. Saying the number next to
+    the age turns 'he is young' from a platitude into the evidence it is."""
+    x = pr[pr["PA"] >= 150]
+    a = x["age"].round().clip(21, 31)
+    return {int(k): float(x.loc[(a - k).abs() <= 1, "breakout_next"].mean()) for k in range(21, 32)}
 
 
 def _bi_reasons(pr: pd.DataFrame, cur_pct: pd.DataFrame, cur_raw: pd.DataFrame) -> pd.Series:
@@ -285,23 +307,99 @@ def _bi_reasons(pr: pd.DataFrame, cur_pct: pd.DataFrame, cur_raw: pd.DataFrame) 
     X = sc.transform(imp.transform(cur_pct[BI_COMPACT]))
     contrib = X * lr.coef_[0]                                      # (players x features), positive pushes the % up
     raw = cur_raw.set_index("mlbam_id"); pct = cur_pct.set_index("mlbam_id")
+    ages = _age_rates(pr)
     out = []
     for i, pid in enumerate(cur_pct["mlbam_id"]):
         r, q = raw.loc[pid], pct.loc[pid]
+        cx = {"age_rate": ages.get(int(min(max(round(float(r["age"])), 21), 31)), np.nan) if pd.notna(r.get("age")) else np.nan}
         order = np.argsort(-contrib[i])
         bits = []
-        for j in order[:3]:
+        for j in order:
+            if len(bits) >= 3:
+                break
             f = BI_COMPACT[j]
             if abs(contrib[i, j]) < 0.05 or pd.isna(r.get(f)):
                 continue
+            # in a first full season the gap to his best is zero by construction, and the sentence says nothing
+            if f == "gap_to_best" and (r.get("prior_seasons_200") or 0) == 0:
+                continue
+            # first season: career PA IS this season's PA, and the PA sentence already says so
+            if f == "career_PA" and r.get("career_PA", 0) <= r["PA"] + 1:
+                continue
             pos, neg = _WHY[f]
             pcv = 100 * float(q[f]) if f not in BI_KEEP_RAW and pd.notna(q[f]) else np.nan
-            bits.append((pos if contrib[i, j] > 0 else neg)(r, pcv))
+            bits.append((pos if contrib[i, j] > 0 else neg)(r, pcv, cx))
         bc, bs = r.get("yoy_barrel_change"), r.get("yoy_bat_speed_change")
         if pd.notna(bc) and bc >= 2: bits.append(f"barrel rate up {bc:.1f} pts on last year")
         if pd.notna(bs) and bs >= 0.8: bits.append(f"bat speed up {bs:.1f} mph")
         out.append(" \u00b7 ".join(bits))
     return pd.Series(out, index=cur_pct.index)
+
+
+# the Statcast line under a candidate: the numbers themselves, with where each one sits among this season's hitters,
+# so a reader can see whether the skills back the percentage or whether it is age and playing time doing the work
+_SKILL_COLS = [("xwoba", "xwOBA", "{:.3f}", True), ("barrel_batted_rate", "barrels", "{:.1f}%", True),
+               ("exit_velocity_avg", "EV", "{:.1f}", True), ("hard_hit_percent", "hard-hit", "{:.0f}%", True),
+               ("k_percent", "K", "{:.0f}%", False), ("bb_percent", "BB", "{:.0f}%", True),
+               ("oz_swing_percent", "chase", "{:.0f}%", False), ("avg_swing_speed", "bat speed", "{:.1f} mph", True),
+               ("sprint_speed", "sprint", "{:.1f}", True)]
+
+
+def _ord(n: int) -> str:
+    n = int(n); return f"{n}{'th' if 10 <= n % 100 <= 20 else {1:'st', 2:'nd', 3:'rd'}.get(n % 10, 'th')}"
+
+
+def _bi_skills(d: pd.DataFrame, out: pd.DataFrame, season: int) -> pd.Series:
+    pool = d[(d["season"] == season) & (d["PA"] >= 100)]
+    lines = []
+    for _, r in out.iterrows():
+        bits = []
+        for col, label, fmt, higher_good in _SKILL_COLS:
+            v = r.get(col)
+            if pd.isna(v) or col not in pool.columns:
+                continue
+            pct = (pool[col] < v).mean() if higher_good else (pool[col] > v).mean()
+            bits.append(f"{label} {fmt.format(v)} ({_ord(round(100 * pct))})")
+        lines.append(" · ".join(bits))
+    return pd.Series(lines, index=out.index)
+
+
+# who he looks like, and what happened to them. The twenty nearest player-seasons in the training pairs on age,
+# playing time, this year's rate, contact quality, strikeouts, speed and how much career he has, with next year's
+# result attached to each. This is the check on the model: if the men who looked like him mostly did not jump, a
+# high number needs a better reason than the ones listed.
+# The change columns are in the distance so the lookalikes share his REASONS, not only his level: a man whose number
+# comes from a barrel-rate jump is matched with men whose barrel rate had just jumped. As a predictor on its own the
+# nearest-20 rate scores .70 AUC leave-one-season-out against the model's .81, so it is the check, not the verdict.
+_COMP_COLS = ["age", "PA", "pts_pa", "xwoba", "k_percent", "exit_velocity_avg", "barrel_batted_rate", "sprint_speed", "career_PA", "prior_best_pa",
+              "luck_pa", "yoy_barrel_change", "yoy_bat_speed_change", "gap_to_best"]
+_COMP_W = np.array([2.0, 1.2, 1.5, 1.0, 1.0, 1.0, 0.8, 0.6, 1.0, 0.8, 1.0, 0.8, 0.8, 1.0])
+
+
+def _bi_comps(pr: pd.DataFrame, out: pd.DataFrame, k: int = 20) -> pd.Series:
+    """JSON per player: how many of his nearest neighbours broke out, and the closest few by name with what they did."""
+    import json
+    # pr's feature columns are percentiles by now; comparables want the real numbers, which _pairs kept on the raw table
+    src = out.attrs.get("raw_pairs")
+    if src is None:
+        return pd.Series([""] * len(out), index=out.index)
+    X = src[_COMP_COLS].copy(); X["prior_best_pa"] = X["prior_best_pa"].fillna(X["pts_pa"])
+    mu, sd = X.mean(), X.std(ddof=0).replace(0, 1)
+    Z = ((X - mu) / sd).fillna(0).to_numpy() * _COMP_W
+    res = []
+    for _, r in out.iterrows():
+        v = pd.Series({c: r.get(c) for c in _COMP_COLS}); v["prior_best_pa"] = v["prior_best_pa"] if pd.notna(v["prior_best_pa"]) else v["pts_pa"]
+        z = (((v - mu) / sd).fillna(0).to_numpy() * _COMP_W).astype(float)
+        dist = np.sqrt(((Z - z) ** 2).sum(axis=1))
+        # never his own earlier seasons: the question is what happened to people LIKE him
+        dist = np.where(src["mlbam_id"].to_numpy() == r["mlbam_id"], np.inf, dist)
+        idx = np.argsort(dist)[:k]
+        nb = src.iloc[idx]
+        # compact on purpose, it rides in the page data for every hitter: [name, season, age, rate, next rate, next pts, broke out]
+        top = [[str(x["name"]), int(x["season"]), int(round(float(x["age"]))), round(float(x["pts_pa"]), 2), round(float(x["next_pts_pa"]), 2),
+                int(round(float(x["next_pts"]))), int(x["breakout_next"])] for _, x in nb.head(5).iterrows()]
+        res.append(json.dumps(dict(n=int(len(nb)), b=int(nb["breakout_next"].sum()), c=top), separators=(",", ":")))
+    return pd.Series(res, index=out.index)
 
 
 def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
