@@ -211,7 +211,7 @@ overall,round,pick,team,player,pos,mlb,type,season,nkey,is_pitcher,name,PA,pts,p
 177,15,9,Some Ting Wong,Dylan Moore,"1B,2B,3B,SS,OF",SEA/TEX,LA,2025,dylan moore,False,Dylan Moore,243.0,245.0,2.311320754716981,294.0,372.2,217.0,331.0,-86.0,False,False,276.0,False,113,100.0,13.0
 179,15,11,The Great Bambi,Garrett Mitchell,OF,MIL,LS,2025,garrett mitchell,False,Garrett Mitchell,78.0,65.0,2.6,485.0,268.0,157.0,384.1515151515151,-319.1515151515151,False,False,485.0,False,114,113.0,1.0
 1,1,1,Baseball Phanatic,Mookie Betts,SS,LAD,LS,2026,mookie betts,False,Mookie Betts,498.0,503.0,4.336206896551724,118.0,46.8,35.0,612.2,-109.20000000000005,False,False,120.0,False,1,54.0,-53.0
-2,1,2,Charlie Hustle,Riley Greene,OF,DET,LS,2026,riley greene,False,Riley Greene,566.0,610.0,4.552238805970149,53.0,62.8,44.0,585.0,25.0,False,False,40.0,False,2,23.0,-21.0
+2,1,2,Charlie Hustle,Riley Greene,OF,DET,LS,2026,riley greene,False,Riley Greene,566.0,610.0,4.552238805970149,54.0,62.8,44.0,585.0,25.0,False,False,40.0,False,2,24.0,-22.0
 3,1,3,Charlie Hustle,Tyler Soderstrom,"1B,OF",ATH,LS,2026,tyler soderstrom,False,Tyler Soderstrom,453.0,471.0,4.321100917431193,139.0,81.8,54.0,537.0,-66.0,False,False,120.0,False,3,63.0,-60.0
 4,1,4,The Real Doctor,Oneil Cruz,OF,PIT,LS,2026,oneil cruz,False,Oneil Cruz,402.0,537.0,5.836956521739131,106.0,84.6,59.0,533.457627118644,3.542372881355959,False,False,59.0,False,4,49.0,-45.0
 6,1,6,The Greatest Glizzy Guzzlers,Luis Arraez,"1B,2B",PHI,LS,2026,luis arraez,False,Luis Arraez,639.0,618.0,4.204081632653061,51.0,232.6,143.0,407.7647058823529,210.23529411764707,True,True,31.0,False,5,22.0,-17.0
@@ -221,7 +221,7 @@ overall,round,pick,team,player,pos,mlb,type,season,nkey,is_pitcher,name,PA,pts,p
 16,2,4,The Real Doctor,Hunter Goodman,C,COL,LS,2026,hunter goodman,False,Hunter Goodman,544.0,621.0,4.740458015267175,49.0,72.8,51.0,580.1666666666666,40.83333333333337,False,False,31.0,False,9,20.0,-11.0
 17,2,5,City to the Shore,Taylor Ward,OF,SEA,LS,2026,taylor ward,False,Taylor Ward,604.0,489.0,3.492857142857143,126.0,117.8,77.0,533.457627118644,-44.45762711864404,False,False,120.0,False,10,57.0,-47.0
 18,2,6,The Greatest Glizzy Guzzlers,William Contreras,C,MIL,LA,2026,william contreras,False,William Contreras,616.0,659.0,4.673758865248227,38.0,56.0,40.0,598.0,61.0,False,False,1.0,False,11,13.0,-2.0
-20,2,8,Charlie Hustle,Corey Seager,SS,TEX,LS,2026,corey seager,False,Corey Seager,406.0,388.0,4.08421052631579,191.0,83.8,56.0,537.0,-149.0,False,False,170.0,False,12,73.0,-61.0
+20,2,8,Charlie Hustle,Corey Seager,SS,TEX,LS,2026,corey seager,False,Corey Seager,406.0,388.0,4.08421052631579,192.0,83.8,56.0,537.0,-149.0,False,False,170.0,False,12,73.0,-61.0
 22,2,10,Baseball Phanatic,Lawrence Butler,OF,ATH,LS,2026,lawrence butler,False,Lawrence Butler,508.0,487.0,3.312925170068027,130.0,138.8,84.0,533.457627118644,-46.45762711864404,False,False,120.0,False,13,59.0,-46.0
 23,2,11,The Great Bambi,Jose Altuve,"2B,OF",HOU,LS,2026,jose altuve,False,Jose Altuve,541.0,480.0,3.75,133.0,96.2,66.0,533.457627118644,-53.45762711864404,False,False,120.0,False,14,61.0,-47.0
 24,2,12,Midwest MooseKnuckle Mafia,Luke Keaschall,"2B,OF",MIN,LS,2026,luke keaschall,False,Luke Keaschall,594.0,586.0,4.013698630136986,75.0,112.6,74.0,533.457627118644,52.54237288135596,False,False,42.0,False,15,36.0,-21.0
@@ -243,10 +243,10 @@ overall,round,pick,team,player,pos,mlb,type,season,nkey,is_pitcher,name,PA,pts,p
 54,5,6,Midwest MooseKnuckle Mafia,Jo Adell,OF,CLE,LS,2026,jo adell,False,Jo Adell,629.0,597.0,3.9276315789473686,63.0,121.4,79.0,533.457627118644,63.54237288135596,False,False,41.0,False,31,28.0,3.0
 56,5,8,Charlie Hustle,Ozzie Albies,2B,ATL,LS,2026,ozzie albies,False,Ozzie Albies,657.0,594.0,3.832258064516129,68.0,128.0,82.0,533.457627118644,60.54237288135596,False,False,42.0,False,32,32.0,0.0
 60,5,12,Basketball,Brandon Lowe,2B,PIT,LS,2026,brandon lowe,False,Brandon Lowe,630.0,666.0,4.625,33.0,153.4,93.0,533.457627118644,132.54237288135596,True,False,1.0,True,33,9.0,24.0
-61,6,1,Midwest MooseKnuckle Mafia,Mike Trout,"OF,UT",LAA,LS,2026,mike trout,False,Mike Trout,605.0,610.0,4.485294117647059,53.0,167.8,98.0,533.457627118644,76.54237288135596,True,False,40.0,False,34,23.0,11.0
+61,6,1,Midwest MooseKnuckle Mafia,Mike Trout,"OF,UT",LAA,LS,2026,mike trout,False,Mike Trout,607.0,611.0,4.492647058823529,53.0,167.8,98.0,533.457627118644,77.54237288135596,True,False,36.0,False,34,23.0,11.0
 62,6,2,Baseball Phanatic,Bryan Reynolds,OF,PIT,LS,2026,bryan reynolds,False,Bryan Reynolds,676.0,694.0,4.47741935483871,24.0,178.6,106.0,533.457627118644,160.54237288135596,True,True,1.0,False,35,6.0,29.0
 65,6,5,City to the Shore,Adolis Garcia,OF,PHI,LS,2026,adolis garcia,False,Adolis García,259.0,201.0,3.0,334.0,218.6,130.0,437.0,-236.0,False,False,279.0,False,36,95.0,-59.0
-66,6,6,The Greatest Glizzy Guzzlers,Heliot Ramos,OF,NYY,LA,2026,heliot ramos,False,Heliot Ramos,413.0,383.0,3.6476190476190475,195.0,211.4,126.0,441.5,-58.5,False,False,170.0,False,37,74.0,-37.0
+66,6,6,The Greatest Glizzy Guzzlers,Heliot Ramos,OF,NYY,LA,2026,heliot ramos,False,Heliot Ramos,413.0,383.0,3.6476190476190475,196.0,211.4,126.0,441.5,-58.5,False,False,170.0,False,37,74.0,-37.0
 67,6,7,Charlie Hustle,Isaac Paredes,"1B,3B",HOU,LS,2026,isaac paredes,False,Isaac Paredes,627.0,606.0,4.094594594594595,57.0,196.8,116.0,533.457627118644,72.54237288135596,False,False,40.0,False,38,26.0,12.0
 69,6,9,Let's try this again,Willson Contreras,1B,BOS,LS,2026,willson contreras,False,Willson Contreras,533.0,590.0,4.573643410852713,70.0,181.0,108.0,533.457627118644,56.54237288135596,False,False,42.0,False,39,33.0,6.0
 71,6,11,The Real Doctor,Michael Busch,1B,CHC,LS,2026,michael busch,False,Michael Busch,680.0,623.0,4.071895424836601,46.0,99.4,68.0,533.457627118644,89.54237288135596,False,False,31.0,False,40,18.0,22.0
@@ -261,11 +261,11 @@ overall,round,pick,team,player,pos,mlb,type,season,nkey,is_pitcher,name,PA,pts,p
 86,8,2,Baseball Phanatic,Alex Verdugo,OF,(N/A),LS,2026,alex verdugo,False,,,,,,,,,,,,,False,49,,
 87,8,3,Some Ting Wong,Andy Pages,OF,LAD,LA,2026,andy pages,False,Andy Pages,550.0,623.0,4.8671875,46.0,140.0,86.0,533.457627118644,89.54237288135596,True,False,31.0,False,50,18.0,32.0
 91,8,7,Gotham Knights,Jackson Holliday,2B,BAL,LS,2026,jackson holliday,False,Jackson Holliday,354.0,306.0,3.122448979591837,242.0,175.4,102.0,533.457627118644,-227.45762711864404,False,False,241.0,False,51,84.0,-33.0
-92,8,8,Charlie Hustle,Chase Meidroth,"2B,SS",CHW,LS,2026,chase meidroth,False,Chase Meidroth,624.0,573.0,3.8456375838926173,85.0,376.7,227.0,327.06451612903226,245.93548387096774,True,False,53.0,False,52,41.0,11.0
+92,8,8,Charlie Hustle,Chase Meidroth,"2B,SS",CHW,LS,2026,chase meidroth,False,Chase Meidroth,624.0,573.0,3.8456375838926173,85.0,376.7,227.0,327.2258064516129,245.77419354838707,True,False,53.0,False,52,41.0,11.0
 93,8,9,Let's try this again,Yandy Diaz,1B,TB,LS,2026,yandy diaz,False,Yandy Díaz,660.0,680.0,4.594594594594595,30.0,126.2,81.0,533.457627118644,146.54237288135596,True,False,1.0,False,53,7.0,46.0
 94,8,10,The Chosen Juan,TJ Friedl,OF,CIN,LA,2026,tj friedl,False,TJ Friedl,272.0,178.0,1.956043956043956,353.0,239.6,149.0,407.7647058823529,-229.76470588235293,False,False,283.0,False,54,99.0,-45.0
 96,8,12,Basketball,Jac Caglianone,"1B,OF",KC,LS,2026,jac caglianone,False,Jac Caglianone,527.0,580.0,4.233576642335766,80.0,177.8,105.0,533.457627118644,46.54237288135596,False,False,53.0,True,55,39.0,16.0
-99,9,3,Some Ting Wong,Ezequiel Tovar,SS,COL,LA,2026,ezequiel tovar,False,Ezequiel Tovar,485.0,389.0,2.7785714285714285,189.0,218.0,129.0,437.0,-48.0,False,False,170.0,False,56,71.0,-15.0
+99,9,3,Some Ting Wong,Ezequiel Tovar,SS,COL,LA,2026,ezequiel tovar,False,Ezequiel Tovar,485.0,389.0,2.7785714285714285,190.0,218.0,129.0,437.0,-48.0,False,False,170.0,False,56,71.0,-15.0
 100,9,4,The Real Doctor,Alec Burleson,"1B,OF",STL,LS,2026,alec burleson,False,Alec Burleson,647.0,699.0,4.538961038961039,23.0,172.6,100.0,533.457627118644,165.54237288135596,True,True,1.0,False,57,5.0,52.0
 101,9,5,City to the Shore,Bryson Stott,"2B,3B",PHI,LS,2026,bryson stott,False,Bryson Stott,579.0,589.0,3.97972972972973,71.0,184.6,110.0,533.457627118644,55.54237288135596,False,False,42.0,False,58,34.0,24.0
 103,9,7,Gotham Knights,Samuel Basallo,"C,1B",BAL,LS,2026,samuel basallo,False,Samuel Basallo,393.0,378.0,3.4363636363636365,199.0,229.0,136.0,407.7647058823529,-29.764705882352928,False,False,170.0,False,59,75.0,-16.0
@@ -282,11 +282,11 @@ overall,round,pick,team,player,pos,mlb,type,season,nkey,is_pitcher,name,PA,pts,p
 118,10,10,The Chosen Juan,Spencer Steer,"1B,2B,OF",CIN,LA,2026,spencer steer,False,Spencer Steer,384.0,368.0,3.7551020408163267,205.0,271.4,166.0,407.7647058823529,-39.76470588235293,False,False,182.0,False,70,78.0,-8.0
 119,10,11,The Great Bambi,Jonathan Aranda,1B,TB,LS,2026,jonathan aranda,False,Jonathan Aranda,648.0,639.0,4.2885906040268456,40.0,208.2,124.0,441.5,197.5,True,True,1.0,False,71,15.0,56.0
 120,10,12,Basketball,Sal Stewart,"1B,3B",CIN,LQA,2026,sal stewart,False,Sal Stewart,669.0,742.0,4.787096774193548,9.0,190.0,113.0,533.457627118644,208.54237288135596,True,True,1.0,True,72,3.0,69.0
-123,11,3,Some Ting Wong,Otto Lopez,"2B,SS",MIA,LSS,2026,otto lopez,False,Otto Lopez,659.0,735.0,4.867549668874172,11.0,270.2,165.0,407.7647058823529,327.2352941176471,True,True,1.0,False,73,4.0,69.0
+123,11,3,Some Ting Wong,Otto Lopez,"2B,SS",MIA,LSS,2026,otto lopez,False,Otto Lopez,660.0,736.0,4.874172185430464,11.0,270.2,165.0,407.7647058823529,328.2352941176471,True,True,1.0,False,73,4.0,69.0
 125,11,5,City to the Shore,Jung Hoo Lee,OF,SF,LS,2026,jung hoo lee,False,Jung Hoo Lee,576.0,563.0,3.964788732394366,91.0,249.2,153.0,407.7647058823529,155.23529411764707,True,False,53.0,False,74,45.0,29.0
 126,11,6,The Greatest Glizzy Guzzlers,Sal Frelick,OF,MIL,LA,2026,sal frelick,False,Sal Frelick,369.0,313.0,2.952830188679245,234.0,206.6,122.0,446.0,-133.0,False,False,237.0,False,75,82.0,-7.0
 127,11,7,Gotham Knights,Jasson Dominguez,OF,NYY,LS,2026,jasson dominguez,False,Jasson Domínguez,222.0,195.0,3.4210526315789473,337.0,292.2,177.0,370.90909090909093,-175.90909090909093,False,False,279.0,False,76,96.0,-20.0
-128,11,8,Some Ting Wong,Jordan Beck,OF,COL,LSS,2026,jordan beck,False,Jordan Beck,166.0,126.0,2.1724137931034484,404.0,259.0,159.0,407.7647058823529,-281.7647058823529,False,False,339.0,False,77,103.0,-26.0
+128,11,8,Some Ting Wong,Jordan Beck,OF,COL,LSS,2026,jordan beck,False,Jordan Beck,166.0,126.0,2.1724137931034484,405.0,259.0,159.0,407.7647058823529,-281.7647058823529,False,False,339.0,False,77,103.0,-26.0
 129,11,9,Let's try this again,Ivan Herrera,C,STL,LS,2026,ivan herrera,False,Iván Herrera,688.0,650.0,4.220779220779221,39.0,176.0,103.0,533.457627118644,116.54237288135596,True,False,1.0,False,78,14.0,64.0
 131,11,11,The Great Bambi,Drake Baldwin,C,ATL,LS,2026,drake baldwin,False,Drake Baldwin,587.0,630.0,4.7727272727272725,44.0,101.8,69.0,533.457627118644,96.54237288135596,True,False,1.0,False,79,17.0,62.0
 134,12,2,Baseball Phanatic,Jake Burger,1B,TEX,LS,2026,jake burger,False,Jake Burger,592.0,567.0,3.831081081081081,90.0,267.0,163.0,407.7647058823529,159.23529411764707,True,False,53.0,False,80,44.0,36.0
@@ -295,28 +295,28 @@ overall,round,pick,team,player,pos,mlb,type,season,nkey,is_pitcher,name,PA,pts,p
 138,12,6,The Greatest Glizzy Guzzlers,Evan Carter,OF,TEX,LA,2026,evan carter,False,Evan Carter,438.0,376.0,2.785185185185185,200.0,289.2,175.0,370.90909090909093,5.090909090909065,False,False,171.0,False,83,76.0,7.0
 139,12,7,Gotham Knights,Chase DeLauter,OF,CLE,LS,2026,chase delauter,False,Chase DeLauter,531.0,570.0,4.488188976377953,87.0,272.6,167.0,403.3333333333333,166.66666666666669,True,False,53.0,False,84,42.0,42.0
 140,12,8,Charlie Hustle,Kerry Carpenter,OF,DET,LS,2026,kerry carpenter,False,Kerry Carpenter,259.0,234.0,2.888888888888889,301.0,231.4,140.0,407.7647058823529,-173.76470588235293,False,False,255.0,False,85,89.0,-4.0
-142,12,10,The Chosen Juan,Dylan Crews,OF,WSH,LS,2026,dylan crews,False,Dylan Crews,415.0,389.0,3.8137254901960786,189.0,246.2,151.0,407.7647058823529,-18.764705882352928,False,False,170.0,False,86,71.0,15.0
+142,12,10,The Chosen Juan,Dylan Crews,OF,WSH,LS,2026,dylan crews,False,Dylan Crews,415.0,389.0,3.8137254901960786,190.0,246.2,151.0,407.7647058823529,-18.764705882352928,False,False,170.0,False,86,71.0,15.0
 143,12,11,The Great Bambi,Jorge Polanco,"1B,2B",NYM,LS,2026,jorge polanco,False,Jorge Polanco,145.0,73.0,1.972972972972973,472.0,201.0,118.0,524.0,-451.0,False,False,339.0,False,87,105.0,-18.0
 144,12,12,Basketball,Carter Jensen,C,KC,LQA,2026,carter jensen,False,Carter Jensen,580.0,605.0,4.201388888888889,59.0,230.0,139.0,407.7647058823529,197.23529411764707,True,True,40.0,True,88,27.0,61.0
 147,13,3,Some Ting Wong,Luis Garcia Jr.,"1B,2B",NYY,LA,2026,luis garcia,False,Luis García Jr.,523.0,596.0,4.197183098591549,65.0,257.2,157.0,407.7647058823529,188.23529411764707,True,True,41.0,False,89,30.0,59.0
 149,13,5,City to the Shore,Alec Bohm,"1B,3B",PHI,LS,2026,alec bohm,False,Alec Bohm,600.0,537.0,3.6283783783783785,106.0,229.6,137.0,407.7647058823529,129.23529411764707,True,False,59.0,False,90,49.0,41.0
 150,13,6,The Greatest Glizzy Guzzlers,Kyle Stowers,"1B,OF",MIA,LA,2026,kyle stowers,False,Kyle Stowers,497.0,468.0,4.0,141.0,117.6,76.0,533.457627118644,-65.45762711864404,False,False,120.0,False,91,64.0,27.0
-153,13,9,Let's try this again,Jonathan India,"2B,3B,OF",KC,LS,2026,jonathan india,False,Jonathan India,58.0,49.0,2.8823529411764706,510.0,308.6,187.0,360.9,-311.9,False,False,339.0,False,92,106.0,-14.0
+153,13,9,Let's try this again,Jonathan India,"2B,3B,OF",KC,LS,2026,jonathan india,False,Jonathan India,58.0,49.0,2.8823529411764706,511.0,308.6,187.0,360.9,-311.9,False,False,339.0,False,92,106.0,-14.0
 156,13,12,Basketball,Trent Grisham,OF,NYY,LQA,2026,trent grisham,False,Trent Grisham,484.0,472.0,3.9008264462809916,138.0,232.4,142.0,407.7647058823529,64.23529411764707,False,False,120.0,True,93,62.0,31.0
-157,14,1,Midwest MooseKnuckle Mafia,Moises Ballesteros,"C,1B",LAA,LS,2026,moises ballesteros,False,Moisés Ballesteros,326.0,265.0,2.704081632653061,276.0,359.3,219.0,327.06451612903226,-62.064516129032256,False,False,250.0,False,94,88.0,6.0
+157,14,1,Midwest MooseKnuckle Mafia,Moises Ballesteros,"C,1B",LAA,LS,2026,moises ballesteros,False,Moisés Ballesteros,328.0,265.0,2.704081632653061,276.0,359.3,219.0,327.2258064516129,-62.225806451612925,False,False,250.0,False,94,88.0,6.0
 158,14,2,Baseball Phanatic,Jose Caballero,"2B,3B,SS,OF",NYY,LS,2026,jose caballero,False,José Caballero,438.0,462.0,3.5538461538461537,145.0,202.4,119.0,524.0,-62.0,False,False,121.0,False,95,65.0,30.0
 159,14,3,Some Ting Wong,Andrew Vaughn,"1B,3B",MIL,LA,2026,andrew vaughn,False,Andrew Vaughn,331.0,329.0,3.1634615384615383,223.0,269.0,164.0,407.7647058823529,-78.76470588235293,False,False,206.0,False,96,81.0,15.0
 161,14,5,City to the Shore,Daulton Varsho,OF,HOU,LS,2026,daulton varsho,False,Daulton Varsho,526.0,455.0,3.25,147.0,193.6,114.0,533.457627118644,-78.45762711864404,False,False,122.0,False,97,66.0,31.0
 162,14,6,The Greatest Glizzy Guzzlers,Miguel Vargas,"1B,3B",CHW,LA,2026,miguel vargas,False,Miguel Vargas,675.0,751.0,4.908496732026144,6.0,289.0,174.0,370.90909090909093,380.09090909090907,True,True,1.0,False,98,1.0,97.0
 163,14,7,Gotham Knights,Josh Smith,"1B,2B,3B,SS",TOR,LS,2026,josh smith,False,Josh Smith,224.0,183.0,2.506849315068493,347.0,317.0,194.0,360.9,-177.89999999999998,False,False,279.0,False,99,98.0,1.0
 164,14,8,Some Ting Wong,Carlos Correa,"3B,SS",HOU,LA,2026,carlos correa,False,Carlos Correa,141.0,143.0,4.46875,393.0,238.0,146.0,407.7647058823529,-264.7647058823529,False,False,339.0,False,100,101.0,-1.0
-166,14,10,The Chosen Juan,Josh Lowe,OF,LAA,LA,2026,josh lowe,False,Josh Lowe,323.0,289.0,2.675925925925926,261.0,297.5,179.0,370.90909090909093,-81.90909090909093,False,False,247.0,False,101,87.0,14.0
+166,14,10,The Chosen Juan,Josh Lowe,OF,LAA,LA,2026,josh lowe,False,Josh Lowe,325.0,295.0,2.7314814814814814,254.0,297.5,179.0,370.90909090909093,-75.90909090909093,False,False,245.0,False,101,86.0,15.0
 167,14,11,The Great Bambi,Max Muncy,3B,LAD,LQA,2026,max muncy,False,Max Muncy,539.0,569.0,3.979020979020979,88.0,232.0,141.0,407.7647058823529,161.23529411764707,True,False,53.0,False,102,43.0,59.0
 169,15,1,Midwest MooseKnuckle Mafia,Dante Nori,OF,PHI,LS,2026,dante nori,False,,,,,,,,,,,,,False,103,,
 170,15,2,Baseball Phanatic,Zack Gelof,"2B,3B,OF",ATH,LS,2026,zack gelof,False,Zack Gelof,406.0,447.0,4.298076923076923,153.0,703.7,294.0,162.23,284.77,False,False,122.0,False,104,68.0,36.0
-171,15,3,Some Ting Wong,Trevor Larnach,"OF,UT",MIN,LA,2026,trevor larnach,False,Trevor Larnach,433.0,439.0,3.598360655737705,160.0,378.0,228.0,327.06451612903226,111.93548387096774,False,False,127.0,False,105,69.0,36.0
+171,15,3,Some Ting Wong,Trevor Larnach,"OF,UT",MIN,LA,2026,trevor larnach,False,Trevor Larnach,433.0,439.0,3.598360655737705,160.0,378.0,228.0,327.2258064516129,111.77419354838707,False,False,127.0,False,105,69.0,36.0
 174,15,6,The Greatest Glizzy Guzzlers,Wilyer Abreu,OF,BOS,LA,2026,wilyer abreu,False,Wilyer Abreu,657.0,671.0,4.443708609271523,31.0,210.6,125.0,441.5,229.5,True,True,1.0,False,106,8.0,98.0
 175,15,7,Gotham Knights,Dillon Dingler,C,DET,LS,2026,dillon dingler,False,Dillon Dingler,590.0,609.0,4.319148936170213,56.0,259.4,160.0,407.7647058823529,201.23529411764707,True,True,40.0,False,107,25.0,82.0
-176,15,8,Charlie Hustle,Brooks Lee,"2B,3B,SS",MIN,LS,2026,brooks lee,False,Brooks Lee,600.0,580.0,3.8926174496644297,80.0,318.2,195.0,360.9,219.10000000000002,True,False,53.0,False,108,39.0,69.0
+176,15,8,Charlie Hustle,Brooks Lee,"2B,3B,SS",MIN,LS,2026,brooks lee,False,Brooks Lee,601.0,580.0,3.8926174496644297,80.0,318.2,195.0,360.9,219.10000000000002,True,False,53.0,False,108,39.0,69.0
 179,15,11,The Great Bambi,Tyler Tolbert,"2B,SS,OF",KC,LS,2026,tyler tolbert,False,Tyler Tolbert,141.0,202.0,2.6233766233766236,333.0,,,162.23,39.77000000000001,False,False,279.0,False,109,94.0,15.0
 180,15,12,Basketball,Jordan Lawlar,"3B,SS,OF",ARI,LQA,2026,jordan lawlar,False,Jordan Lawlar,122.0,134.0,3.526315789473684,398.0,301.4,182.0,360.9,-226.89999999999998,False,False,339.0,True,110,102.0,8.0

@@ -155,8 +155,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823249,2026-09-19,2026-09-20T00:40:00Z,Final,2680,Petco Park,night,N,146,Miami Marlins,False,135,San Diego Padres,691587.0,Eury Pérez,listed,663554.0,Casey Mize,listed
 823899,2026-09-19,2026-09-20T01:10:00Z,Final,22,UNIQLO Field at Dodger Stadium,night,N,119,Los Angeles Dodgers,True,137,San Francisco Giants,669373.0,Tarik Skubal,listed,805074.0,Yunior Marte,listed
 823899,2026-09-19,2026-09-20T01:10:00Z,Final,22,UNIQLO Field at Dodger Stadium,night,N,137,San Francisco Giants,False,119,Los Angeles Dodgers,805074.0,Yunior Marte,listed,669373.0,Tarik Skubal,listed
-823976,2026-09-19,2026-09-20T01:38:00Z,In Progress,1,Angel Stadium,night,N,108,Los Angeles Angels,True,142,Minnesota Twins,672282.0,Reid Detmers,listed,657746.0,Joe Ryan,listed
-823976,2026-09-19,2026-09-20T01:38:00Z,In Progress,1,Angel Stadium,night,N,142,Minnesota Twins,False,108,Los Angeles Angels,657746.0,Joe Ryan,listed,672282.0,Reid Detmers,listed
+823976,2026-09-19,2026-09-20T01:38:00Z,Final,1,Angel Stadium,night,N,108,Los Angeles Angels,True,142,Minnesota Twins,672282.0,Reid Detmers,listed,657746.0,Joe Ryan,listed
+823976,2026-09-19,2026-09-20T01:38:00Z,Final,1,Angel Stadium,night,N,142,Minnesota Twins,False,108,Los Angeles Angels,657746.0,Joe Ryan,listed,672282.0,Reid Detmers,listed
 823570,2026-09-20,2026-09-20T17:10:00Z,Scheduled,3289,Citi Field,day,N,121,New York Mets,True,143,Philadelphia Phillies,804636.0,Jonah Tong,listed,650911.0,Cristopher Sánchez,listed
 823570,2026-09-20,2026-09-20T17:10:00Z,Scheduled,3289,Citi Field,day,N,143,Philadelphia Phillies,False,121,New York Mets,650911.0,Cristopher Sánchez,listed,804636.0,Jonah Tong,listed
 823329,2026-09-20,2026-09-20T17:35:00Z,Scheduled,31,PNC Park,day,N,134,Pittsburgh Pirates,True,118,Kansas City Royals,669199.0,Lake Bachar,listed,608379.0,Michael Wacha,listed
@@ -173,8 +173,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 824546,2026-09-20,2026-09-20T18:10:00Z,Scheduled,4,Rate Field,day,N,116,Detroit Tigers,False,145,Chicago White Sox,675512.0,Troy Melton,listed,663436.0,Davis Martin,listed
 823001,2026-09-20,2026-09-20T18:15:00Z,Scheduled,2889,Busch Stadium,day,N,138,St. Louis Cardinals,True,120,Washington Nationals,687273.0,Quinn Mathews,listed,663623.0,Jake Irvin,listed
 823001,2026-09-20,2026-09-20T18:15:00Z,Scheduled,2889,Busch Stadium,day,N,120,Washington Nationals,False,138,St. Louis Cardinals,663623.0,Jake Irvin,listed,687273.0,Quinn Mathews,listed
-822844,2026-09-20,2026-09-20T18:35:00Z,Scheduled,5325,Globe Life Field,day,N,140,Texas Rangers,True,141,Toronto Blue Jays,594798.0,Jacob deGrom,listed,,,
-822844,2026-09-20,2026-09-20T18:35:00Z,Scheduled,5325,Globe Life Field,day,N,141,Toronto Blue Jays,False,140,Texas Rangers,,,,594798.0,Jacob deGrom,listed
+822844,2026-09-20,2026-09-20T18:35:00Z,Scheduled,5325,Globe Life Field,day,N,140,Texas Rangers,True,141,Toronto Blue Jays,594798.0,Jacob deGrom,listed,693686.0,Spencer Miles,listed
+822844,2026-09-20,2026-09-20T18:35:00Z,Scheduled,5325,Globe Life Field,day,N,141,Toronto Blue Jays,False,140,Texas Rangers,693686.0,Spencer Miles,listed,594798.0,Jacob deGrom,listed
 824300,2026-09-20,2026-09-20T19:10:00Z,Scheduled,19,Coors Field,day,N,115,Colorado Rockies,True,136,Seattle Mariners,608372.0,Tomoyuki Sugano,listed,807739.0,Kade Anderson,listed
 824300,2026-09-20,2026-09-20T19:10:00Z,Scheduled,19,Coors Field,day,N,136,Seattle Mariners,False,115,Colorado Rockies,807739.0,Kade Anderson,listed,608372.0,Tomoyuki Sugano,listed
 823975,2026-09-20,2026-09-20T20:07:00Z,Scheduled,1,Angel Stadium,day,N,108,Los Angeles Angels,True,142,Minnesota Twins,696270.0,Ryan Johnson,listed,665152.0,Dean Kremer,listed
