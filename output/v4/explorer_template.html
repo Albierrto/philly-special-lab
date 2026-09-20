@@ -155,6 +155,7 @@ td.neg{color:var(--cold)}
 .row .val small{display:block;font-weight:400;color:var(--ink3);font-size:11px}
 .ava{width:32px;height:32px;border-radius:50%;background:var(--tc,var(--panel3));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:12px;letter-spacing:.02em;flex:0 0 auto;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
 /* the photo covers the initials rather than replacing them, so if it never loads the circle still reads */
+.why-bi{display:block;max-width:34ch;white-space:normal;font-size:12px;line-height:1.35;color:var(--ink2)}
 .ava.hasimg{position:relative;overflow:hidden}
 .ava.hasimg img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;background:var(--tc)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:10px 0}
@@ -458,6 +459,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 <section role="tabpanel" id="tab-breakouts">
   <h2>Breakouts</h2>
   <p class="lede">A breakout is <b>new territory for that hitter</b>: a career-best points-per-PA rate, at least 0.08 above his previous best, over 350+ plate appearances and a top-90 finish. Two different questions live on this page, and mixing them was what made it useless. <b>Who already did it</b> is history — those men are not candidates any more, their jump has happened and the level they are at now is the level to judge them on. <b>Who might do it next</b> is the forecast, and it only applies to hitters who have not already been a top-90 bat and are young enough that a first leap is still ahead of them. An established star gets no percentage here, because the question does not apply to him.</p>
+  <p class="lede"><b>Reading the two numbers together.</b> The projection is the <i>middle</i> of what next year could be; the percentage is the chance of the <i>top</i> of it, the season that would count as a breakout. So a man can project for fewer points than he scored this year and still lead this list: the model thinks his typical outcome is a small step back and his upside is a new level. <b>If he does</b> is what that upside is worth in points, and <b>Why</b> is the model's own reasons, biggest first.</p>
   <div class="pagehead"><div><h3 id="bo-done-h" style="margin:0 0 2px"></h3><p class="hint" id="bo-done-note" style="max-width:88ch"></p></div><div class="seg" role="group" id="b-view"><button aria-pressed="true" data-bview="simple">Simple</button><button aria-pressed="false" data-bview="all">All stats</button></div></div>
   <div class="tblwrap" style="max-height:44vh"><table id="t-broke"></table></div>
   <h3 style="margin-top:22px">Breakout candidates for <span id="bo-year"></span></h3>
@@ -813,7 +815,7 @@ const PROJ = Object.fromEntries(unpack(D.projections).map(p => [p.mlbam_id, p]))
 const BY_ID = {}; ROWS.forEach(r => (BY_ID[r.mlbam_id] ||= []).push(r)); Object.values(BY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
 const SEASONS = [...new Set(ROWS.map(r=>r.season))].sort();
 const CUR = D.meta.season; const HOME_ABBR = D.meta.my_abbrev; let MY = (D.meta.default_team ?? HOME_ABBR); try{ const s=localStorage.getItem('lab-team'); if(s!==null) MY=s; }catch(e){}
-ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
+ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, bi_line:p.bi_line, bi_why:p.bi_why, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
 // pitchers
 const PROWS = unpack(D.pitchers); const PSEASONS = [...new Set(PROWS.map(r=>r.season))].sort();
 const PPROJ = Object.fromEntries(unpack(D.pitcher_proj).map(p => [p.mlbam_id, p]));
@@ -1178,7 +1180,7 @@ function hitterSection(id, sub=false){
     ${sec('Trends', `
     <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>`, false, `${yrs[0]}–${yrs[yrs.length-1]}`)}
     ${sec('Playing time and injuries', `${last.avail_games!=null?`<p class="hint" style="margin:4px 0 8px"><b>Playing time ${last.season}:</b> first game ${esc(last.first_game||'')}${last.days_late>21?` (${last.days_late} days after opening day, a late call-up)`:''} · played ${last.G} of ${Math.round(last.avail_games)} games he was available for${last.il_games_in_window?` (${Math.round(last.il_games_in_window)} team games lost to the IL)`:''} · pace <b>${Math.round(last.pa_pace_162)} PA</b> per 162. Raw PA understates a late call-up or an injured player; the projection uses this pace.</p>`:''}<p class="hint">${il}</p>`)}
-    ${sec('2027 projection', `${pj2}${p ? `<p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is three parts the skills model (${p.proj_rate_raw?.toFixed(2)}, from this year's contact quality, discipline and speed; hitters this productive usually give some back) and one part his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'}), then ${(p.age_step??0)>=0?'nudged up':'nudged down'} ${Math.abs(0.5*(p.age_step??0)).toFixed(2)} for his age. Playing time starts from his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and is trimmed ${Math.round((1-(p.durability??1))*100)}% for injury history${p.il_days_w!=null?` (${Math.round(p.il_days_w)} weighted IL days: this year in full, last year 60%, two years ago 30%)`:''}${last.age>=32?' and age':''}. Breakout % ${p.BI} = chance 2027 is a new career level.</p>` : ''}`)}
+    ${sec('2027 projection', `${pj2}${p ? `<p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is one regression on this year's contact quality, discipline, speed and age, with his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'} per PA, weighted to this year) sitting alongside as inputs; the aging curve says ${(p.age_step??0)>=0?'+':''}${(p.age_step??0).toFixed(2)} for his age and the model's own age term already carries that. Playing time starts from his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and is trimmed ${Math.round((1-(p.durability??1))*100)}% for injury history${p.il_days_w!=null?` (${Math.round(p.il_days_w)} weighted IL days: this year in full, last year 60%, two years ago 30%)`:''}${last.age>=32?' and age':''}.</p>${p.BI!=null && boShow(last) ? `<p class="hint" style="font-size:14px"><b>Breakout ${p.BI}%.</b> That is the chance 2027 is a new career level for him: ${p.bi_line!=null?`${p.bi_line.toFixed(2)} points per PA or better, about <b>${Math.round(p.bi_line*(p.proj_PA||600))}</b> points at his projected playing time`:'a career-best rate'}. The projection above is the middle of what next year could be; this is the top of it.${p.bi_why?` <b>Why:</b> ${esc(p.bi_why)}.`:''}</p>` : ''}` : ''}`)}
   </div>`;
 }
 
@@ -1237,8 +1239,8 @@ let tBroke;
 // "should I care about him", All stats is one click away, and the name column stays pinned while you scroll either way.
 let bview = 'simple';
 const BO_SIMPLE_DONE = ['name','age','owner','PA','pts_c','rank_c','prior_best_pa','jump_vs_prior','proj_pts'];
-const BO_SIMPLE_CAND = ['name','age','owner','PA','pts_c','BI','proj_pts','proj_rank','KSV'];
-const BO_OPT = ['PA','proj_rank','rank_c'];   // dropped under 900px so the phone view is seven columns, not nine
+const BO_SIMPLE_CAND = ['name','age','owner','PA','pts_c','BI','bi_why','bi_pts_if','proj_pts','proj_rank','KSV'];
+const BO_OPT = ['PA','proj_rank','rank_c','bi_pts_if'];   // dropped under 900px so the phone view is seven columns, not nine
 const bcols = (cols, keep) => bview==='all' ? cols : cols.filter(c=>keep.includes(c.k)).map(c=>BO_OPT.includes(c.k)?{...c,opt:true}:c);
 function renderBreak(){
   const cur = ROWS.filter(r=>r.season===CUR);
@@ -1259,6 +1261,7 @@ function renderBreak(){
   // 2. who might do it next — the only group a percentage applies to
   const avail = $('#b-avail').value, agemax = +$('#b-agemax').value||99, minbi = +$('#b-minbi').value||0, bq = $('#b-q').value.trim().toLowerCase();
   let rows = cur.filter(r=>boShow(r) && r.BI!=null && r.age<=agemax && r.BI>=minbi && (!bq || r.name.toLowerCase().includes(bq)));
+  rows.forEach(r=>{ r.bi_pts_if = (r.bi_line!=null && r.proj_PA) ? Math.round(r.bi_line * r.proj_PA) : null; });
   if (bpool==='ft') rows = rows.filter(r=>r.PA>=400); if (bpool==='pt') rows = rows.filter(r=>r.PA<400);
   if (avail==='FA') rows = rows.filter(r=>r.owner==='FA'||r.owner==='W (Sun)'); if (avail==='notkept') rows = rows.filter(r=>!r.likely_kept); if (avail==='mine') rows = rows.filter(r=>r.owner===MY);
   const est = cur.filter(r=>boStatus(r)==='established').length;
@@ -1267,6 +1270,8 @@ function renderBreak(){
     {k:'pts_pa_c',l:`${CUR} pts / PA`,f:'3',dir:1},
     {k:'prior_best_pa',l:'Previous best / PA',f:'3',dir:1,title:'his best rate in any earlier season of 200+ PA; blank means he has never had one'},
     {k:'luck_c',l:'Luck',f:'0',dir:-1}, {k:'BI',l:'Breakout %',f:'1',dir:1},
+    {k:'bi_why',l:'Why',left:true,render:(v,r)=>v?`<span class="why-bi">${esc(v)}</span>`:'',title:'the biggest reasons in the model\u2019s own arithmetic, largest first'},
+    {k:'bi_pts_if',l:'If he does',f:'0',dir:1,title:'what a breakout season would be worth: the rate that counts as a breakout for him, times his projected plate appearances. The projection next to it is the middle outcome; the percentage is the chance of this one.'},
     {k:'proj_pts',l:`${CUR+1} proj`,dir:1,render:projBand}, {k:'proj_rank',l:`${CUR+1} rank`,dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'proj_pts_600',l:`${CUR+1} / 600`,f:'0',dir:1},
     CI.KSV, {k:'keep_tier',l:'Verdict',t:'txt'}, CI.xwoba, CI.barrel_batted_rate, CI.avg_best_speed, CI.avg_swing_speed, CI.k_percent, CI.bb_percent, CI.sprint_speed, CI.il_days_3yr];
   const cshow = bcols(cols, BO_SIMPLE_CAND);
@@ -1945,9 +1950,9 @@ function renderVerdict(V, o){
   const lgAvg = pt.length ? pt.reduce((a,x)=>a+x.avg*x.slots,0)/pt.reduce((a,x)=>a+x.slots,0) : 0;
   const sgn0 = v => (v>=0?'+':'\u2212')+Math.round(Math.abs(v));
   const posBlock = !pt.length ? '' : `<details style="margin-top:10px"><summary>Why a position earns what it earns</summary>
-    <p class="hint" style="margin:8px 0">Two different things get confused here. <b>Strength</b> is how good the men you actually roster at a spot are. <b>Replacement</b> is how good the next man off the pile is. Only replacement is owed a credit: a strong position is one full of men whose own projections are already high, and paying them again for it would count the same goodness twice. That is why the credit can be level between two spots that feel nothing alike.</p>
-    <div class="tblwrap" style="max-height:none"><table class="mini kbig posgrid"><thead><tr><th class="l">Pos</th><th>Slots</th><th>Best</th><th title="mean projection of the men who fill this spot across all ${TEAMS} lineups">Starters avg</th><th title="strength: starters average against the league-wide starter average">Strength</th><th title="mean of the best five men left once every lineup is full">Replacement</th><th title="how far the last startable man sits above replacement: how hard you fall if yours goes down">Cliff</th><th>Credit</th></tr></thead><tbody>
-    ${pt.slice().sort((a,b)=>a.rep-b.rep).map(x=>`<tr><td class="l"><b>${x.pos}</b></td><td>${x.slots}</td><td>${Math.round(x.best)}</td><td>${Math.round(x.avg)}</td><td class="${x.avg>=lgAvg?'':'neg'}">${sgn0(x.avg-lgAvg)}</td><td>${Math.round(x.rep)}</td><td>${Math.round(x.cliff)}</td><td><b>+${Math.round(deepP - (V.replPos[x.pos] ?? deepP))}</b></td></tr>`).join('')}
+    <p class="hint" style="margin:8px 0">Rank everyone eligible at a spot by projection. The first ${TEAMS} (${3*TEAMS} in the outfield) are the starters; <b>replacement</b> is the average of the next five, the men you would actually be playing there without one of the ${TEAMS}. The credit is how far a spot's replacement sits below the deepest spot's. <b>Strength</b> is how good the ${TEAMS} starters are, shown because people ask, but it earns nothing: a strong position is one full of men whose own projections are already high, and paying them again for it would count the same goodness twice.</p>
+    <div class="tblwrap" style="max-height:none"><table class="mini kbig posgrid"><thead><tr><th class="l">Pos</th><th>Slots</th><th>Best</th><th title="mean projection of the top ${TEAMS} men eligible here">Starters avg</th><th title="strength: starters average against the league-wide starter average">Strength</th><th title="mean of the five men ranked just past the starters at this spot">Replacement</th><th title="how far the last starter sits above replacement: how hard you fall if yours goes down">Cliff</th><th>Credit</th></tr></thead><tbody>
+    ${pt.slice().sort((a,b)=>a.rep-b.rep).map(x=>`<tr><td class="l"><b>${x.pos}</b><span class="sub">${x.eligible} eligible</span></td><td>${x.slots}</td><td>${Math.round(x.best)}</td><td>${Math.round(x.avg)}</td><td class="${x.avg>=lgAvg?'':'neg'}">${sgn0(x.avg-lgAvg)}</td><td title="${esc((x.next||[]).join(', '))}">${Math.round(x.rep)}</td><td>${Math.round(x.cliff)}</td><td><b>+${Math.round(deepP - (V.replPos[x.pos] ?? deepP))}</b></td></tr>`).join('')}
     </tbody></table></div>
     <p class="hint" style="margin:8px 0 0"><b>Cliff</b> is the one thing the credit does not carry: it is how far the last startable man at a spot sits above what you would stream in, so it is the damage if yours goes down mid-season, not the value of keeping him.</p></details>`;
   const tight = (list,n) => list[n-1] && list[n] ? Math.round(list[n-1].DV_c - list[n].DV_c) : null;
@@ -2260,7 +2265,8 @@ function renderToday(){
   const lu = bestLineup(mine, day); const used = new Set(lu.filter(x=>x[1]).map(x=>x[1].mlbam_id)); const tot = lu.reduce((a,[s,r])=>a+(r?r.exp_pts:0),0);
   const posted = mine.filter(r=>r.lineup!=null).length;
   const nLockNow = locksOn(day);
-  $('#today-sub').innerHTML = `${lu.filter(x=>x[1]).length} of 10 spots filled from your roster${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}
+  const offDay = !days.includes(localISO()) ? `<b style="color:var(--bad)">This build has no games for today (${dayLabel(localISO())}); it covers ${dayLabel(days[0])} to ${dayLabel(days[days.length-1])}, so you are looking at ${dayWord(day).toLowerCase()}.</b> ` : '';
+  $('#today-sub').innerHTML = `${offDay}${lu.filter(x=>x[1]).length} of 10 spots filled from your roster${posted?` · ${posted} of your hitters have a posted lineup`:' · lineups not posted yet, matchups from the probable starters'}.${D.meta.owners_synced?` Roster as of the Fantrax sync ${fmtSync(D.meta.owners_synced)}.`:''}
     <b style="display:block;margin-top:4px;color:var(--ink2);font-weight:500">This is a recommendation and you have the last word. <span class="lockb" style="pointer-events:none">start him</span> or <span class="lockb" style="pointer-events:none">sit</span> anyone on your roster and the other nine re-solve around it. A start you set stands over everything the model knows: the IL flag, the posted lineup card, his listed positions, even a day with no game on his schedule${nLockNow?`. ${nLockNow} override${nLockNow>1?'s':''} set for ${dayWord(day).toLowerCase()}`:''}.</b>`;
   const btn = (id, want, on, label, tip) => `<button class="lockb${on?' on':''}" data-lock="${id}" data-want="${want}" title="${esc(tip)}">${label}</button>`;
   // both buttons on every man, everywhere. Whichever list he is in you can put him in or take him out, and
@@ -2372,37 +2378,27 @@ function computeValues(){
   const hs = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts), ps = pc.slice().sort((a,b)=>(b.tot_c??b.proj_pts)-(a.tot_c??a.proj_pts));
   const replH = hs[Math.min(TEAMS*ROSTERED_H-1, hs.length-1)]?.proj_pts ?? 0, replP = (ps[Math.min(TEAMS*ROSTERED_P-1, ps.length-1)]?.tot_c) ?? 0;
   // ---- scarcity: a hitter is worth what he beats AT HIS POSITION, not what he beats league-wide.
-  // Every lineup in the league is filled, each man into one slot, and the replacement at a position is what the
-  // men left over at it are worth. Two things matter for getting this right. The fill has to be OPTIMAL, not
-  // first-come: a man who can play two spots must be re-routed when a better one wants his slot, or a position
-  // that happens to be full of dual-eligible men reads far scarcer than it is. Taking players in descending
-  // projection and re-routing through augmenting paths gives the exact maximum, because the assignable sets form
-  // a transversal matroid (checked against a Hungarian solve: same 120 men, same total to the point).
-  // And the level is the mean of the best FIVE left, not the single best, so one fluke man cannot move a
-  // position on his own. The levels are recentred on the league-wide number the rest of the model is calibrated
-  // against, so this only moves a position RELATIVE to the others, by a constant, never reordering men within one.
+  // Rank every man eligible at a spot by his projection. The starters are the first 12 (36 in the outfield) and
+  // the replacement is the mean of the next five: the men you would actually be playing there if you did not have
+  // one of the twelve. That is the standard positional-replacement definition every draft guide uses, and it is
+  // deliberately the simple one. The previous version filled all 120 slots in the league at once, utility spots
+  // included, and read replacement off whoever was left; that is exact as an assignment, but it made the level at
+  // a position depend on the 121st-to-140th best hitters in the league, a tail full of part-timers whose
+  // projections move every time the model does. One model revision took first base from +1 to +25 without a single
+  // first baseman changing. Ranked within the position, first base is the deepest spot in the league and earns
+  // nothing, which is what anyone who has looked at a first-base list already knew.
+  // The utility slots are position-agnostic, so they do not create scarcity and are left out on purpose: if
+  // anything they let a deep position's surplus be used, which is a reason not to credit it. The levels are
+  // recentred on the league-wide number the rest of the model is calibrated against, so this only moves a
+  // position RELATIVE to the others, by a constant, and never reorders men within one.
   const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3}, UTIL = 2;
   const posOf = r => eligN(r).split('/').filter(x=>x in DED);
   const slotsOf = r => { const e = posOf(r); return e.length ? [...e, 'UT'] : ['UT']; };
+  const posRank = {}; Object.keys(DED).forEach(p=> posRank[p] = hs.filter(r=>posOf(r).includes(p)));   // hs is sorted by projection
+  const meanPts = list => list.length ? list.reduce((a,b)=>a+b.proj_pts,0)/list.length : replH;
   const replPos = (()=>{
-    const cap = {UT: TEAMS*UTIL}; Object.keys(DED).forEach(k=>cap[k]=TEAMS*DED[k]);
-    const occ = {}; Object.keys(cap).forEach(t=>occ[t]=[]);
-    const at = new Map();
-    const aug = (r, seen) => {
-      for (const t of slotsOf(r)){
-        if (seen.has(t)) continue; seen.add(t);
-        if (occ[t].length < cap[t]){ occ[t].push(r); at.set(r,t); return true; }
-        for (const o of occ[t].slice()){                    // bump someone out and re-house him
-          if (aug(o, seen)){ occ[t].splice(occ[t].indexOf(o),1); occ[t].push(r); at.set(r,t); return true; }
-        }
-      }
-      return false;
-    };
-    for (const r of hs) aug(r, new Set());                   // hs is already sorted by projection
-    const rest = hs.filter(r=>!at.has(r));
-    const best5 = list => { const v = list.slice(0,5); return v.length ? v.reduce((a,b)=>a+b.proj_pts,0)/v.length : replH; };
-    const raw = {UT: best5(rest)};
-    Object.keys(DED).forEach(p=> raw[p] = best5(rest.filter(r=>posOf(r).includes(p))));
+    const raw = {UT: hs[Math.min(TEAMS*(Object.values(DED).reduce((a,b)=>a+b,0)+UTIL), hs.length-1)]?.proj_pts ?? replH};
+    Object.keys(DED).forEach(p=>{ const n = TEAMS*DED[p]; raw[p] = meanPts(posRank[p].slice(n, n+5)); });
     let wsum = 0, w = 0; Object.keys(DED).forEach(p=>{ wsum += raw[p]*DED[p]; w += DED[p]; });
     const mid = w ? wsum/w : raw.UT;                         // recentre so the league-wide scale does not move
     const out = {}; Object.keys(raw).forEach(p=> out[p] = replH + (raw[p] - mid));
@@ -2410,28 +2406,15 @@ function computeValues(){
   })();
   const replOf = r => Math.min(...slotsOf(r).map(p=> replPos[p] ?? replPos.UT));
   // the credit is one number, but it is built from two different things and people reasonably want to see both:
-  // how good the men you actually roster at a spot are (STRENGTH), and how good the next man off the pile is
-  // (REPLACEMENT). Only the second one is owed a credit — a strong position is a position full of men whose own
-  // projections are already high, and paying them again for it would count the same goodness twice.
-  const posTable = (()=>{
-    const cap = {UT: TEAMS*UTIL}; Object.keys(DED).forEach(k=>cap[k]=TEAMS*DED[k]);
-    const occ = {}; Object.keys(cap).forEach(t=>occ[t]=[]);
-    const at = new Map();
-    const aug = (r, seen) => { for (const t of slotsOf(r)){ if(seen.has(t)) continue; seen.add(t);
-        if (occ[t].length < cap[t]){ occ[t].push(r); at.set(r,t); return true; }
-        for (const o of occ[t].slice()){ if (aug(o, seen)){ occ[t].splice(occ[t].indexOf(o),1); occ[t].push(r); at.set(r,t); return true; } } }
-      return false; };
-    for (const r of hs) aug(r, new Set());
-    const rest = hs.filter(r=>!at.has(r));
-    return Object.keys(DED).map(p=>{
-      const filled = (occ[p]||[]).map(r=>r.proj_pts).sort((a,b)=>b-a);
-      const avg = filled.length ? filled.reduce((a,b)=>a+b,0)/filled.length : 0;
-      const worst = filled.length ? filled[filled.length-1] : 0;
-      const left = rest.filter(r=>posOf(r).includes(p)).slice(0,5).map(r=>r.proj_pts);
-      const rep = left.length ? left.reduce((a,b)=>a+b,0)/left.length : replH;
-      return {pos:p, slots:cap[p], best:filled[0]||0, avg, worst, rep, cliff: worst-rep};
-    });
-  })();
+  // how good the twelve men at a spot are (STRENGTH), and how good the next man off the pile is (REPLACEMENT).
+  // Only the second one is owed a credit: a strong position is a position full of men whose own projections are
+  // already high, and paying them again for it would count the same goodness twice.
+  const posTable = Object.keys(DED).map(p=>{
+    const n = TEAMS*DED[p], L = posRank[p], starters = L.slice(0, n), next = L.slice(n, n+5);
+    const worst = starters.length ? starters[starters.length-1].proj_pts : 0, rep = meanPts(next);
+    return {pos:p, slots:n, eligible:L.length, best:starters[0]?.proj_pts||0, avg:meanPts(starters), worst, rep, cliff: worst-rep,
+            next: next.map(r=>r.name)};
+  });
   const deepest = Math.max(...Object.keys(DED).map(p=>replPos[p]));
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
     const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
