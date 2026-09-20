@@ -245,7 +245,63 @@ def breakout_index(d: pd.DataFrame, season: int) -> pd.DataFrame:
         raw = np.minimum(raw, float(pl.predict_proba(_LOGIT(oof[ok].to_numpy()).reshape(-1, 1))[:, 1].max()))
     out = d[(d["season"] == season) & (d["PA"] >= 100)].copy()
     out["BI"] = (100 * raw).round(1)
+    # what the number is a chance OF, and why he has it
+    base = out["career_best_pa"].fillna(out["pts_pa"])
+    base = np.where(out["seasons_200"] == 0, np.minimum(out["pts_pa"], 0.35), base)
+    out["bi_line"] = (base + JUMP).round(3)                      # the rate that would count as a breakout
+    out["bi_why"] = _bi_reasons(pr, cur, out)
     return out
+
+
+# how each compact-model input is said in words. The sign is the sign of its contribution for THIS player: the
+# same column can be a reason for or against, and the wording follows.
+_WHY = {
+    "age":               (lambda r, pct: f"{r['age']:.0f} years old", lambda r, pct: f"already {r['age']:.0f}"),
+    "PA":                (lambda r, pct: f"{int(r['PA'])} PA, the job is already his", lambda r, pct: f"only {int(r['PA'])} PA, needs a full-time job first"),
+    "gap_to_best":       (lambda r, pct: "this season is his best yet, so the bar is only a step up", lambda r, pct: f"{abs(r['gap_to_best']):.2f} pts/PA under his own best season, so the bar sits higher"),
+    "luck_pa":           (lambda r, pct: f"deserved {abs(r['luck_pa']):.2f} more per PA than he got", lambda r, pct: f"ran {abs(r['luck_pa']):.2f} per PA hot"),
+    "sprint_speed":      (lambda r, pct: f"sprint speed {pct:.0f}th percentile", lambda r, pct: f"sprint speed only {pct:.0f}th percentile"),
+    "exit_velocity_avg": (lambda r, pct: f"exit velocity {pct:.0f}th percentile", lambda r, pct: f"exit velocity only {pct:.0f}th percentile"),
+    "career_PA":         (lambda r, pct: f"{int(r['career_PA']):,} career PA, early in his curve", lambda r, pct: f"{int(r['career_PA']):,} career PA, a known quantity"),
+    "k_minus_bb":        (lambda r, pct: f"K minus BB in the best {max(1, pct):.0f}%", lambda r, pct: f"K minus BB in the worst {max(1, 100 - pct):.0f}%"),
+}
+# every template pair is (positive contribution, negative contribution). The coefficient signs the compact model
+# learned, for the record: age -, PA +, gap to best + (being AT your best means the bar is one step up rather than
+# two), luck - (luck is actual minus deserved, so negative is unlucky), sprint +, exit velocity +, career PA -,
+# K minus BB -. So "PA positive" means MORE plate appearances, which reads as odd for a breakout until you remember
+# the label needs 350 next year: a man who already has the job is far likelier to clear it.
+
+
+def _bi_reasons(pr: pd.DataFrame, cur_pct: pd.DataFrame, cur_raw: pd.DataFrame) -> pd.Series:
+    """Three reasons per player, in words, from the compact model's own arithmetic.
+
+    The compact logistic is one of the three votes and the only one a person can read: each input's contribution is
+    its coefficient times how far this player sits from the average, so the biggest positive terms ARE the reasons.
+    The tree's reasons would need a Shapley pass and would mostly say the same things. Two changes the compact model
+    does not see but the other two do, barrel rate and bat speed against last year, are appended when they moved.
+    """
+    m = _lr().fit(pr[BI_COMPACT], pr["breakout_next"])
+    imp, sc, lr = m.named_steps["simpleimputer"], m.named_steps["standardscaler"], m.named_steps["logisticregression"]
+    X = sc.transform(imp.transform(cur_pct[BI_COMPACT]))
+    contrib = X * lr.coef_[0]                                      # (players x features), positive pushes the % up
+    raw = cur_raw.set_index("mlbam_id"); pct = cur_pct.set_index("mlbam_id")
+    out = []
+    for i, pid in enumerate(cur_pct["mlbam_id"]):
+        r, q = raw.loc[pid], pct.loc[pid]
+        order = np.argsort(-contrib[i])
+        bits = []
+        for j in order[:3]:
+            f = BI_COMPACT[j]
+            if abs(contrib[i, j]) < 0.05 or pd.isna(r.get(f)):
+                continue
+            pos, neg = _WHY[f]
+            pcv = 100 * float(q[f]) if f not in BI_KEEP_RAW and pd.notna(q[f]) else np.nan
+            bits.append((pos if contrib[i, j] > 0 else neg)(r, pcv))
+        bc, bs = r.get("yoy_barrel_change"), r.get("yoy_bat_speed_change")
+        if pd.notna(bc) and bc >= 2: bits.append(f"barrel rate up {bc:.1f} pts on last year")
+        if pd.notna(bs) and bs >= 0.8: bits.append(f"bat speed up {bs:.1f} mph")
+        out.append(" \u00b7 ".join(bits))
+    return pd.Series(out, index=cur_pct.index)
 
 
 def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:

@@ -73,7 +73,7 @@ def archive(day: str | None = None) -> str:
     """Write today's projections, but only while the first game of the day is still ahead of us."""
     s = _streamers()
     if not s: print("scorecard: no streamers build to archive"); return ""
-    day = day or pd.Timestamp.today().strftime("%Y-%m-%d")
+    day = day or C.league_today().isoformat()
     games = _rows(s.get("games", []))
     starts = [g.get("game_utc") or g.get("gameDate") for g in games if g.get("date") == day]
     hd = [r for r in _rows(s["hitter_days"]) if r["date"] == day]
@@ -172,7 +172,7 @@ def main(argv=None):
     if ns.archive or do_all: archive(ns.day)
     if ns.grade or do_all:
         done = {f.stem for f in SC.glob("20*.csv")}
-        today = pd.Timestamp.today().strftime("%Y-%m-%d")
+        today = C.league_today().isoformat()
         for f in sorted(FC.glob("20*.csv")):
             if f.stem in done or f.stem >= today: continue
             g = grade(f.stem)
@@ -194,7 +194,7 @@ def log_current_period():
     cfg_p = C.DATA / "fantrax" / "league_config.json"
     if not cfg_p.exists(): return None
     sch = json.loads(cfg_p.read_text()).get("schedule", {})
-    today = pd.Timestamp.today().strftime("%Y-%m-%d")
+    today = C.league_today().isoformat()
     per = next((p for p in sch.get("periods", []) if p["start"] <= today <= p["end"]), None)
     if not per: return None
     teams = set()

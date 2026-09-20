@@ -25,7 +25,7 @@ import re
 import pandas as pd
 import requests
 
-from .config import DATA
+from .config import DATA, league_today
 from .injuries import transactions
 
 _S = requests.Session(); _S.headers.update({"User-Agent": "Mozilla/5.0"})
@@ -48,7 +48,7 @@ def _recent(season: int, days: int = STINT_MAX + 15) -> list[dict]:
     useless for this: an assignment filed this morning has to show up this morning. So the season file is the base
     and a short rolling window is laid on top of it.
     """
-    end = dt.date.today()
+    end = league_today()
     start = end - dt.timedelta(days=days)
     u = (f"https://statsapi.mlb.com/api/v1/transactions?startDate={start:%Y-%m-%d}"
          f"&endDate={end:%Y-%m-%d}&sportId=1")
@@ -155,7 +155,7 @@ def statuses(refresh: bool = True) -> dict[int, str]:
 
 def build(season: int, with_outings: bool = True) -> dict:
     """The live board: open assignments with their outings, plus who came back in the last fortnight."""
-    today = dt.date.today()
+    today = league_today()
     seen, tx = set(), []
     for t in list(transactions(season)) + _recent(season):
         i = t.get("id")

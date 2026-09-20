@@ -29,6 +29,19 @@ LEAGUE = {
 SEASONS = [2021, 2022, 2023, 2024, 2025, 2026]
 CURRENT_SEASON = 2026
 
+LEAGUE_TZ = "America/New_York"
+
+
+def league_today():
+    """The date in the league's time zone, which is the only "today" that means anything here.
+
+    The refresh runs on a GitHub runner whose clock is UTC, and from 8 pm Eastern the runner already thinks it is
+    tomorrow. Every place that asks what day it is (the streamer week, the scorecard archive, the rehab clock) has
+    to ask this instead of date.today(), or the site jumps a day ahead of the games every evening."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo(LEAGUE_TZ)).date()
+
 # Thresholds used by the analysis (tweak freely)
 MIN_PA_SKILLS = 200          # minimum PA for a season to count in skill z-scores
 ADP_BEAT_PTS = 75            # points above ADP-expected to count as "beat ADP"

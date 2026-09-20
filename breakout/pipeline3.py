@@ -29,7 +29,7 @@ def recs(df, cols, columnar=False):
         if x[c].dtype == bool:
             x[c] = x[c].astype(int)
         if x[c].dtype == object:
-            x[c] = x[c].astype(str).str.slice(0, 120).replace({"nan": None, "None": None})
+            x[c] = x[c].astype(str).str.slice(0, 260).replace({"nan": None, "None": None})   # 260: the breakout reasons are a sentence, not a label
     if columnar:
         return {"cols": list(x.columns), "rows": json.loads(x.to_json(orient="values"))}
     return json.loads(x.to_json(orient="records"))
@@ -163,7 +163,7 @@ def main(argv=None):
                   presets=PRESETS, generated=pd.Timestamp.today().strftime("%Y-%m-%d"), my_abbrev=a.my_abbrev, my_team=a.my_team,
                   hitter_keepers=hk, pitcher_keepers=pk, real_keepers=recs(real_k, ["player", "team", "slot"]), pitching_plus_coef={k: float(v) for k, v in coef.items()}, pitcher_proj_coef=pcoef),
         seasons=recs(d[d["PA"] >= 50], P2.EXPLORER_COLS, columnar=True),
-        projections=recs(kv, ["mlbam_id", "BI", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability", "il_days_w", "proj_pts", "proj_pts_600", "proj_rank",
+        projections=recs(kv, ["mlbam_id", "BI", "bi_line", "bi_why", "proj_rate_raw", "track_rate", "age_step", "proj_rate", "proj_PA", "durability", "il_days_w", "proj_pts", "proj_pts_600", "proj_rank",
                               "proj_rank_600", "owner", "KSV", "KSV_2nd", "keep_tier", "likely_kept", "kept_2026_as", "bo_status", "proj_sd", "rank_lo", "rank_hi", "n_tied"], columnar=True),
         pool=recs(pool, ["mlbam_id", "name", "pool_rank", "proj_pts", "proj_rank", "owner", "KSV"]),
         drafts=recs(dv, ["season", "overall", "round", "pick", "team", "player", "pos", "mlb", "PA", "pts", "final_hitter_rank", "adp_hitter_rank", "exp_pts",

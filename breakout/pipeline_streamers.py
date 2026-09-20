@@ -13,11 +13,15 @@ from . import reference as REF
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(); ap.add_argument("--start"); ap.add_argument("--end"); ap.add_argument("--asof", default=date.today().isoformat())
+    # "Today" is the league's day, not the runner's. GitHub's clock is UTC, and from 8 pm Eastern on Saturday it
+    # already says Sunday; the old rule then rolled the whole build to NEXT week, so the site showed Monday's slate
+    # while Saturday's and Sunday's games had not been played. Bort's lineup page opened on the wrong date with one
+    # man in it. The week is Monday to Sunday in New York and stays that week through Sunday night.
+    ap = argparse.ArgumentParser(); ap.add_argument("--start"); ap.add_argument("--end"); ap.add_argument("--asof", default=C.league_today().isoformat())
     ap.add_argument("--min-pa", type=int, default=60); ap.add_argument("--my-abbrev", default="BB")
     a = ap.parse_args(argv); warnings.filterwarnings("ignore")
     asof = date.fromisoformat(a.asof)
-    start = a.start or ((asof + timedelta(days=1)) if asof.weekday() == 6 else (asof - timedelta(days=asof.weekday()))).isoformat()  # this week's Monday; on a Sunday, next week
+    start = a.start or (asof - timedelta(days=asof.weekday())).isoformat()   # this week's Monday, Sunday included
     end = a.end or (date.fromisoformat(start) + timedelta(days=6)).isoformat()
     out = C.OUT / "streamers"; out.mkdir(parents=True, exist_ok=True)
     print(f"window {start} .. {end} (as of {asof})")
