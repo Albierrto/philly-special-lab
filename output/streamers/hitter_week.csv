@@ -19,7 +19,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 695600,Carter Jensen,Kansas City Royals,L,C,BB,6,28.5,1.152,0.98,4.21,0.440873786407767,103.0,18
 682829,Elly De La Cruz,Cincinnati Reds,S,SS,MMM,6,28.5,1.023,1.059,4.39,0.5041880341880342,118.0,19
 691406,Junior Caminero,Tampa Bay Rays,R,3B,BAMBI,7,28.3,0.916,1.009,4.37,0.3623478260869565,118.0,20
-695578,James Wood,Washington Nationals,L,OF,BB,6,28.3,1.003,1.077,4.37,0.3116129032258065,63.0,21
+695578,James Wood,Washington Nationals,L,OF,BB,6,28.3,1.002,1.077,4.37,0.3116129032258065,63.0,21
 665833,Oneil Cruz,Pittsburgh Pirates,L,OF,CJF,6,28.2,1.024,1.068,4.3,0.3854054054054054,111.0,22
 703607,Henry Bolte,Athletics,R,OF,CS,6,28.2,1.084,0.988,4.39,0.3845528455284553,123.0,23
 661388,William Contreras,Milwaukee Brewers,R,C,GLIZZY,6,28.0,1.018,1.005,4.57,0.40076190476190476,107.0,24
@@ -28,14 +28,14 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 656941,Kyle Schwarber,Philadelphia Phillies,L,OF,CS,6,27.9,1.014,1.005,4.57,0.34346774193548385,124.0,27
 678246,Miguel Vargas,Chicago White Sox,R,1B/3B,GLIZZY,6,27.9,1.008,1.035,4.45,0.3689516129032258,125.0,28
 668930,Brice Turang,Milwaukee Brewers,L,2B,CH,6,27.9,1.048,1.01,4.39,0.37723214285714285,113.0,29
-703520,Brett Bateman,Toronto Blue Jays,L,OF,THALER,6,27.9,1.056,0.964,4.57,0.3751785714285715,114.0,30
+703520,Brett Bateman,Toronto Blue Jays,L,OF,THALER,6,27.9,1.055,0.964,4.57,0.3751785714285715,114.0,30
 701538,Jackson Merrill,San Diego Padres,L,OF,CH,6,27.8,1.027,1.044,4.33,0.41991379310344823,118.0,31
 671277,Luis García Jr.,New York Yankees,L,1B/2B,Dan,7,27.7,1.023,1.013,3.82,0.35053763440860214,93.0,32
 701350,Roman Anthony,Boston Red Sox,L,OF,CJF,6,27.6,1.044,0.962,4.59,0.3339784946236559,93.0,33
 682985,Riley Greene,Detroit Tigers,L,OF,CH,6,27.4,1.052,1.01,4.29,0.4593589743589743,78.0,34
 805808,Kevin McGonigle,Detroit Tigers,L,3B/SS,GLIZZY,6,27.2,1.003,0.987,4.58,0.3275806451612904,124.0,35
 672695,Geraldo Perdomo,Arizona Diamondbacks,S,SS,CS,6,27.2,1.13,0.951,4.22,0.3264545454545455,113.0,36
-624413,Pete Alonso,Baltimore Orioles,R,1B,GK,6,27.2,1.001,1.03,4.39,0.35128205128205126,119.0,37
+624413,Pete Alonso,Baltimore Orioles,R,1B,GK,6,27.2,1.0,1.03,4.39,0.35128205128205126,119.0,37
 650490,Yandy Díaz,Tampa Bay Rays,R,1B,LTTA,7,27.0,0.869,0.983,4.52,0.2743103448275862,118.0,38
 695734,Daylen Lile,Washington Nationals,L,OF,GK,6,27.0,1.114,1.002,4.03,0.4045098039215686,104.0,39
 606192,Teoscar Hernández,Los Angeles Dodgers,R,OF,CJF,6,26.9,1.091,0.982,4.18,0.40358490566037736,107.0,40
@@ -72,7 +72,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 805300,Jakob Marsee,Miami Marlins,L,OF,FA,6,25.4,1.08,0.967,4.05,0.44009523809523815,106.0,71
 596019,Francisco Lindor,New York Mets,S,SS,Dpf,6,25.3,0.952,0.956,4.63,0.30496062992125983,127.0,72
 671739,Michael Harris II,Atlanta Braves,L,OF,CS,6,25.2,1.028,1.015,4.03,0.33518867924528295,109.0,73
-672386,Alejandro Kirk,Toronto Blue Jays,R,C,FA,6,25.1,1.042,0.972,4.13,0.3177380952380952,84.0,74
+672386,Alejandro Kirk,Toronto Blue Jays,R,C,FA,6,25.1,1.041,0.972,4.13,0.3177380952380952,84.0,74
 593428,Xander Bogaerts,San Diego Padres,R,SS,FA,6,25.0,1.09,0.959,3.99,0.3404854368932039,104.0,75
 673962,Josh Jung,Texas Rangers,R,3B,MMM,6,25.0,0.995,0.966,4.34,0.3797142857142857,35.0,76
 691182,Adael Amador,Colorado Rockies,S,2B,FA,6,24.9,1.154,0.982,3.67,0.35177419354838707,64.0,77
@@ -164,7 +164,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 693304,Nick Gonzales,Pittsburgh Pirates,R,2B/3B,CJF,6,22.2,0.956,0.953,4.06,0.2994623655913978,93.0,163
 691594,Javier Sanoja,Miami Marlins,R,2B/3B/SS/OF,CS,6,22.2,0.965,0.969,3.96,0.3814285714285714,113.0,164
 664761,Alec Bohm,Philadelphia Phillies,R,1B/3B,CS,6,22.1,0.972,0.943,4.02,0.3508,100.0,165
-673357,Luis Robert Jr.,Baltimore Orioles,R,OF,Dpf,6,22.1,1.003,0.961,3.82,0.40096774193548385,31.0,166
+673357,Luis Robert Jr.,Baltimore Orioles,R,OF,Dpf,6,22.0,1.002,0.961,3.82,0.40096774193548385,31.0,166
 686527,Dominic Canzone,Seattle Mariners,L,OF,GK,6,22.0,0.874,0.997,4.2,0.3428695652173913,115.0,167
 514888,Jose Altuve,Houston Astros,R,2B/OF,BAMBI,6,22.0,0.946,0.922,4.2,0.3075229357798165,109.0,168
 630105,Jake Cronenworth,San Diego Padres,L,2B,FA,6,21.9,0.967,0.924,4.09,0.30598130841121496,108.0,169
@@ -187,13 +187,13 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 699013,Esmerlyn Valdez,Pittsburgh Pirates,R,OF,LTTA,6,21.3,0.91,0.978,3.99,0.31,52.0,186
 641487,J.P. Crawford,Seattle Mariners,L,3B/SS,FA,6,21.2,0.9,0.918,4.27,0.3299,103.0,187
 695731,Braden Montgomery,Chicago White Sox,S,OF,CJF,6,21.2,0.978,0.951,3.79,0.24268041237113402,97.0,188
-694212,Samuel Basallo,Baltimore Orioles,L,C/1B,GK,6,21.2,1.053,0.968,3.46,0.23959999999999998,75.0,189
+694212,Samuel Basallo,Baltimore Orioles,L,C/1B,GK,6,21.2,1.052,0.968,3.46,0.23959999999999998,75.0,189
 543510,James McCann,Arizona Diamondbacks,R,C,FA,6,21.1,1.138,0.967,3.19,0.2589655172413793,29.0,190
 662139,Daulton Varsho,Houston Astros,L,OF,FA,6,21.0,0.958,0.936,3.9,0.2497979797979798,99.0,191
 680700,Richie Palacios,Tampa Bay Rays,L,2B/OF,FA,7,21.0,0.999,0.971,3.09,0.3278787878787879,67.0,192
 679529,Spencer Torkelson,Detroit Tigers,R,1B,Dan,6,20.9,1.038,0.94,3.57,0.38055555555555554,90.0,193
 665052,Griffin Conine,Miami Marlins,L,1B/OF,FA,6,20.9,0.954,0.993,3.67,0.3080612244897959,98.0,194
-665926,Andrés Giménez,Toronto Blue Jays,L,2B/SS,Dan,6,20.9,1.041,0.944,3.55,0.29375,72.0,195
+665926,Andrés Giménez,Toronto Blue Jays,L,2B/SS,Dan,6,20.9,1.04,0.944,3.55,0.29375,72.0,195
 673237,Yainer Diaz,Houston Astros,R,C,FA,6,20.9,1.031,0.979,3.45,0.4317283950617284,81.0,196
 647304,Josh Naylor,Seattle Mariners,L,1B,GLIZZY,6,20.9,0.85,0.974,4.21,0.2603669724770642,109.0,197
 691023,Jordan Walker,St. Louis Cardinals,R,OF,CJF,6,20.9,0.823,1.04,4.07,0.23625000000000002,104.0,198
@@ -213,7 +213,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 608348,Carson Kelly,Chicago Cubs,R,C,FA,6,20.4,0.976,0.977,3.56,0.3472,75.0,212
 687952,Christian Encarnacion-Strand,Baltimore Orioles,R,1B/3B,FA,6,20.4,0.937,0.976,3.72,0.36455445544554455,101.0,213
 800325,Luis Lara,Milwaukee Brewers,S,OF,FA,6,20.4,1.0,0.955,3.57,0.27925,80.0,214
-680664,Eduardo Valencia,Detroit Tigers,R,C/1B,CH,6,20.3,0.977,0.991,3.5,0.3535294117647059,52.0,215
+680664,Eduardo Valencia,Detroit Tigers,R,C/1B,CH,6,20.3,0.976,0.991,3.5,0.3535294117647059,52.0,215
 691777,Max Muncy,Athletics,R,3B,Dpf,6,20.3,1.076,0.942,3.33,0.33129032258064517,62.0,216
 663968,Jake Mangum,Pittsburgh Pirates,S,OF,FA,6,20.3,0.948,0.977,3.65,0.24526315789473685,77.0,217
 502671,Paul Goldschmidt,New York Yankees,R,1B,FA,7,20.3,0.916,0.963,3.29,0.37722222222222224,36.0,218
@@ -224,12 +224,12 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 641680,Jonah Heim,Athletics,S,C,GK,6,20.0,0.948,0.941,3.74,0.22866666666666666,75.0,223
 681508,Mickey Gasper,Boston Red Sox,S,C/1B/2B,CS,6,20.0,1.031,0.972,3.33,0.43865853658536585,82.0,224
 695336,Thomas Saggese,St. Louis Cardinals,R,2B/SS/OF,MMM,6,20.0,0.93,0.967,3.71,0.36049999999999993,80.0,225
-660688,Keibert Ruiz,Washington Nationals,S,C,FA,6,20.0,1.049,0.985,3.23,0.3926,50.0,226
+660688,Keibert Ruiz,Washington Nationals,S,C,FA,6,20.0,1.048,0.985,3.23,0.3926,50.0,226
 814439,Ryan Waldschmidt,Arizona Diamondbacks,R,OF,FA,6,19.9,1.062,0.957,3.26,0.20909090909090908,56.0,227
 678662,Ezequiel Tovar,Colorado Rockies,R,SS,FA,6,19.9,1.21,0.916,2.99,0.3301587301587301,64.0,228
 695720,Tommy White,Athletics,R,1B/3B,FA,6,19.8,1.048,0.933,3.38,0.24876923076923074,65.0,229
 622268,Donovan Walton,Athletics,L,2B/3B/SS,FA,6,19.7,1.065,0.967,3.18,0.3592405063291139,79.0,230
-691781,Brady House,Washington Nationals,R,3B,FA,6,19.6,0.959,0.96,3.56,0.33125,80.0,231
+691781,Brady House,Washington Nationals,R,3B,FA,6,19.6,0.958,0.96,3.56,0.33125,80.0,231
 667472,Dane Myers,Cincinnati Reds,R,OF,FA,6,19.5,0.98,0.962,3.45,0.31560975609756103,82.0,232
 813841,Jonah Cox,San Francisco Giants,R,OF,FA,6,19.4,0.953,0.99,3.44,0.3470967741935484,98.0,233
 810938,Ben Williamson,Tampa Bay Rays,R,2B/3B/SS,FA,7,19.3,0.912,0.947,3.19,0.0,3.0,234
@@ -320,7 +320,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 622761,Jorge Mateo,Tampa Bay Rays,R,2B/SS,FA,7,15.8,0.864,0.987,2.64,0.16642857142857143,57.0,319
 682674,Victor Bericoto,San Francisco Giants,R,1B/OF,FA,6,15.7,0.945,0.968,2.86,0.359375,16.0,320
 666211,Taylor Trammell,Houston Astros,L,OF,FA,6,15.5,0.972,0.941,2.82,0.254375,64.0,321
-677956,Rece Hinds,Baltimore Orioles,R,OF,FA,6,15.5,1.052,0.94,2.62,0.316,25.0,322
+677956,Rece Hinds,Baltimore Orioles,R,OF,FA,6,15.5,1.051,0.94,2.62,0.316,25.0,322
 694728,Brice Matthews,Houston Astros,R,2B/SS/OF,FA,6,15.4,0.954,0.936,2.88,0.22,4.0,323
 690993,Colt Keith,Detroit Tigers,L,1B/2B/3B,FA,6,15.4,0.971,0.962,2.76,0.2568965517241379,58.0,324
 663494,Bryan Torres,St. Louis Cardinals,L,C/2B/OF,FA,6,15.3,0.948,0.943,2.86,0.27816326530612245,49.0,325
@@ -328,7 +328,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 679822,Justin Foscue,Texas Rangers,R,1B/2B,FA,6,15.2,0.976,0.969,2.67,0.3807936507936508,63.0,327
 683083,Nasim Nuñez,Washington Nationals,S,2B/SS,FA,6,15.2,0.916,0.963,2.88,0.1369090909090909,58.0,328
 650559,Bryan De La Cruz,Philadelphia Phillies,R,OF,FA,6,15.2,0.973,0.97,2.68,0.27135135135135136,37.0,329
-595879,Javier Báez,Detroit Tigers,R,2B/3B/SS/OF,FA,6,15.1,0.958,0.93,2.83,0.21054054054054056,37.0,330
+595879,Javier Báez,Detroit Tigers,R,2B/3B/SS/OF,FA,6,15.1,0.957,0.93,2.83,0.21054054054054056,37.0,330
 592626,Joc Pederson,Texas Rangers,L,1B,FA,6,15.1,0.928,0.974,2.78,0.3504081632653061,49.0,331
 807727,Charles McAdoo,Toronto Blue Jays,R,2B/3B,FA,6,15.0,1.035,0.96,2.51,0.2529411764705882,34.0,332
 666139,Josh Lowe,Los Angeles Angels,L,OF,FA,6,15.0,0.915,0.957,2.86,0.2974626865671642,67.0,333
@@ -348,7 +348,7 @@ mlbam_id,name,team,bats,elig,owner,games,week_pts,avg_mult,base_rate,pa_g,woba_3
 665923,Esteury Ruiz,Miami Marlins,R,OF,FA,6,13.9,0.862,1.022,2.63,0.19836363636363635,56.0,347
 807713,Matt Shaw,Chicago Cubs,R,2B/3B/OF,FA,6,13.8,0.966,0.963,2.47,0.34410256410256407,41.0,348
 665966,Carlos Narváez,Baltimore Orioles,R,C,FA,6,13.8,0.981,0.906,2.58,0.21685714285714286,37.0,349
-814430,Brett Callahan,Detroit Tigers,L,OF,FA,6,13.8,0.974,0.951,2.48,0.24701754385964914,57.0,350
+814430,Brett Callahan,Detroit Tigers,L,OF,FA,6,13.8,0.973,0.951,2.48,0.24701754385964914,57.0,350
 673490,Ha-Seong Kim,Atlanta Braves,R,SS,FA,6,13.8,0.877,0.911,2.89,0.2504255319148936,47.0,351
 687529,Grant McCray,San Francisco Giants,L,OF,FA,6,13.7,0.995,0.965,2.38,0.2860975609756098,42.0,352
 677588,José Tena,Washington Nationals,L,2B/3B/OF,FA,6,13.6,0.96,0.95,2.49,0.1897297297297297,37.0,353
