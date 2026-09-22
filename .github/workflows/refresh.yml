@@ -67,6 +67,12 @@ jobs:
       - name: Rehab assignments and minor-league outings
         continue-on-error: true
         run: python -m breakout.rehab
+      # NFBC Postseason Holdem board: bracket odds from the exchanges, playoff-adjusted Holdem projections, ranked
+      # brackets and a roster for each. Runs before the site assembles so the Postseason tab reads a fresh file.
+      - name: Postseason board (NFBC Holdem)
+        continue-on-error: true
+        timeout-minutes: 15
+        run: python -m hrboard.postseason
       - name: Assemble the site
         run: |
           python -m breakout.build_v4
@@ -76,7 +82,7 @@ jobs:
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces data/rehab
+          git add -A site output data/fantrax data/statcast data/reference data/forecasts data/scorecard data/faces data/rehab data/postseason
           [ -d data/availability ] && git add -A data/availability
           git commit -m "refresh $(date -u +%F)" || echo "nothing to commit"
           # someone (or another run) can land a commit on main while this one is building, and a plain push then dies

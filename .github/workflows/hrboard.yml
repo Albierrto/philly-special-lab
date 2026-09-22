@@ -33,11 +33,17 @@ jobs:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           KALSHI_RELAY: ${{ vars.KALSHI_RELAY }}
         run: python -m hrboard.build
+      # NFBC Postseason Holdem board: bracket odds (Kalshi + Polymarket, de-vigged), playoff-adjusted projections in
+      # Holdem points, ranked brackets and an ILP roster for each. Never fails the build: a stale board beats none.
+      - name: Postseason board (NFBC Holdem)
+        continue-on-error: true
+        timeout-minutes: 15
+        run: python -m hrboard.postseason
       - name: Commit
         run: |
           git config user.name "lab-bot"
           git config user.email "lab-bot@users.noreply.github.com"
-          git add -A site/hr data/hrboard
+          git add -A site/hr data/hrboard site/data/postseason.js
           git commit -m "hr board $(date -u +%F\ %H:%M)" || echo "nothing to commit"
           git pull --rebase
           git push
