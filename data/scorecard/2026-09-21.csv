@@ -1,0 +1,105 @@
+date,kind,mlbam_id,name,team,gamePk,opp,exp_pts,src,owner,elig,active,made_utc,actual,ip,played
+2026-09-21,H,624413.0,Pete Alonso,Baltimore Orioles,824787,Toronto Blue Jays,4.49,listed,GK,1B,True,2026-09-21T20:26:55Z,15.0,,True
+2026-09-21,H,641933.0,Tyler O'Neill,Baltimore Orioles,824787,Toronto Blue Jays,2.74,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,665750.0,Leody Taveras,Baltimore Orioles,824787,Toronto Blue Jays,3.03,listed,FA,OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,665966.0,Carlos Narváez,Baltimore Orioles,824787,Toronto Blue Jays,2.27,listed,FA,C,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,669236.0,Jeremiah Jackson,Baltimore Orioles,824787,Toronto Blue Jays,2.85,listed,FA,2B/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,673357.0,Luis Robert Jr.,Baltimore Orioles,824787,Toronto Blue Jays,3.64,listed,Dpf,OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,677942.0,Blaze Alexander,Baltimore Orioles,824787,Toronto Blue Jays,3.4,listed,FA,2B/3B/SS/OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,681297.0,Colton Cowser,Baltimore Orioles,824787,Toronto Blue Jays,3.04,listed,FA,OF,True,2026-09-21T20:26:55Z,1.0,,True
+2026-09-21,H,683002.0,Gunnar Henderson,Baltimore Orioles,824787,Toronto Blue Jays,4.02,listed,GK,SS,True,2026-09-21T20:26:55Z,13.0,,True
+2026-09-21,H,687637.0,Dylan Beavers,Baltimore Orioles,824787,Toronto Blue Jays,3.59,listed,FA,OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,687952.0,Christian Encarnacion-Strand,Baltimore Orioles,824787,Toronto Blue Jays,3.37,listed,FA,1B/3B,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,691723.0,Coby Mayo,Baltimore Orioles,824787,Toronto Blue Jays,3.34,listed,FA,1B/3B,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,694212.0,Samuel Basallo,Baltimore Orioles,824787,Toronto Blue Jays,3.43,listed,GK,C/1B,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,702616.0,Jackson Holliday,Baltimore Orioles,824787,Toronto Blue Jays,3.54,listed,FA,2B,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,677956.0,Rece Hinds,Baltimore Orioles,824787,Toronto Blue Jays,2.57,listed,FA,OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,543807.0,George Springer,Toronto Blue Jays,824787,Baltimore Orioles,3.93,listed,LTTA,OF,True,2026-09-21T20:26:55Z,5.0,,True
+2026-09-21,H,664702.0,Myles Straw,Toronto Blue Jays,824787,Baltimore Orioles,2.56,listed,FA,OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,664770.0,Nathan Lukes,Toronto Blue Jays,824787,Baltimore Orioles,3.7,listed,FA,OF,True,2026-09-21T20:26:55Z,5.0,,True
+2026-09-21,H,665489.0,Vladimir Guerrero Jr.,Toronto Blue Jays,824787,Baltimore Orioles,3.79,listed,CJF,1B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,665926.0,Andrés Giménez,Toronto Blue Jays,824787,Baltimore Orioles,3.46,listed,Dan,2B/SS,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,669701.0,Josh Smith,Toronto Blue Jays,824787,Baltimore Orioles,2.88,listed,FA,1B/2B/3B/SS,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,672386.0,Alejandro Kirk,Toronto Blue Jays,824787,Baltimore Orioles,3.89,listed,FA,C,True,2026-09-21T20:26:55Z,4.0,,True
+2026-09-21,H,672960.0,Kazuma Okamoto,Toronto Blue Jays,824787,Baltimore Orioles,3.91,listed,Dpf,1B/3B,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,676391.0,Ernie Clement,Toronto Blue Jays,824787,Baltimore Orioles,3.02,listed,CS,2B/3B/SS,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,676914.0,Davis Schneider,Toronto Blue Jays,824787,Baltimore Orioles,1.91,listed,FA,2B/OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,678218.0,Brandon Valenzuela,Toronto Blue Jays,824787,Baltimore Orioles,2.76,listed,FA,C,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,682818.0,Yohendrick Piñango,Toronto Blue Jays,824787,Baltimore Orioles,3.11,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,703520.0,Brett Bateman,Toronto Blue Jays,824787,Baltimore Orioles,4.75,listed,THALER,OF,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,807727.0,Charles McAdoo,Toronto Blue Jays,824787,Baltimore Orioles,2.31,listed,FA,2B/3B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,595879.0,Javier Báez,Detroit Tigers,824221,Washington Nationals,2.52,listed,FA,2B/3B/SS/OF,True,2026-09-21T20:26:55Z,9.0,,True
+2026-09-21,H,650402.0,Gleyber Torres,Detroit Tigers,824221,Washington Nationals,3.71,listed,FA,2B,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,656716.0,Zach McKinstry,Detroit Tigers,824221,Washington Nationals,2.73,listed,FA,2B/3B/SS/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,663837.0,Matt Vierling,Detroit Tigers,824221,Washington Nationals,2.72,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,672761.0,Wenceel Pérez,Detroit Tigers,824221,Washington Nationals,3.03,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,679529.0,Spencer Torkelson,Detroit Tigers,824221,Washington Nationals,3.53,listed,Dan,1B,True,2026-09-21T20:26:55Z,8.0,,True
+2026-09-21,H,680664.0,Eduardo Valencia,Detroit Tigers,824221,Washington Nationals,3.42,listed,CH,C/1B,True,2026-09-21T20:26:55Z,9.0,,True
+2026-09-21,H,681481.0,Kerry Carpenter,Detroit Tigers,824221,Washington Nationals,3.11,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,682985.0,Riley Greene,Detroit Tigers,824221,Washington Nationals,4.61,listed,CH,OF,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,690993.0,Colt Keith,Detroit Tigers,824221,Washington Nationals,2.64,listed,FA,1B/2B/3B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,693307.0,Dillon Dingler,Detroit Tigers,824221,Washington Nationals,3.82,listed,MMM,C,True,2026-09-21T20:26:55Z,8.0,,True
+2026-09-21,H,701162.0,Ben Malgeri,Detroit Tigers,824221,Washington Nationals,2.28,listed,FA,OF,True,2026-09-21T20:26:55Z,12.0,,True
+2026-09-21,H,701678.0,Hao-Yu Lee,Detroit Tigers,824221,Washington Nationals,3.79,listed,FA,2B/3B,True,2026-09-21T20:26:55Z,10.0,,True
+2026-09-21,H,703601.0,Max Clark,Detroit Tigers,824221,Washington Nationals,3.74,listed,CS,OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,805808.0,Kevin McGonigle,Detroit Tigers,824221,Washington Nationals,4.67,listed,GLIZZY,3B/SS,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,807726.0,John Peck,Detroit Tigers,824221,Washington Nationals,3.13,listed,FA,SS,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,814430.0,Brett Callahan,Detroit Tigers,824221,Washington Nationals,2.32,listed,FA,OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,660688.0,Keibert Ruiz,Washington Nationals,824221,Detroit Tigers,3.23,listed,FA,C,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,665953.0,Andrés Chaparro,Washington Nationals,824221,Detroit Tigers,3.03,listed,FA,1B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,677588.0,José Tena,Washington Nationals,824221,Detroit Tigers,2.18,listed,FA,2B/3B/OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,678391.0,Jorbit Vivas,Washington Nationals,824221,Detroit Tigers,3.07,listed,FA,2B/3B,True,2026-09-21T20:26:55Z,1.0,,True
+2026-09-21,H,682928.0,CJ Abrams,Washington Nationals,824221,Detroit Tigers,4.26,listed,BAMBI,SS,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,683083.0,Nasim Nuñez,Washington Nationals,824221,Detroit Tigers,2.43,listed,FA,2B/SS,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,686452.0,Drew Millas,Washington Nationals,824221,Detroit Tigers,2.81,listed,FA,C,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,686611.0,Dylan Crews,Washington Nationals,824221,Detroit Tigers,3.81,listed,FA,OF,True,2026-09-21T20:26:55Z,3.0,,True
+2026-09-21,H,691781.0,Brady House,Washington Nationals,824221,Detroit Tigers,3.12,listed,FA,3B,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,694673.0,Abimelec Ortiz,Washington Nationals,824221,Detroit Tigers,2.79,listed,FA,1B/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,695578.0,James Wood,Washington Nationals,824221,Detroit Tigers,4.63,listed,BB,OF,True,2026-09-21T20:26:55Z,3.0,,True
+2026-09-21,H,695670.0,Harry Ford,Washington Nationals,824221,Detroit Tigers,2.66,listed,FA,C,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,695734.0,Daylen Lile,Washington Nationals,824221,Detroit Tigers,4.44,listed,GK,OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,696285.0,Jacob Young,Washington Nationals,824221,Detroit Tigers,2.89,listed,FA,OF,True,2026-09-21T20:26:55Z,5.0,,True
+2026-09-21,H,686894.0,Joey Wiemer,Washington Nationals,824221,Detroit Tigers,2.42,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,691002.0,Yohandy Morales,Washington Nationals,824221,Detroit Tigers,2.86,listed,GK,1B,True,2026-09-21T20:26:55Z,8.0,,True
+2026-09-21,H,642715.0,Willy Adames,San Francisco Giants,823169,Minnesota Twins,3.87,listed,FA,SS,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,646240.0,Rafael Devers,San Francisco Giants,823169,Minnesota Twins,5.37,listed,Dan,1B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,656305.0,Matt Chapman,San Francisco Giants,823169,Minnesota Twins,3.59,listed,FA,3B,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,664056.0,Harrison Bader,San Francisco Giants,823169,Minnesota Twins,3.21,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,669477.0,Casey Schmitt,San Francisco Giants,823169,Minnesota Twins,3.96,listed,FA,1B/2B/3B/OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,678545.0,Osleivis Basabe,San Francisco Giants,823169,Minnesota Twins,2.73,listed,FA,2B/3B/SS,True,2026-09-21T20:26:55Z,3.0,,True
+2026-09-21,H,683766.0,Christian Koss,San Francisco Giants,823169,Minnesota Twins,3.15,listed,FA,2B/3B/SS,True,2026-09-21T20:26:55Z,4.0,,True
+2026-09-21,H,687551.0,Drew Gilbert,San Francisco Giants,823169,Minnesota Twins,2.89,listed,FA,OF,True,2026-09-21T20:26:55Z,14.0,,True
+2026-09-21,H,691740.0,Daniel Susac,San Francisco Giants,823169,Minnesota Twins,2.65,listed,FA,C,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,694376.0,Shay Whitcomb,San Francisco Giants,823169,Minnesota Twins,2.76,listed,FA,2B/3B/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,701852.0,Drew Cavanaugh,San Francisco Giants,823169,Minnesota Twins,2.73,listed,FA,C,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,805811.0,Bryce Eldridge,San Francisco Giants,823169,Minnesota Twins,4.48,listed,CH,1B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,806367.0,Turner Hill,San Francisco Giants,823169,Minnesota Twins,3.84,listed,FA,OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,808982.0,Jung Hoo Lee,San Francisco Giants,823169,Minnesota Twins,3.8,listed,GLIZZY,OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,813841.0,Jonah Cox,San Francisco Giants,823169,Minnesota Twins,3.27,listed,FA,OF,True,2026-09-21T20:26:55Z,3.0,,True
+2026-09-21,H,606992.0,Eric Haase,San Francisco Giants,823169,Minnesota Twins,2.66,listed,FA,C,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,668800.0,Andrew Knizner,San Francisco Giants,823169,Minnesota Twins,2.83,listed,FA,C,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,H,682674.0,Victor Bericoto,San Francisco Giants,823169,Minnesota Twins,2.65,listed,FA,1B/OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,687529.0,Grant McCray,San Francisco Giants,823169,Minnesota Twins,2.31,listed,FA,OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,605137.0,Josh Bell,Minnesota Twins,823169,San Francisco Giants,3.93,listed,FA,1B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,605170.0,Victor Caratini,Minnesota Twins,823169,San Francisco Giants,3.01,listed,FA,C/1B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,621439.0,Byron Buxton,Minnesota Twins,823169,San Francisco Giants,4.12,listed,BAMBI,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,656484.0,Tristan Gray,Minnesota Twins,823169,San Francisco Giants,2.59,listed,FA,2B/3B/SS,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,663616.0,Trevor Larnach,Minnesota Twins,823169,San Francisco Giants,3.24,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,665019.0,Kody Clemens,Minnesota Twins,823169,San Francisco Giants,3.97,listed,LTTA,1B/2B/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,668885.0,Austin Martin,Minnesota Twins,823169,San Francisco Giants,2.43,listed,FA,OF,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,668904.0,Royce Lewis,Minnesota Twins,823169,San Francisco Giants,3.31,listed,Dpf,1B/2B/3B,True,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,668952.0,Ryan Kreidler,Minnesota Twins,823169,San Francisco Giants,1.96,listed,FA,2B/3B/SS/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,670242.0,Matt Wallner,Minnesota Twins,823169,San Francisco Giants,3.68,listed,FA,OF,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,680777.0,Ryan Jeffers,Minnesota Twins,823169,San Francisco Giants,3.57,listed,CH,C,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,686797.0,Brooks Lee,Minnesota Twins,823169,San Francisco Giants,4.07,listed,BAMBI,2B/3B/SS,True,2026-09-21T20:26:55Z,7.0,,True
+2026-09-21,H,701785.0,Kaelen Culpepper,Minnesota Twins,823169,San Francisco Giants,3.42,listed,FA,SS,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,807712.0,Luke Keaschall,Minnesota Twins,823169,San Francisco Giants,4.17,listed,Dpf,2B/OF,True,2026-09-21T20:26:55Z,0.0,,True
+2026-09-21,H,656577.0,Alex Jackson,Minnesota Twins,823169,San Francisco Giants,1.77,listed,FA,C,False,2026-09-21T20:26:55Z,,,False
+2026-09-21,H,702176.0,Alan Roden,Minnesota Twins,823169,San Francisco Giants,3.0,listed,FA,OF,True,2026-09-21T20:26:55Z,3.0,,True
+2026-09-21,H,805805.0,Walker Jenkins,Minnesota Twins,823169,San Francisco Giants,3.46,listed,FA,OF,True,2026-09-21T20:26:55Z,2.0,,True
+2026-09-21,P,669358.0,Shane Baz,Baltimore Orioles,824787,Toronto Blue Jays,7.87,listed,THALER,SP,True,2026-09-21T20:26:55Z,9.666666666666668,6.7,True
+2026-09-21,P,702056.0,Trey Yesavage,Toronto Blue Jays,824787,Baltimore Orioles,10.5,listed,BAMBI,SP,True,2026-09-21T20:26:55Z,4.0,2.0,True
+2026-09-21,P,689981.0,River Ryan,Detroit Tigers,824221,Washington Nationals,6.92,listed,FA,SP,True,2026-09-21T20:26:55Z,6.0,3.0,True
+2026-09-21,P,687792.0,DJ Herz,Washington Nationals,824221,Detroit Tigers,7.32,listed,FA,SP,True,2026-09-21T20:26:55Z,4.0,4.0,True
+2026-09-21,P,694918.0,Blade Tidwell,San Francisco Giants,823169,Minnesota Twins,8.16,listed,FA,SP,True,2026-09-21T20:26:55Z,6.333333333333334,3.3,True
+2026-09-21,P,805673.0,Zebby Matthews,Minnesota Twins,823169,San Francisco Giants,8.3,listed,CH,SP,True,2026-09-21T20:26:55Z,9.0,5.0,True
