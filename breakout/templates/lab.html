@@ -645,6 +645,18 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <div class="tblwrap"><table id="t-pros"></table></div>
 </section>
 
+<section role="tabpanel" id="tab-post">
+  <div class="pagehead"><div><h2>NFBC Postseason Holdem</h2>
+  <p class="lede" id="po-lede">One roster for the whole playoffs, scored in the contest's own points, with the multipliers that decide it. Bracket odds come from the exchanges; every player is projected in Holdem points for each round his club might play.</p></div>
+  <div class="dayseg" id="po-views"></div></div>
+  <div class="explain"><details><summary>How the contest works, and how this page plays it</summary><ul>
+    <li><b>The format.</b> Sixteen spots (C, 1B, 2B, 3B, SS, four OF, UT, six P), drafted once before the Division Series from the eight clubs still alive. At most three from any club and at least one from each, so the roster is 3-3-3-3-1-1-1-1. Between rounds you may replace only the men whose club was eliminated. Per club: two to six in the LCS, six to ten in the World Series.</li>
+    <li><b>The multipliers.</b> A player held from the Division Series scores 1x there, 2x in the LCS and 3x in the World Series. One added for the LCS scores 1x then 2x. One added for the World Series scores 1x. The scoring: 1B 1, 2B 2, 3B 3, HR 4, R 1, RBI 1, SB 1, BB 1, HBP 1, each out (AB minus H) −0.25; IP 1, K 1, W 4, SV 4, ER −1.</li>
+    <li><b>Why it is a bracket contest.</b> In each of the last four Octobers, 64 to 77 percent of a perfect entry's points came from the two World Series clubs, and about half from the six men held on them at triple points. The four Division Series losers were worth one to two percent between them. Pick the two pennant winners; everything else is detail.</li>
+    <li><b>What the page does.</b> <b>Bracket</b> turns Kalshi and Polymarket title and pennant prices into a per-game strength for every club and plays the whole tournament out, so every series has a chance, an expected length and a chance of each game being played. <b>Players</b> projects each man in Holdem points per series (season rates shrunk to the league, lineup slot, playoff deflation, injured-list chances). <b>Roster</b> builds the best sixteen for any bracket you believe in, with the LCS and World Series replacements. <b>Brackets</b> ranks the likeliest paths for multi-entry. <b>Playbook</b> has the analyst reading and the last four Octobers in numbers.</li></ul></details></div>
+  <div id="po-out"></div>
+</section>
+
 <section role="tabpanel" id="tab-formulas" class="method">
   <div class="pagehead"><div><h2>How the numbers are made</h2><p class="lede">Each score in plain words first, then the math behind it if you want it. Every check below was run on past seasons the model had not seen.</p></div></div>
 
@@ -847,7 +859,7 @@ const PROJ = Object.fromEntries(unpack(D.projections).map(p => [p.mlbam_id, p]))
 const BY_ID = {}; ROWS.forEach(r => (BY_ID[r.mlbam_id] ||= []).push(r)); Object.values(BY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
 const SEASONS = [...new Set(ROWS.map(r=>r.season))].sort();
 const CUR = D.meta.season; const HOME_ABBR = D.meta.my_abbrev; let MY = (D.meta.default_team ?? HOME_ABBR); try{ const s=localStorage.getItem('lab-team'); if(s!==null) MY=s; }catch(e){}
-ROWS.forEach(r => { const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, bi_line:p.bi_line, bi_why:p.bi_why, bi_skills:p.bi_skills, bi_comps:p.bi_comps, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
+ROWS.forEach(r => { r.OUT = Math.max(0, (r.AB||0) - (r.H||0)); const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, bi_line:p.bi_line, bi_why:p.bi_why, bi_skills:p.bi_skills, bi_comps:p.bi_comps, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
 // pitchers
 const PROWS = unpack(D.pitchers); const PSEASONS = [...new Set(PROWS.map(r=>r.season))].sort();
 const PPROJ = Object.fromEntries(unpack(D.pitcher_proj).map(p => [p.mlbam_id, p]));
@@ -863,11 +875,11 @@ const REAL_K = D.meta.real_keepers || []; const nk = s => String(s||'').toLowerC
 const REAL_K_SLOT = Object.fromEntries(REAL_K.map(k => [nk(k.player), k.slot]));
 
 // ---------- scoring engine (client side)
-const EVENTS = ['1B','2B','3B','HR','R','RBI','BB','HBP','SB','CS','K','E','CSA','AOF'];
+const EVENTS = ['1B','2B','3B','HR','R','RBI','BB','HBP','SB','CS','K','E','CSA','AOF','OUT'];   // OUT = AB minus H, for formats that charge for outs (NFBC Holdem)
 let W = {...D.meta.scoring}; let MODE = 'points'; let TEAMS = D.meta.teams, HSTART = 10, HKEEP = D.meta.hitter_keepers ?? 5, PSTART = 5, PKEEP = D.meta.pitcher_keepers ?? 2;
 // pitching
 const PEVENTS = ['IP','K','ER','QS','CG','SHO','BS','W','L','SV','HLD','H','BB','HR'];
-const PPRESETS = { philly_special: {...D.meta.pitching_scoring}, espn_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:2,L:-2,SV:5}, yahoo_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-5,SV:5,HLD:2}, cbs_points: {IP:3,K:1,ER:-1,H:-1,BB:-1,W:7,L:-5,SV:7,QS:3}, fantrax_default: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-3,SV:6,HLD:3,QS:3,CG:5,SHO:5} };
+const PPRESETS = { philly_special: {...D.meta.pitching_scoring}, nfbc_postseason_holdem: {IP:1,K:1,W:4,SV:4,ER:-1}, espn_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:2,L:-2,SV:5}, yahoo_points: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-5,SV:5,HLD:2}, cbs_points: {IP:3,K:1,ER:-1,H:-1,BB:-1,W:7,L:-5,SV:7,QS:3}, fantrax_default: {IP:3,K:1,ER:-2,H:-1,BB:-1,W:5,L:-3,SV:6,HLD:3,QS:3,CG:5,SHO:5} };
 let PW = {...PPRESETS.philly_special};
 function prescore(){
   for (const r of PROWS){ let p = 0; for (const e of PEVENTS){ const wt = +PW[e]||0; if(wt) p += wt*(r[e]||0); } r.pts_c = p;
@@ -986,7 +998,7 @@ const tiedCell = (v) => v == null ? '' : (+v === 0 ? '<span class="hint">clear</
 const COLS = [
   {k:'name',l:'Hitter',g:'Identity',t:'name',sticky:true},{k:'season',l:'Yr',g:'Identity',f:'int',dir:0,def:true},{k:'age',l:'Age',g:'Identity',f:'1',dir:-1,def:true},{k:'elig',l:'Pos',g:'Identity',t:'txt',def:true},{k:'team_abbr',l:'MLB',g:'Identity',t:'txt'},{k:'owner',l:'Owner',g:'Identity',t:'txt',def:true},{k:'prospect_status',l:'Status',g:'Identity',t:'txt'},
   {k:'PA',l:'PA',g:'Production',f:'int',dir:1,def:true},{k:'G',l:'G',g:'Production',f:'int',dir:1},{k:'pa_pace_162',l:'PA pace',g:'Production',f:'int',dir:1,title:'PA per 162 team games while on the roster (late call-ups and IL time excluded)'},{k:'avail_games',l:'Avail G',g:'Production',f:'int',dir:0},{k:'days_late',l:'Days late',g:'Production',f:'int',dir:0,title:'days between opening day and his first MLB game'},{k:'pts_c',l:'Pts',g:'Production',f:'0',dir:1,def:true},{k:'pts_pa_c',l:'Pts/PA',g:'Production',f:'3',dir:1,def:true},{k:'rank_c',l:'Rank',g:'Production',f:'int',dir:-1,def:true},{k:'LPAR_c',l:'Above repl.',g:'Production',f:'0',dir:1,def:true},{k:'roto_c',l:'Roto z',g:'Production',f:'1',dir:1},
-  {k:'HR',l:'HR',g:'Counting',f:'int',dir:1},{k:'R',l:'R',g:'Counting',f:'int',dir:1},{k:'RBI',l:'RBI',g:'Counting',f:'int',dir:1},{k:'SB',l:'SB',g:'Counting',f:'int',dir:1,def:true},{k:'BB',l:'BB',g:'Counting',f:'int',dir:1},{k:'K',l:'K',g:'Counting',f:'int',dir:-1},{k:'1B',l:'1B',g:'Counting',f:'int',dir:1},{k:'2B',l:'2B',g:'Counting',f:'int',dir:1},{k:'3B',l:'3B',g:'Counting',f:'int',dir:1},{k:'HBP',l:'HBP',g:'Counting',f:'int',dir:1},{k:'CS',l:'CS',g:'Counting',f:'int',dir:-1},{k:'E',l:'E',g:'Counting',f:'int',dir:-1},{k:'CSA',l:'CSA',g:'Counting',f:'int',dir:1},{k:'AOF',l:'OF A',g:'Counting',f:'int',dir:1},
+  {k:'HR',l:'HR',g:'Counting',f:'int',dir:1},{k:'R',l:'R',g:'Counting',f:'int',dir:1},{k:'RBI',l:'RBI',g:'Counting',f:'int',dir:1},{k:'SB',l:'SB',g:'Counting',f:'int',dir:1,def:true},{k:'BB',l:'BB',g:'Counting',f:'int',dir:1},{k:'K',l:'K',g:'Counting',f:'int',dir:-1},{k:'1B',l:'1B',g:'Counting',f:'int',dir:1},{k:'2B',l:'2B',g:'Counting',f:'int',dir:1},{k:'3B',l:'3B',g:'Counting',f:'int',dir:1},{k:'HBP',l:'HBP',g:'Counting',f:'int',dir:1},{k:'CS',l:'CS',g:'Counting',f:'int',dir:-1},{k:'E',l:'E',g:'Counting',f:'int',dir:-1},{k:'CSA',l:'CSA',g:'Counting',f:'int',dir:1},{k:'AOF',l:'OF A',g:'Counting',f:'int',dir:1},{k:'OUT',l:'Outs',g:'Counting',f:'int',dir:-1,title:'at-bats minus hits; some formats (NFBC Holdem) charge for each one'},
   {k:'xLP_c',l:'Deserved',g:'Expected',f:'0',dir:1,def:true},{k:'luck_c',l:'Luck',g:'Expected',f:'0',dir:-1,def:true},{k:'batting_avg',l:'AVG',g:'Expected',f:'3',dir:1},{k:'xba',l:'xBA',g:'Expected',f:'3',dir:1},{k:'slg_percent',l:'SLG',g:'Expected',f:'3',dir:1},{k:'xslg',l:'xSLG',g:'Expected',f:'3',dir:1},{k:'woba',l:'wOBA',g:'Expected',f:'3',dir:1},{k:'xwoba',l:'xwOBA',g:'Expected',f:'3',dir:1,def:true},{k:'xobp',l:'xOBP',g:'Expected',f:'3',dir:1},{k:'xiso',l:'xISO',g:'Expected',f:'3',dir:1},{k:'babip',l:'BABIP',g:'Expected',f:'3',dir:0},
   {k:'over_c',l:'Beat ADP by',g:'Market',f:'0',dir:1,def:true},{k:'adp',l:'ADP',g:'Market',f:'1',dir:-1},{k:'adp_hitter_rank',l:'ADP rk',g:'Market',f:'int',dir:-1,def:true},{k:'adp_nfbc',l:'NFBC rk',g:'Market',f:'int',dir:-1},{k:'adp_fantrax',l:'FT rk',g:'Market',f:'int',dir:-1},{k:'gain_c',l:'Rank gain',g:'Market',f:'0',dir:1},{k:'fit_vs_points',l:'Fit vs pts',g:'Market',f:'0',dir:1},{k:'fit_vs_roto',l:'Fit vs roto',g:'Market',f:'0',dir:1},
   {k:'barrel_batted_rate',l:'Barrel %',g:'Contact quality',f:'1',dir:1,def:true},{k:'hard_hit_percent',l:'HH%',g:'Contact quality',f:'1',dir:1},{k:'avg_best_speed',l:'EV50',g:'Contact quality',f:'1',dir:1,def:true},{k:'exit_velocity_avg',l:'EV',g:'Contact quality',f:'1',dir:1},{k:'launch_angle_avg',l:'LA',g:'Contact quality',f:'1',dir:0},{k:'sweet_spot_percent',l:'SwSp%',g:'Contact quality',f:'1',dir:1},{k:'pull_percent',l:'Pull%',g:'Contact quality',f:'1',dir:0},{k:'flyballs_percent',l:'FB%',g:'Contact quality',f:'1',dir:0},{k:'groundballs_percent',l:'GB%',g:'Contact quality',f:'1',dir:-1},{k:'linedrives_percent',l:'LD%',g:'Contact quality',f:'1',dir:1},
@@ -1112,11 +1124,12 @@ function renderRF(){
 
 // ---------- league bar
 function buildLeagueBar(){
-  const presets = {...D.meta.presets};
-  $('#preset').innerHTML = Object.keys(presets).map(k=>`<option value="${k}">${k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
+  const presets = {...D.meta.presets, nfbc_postseason_holdem: {'1B':1,'2B':2,'3B':3,HR:4,R:1,RBI:1,BB:1,HBP:1,SB:1,OUT:-0.25}};   // the NFBC Postseason Holdem contest; picking it opens the Postseason tab
+  const PRESET_LABEL = {nfbc_postseason_holdem: 'NFBC Postseason Holdem'};
+  $('#preset').innerHTML = Object.keys(presets).map(k=>`<option value="${k}">${PRESET_LABEL[k] || k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
   $('#preset').value = 'philly_special';
-  $('#preset').addEventListener('change', e=>{ const v=e.target.value; if(v!=='custom'){ W = {...Object.fromEntries(EVENTS.map(x=>[x,0])), ...presets[v]}; if(PPRESETS[v]){ PW = {...Object.fromEntries(PEVENTS.map(x=>[x,0])), ...PPRESETS[v]}; $('#ppreset').value = v; } renderWts(); refreshAll(); } });
-  $('#ppreset').innerHTML = Object.keys(PPRESETS).map(k=>`<option value="${k}">${k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
+  $('#preset').addEventListener('change', e=>{ const v=e.target.value; if(v!=='custom'){ W = {...Object.fromEntries(EVENTS.map(x=>[x,0])), ...presets[v]}; if(PPRESETS[v]){ PW = {...Object.fromEntries(PEVENTS.map(x=>[x,0])), ...PPRESETS[v]}; $('#ppreset').value = v; } renderWts(); refreshAll(); if(v==='nfbc_postseason_holdem'){ $('#settings').classList.remove('open'); goTab('post'); } } });
+  $('#ppreset').innerHTML = Object.keys(PPRESETS).map(k=>`<option value="${k}">${k==='nfbc_postseason_holdem' ? 'NFBC Postseason Holdem' : k.replace(/_/g,' ')}</option>`).join('') + '<option value="custom">custom</option>';
   $('#ppreset').addEventListener('change', e=>{ const v=e.target.value; if(v!=='custom'){ PW = {...Object.fromEntries(PEVENTS.map(x=>[x,0])), ...PPRESETS[v]}; renderWts(); refreshAll(); } });
   $('#toggle-wts').addEventListener('click', ()=>{ $('#wts-wrap').hidden = !$('#wts-wrap').hidden; });
   $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{ MODE=b.dataset.mode; $$('[data-mode]').forEach(x=>x.setAttribute('aria-pressed', x===b)); refreshAll(); }));
@@ -2181,7 +2194,7 @@ $('#theme-btn').addEventListener('click', ()=>{ const cur = document.documentEle
 try{ const t=localStorage.getItem('lab-theme'); if(t) setTheme(t); }catch(e){}
 $('#settings-btn').addEventListener('click', ()=>{ $('#settings').classList.toggle('open'); });
 $('#settings-close').addEventListener('click', ()=>$('#settings').classList.remove('open'));
-function goTab(k){ $('#moresheet')?.classList.remove('open'); $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); try{localStorage.setItem('lab-tab',k);}catch(e){} window.scrollTo({top:0}); fitCharts(k); }
+function goTab(k){ $('#moresheet')?.classList.remove('open'); $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); try{localStorage.setItem('lab-tab',k);}catch(e){} window.scrollTo({top:0}); fitCharts(k); if(k==='post' && typeof renderPost==='function') renderPost(); }
 function fitCharts(k){ try{ if(k==='drafts') drawPickCurve(); if(k==='formulas'){ drawAging(); drawPAging(); } }catch(e){} }   // a hidden panel has no width, so charts are re-fitted the moment their tab is shown
 let _fitT; addEventListener('resize', ()=>{ clearTimeout(_fitT); _fitT = setTimeout(()=>{ const on = document.querySelector('section[role="tabpanel"].on'); if(on) fitCharts(on.id.replace('tab-','')); }, 180); });
 $$('[data-tab]').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.tab)));
@@ -2300,6 +2313,270 @@ function renderDash(){
 }
 
 
+// ---------- NFBC Postseason Holdem: reads data/postseason.js (written by hrboard.postseason) the first time the tab opens
+const PO = { view:'bracket', pick:'ev', custom:null, il:true, kind:'', team:'', slot:'', q:'', sort:'val', dir:-1, under:'ev', entries:3, loaded:false, loading:false, err:null };
+const PO_SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','OF','UT','P','P','P','P','P','P'];
+const PO_CAP = {C:1,'1B':1,'2B':1,'3B':1,SS:1,OF:4,UT:1,P:6};
+const PO_RND = {DS:'Division Series', LCS:'LCS', WS:'World Series'};
+const poPct = (v, d=0) => v == null ? '' : (100*v).toFixed(d) + '%';
+const poElig = o => o.kind === 'P' ? ['P'] : [...new Set(o.pos.filter(p => PO_CAP[p] && p !== 'P' && p !== 'UT')), 'UT'];
+function loadPost(cb){
+  if (window.POST){ PO.loaded = true; cb(); return; }
+  if (PO.loading) return; PO.loading = true;
+  const s = document.createElement('script'); s.src = 'data/postseason.js?v=' + Date.now();
+  s.onload = () => { PO.loading = false; PO.loaded = !!window.POST; if (!PO.loaded) PO.err = 'empty'; cb(); };
+  s.onerror = () => { PO.loading = false; PO.err = 'missing'; cb(); };
+  document.head.appendChild(s);
+}
+function poPathValues(list, path){
+  const dsw = new Set(path.ds), lcw = new Set(path.lcs);
+  for (const o of list){ const b = o.by, inL = dsw.has(o.t), inW = lcw.has(o.t);
+    o.v_held = +(b.DS + (inL ? 2*b.LCS : 0) + (inW ? 3*b.WS : 0)).toFixed(1);
+    o.v_lcs = +((inL ? b.LCS : 0) + (inW ? 2*b.WS : 0)).toFixed(1);
+    o.v_ws = +(inW ? b.WS : 0).toFixed(1); }
+}
+// min-cost flow: source -> club (its quota) -> player (1) -> slot type (1, worth -value) -> sink (slot capacity).
+// Successive shortest paths (SPFA); the graph is a few hundred nodes, so this runs in milliseconds.
+function poAssign(cands, key, cap, lo, hi){
+  const teams = [...new Set(cands.map(o => o.t))]; const slots = Object.keys(cap).filter(s => cap[s] > 0); const BIG = 1e4;
+  const N = 2 + teams.length + cands.length + slots.length; const T = 1;
+  const tN = Object.fromEntries(teams.map((t, i) => [t, 2 + i])); const pN = i => 2 + teams.length + i; const sN = Object.fromEntries(slots.map((s, i) => [s, 2 + teams.length + cands.length + i]));
+  const slotOf = Object.fromEntries(slots.map(s => [sN[s], s]));
+  const E = []; const adj = Array.from({length: N}, () => []);
+  const add = (u, v, c, w) => { if (c <= 0) return; adj[u].push(E.length); E.push({u, v, c, w, f: 0}); adj[v].push(E.length); E.push({u: v, v: u, c: 0, w: -w, f: 0}); };
+  // the first lo[t] units into a club carry a bonus that outweighs any player value, so the minimums are met whenever
+  // they can be and the rest of the flow is pure value; hi[t] caps the club
+  for (const t of teams){ const l = Math.max(0, lo[t] ?? 0), h = hi[t] ?? 99; add(0, tN[t], Math.min(l, h), -BIG); add(0, tN[t], Math.max(0, h - l), 0); }
+  cands.forEach((o, i) => { add(tN[o.t], pN(i), 1, 0); for (const s of poElig(o)) if (sN[s] != null) add(pN(i), sN[s], 1, -(o[key] || 0)); });
+  for (const s of slots) add(sN[s], T, cap[s], 0);
+  const want = slots.reduce((a, s) => a + cap[s], 0); let flow = 0;
+  const augment = () => { const dist = new Array(N).fill(Infinity), inq = new Array(N).fill(false), pe = new Array(N).fill(-1); dist[0] = 0; const q = [0]; let guard = 0;
+    while (q.length && guard++ < 60 * N){ const u = q.shift(); inq[u] = false; for (const ei of adj[u]){ const e = E[ei]; if (e.c - e.f > 0 && dist[u] + e.w < dist[e.v] - 1e-9){ dist[e.v] = dist[u] + e.w; pe[e.v] = ei; if (!inq[e.v]){ inq[e.v] = true; q.push(e.v); } } } }
+    if (dist[T] === Infinity) return false; for (let v = T; v !== 0; v = E[pe[v]].u){ E[pe[v]].f += 1; E[pe[v] ^ 1].f -= 1; } return true; };
+  while (flow < want && augment()) flow++;
+  const out = []; cands.forEach((o, i) => { for (const ei of adj[pN(i)]){ const e = E[ei]; if (e.u === pN(i) && e.f === 1 && slotOf[e.v]) out.push({o, s: slotOf[e.v]}); } });
+  return out;
+}
+function poBuild(P, path){
+  const teams = path.ds8; const pl = P.players.filter(o => teams.includes(o.t) && (PO.il || !o.il)).map(o => ({...o})); poPathValues(pl, path);
+  const dsw = path.ds, lcw = path.lcs; const quota = Object.fromEntries(teams.map(t => [t, dsw.includes(t) ? 3 : 1]));
+  let ds = poAssign(pl, 'v_held', {...PO_CAP}, quota, quota);
+  if (ds.length < 16) ds = poAssign(pl, 'v_held', {...PO_CAP}, Object.fromEntries(teams.map(t => [t, 1])), Object.fromEntries(teams.map(t => [t, 3])));
+  const used = new Set(ds.map(x => x.o.id));
+  const kept = ds.filter(x => dsw.includes(x.o.t)); const freed = {}; ds.filter(x => !dsw.includes(x.o.t)).forEach(x => freed[x.s] = (freed[x.s] || 0) + 1);
+  const have = {}; kept.forEach(x => have[x.o.t] = (have[x.o.t] || 0) + 1);
+  const lcs = poAssign(pl.filter(o => dsw.includes(o.t) && !used.has(o.id)), 'v_lcs', freed, Object.fromEntries(dsw.map(t => [t, Math.max(0, 2 - (have[t] || 0))])), Object.fromEntries(dsw.map(t => [t, 6 - (have[t] || 0)])));
+  lcs.forEach(x => used.add(x.o.id));
+  const lroster = kept.concat(lcs); const kept2 = lroster.filter(x => lcw.includes(x.o.t)); const freed2 = {}; lroster.filter(x => !lcw.includes(x.o.t)).forEach(x => freed2[x.s] = (freed2[x.s] || 0) + 1);
+  const have2 = {}; kept2.forEach(x => have2[x.o.t] = (have2[x.o.t] || 0) + 1);
+  const ws = poAssign(pl.filter(o => lcw.includes(o.t) && !used.has(o.id)), 'v_ws', freed2, Object.fromEntries(lcw.map(t => [t, Math.max(0, 6 - (have2[t] || 0))])), Object.fromEntries(lcw.map(t => [t, 10 - (have2[t] || 0)])));
+  const D = ds.map(x => ({id: x.o.id, slot: x.s, v: x.o.v_held})), L = lcs.map(x => ({id: x.o.id, slot: x.s, v: x.o.v_lcs})), Wd = ws.map(x => ({id: x.o.id, slot: x.s, v: x.o.v_ws}));
+  const total = D.concat(L, Wd).reduce((a, x) => a + x.v, 0); const byId = Object.fromEntries(pl.map(o => [o.id, o]));
+  return {path, ds: D, lcs_add: L, ws_add: Wd, total: +total.toFixed(1), held_share: +(D.filter(x => lcw.includes(byId[x.id].t)).reduce((a, x) => a + x.v, 0) / Math.max(total, 1)).toFixed(3), quick: true};
+}
+function poPathKey(p){ return p.ds8.slice().sort().join(',') + '|' + p.ds.slice().sort().join(',') + '|' + p.lcs.slice().sort().join(','); }
+function poBracketOf(P){
+  if (PO.pick === 'ev') return null;
+  if (PO.pick === 'custom') return PO.custom;
+  const b = P.brackets[+PO.pick]; return b || null;
+}
+function poRosterFor(P, path){
+  const k = poPathKey(path); const pre = P.rosters.find(r => poPathKey(r.path) === k);
+  return (pre && PO.il) ? pre : poBuild(P, path);
+}
+function poDefaultCustom(P){ const b = P.brackets[0]; return {ds8: b.ds8.slice(), ds: b.ds.slice(), lcs: b.lcs.slice(), p: null, custom: true}; }
+function poCustomProb(P, c){   // marginal chain, not the exact joint: good enough to place a custom path among the ranked ones
+  const T = Object.fromEntries(P.teams.map(t => [t.abbr, t])); let p = 1;
+  for (const t of c.ds8){ const x = T[t]; if (!x) return null; p *= x.p.DS; }
+  for (const t of c.ds){ const x = T[t]; p *= x.p.LCS / Math.max(x.p.DS, 1e-6); }
+  for (const t of c.lcs){ const x = T[t]; p *= x.p.WS / Math.max(x.p.LCS, 1e-6); }
+  return p;
+}
+function poCountdown(iso){ const ms = new Date(iso) - Date.now(); if (ms < 0) return 'entries closed'; const d = Math.floor(ms/864e5), h = Math.floor(ms % 864e5 / 36e5); return d ? `${d}d ${h}h to the entry deadline` : `${h}h to the entry deadline`; }
+function renderPost(){
+  const out = $('#po-out'); if (!out) return;
+  if (!PO.loaded){
+    out.innerHTML = PO.err ? `<div class="note">The postseason board has not been built for this site yet. It is written by <code>python -m hrboard.postseason</code> and refreshed with the Home Run Board five times a day.</div>` : '<p class="hint">Loading the postseason board…</p>';
+    if (!PO.err) loadPost(renderPost); return;
+  }
+  const P = window.POST; if (!PO.custom) PO.custom = poDefaultCustom(P);
+  const views = [['bracket','Bracket'],['players','Players'],['roster','Roster'],['brackets','Brackets'],['playbook','Playbook']];
+  $('#po-views').innerHTML = views.map(([k,l]) => `<button aria-pressed="${PO.view===k}" data-v="${k}">${l}</button>`).join('');
+  $$('#po-views button').forEach(b => b.addEventListener('click', () => { PO.view = b.dataset.v; renderPost(); }));
+  const dl = new Date(P.deadline);
+  $('#po-lede').innerHTML = `Built ${esc(fmtSync(P.built))} · ${P.settled ? 'field settled' : 'field projected from the standings'} · <b>${poCountdown(P.deadline)}</b> (${dl.toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}). $150 an entry, up to twelve entries, $20,000 to the winner.`;
+  out.innerHTML = PO.view === 'bracket' ? poBracketView(P) : PO.view === 'players' ? poPlayersView(P) : PO.view === 'roster' ? poRosterView(P) : PO.view === 'brackets' ? poBracketsView(P) : poPlaybookView(P);
+  $$('#po-out [data-h]').forEach(el => el.addEventListener('click', () => { const id = +el.dataset.h; if (BY_ID[id] || PBY_ID[id]) openCard(id); }));
+  poWire(P);
+}
+const poTeam = (P, a) => P.teams.find(t => t.abbr === a);
+const poNick = n => { const w = n.split(' '); return /^(Sox|Jays)$/.test(w[w.length-1]) ? w.slice(-2).join(' ') : w[w.length-1]; };
+const poTag = (a, small) => `<span class="pill n" style="background:${teamColor(a)};color:#fff${small ? ';font-size:11px;line-height:18px' : ''}">${esc(a)}</span>`;
+function poBracketView(P){
+  const lg = L => P.teams.filter(t => t.league === L).sort((a, b) => a.seed - b.seed);
+  const seed = t => `<span class="hint">(${t.seed})</span>`;
+  const card = L => { const ts = lg(L); const S = Object.fromEntries(ts.map(t => [t.seed, t]));
+    const wc = (a, b) => `<div class="row noclick"><div><div class="nm">${poTag(a.abbr)} ${seed(a)} ${esc(poNick(a.name))} <span class="hint">vs</span> ${poTag(b.abbr)} ${seed(b)} ${esc(poNick(b.name))}</div><div class="sub">Wild Card, best of three, all at ${esc(a.abbr)}</div></div><div class="val">${poPct(a.p.DS)}<small>${esc(a.abbr)} advances</small></div></div>`;
+    const ds = (a, others) => `<div class="row noclick"><div><div class="nm">${poTag(a.abbr)} ${seed(a)} ${esc(poNick(a.name))} <span class="hint">vs</span> ${others.map(o => `${poTag(o.abbr, true)} ${poPct(a.opp.DS[o.abbr] || 0)}`).join(' <span class="hint">or</span> ')}</div><div class="sub">Division Series, best of five · ${a.g.DS.toFixed(1)} games expected</div></div><div class="val">${poPct(a.p.LCS)}<small>${esc(a.abbr)} to the LCS</small></div></div>`;
+    return `<div class="dcard w6"><h3>${L} <small>${ts.filter(t => t.bye).map(t => t.abbr).join(' and ')} have the bye</small></h3><div class="rowlist">
+      ${S[3] && S[6] ? wc(S[3], S[6]) : ''}${S[4] && S[5] ? wc(S[4], S[5]) : ''}
+      ${S[1] ? ds(S[1], [S[4], S[5]].filter(Boolean)) : ''}${S[2] ? ds(S[2], [S[3], S[6]].filter(Boolean)) : ''}
+      </div>
+      <div class="tblwrap" style="margin-top:10px"><table class="mini"><thead><tr><th class="l">Club</th><th>W-L</th><th>Reach DS</th><th>Win DS</th><th>Pennant</th><th>Title</th><th>Market</th></tr></thead><tbody>
+      ${ts.map(t => `<tr><td class="l" style="white-space:nowrap">${poTag(t.abbr, true)} ${esc(poNick(t.name))} ${t.clinch ? `<span class="hint" title="clinched">${esc(t.clinch)}</span>` : ''}</td><td>${t.w}-${t.l}</td><td>${poPct(t.p.DS)}</td><td>${poPct(t.p.LCS)}</td><td><b>${poPct(t.p.pennant)}</b></td><td><b>${poPct(t.p.title, 1)}</b></td><td class="hint">${poPct(t.mk.title, 1)}</td></tr>`).join('')}
+      </tbody></table></div></div>`; };
+  const pairs = []; for (const a of lg('AL')) for (const n of lg('NL')) pairs.push({a: a.abbr, n: n.abbr, p: a.p.pennant * n.p.pennant}); pairs.sort((x, y) => y.p - x.p);
+  const src = P.market_raw ? Object.entries(P.market_raw).map(([k, v]) => `${k}: ${v.length} book${v.length === 1 ? '' : 's'}`).join(', ') : '';
+  return `<div class="dash">${card('AL')}${card('NL')}
+    <div class="dcard w6"><h3>Likeliest World Series <small>pennant chances multiplied; the leagues are independent</small></h3><table class="mini"><thead><tr><th class="l">Matchup</th><th>Chance</th><th>Cumulative</th></tr></thead><tbody>
+      ${(() => { let c = 0; return pairs.slice(0, 12).map(x => { c += x.p; return `<tr><td class="l">${poTag(x.a, true)} vs ${poTag(x.n, true)}</td><td>${poPct(x.p, 1)}</td><td class="hint">${poPct(c)}</td></tr>`; }).join(''); })()}
+      </tbody></table></div>
+    <div class="dcard w6"><h3>How the odds are made</h3><p class="hint" style="font-size:13.5px">Kalshi and Polymarket title and pennant prices (${esc(src) || 'no book reached'}) are de-vigged per book and averaged. A per-game strength is then fit for each club so that playing the full bracket out (the home side wins ${Math.round(100/(1+Math.exp(-P.assumptions.home_logit)))} of 100 between equal clubs, best-of-three, five and seven with the real home patterns, series already underway taken as they stand) reproduces those market chances. Everything on this page (who plays whom, how many games, which starter gets game four) falls out of that one bracket. Market is the raw averaged title price for comparison.</p>
+      <p class="hint" style="font-size:13.5px">Wild Card: Sept 29 to Oct 1. Division Series: Oct 3 to 10. LCS from Oct 11. World Series: Oct 23 to 31. The contest starts with the Division Series, so a Wild Card loser is out before you draft.</p></div>
+  </div>`;
+}
+function poPlayersView(P){
+  const path = poBracketOf(P); const list = P.players.map(o => ({...o})); if (path) poPathValues(list, path);
+  const teams = P.teams.slice().sort((a, b) => (a.league > b.league) - (a.league < b.league) || a.seed - b.seed);
+  const val = o => path ? o.v_held : o.ev, vl = o => path ? o.v_lcs : o.ev_lcs, vw = o => path ? o.v_ws : o.ev_ws;
+  let rows = list.filter(o => (PO.il || !o.il) && (!PO.kind || o.kind === PO.kind) && (!PO.team || o.t === PO.team) && (!PO.slot || poElig(o).includes(PO.slot)) && (!PO.q || o.n.toLowerCase().includes(PO.q)));
+  const key = {val, lcs: vl, ws: vw, DS: o => o.by.DS, LCS: o => o.by.LCS, WS: o => o.by.WS, pl: o => o.p.LCS, pw: o => o.p.WS, n: o => o.n, t: o => o.t}[PO.sort] || val;
+  rows.sort((a, b) => { const x = key(a), y = key(b); return typeof x === 'string' ? x.localeCompare(y) * (PO.dir === -1 ? -1 : 1) : (PO.dir === -1 ? y - x : x - y); });
+  const th = (k, l, title) => `<th data-sort="${k}" aria-sort="${PO.sort===k ? (PO.dir===-1 ? 'descending' : 'ascending') : 'none'}"${title ? ` title="${esc(title)}"` : ''} style="cursor:pointer">${l}</th>`;
+  const role = o => o.kind === 'P' ? o.role : (o.slot ? `bats ${o.slot}${o.ps < 0.85 ? ` (${poPct(o.ps)} to start)` : ''}` : 'bench');
+  const line = o => o.kind === 'P' ? `${o.line.GS} GS, ${o.line.IP} IP, ${o.line.K} K, ${o.line.ERA} ERA` : `${o.line.HR} HR, ${o.line.R} R, ${o.line.RBI} RBI, ${o.line.SB} SB, .${String(Math.round(1000*o.line.AVG)).padStart(3,'0')}`;
+  const under = path ? (PO.pick === 'custom' ? 'your custom bracket' : `bracket #${+PO.pick + 1}`) : 'no bracket (expected over every path, weighted by its chance)';
+  return `<div class="filters">
+    <label>Value under <select id="po-under"><option value="ev"${PO.pick==='ev'?' selected':''}>no bracket: expected over all paths</option>${P.brackets.map((b, i) => `<option value="${i}"${PO.pick===String(i)?' selected':''}>#${i+1} ${b.lcs.join(' vs ')} World Series (${poPct(b.p_pair, 1)})</option>`).join('')}<option value="custom"${PO.pick==='custom'?' selected':''}>custom bracket (set it on Roster)</option></select></label>
+    <label>Club <select id="po-team"><option value="">all eight</option>${teams.map(t => `<option value="${t.abbr}"${PO.team===t.abbr?' selected':''}>${t.abbr} (${t.league} ${t.seed})</option>`).join('')}</select></label>
+    <label>Type <select id="po-kind"><option value="">bats and arms</option><option value="H"${PO.kind==='H'?' selected':''}>bats</option><option value="P"${PO.kind==='P'?' selected':''}>arms</option></select></label>
+    <label>Slot <select id="po-slot"><option value="">any</option>${['C','1B','2B','3B','SS','OF','UT','P'].map(s => `<option${PO.slot===s?' selected':''}>${s}</option>`).join('')}</select></label>
+    <label><input type="checkbox" id="po-il"${PO.il?' checked':''}> count injured-list men (at their chance of playing)</label>
+    <label>Search <input id="po-q" value="${esc(PO.q)}" placeholder="name"></label><span class="count">${rows.length} players · values under ${esc(under)}</span></div>
+  <div class="tblwrap"><table><thead><tr><th class="l sticky">Player</th>${th('t','Club')}<th class="l">Role</th>${th('DS','DS','Holdem points in the Division Series, if his club plays it')}${th('LCS','LCS','points in the LCS, if his club gets there')}${th('WS','WS','points in the World Series, if his club gets there')}${th('pl','LCS %','chance his club reaches the LCS')}${th('pw','WS %','chance his club reaches the World Series')}${th('val','Held','value held from the Division Series: DS + 2x LCS + 3x WS')}${th('lcs','+LCS','value if added for the LCS: LCS + 2x WS')}${th('ws','+WS','value if added for the World Series')}<th class="l">Season</th></tr></thead><tbody>
+    ${rows.map(o => `<tr class="${o.il ? 'out' : ''}"><td class="l sticky name" data-h="${o.id}">${ava(o.n, o.t, 28, o.id)} <b>${esc(o.n)}</b>${o.il ? ` <span class="pill w" title="${esc(o.il)}">IL ${poPct(o.avail)}</span>` : ''}<div class="sub">${esc(o.pos.join('/'))}</div></td><td>${poTag(o.t, true)}</td><td class="l hint">${esc(role(o))}</td><td>${o.by.DS.toFixed(1)}</td><td>${o.by.LCS.toFixed(1)}</td><td>${o.by.WS.toFixed(1)}</td><td>${poPct(o.p.LCS)}</td><td>${poPct(o.p.WS)}</td><td><b>${val(o).toFixed(1)}</b></td><td>${vl(o).toFixed(1)}</td><td>${vw(o).toFixed(1)}</td><td class="l hint" style="white-space:nowrap">${esc(line(o))}</td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="hint">DS, LCS and WS are expected Holdem points in that series if his club plays it: games the series is expected to last, times his points a game (season rates shrunk toward the league, his lineup slot's plate appearances, hitting deflated ${Math.round(100*(1-P.assumptions.hit_deflate))}% for October pitching; starters at ${P.assumptions.sp_ip_scale}x their season innings a start with earned runs up ${Math.round(100*(P.assumptions.sp_er_scale-1))}%, the rotation slot deciding which games he starts; closers get ${P.assumptions.closer_save_share} of the club's wins as saves). Injured-list men are scaled by a chance of playing at all (10-day ${poPct(P.assumptions.il_avail.D10)}, 15-day ${poPct(P.assumptions.il_avail.D15)}, 60-day ${poPct(P.assumptions.il_avail.D60)}). Click a name for his card where the lab has one.</p>`;
+}
+function poRosterView(P){
+  const byId = Object.fromEntries(P.players.map(o => [o.id, o]));
+  const opts = `<option value="ev"${PO.pick==='ev'?' selected':''}>No bracket: the best expected roster over every path</option>${P.brackets.map((b, i) => `<option value="${i}"${PO.pick===String(i)?' selected':''}>#${i+1} ${b.lcs.join(' vs ')} World Series (${poPct(b.p_pair, 1)}) · DS winners ${b.ds.join(' ')}</option>`).join('')}<option value="custom"${PO.pick==='custom'?' selected':''}>Custom: pick every series yourself</option>`;
+  let body = '';
+  if (PO.pick === 'ev'){
+    const r = P.ev_roster; const total = r.total;
+    body = `<div class="note">This roster does not bet on a bracket. Every player is worth his expected held value (DS points, plus twice his LCS points times the chance his club gets there, plus three times his WS points times that chance), and the sixteen are chosen within one to three a club over the likeliest field (${r.ds8.join(', ')}). It is the safest single entry and the worst way to win: it spreads across clubs where the winner will have been three-deep on the two pennant winners.</div>
+      ${poRosterTable(P, r.ds, byId, 'Division Series roster', 'expected held value', null)}
+      <div class="kpis"><div class="kpi"><b>${total.toFixed(0)}</b><span>expected held points</span></div><div class="kpi"><b>${[...new Set(r.ds.map(x => byId[x.id].t))].length}</b><span>clubs used</span></div></div>`;
+  } else {
+    const path = poBracketOf(P); const r = poRosterFor(P, path); const p = PO.pick === 'custom' ? poCustomProb(P, path) : path.p;
+    const T = Object.fromEntries(P.teams.map(t => [t.abbr, t])); const pPair = path.lcs.every(t => T[t]) ? path.lcs.reduce((a, t) => a * T[t].p.pennant, 1) : null;
+    const outDS = r.ds.filter(x => !path.ds.includes(byId[x.id].t)), outLCS = r.ds.concat(r.lcs_add).filter(x => path.ds.includes(byId[x.id].t) && !path.lcs.includes(byId[x.id].t));
+    const cnt = a => { const c = {}; a.forEach(x => c[byId[x.id].t] = (c[byId[x.id].t] || 0) + 1); return Object.entries(c).sort((x, y) => y[1] - x[1]).map(([t, n]) => `${poTag(t, true)} ${n}`).join(' '); };
+    body = `${PO.pick === 'custom' ? poCustomEditor(P) : ''}
+      <div class="kpis"><div class="kpi"><b>${r.total.toFixed(0)}</b><span>points if the bracket goes this way</span></div><div class="kpi"><b>${poPct(r.held_share)}</b><span>from the six held at 3x</span></div><div class="kpi"><b>${path.lcs.join(' v ')}</b><span>World Series</span></div><div class="kpi"><b>${pPair == null ? '?' : poPct(pPair, 1)}</b><span>chance of that World Series</span></div><div class="kpi"><b>${p == null ? '?' : poPct(p, 2)}</b><span>chance of this exact path${PO.pick === 'custom' ? ' (approx.)' : ''}</span></div></div>
+      ${r.quick ? '<p class="hint">Built in the browser with the same rules as the exact solver (three from each Division Series winner, one from each loser, replacements only into the spots the eliminated clubs vacate). The twelve ranked brackets have an exact roster precomputed when injured men are counted.</p>' : ''}
+      ${poRosterTable(P, r.ds, byId, 'Division Series roster', 'value held through this bracket', path)}
+      <div class="dash" style="margin-top:14px">
+        <div class="dcard w6"><h3>After the Division Series <small>drop the four losers' men (${outDS.length}), add ${r.lcs_add.length}</small></h3><p class="hint">Out: ${outDS.map(x => `${esc(byId[x.id].n)} (${byId[x.id].t})`).join(', ') || 'nobody'}</p>${poAddTable(r.lcs_add, byId, 'LCS + 2x WS')}<p class="hint">Clubs after the swap: ${cnt(r.ds.filter(x => path.ds.includes(byId[x.id].t)).concat(r.lcs_add))}</p></div>
+        <div class="dcard w6"><h3>After the LCS <small>drop the two losers' men (${outLCS.length}), add ${r.ws_add.length}</small></h3><p class="hint">Out: ${outLCS.map(x => `${esc(byId[x.id].n)} (${byId[x.id].t})`).join(', ') || 'nobody'}</p>${poAddTable(r.ws_add, byId, 'WS, 1x')}<p class="hint">Clubs in the World Series: ${cnt(r.ds.concat(r.lcs_add).filter(x => path.lcs.includes(byId[x.id].t)).concat(r.ws_add))}</p></div>
+      </div>`;
+  }
+  return `<div class="filters"><label>Bracket <select id="po-pick">${opts}</select></label><label><input type="checkbox" id="po-il"${PO.il?' checked':''}> count injured-list men</label><button class="btn small" id="po-copy">Copy the sixteen</button></div>${body}`;
+}
+function poRosterTable(P, ds, byId, title, vlabel, path){
+  const order = Object.fromEntries(['C','1B','2B','3B','SS','OF','UT','P'].map((s, i) => [s, i]));
+  const rows = ds.map(x => ({...x, o: byId[x.id]})).sort((a, b) => order[a.slot] - order[b.slot] || b.v - a.v);
+  const role = o => o.kind === 'P' ? o.role : (o.slot ? `bats ${o.slot}` : 'bench');
+  return `<div class="tblwrap"><table><thead><tr><th class="l">Slot</th><th class="l">Player</th><th>Club</th><th class="l">Role</th><th>DS</th><th>LCS</th><th>WS</th><th title="${esc(vlabel)}">Value</th></tr></thead><tbody>
+    ${rows.map(x => `<tr class="${x.o.il ? 'out' : ''}"><td class="l"><b>${x.slot}</b></td><td class="l name" data-h="${x.id}">${ava(x.o.n, x.o.t, 26, x.id)} ${esc(x.o.n)}${x.o.il ? ` <span class="pill w" title="${esc(x.o.il)}">IL ${poPct(x.o.avail)}</span>` : ''}</td><td>${poTag(x.o.t, true)}${path ? (path.lcs.includes(x.o.t) ? ' <span class="pill g">3x</span>' : path.ds.includes(x.o.t) ? ' <span class="pill b">2x</span>' : ' <span class="pill n">1x</span>') : ''}</td><td class="l hint">${esc(role(x.o))}</td><td>${x.o.by.DS.toFixed(1)}</td><td>${x.o.by.LCS.toFixed(1)}</td><td>${x.o.by.WS.toFixed(1)}</td><td><b>${x.v.toFixed(1)}</b></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function poAddTable(adds, byId, vlabel){
+  if (!adds.length) return '<p class="hint">No spots open.</p>';
+  return `<table class="mini"><thead><tr><th class="l">Slot</th><th class="l">Add</th><th>Club</th><th title="${esc(vlabel)}">Value</th></tr></thead><tbody>${adds.slice().sort((a, b) => b.v - a.v).map(x => `<tr><td class="l"><b>${x.slot}</b></td><td class="l name" data-h="${x.id}">${esc(byId[x.id].n)}${byId[x.id].il ? ' <span class="pill w">IL</span>' : ''}</td><td>${poTag(byId[x.id].t, true)}</td><td>${x.v.toFixed(1)}</td></tr>`).join('')}</tbody></table>`;
+}
+function poCustomEditor(P){
+  const c = PO.custom; const lg = L => P.teams.filter(t => t.league === L).sort((a, b) => a.seed - b.seed); const S = L => Object.fromEntries(lg(L).map(t => [t.seed, t.abbr]));
+  const chip = (grp, a, on) => `<button class="chip" aria-pressed="${on}" data-grp="${grp}" data-t="${a}">${esc(a)}</button>`;
+  const block = L => { const s = S(L); const wcA = [s[3], s[6]].filter(Boolean), wcB = [s[4], s[5]].filter(Boolean);
+    const wA = wcA.find(t => c.ds8.includes(t)) || wcA[0], wB = wcB.find(t => c.ds8.includes(t)) || wcB[0];
+    const ds1 = [s[1], wB], ds2 = [s[2], wA]; const d1 = ds1.find(t => c.ds.includes(t)) || s[1], d2 = ds2.find(t => c.ds.includes(t)) || s[2];
+    const pen = [d1, d2].find(t => c.lcs.includes(t)) || d1;
+    return `<div class="dcard w6"><h3>${L}</h3>
+      <div class="hint">Wild Card</div><div class="chips" style="margin:4px 0 8px">${wcA.map(t => chip('wc', t, t === wA)).join('')}<span class="hint" style="padding:2px 6px">·</span>${wcB.map(t => chip('wc', t, t === wB)).join('')}</div>
+      <div class="hint">Division Series winners</div><div class="chips" style="margin:4px 0 8px">${ds1.map(t => chip('ds', t, t === d1)).join('')}<span class="hint" style="padding:2px 6px">·</span>${ds2.map(t => chip('ds', t, t === d2)).join('')}</div>
+      <div class="hint">Pennant</div><div class="chips" style="margin:4px 0 0">${[d1, d2].map(t => chip('lcs', t, t === pen)).join('')}</div></div>`; };
+  return `<div class="dash" style="margin:0 0 14px">${block('AL')}${block('NL')}</div>`;
+}
+function poNormalizeCustom(P){   // keep the custom bracket consistent after any chip: a DS winner must be in the field, a pennant winner must have won its DS
+  const c = PO.custom; const lg = L => P.teams.filter(t => t.league === L).sort((a, b) => a.seed - b.seed); const S = L => Object.fromEntries(lg(L).map(t => [t.seed, t.abbr]));
+  const ds8 = [], ds = [], lcs = [];
+  for (const L of ['AL', 'NL']){ const s = S(L); const wcA = [s[3], s[6]].filter(Boolean), wcB = [s[4], s[5]].filter(Boolean);
+    const wA = wcA.find(t => c.ds8.includes(t)) || wcA[0], wB = wcB.find(t => c.ds8.includes(t)) || wcB[0];
+    ds8.push(s[1], s[2], wA, wB);
+    const d1 = [s[1], wB].find(t => c.ds.includes(t)) || s[1], d2 = [s[2], wA].find(t => c.ds.includes(t)) || s[2]; ds.push(d1, d2);
+    lcs.push([d1, d2].find(t => c.lcs.includes(t)) || d1); }
+  PO.custom = {ds8: ds8.filter(Boolean), ds, lcs, custom: true};
+}
+function poBracketsView(P){
+  const n = Math.max(1, Math.min(12, PO.entries)); let cum = 0;
+  const byes = new Set(P.teams.filter(t => t.bye).map(t => t.abbr));
+  const rows = P.brackets.map((b, i) => { cum += b.p_pair; const r = P.rosters.find(x => poPathKey(x.path) === poPathKey(b)); return {b, i, cum, r}; });
+  const top = rows.slice(0, n);
+  const clubs = {}; top.forEach(({b}) => b.lcs.forEach(t => clubs[t] = (clubs[t] || 0) + 1));
+  return `<div class="note">An entry is a bet on a World Series, so this list is one bracket per World Series pair, likeliest pair first, each with the single likeliest path to it (who wins the Wild Cards and Division Series). Two entries that share a World Series and differ only in a Division Series are nearly the same entry, because the Division Series losers are worth one or two percent of a winning score. The pair chances are exact from the bracket model and the leagues are independent, so they are the pennant chances multiplied.</div>
+    <div class="filters"><label>Entries <input type="number" id="po-entries" value="${n}" min="1" max="12"></label><span class="count">the top ${n} pair${n===1?'':'s'} cover ${poPct(top[top.length-1].cum, 1)} of the title · clubs used: ${Object.entries(clubs).sort((x, y) => y[1] - x[1]).map(([t, c]) => `${t}${c > 1 ? ' x' + c : ''}`).join(', ')}</span></div>
+    <div class="tblwrap"><table><thead><tr><th>#</th><th class="l">World Series</th><th>Chance</th><th>Cumulative</th><th class="l" title="the likeliest path to that World Series">Wild Cards</th><th class="l">DS winners</th><th title="chance of that exact path">Path</th><th>Roster pts</th><th>Held at 3x</th><th></th></tr></thead><tbody>
+    ${rows.map(({b, i, cum, r}) => `<tr${i < n ? ' class="mine"' : ''}><td>${i+1}</td><td class="l"><b>${b.lcs.map(t => poTag(t, true)).join(' vs ')}</b></td><td><b>${poPct(b.p_pair, 1)}</b></td><td class="hint">${poPct(cum, 1)}</td><td class="l">${b.ds8.filter(t => !byes.has(t)).map(t => poTag(t, true)).join(' ')}</td><td class="l">${b.ds.map(t => poTag(t, true)).join(' ')}</td><td class="hint">${poPct(b.p, 2)}</td><td>${r ? r.total.toFixed(0) : '<span class="hint">build</span>'}</td><td>${r ? poPct(r.held_share) : ''}</td><td><button class="btn small" data-build="${i}">Build</button></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="dash" style="margin-top:14px"><div class="dcard w6"><h3>Spreading entries</h3><p class="hint" style="font-size:13.5px">With one entry, take the likeliest pair. With more, walk down this list rather than down the list of paths: the second entry should change a pennant winner, not a Division Series winner. Entries that share a club (LAD in most of the top pairs) will share that club's three held men, which is fine; the aim is for one entry to be right, not for the set to be uncorrelated. The Roster button builds the sixteen for a pair's likeliest path; if you expect the same World Series by a different route (a different Division Series winner), set it as a custom bracket on the Roster page and the one-man throwaways change while the six at triple points stay.</p></div>
+    <div class="dcard w6"><h3>Reading the numbers</h3><p class="hint" style="font-size:13.5px">Roster points is what the entry scores if the bracket goes exactly that way, so a longer-shot pair with a stronger roster (more games expected, better starters) can be the better second entry. Held at 3x is the share of those points from the six men kept on the two pennant winners from the start; the record says 45 to 55 percent, so a roster far from that is leaning on its replacements. Cumulative is how much of the title the top pairs account for; the tail of 36 possible pairs is long.</p></div></div>`;
+}
+function poPlaybookView(P){
+  const H = P.history; const sc = P.rules.scoring;
+  return `<div class="dash">
+    <div class="dcard w8"><h3>What the analysts play <small>and where the numbers agree</small></h3>${P.strategy.map(s => `<p style="margin:8px 0"><b>${esc(s.h)}.</b> <span class="hint" style="font-size:13.5px">${esc(s.p)}</span></p>`).join('')}</div>
+    <div class="dcard"><h3>The rules in short</h3><ul class="hint" style="font-size:13.5px;padding-left:18px;margin:6px 0">
+      <li>${PO_SLOTS.join(', ')}</li><li>DS: ${P.rules.limits.DS[0]} to ${P.rules.limits.DS[1]} a club, eight clubs, sixteen spots</li><li>LCS: ${P.rules.limits.LCS[0]} to ${P.rules.limits.LCS[1]} a club</li><li>WS: ${P.rules.limits.WS[0]} to ${P.rules.limits.WS[1]} a club</li>
+      <li>Held: 1x, 2x, 3x. Added at LCS: 1x, 2x. Added at WS: 1x.</li><li>Only an eliminated club's men can be replaced</li>
+      <li>Hitting: ${Object.entries(sc.hit).map(([k, v]) => `${({X1:'1B',X2:'2B',X3:'3B',OUT:'out'})[k] || k} ${v}`).join(', ')}</li>
+      <li>Pitching: ${Object.entries(sc.pit).map(([k, v]) => `${k} ${v}`).join(', ')}</li><li>$150 an entry, twelve at most, $20,000 to first; ties split</li></ul></div>
+    <div class="dcard w12"><h3>The last four Octobers, scored this way <small>every postseason box score 2022-2025 in Holdem points</small></h3>
+      <div class="tblwrap"><table class="mini"><thead><tr><th>Year</th><th class="l">World Series</th><th class="l">LCS losers</th><th>Perfect entry</th><th>From the WS clubs</th><th>From the six held at 3x</th><th class="l">Who those six were</th></tr></thead><tbody>
+      ${H.years.map(y => `<tr><td>${y.season}</td><td class="l">${y.ws.map(t => poTag(t, true)).join(' ')}</td><td class="l">${y.lcs_losers.map(t => poTag(t, true)).join(' ')}</td><td><b>${y.perfect}</b></td><td>${y.from_ws_pct}%</td><td>${y.held_pct}%</td><td class="l hint">${esc(y.held_names.join(', '))}</td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="hint">A perfect entry is the best roster in hindsight under the real bracket. Starters averaged ${H.starter_ip} innings a postseason start, clubs recorded ${H.saves_per_game} saves a game, and points split ${Math.round(100*H.pts_split.hitters/(H.pts_split.hitters+H.pts_split.pitchers))}% hitters to ${Math.round(100*H.pts_split.pitchers/(H.pts_split.hitters+H.pts_split.pitchers))}% pitchers over the four years. Those are the deflators the projections use. Past winners' entries are not published by the NFBC, so this is the closest thing to them: what would have won, and how it was built.</p></div>
+    <div class="dcard w12"><h3>Reading list</h3><ul class="hint" style="font-size:13.5px;padding-left:18px;margin:6px 0">
+      <li>NFBC contest rules and entry: nfc.shgn.com (Postseason Holdem). Deadline ${new Date(P.deadline).toLocaleString([], {month:'long', day:'numeric', hour:'numeric', minute:'2-digit'})}.</li>
+      <li>Todd Zola (Mastersball, Rotoworld): the annual Holdem strategy columns. Pick the pennant winners, load up on them, treat the one-man clubs as real picks for one series, and value the rotation order over the name.</li>
+      <li>Pullhitter and the Footballguys / 33rd Team NFFC playoff hold'em writing: punt the catcher and the weakest infield spot on the throwaway clubs, spend the six pitcher spots on starters who will get two starts in a seven-game series plus the closers of the two clubs you back.</li>
+      <li>Kalshi and Polymarket World Series and pennant markets: the odds this page is calibrated to, refreshed with every build.</li></ul></div>
+  </div>`;
+}
+function poWire(P){
+  const on = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
+  on('#po-under', 'change', e => { PO.pick = e.target.value; renderPost(); });
+  on('#po-pick', 'change', e => { PO.pick = e.target.value; renderPost(); });
+  on('#po-team', 'change', e => { PO.team = e.target.value; renderPost(); });
+  on('#po-kind', 'change', e => { PO.kind = e.target.value; renderPost(); });
+  on('#po-slot', 'change', e => { PO.slot = e.target.value; renderPost(); });
+  on('#po-il', 'change', e => { PO.il = e.target.checked; renderPost(); });
+  on('#po-q', 'input', e => { PO.q = e.target.value.trim().toLowerCase(); const t = $('#po-q'); const pos = t.selectionStart; renderPost(); const n = $('#po-q'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  on('#po-entries', 'change', e => { PO.entries = +e.target.value || 1; renderPost(); });
+  $$('#po-out th[data-sort]').forEach(h => h.addEventListener('click', () => { const k = h.dataset.sort; if (PO.sort === k) PO.dir = -PO.dir; else { PO.sort = k; PO.dir = (k === 'n' || k === 't') ? 1 : -1; } renderPost(); }));
+  $$('#po-out [data-build]').forEach(b => b.addEventListener('click', () => { PO.pick = b.dataset.build; PO.view = 'roster'; renderPost(); }));
+  $$('#po-out .chip[data-grp]').forEach(b => b.addEventListener('click', () => { const g = b.dataset.grp, t = b.dataset.t; const c = PO.custom; const L = poTeam(P, t).league;
+    const sib = P.teams.filter(x => x.league === L).map(x => x.abbr);
+    if (g === 'wc'){ const seed = poTeam(P, t).seed; const pair = seed === 3 || seed === 6 ? [3, 6] : [4, 5]; const other = P.teams.find(x => x.league === L && pair.includes(x.seed) && x.abbr !== t); c.ds8 = c.ds8.filter(x => x !== other?.abbr); if (!c.ds8.includes(t)) c.ds8.push(t); }
+    if (g === 'ds'){ const seed = poTeam(P, t).seed; const S = Object.fromEntries(P.teams.filter(x => x.league === L).map(x => [x.seed, x.abbr])); const inTop = seed === 1 || [4, 5].includes(seed); const group = inTop ? [S[1], S[4], S[5]] : [S[2], S[3], S[6]]; c.ds = c.ds.filter(x => !group.includes(x)); c.ds.push(t); }
+    if (g === 'lcs'){ c.lcs = c.lcs.filter(x => !sib.includes(x)); c.lcs.push(t); }
+    poNormalizeCustom(P); PO.pick = 'custom'; renderPost(); }));
+  on('#po-copy', 'click', () => { const byId = Object.fromEntries(P.players.map(o => [o.id, o])); const path = poBracketOf(P); const r = PO.pick === 'ev' ? P.ev_roster : poRosterFor(P, path);
+    const order = Object.fromEntries(['C','1B','2B','3B','SS','OF','UT','P'].map((s, i) => [s, i]));
+    const txt = r.ds.slice().sort((a, b) => order[a.slot] - order[b.slot] || b.v - a.v).map(x => `${x.slot}\t${byId[x.id].n}\t${byId[x.id].t}`).join('\n');
+    navigator.clipboard?.writeText(txt).then(() => { const b = $('#po-copy'); if (b){ b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy the sixteen', 1500); } }); });
+}
+
 // ---------- navigation (rail on desktop, tab bar + "more" sheet on phones)
 const NAV_ICON = {
  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 14l1.5 1.5L16 13"/></svg>',
@@ -2312,13 +2589,14 @@ const NAV_ICON = {
  breakouts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
  prospects:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 11c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5-5-5 0 3 2.5 5 5 5z"/></svg>',
  drafts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+ post:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8 21h8M9 17h6"/></svg>',
  formulas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg>',
  glossary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5"/><path d="M12 17h.01"/></svg>',
  matchup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9M9 20V4M15 20v-7M20 20v-4"/></svg>',
  rehab:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2.5-5H21"/></svg>',
  scorecard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V9m5 10V5m5 14v-6"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>'};
-const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['rehab','Rehab','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
+const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['rehab','Rehab','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['post','Postseason','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
 (function buildNav(){
   const btn = (k,l) => `<button class="navbtn" role="tab" aria-selected="false" data-tab="${k}">${NAV_ICON[k]}<span>${l}</span></button>`;
   let h = '', g = '';
