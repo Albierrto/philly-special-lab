@@ -277,7 +277,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 16px 40px;color:var(--ink3);font
 <main id="main"></main>
 <footer id="foot"></footer>
 
-<script src="data/hr.js?v=202609212337"></script>
+<script src="data/hr.js?v=202609220128"></script>
 <script>
 "use strict";
 /* ============================================================ state */
@@ -740,7 +740,7 @@ function gameFair(g, W, kind, side) {
   if (kind === "ml") {
     for (const r of W.rows) {
       if (r.site === "Kalshi" || r.site === "Polymarket") continue;
-      const a = r.ml.away, h = r.ml.home; if (!a || !h) continue;
+      const a = r.ml.away, h = r.ml.home; if (!a || !h || !(a.cost > 0) || !(h.cost > 0)) continue;   // a book can post a side with no price
       const ph = h.cost / (h.cost + a.cost); F.push([r.site, side === "home" ? ph : 1 - ph]);
     }
     const kw = (gm.ks || {}).win || {}, e = kw[g[side].abbr];
@@ -750,7 +750,7 @@ function gameFair(g, W, kind, side) {
     const L = W.main; if (L == null) return null;
     for (const r of W.rows) {
       if (r.site === "Kalshi" || r.site === "Polymarket") continue;
-      const o = r.tot.over, u = r.tot.under; if (!o || !u || o.line !== L || u.line !== L) continue;
+      const o = r.tot.over, u = r.tot.under; if (!o || !u || o.line !== L || u.line !== L || !(o.cost > 0) || !(u.cost > 0)) continue;
       const po = o.cost / (o.cost + u.cost); F.push([r.site, side === "over" ? po : 1 - po]);
     }
     const kt = ((gm.ks || {}).total || {})[String(L)]; const km = kt ? ksTightMid(kt) : null;

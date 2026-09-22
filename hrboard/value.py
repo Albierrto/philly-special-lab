@@ -211,6 +211,7 @@ def game_fair(g, rows, main, kind, side, cfg):
     if kind == "ml":
         for r in rows:
             if r["ex"] or not r["ml"].get("away") or not r["ml"].get("home"): continue
+            if not isinstance(r["ml"]["home"], (int, float)) or not isinstance(r["ml"]["away"], (int, float)): continue
             ph = r["ml"]["home"] / (r["ml"]["home"] + r["ml"]["away"])
             F.append(ph if side == "home" else 1 - ph)
         e = ((gm.get("ks") or {}).get("win") or {}).get(g[side]["abbr"])
@@ -224,6 +225,7 @@ def game_fair(g, rows, main, kind, side, cfg):
             if r["ex"]: continue
             o, u = r["tot"].get("over"), r["tot"].get("under")
             if not o or not u or o[0] != main or u[0] != main: continue
+            if not o[1] or not u[1]: continue          # a book that posts the line without a price on one side (seen 2026-09-22)
             po = o[1] / (o[1] + u[1]); F.append(po if side == "over" else 1 - po)
         kt = ((gm.get("ks") or {}).get("total") or {}).get(f"{main:g}")
         km = ks_tight_mid(kt, cfg) if kt else None
