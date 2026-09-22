@@ -1,10 +1,10 @@
 gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,home,opp_id,opp,sp_id,sp_name,sp_source,opp_sp_id,opp_sp_name,opp_sp_source
-824787,2026-09-21,2026-09-21T22:35:00Z,Pre-Game,2,Oriole Park at Camden Yards,night,N,110,Baltimore Orioles,True,141,Toronto Blue Jays,669358.0,Shane Baz,listed,702056.0,Trey Yesavage,listed
-824787,2026-09-21,2026-09-21T22:35:00Z,Pre-Game,2,Oriole Park at Camden Yards,night,N,141,Toronto Blue Jays,False,110,Baltimore Orioles,702056.0,Trey Yesavage,listed,669358.0,Shane Baz,listed
-824221,2026-09-21,2026-09-21T22:40:00Z,Pre-Game,2394,Comerica Park,night,N,116,Detroit Tigers,True,120,Washington Nationals,689981.0,River Ryan,listed,687792.0,DJ Herz,listed
-824221,2026-09-21,2026-09-21T22:40:00Z,Pre-Game,2394,Comerica Park,night,N,120,Washington Nationals,False,116,Detroit Tigers,687792.0,DJ Herz,listed,689981.0,River Ryan,listed
-823169,2026-09-21,2026-09-22T01:45:00Z,Scheduled,2395,Oracle Park,night,N,137,San Francisco Giants,True,142,Minnesota Twins,694918.0,Blade Tidwell,listed,805673.0,Zebby Matthews,listed
-823169,2026-09-21,2026-09-22T01:45:00Z,Scheduled,2395,Oracle Park,night,N,142,Minnesota Twins,False,137,San Francisco Giants,805673.0,Zebby Matthews,listed,694918.0,Blade Tidwell,listed
+824787,2026-09-21,2026-09-21T22:35:00Z,In Progress,2,Oriole Park at Camden Yards,night,N,110,Baltimore Orioles,True,141,Toronto Blue Jays,669358.0,Shane Baz,listed,702056.0,Trey Yesavage,listed
+824787,2026-09-21,2026-09-21T22:35:00Z,In Progress,2,Oriole Park at Camden Yards,night,N,141,Toronto Blue Jays,False,110,Baltimore Orioles,702056.0,Trey Yesavage,listed,669358.0,Shane Baz,listed
+824221,2026-09-21,2026-09-21T22:40:00Z,In Progress,2394,Comerica Park,night,N,116,Detroit Tigers,True,120,Washington Nationals,689981.0,River Ryan,listed,687792.0,DJ Herz,listed
+824221,2026-09-21,2026-09-21T22:40:00Z,In Progress,2394,Comerica Park,night,N,120,Washington Nationals,False,116,Detroit Tigers,687792.0,DJ Herz,listed,689981.0,River Ryan,listed
+823169,2026-09-21,2026-09-22T01:45:00Z,Pre-Game,2395,Oracle Park,night,N,137,San Francisco Giants,True,142,Minnesota Twins,694918.0,Blade Tidwell,listed,805673.0,Zebby Matthews,listed
+823169,2026-09-21,2026-09-22T01:45:00Z,Pre-Game,2395,Oracle Park,night,N,142,Minnesota Twins,False,137,San Francisco Giants,805673.0,Zebby Matthews,listed,694918.0,Blade Tidwell,listed
 823543,2026-09-22,2026-09-22T17:05:00Z,Scheduled,3313,Yankee Stadium,day,S,147,New York Yankees,True,139,Tampa Bay Rays,607074.0,Carlos Rodón,listed,607259.0,Nick Martinez,listed
 823543,2026-09-22,2026-09-22T17:05:00Z,Scheduled,3313,Yankee Stadium,day,S,139,Tampa Bay Rays,False,147,New York Yankees,607259.0,Nick Martinez,listed,607074.0,Carlos Rodón,listed
 824785,2026-09-22,2026-09-22T22:35:00Z,Scheduled,2,Oriole Park at Camden Yards,night,N,110,Baltimore Orioles,True,141,Toronto Blue Jays,605135.0,Chris Bassitt,listed,453286.0,Max Scherzer,listed
@@ -121,8 +121,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823085,2026-09-25,2026-09-26T02:10:00Z,Scheduled,680,T-Mobile Park,night,N,108,Los Angeles Angels,False,136,Seattle Mariners,672282.0,Reid Detmers,projected,682243.0,Bryce Miller,projected
 823167,2026-09-25,2026-09-26T02:15:00Z,Scheduled,2395,Oracle Park,night,N,137,San Francisco Giants,True,119,Los Angeles Dodgers,694738.0,Landen Roupp,projected,607192.0,Tyler Glasnow,projected
 823167,2026-09-25,2026-09-26T02:15:00Z,Scheduled,2395,Oracle Park,night,N,119,Los Angeles Dodgers,False,137,San Francisco Giants,607192.0,Tyler Glasnow,projected,694738.0,Landen Roupp,projected
-824219,2026-09-26,2026-09-26T17:10:00Z,Scheduled,2394,Comerica Park,day,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,675512.0,Troy Melton,projected,,,
-824219,2026-09-26,2026-09-26T17:10:00Z,Scheduled,2394,Comerica Park,day,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,,,,675512.0,Troy Melton,projected
+824219,2026-09-26,2026-09-26T17:10:00Z,Scheduled,2394,Comerica Park,day,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,,,,,,
+824219,2026-09-26,2026-09-26T17:10:00Z,Scheduled,2394,Comerica Park,day,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,,,,,,
 822759,2026-09-26,2026-09-26T19:07:00Z,Scheduled,14,Rogers Centre,day,N,141,Toronto Blue Jays,True,113,Cincinnati Reds,667755.0,José Soriano,projected,695076.0,Rhett Lowder,listed
 822759,2026-09-26,2026-09-26T19:07:00Z,Scheduled,14,Rogers Centre,day,N,113,Cincinnati Reds,False,141,Toronto Blue Jays,695076.0,Rhett Lowder,listed,667755.0,José Soriano,projected
 822678,2026-09-26,2026-09-26T20:05:00Z,Scheduled,3309,Nationals Park,day,N,120,Washington Nationals,True,121,New York Mets,674841.0,Andrew Alvarez,projected,804636.0,Jonah Tong,projected
@@ -175,8 +175,8 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823814,2026-09-27,2026-09-27T19:10:00Z,Scheduled,4169,loanDepot park,day,N,144,Atlanta Braves,False,146,Miami Marlins,,,,,,
 824055,2026-09-27,2026-09-27T19:10:00Z,Scheduled,7,Kauffman Stadium,day,N,118,Kansas City Royals,True,114,Cleveland Guardians,,,,,,
 824055,2026-09-27,2026-09-27T19:10:00Z,Scheduled,7,Kauffman Stadium,day,N,114,Cleveland Guardians,False,118,Kansas City Royals,,,,,,
-824217,2026-09-27,2026-09-27T19:10:00Z,Scheduled,2394,Comerica Park,day,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,672456.0,Keider Montero,projected,,,
-824217,2026-09-27,2026-09-27T19:10:00Z,Scheduled,2394,Comerica Park,day,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,,,,672456.0,Keider Montero,projected
+824217,2026-09-27,2026-09-27T19:10:00Z,Scheduled,2394,Comerica Park,day,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,,,,,,
+824217,2026-09-27,2026-09-27T19:10:00Z,Scheduled,2394,Comerica Park,day,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,,,,,,
 824542,2026-09-27,2026-09-27T19:10:00Z,Scheduled,4,Rate Field,day,N,145,Chicago White Sox,True,115,Colorado Rockies,,,,,,
 824542,2026-09-27,2026-09-27T19:10:00Z,Scheduled,4,Rate Field,day,N,115,Colorado Rockies,False,145,Chicago White Sox,,,,,,
 823490,2026-09-27,2026-09-27T19:20:00Z,Scheduled,3313,Yankee Stadium,day,N,147,New York Yankees,True,110,Baltimore Orioles,,,,669358.0,Shane Baz,projected
