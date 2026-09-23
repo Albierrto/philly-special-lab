@@ -213,11 +213,13 @@ def scorecard(d: pd.DataFrame, folder: Path, today: str) -> dict:
 def _grade_value(v, pk, res_b, res_p, home_runs, away_runs):
     """win / loss / push / void for one logged value pick, or None if its result is not known yet."""
     kind = v["kind"]
-    if kind in ("hr", "hit", "tb"):
+    if kind in ("hr", "hit", "tb") or kind.startswith(("hit", "tb", "hr")):
         if (pk, v["id"]) not in res_b.index: return "void"          # did not play: DraftKings voids, Kalshi refunds
         r = res_b.loc[(pk, v["id"])]
-        hit = r["HR"] >= 1 if kind == "hr" else r["H"] >= 1 if kind == "hit" else r["TB"] >= 2
-        return "win" if hit else "loss"
+        key = v.get("key") or {"hr": "hr1", "hit": "hit1", "tb": "tb2"}[kind]      # hr1, hit3, tb2 ... : stat and threshold
+        n = int("".join(ch for ch in key if ch.isdigit()) or 1)
+        stat = "HR" if key.startswith("hr") else "H" if key.startswith("hit") else "TB"
+        return "win" if r[stat] >= n else "loss"
     if kind == "k":
         k = res_p.get((pk, v["id"]))
         if k is None: return "void"

@@ -42,7 +42,7 @@ from collections import Counter
 from statistics import median
 
 VALUE_CFG = dict(
-    w=dict(hr=0.0, hit=0.0, tb=0.0, k=0.05, ml=0.03, tot=0.05),
+    w=dict(hr=0.0, hit=0.0, tb=0.0, k=0.05, ml=0.03, tot=0.05, hit2=0.0, hit3=0.0),
     ex_weight=dict(hr=0.85, hit=0.85, tb=0.7, k=0.5),
     # DraftKings one-sided price -> fair, logit(fair) = c0 + c1 x + c2 x^2 with x = logit(DK), inside [lo, hi]; outside
     # that range the curve's own ratio at the edge carries on (fitted 2026-09-23, 10,022 DK/Kalshi pairs)
@@ -51,9 +51,65 @@ VALUE_CFG = dict(
     dk_shift_max=0.15, cap_kinds=["k", "ml", "tot"],
     good=0.04, lean=0.02, price_good=0.04, price_lean=0.02, cap_ratio=1.6,
     gap_good=0.015, gap_lean=0.01,      # and at least this far under the market in dollars per $1 contract (1.5c / 1c)
-    ks_tight=0.06, pm_tight=0.03, min_ratio_pairs=8, pm_fee=0.05,
+    ks_tight=0.06, pm_tight=0.03, min_ratio_pairs=8, pm_fee=0.05, ks_stake=20,
+    # 3+ hits: a lean at most, and only when the ladder price beats the ask by 10% and half a cent (see LADDER)
+    bars=dict(hit3=dict(price_good=9.0, good=9.0, price_lean=0.10, lean=0.10, gap_lean=0.005)),
 )
 BET_KEYS = {"hr1", "hit1", "tb2"} | {f"k{n}" for n in range(1, 17)}     # the lines the engine prices (alt lines excluded)
+
+# Multi-hit ladders (2+ and 3+ hits) priced off the liquid 1+ hit rung. Kalshi prices these rungs as if a hitter's
+# at-bats were independent coin flips (its 2+ and 3+ midpoints match a binomial off the 1+ midpoint), but hits in a game
+# come in bunches (the good day, the big inning, the extra trip to the plate). Over every settled 2026 market with a
+# pre-game quote (zero-volume ones included: leaving them out fakes a much bigger edge, since thin rungs mostly trade
+# in-game after a hit), 2+ hits came in at 21.7% against a 20.6% midpoint, every month of the season. 3+ hits ran at the
+# midpoint through Jul 24 (4.1% vs 4.3%, with asks so wide nothing was buyable) and 23% over it since (4.8% vs 3.9%, n
+# 15,853), as the quotes tightened. A beta-binomial over the slot's plate-appearance distribution with a within-game
+# correlation rho of 0.02 fits both rungs, and it beat Kalshi's midpoint on log loss out of sample in every walk-forward
+# split (fit on the weeks before, scored on the weeks after). Betting it walk-forward from Jul 25: 2+ hits at the default
+# Value bars, 1,670 bets, +11% (90% range +3% to +19%); 3+ hits too noisy to call (+9%, range -29% to +53%), so 3+ only
+# ever gets a Slight lean. The 4+ rung was dropped: its asks sit above the fair price on most days.
+LADDER = dict(
+    rho={2: 0.02, 3: 0.02}, kinds={"hit2": 2, "hit3": 3},
+    # plate appearances per game by lineup slot, 2026 starters: [[PA, share], ...]
+    pa={1: [[1, 0.003], [2, 0.0081], [3, 0.0611], [4, 0.434], [5, 0.4516], [6, 0.0401], [7, 0.0021]],
+        2: [[1, 0.0036], [2, 0.0091], [3, 0.0592], [4, 0.5136], [5, 0.3838], [6, 0.0293], [7, 0.0015]],
+        3: [[1, 0.0023], [2, 0.0125], [3, 0.0713], [4, 0.5668], [5, 0.3246], [6, 0.0225]],
+        4: [[1, 0.0017], [2, 0.0174], [3, 0.0891], [4, 0.6114], [5, 0.2639], [6, 0.0159], [7, 0.0006]],
+        5: [[1, 0.003], [2, 0.0284], [3, 0.1326], [4, 0.6249], [5, 0.1979], [6, 0.0127], [7, 0.0004]],
+        6: [[1, 0.0036], [2, 0.0545], [3, 0.1803], [4, 0.5982], [5, 0.1546], [6, 0.0087]],
+        7: [[1, 0.0038], [2, 0.0768], [3, 0.238], [4, 0.5613], [5, 0.1131], [6, 0.007]],
+        8: [[1, 0.0045], [2, 0.1069], [3, 0.3142], [4, 0.4883], [5, 0.0817], [6, 0.0045]],
+        9: [[1, 0.0095], [2, 0.1381], [3, 0.3723], [4, 0.4213], [5, 0.0562], [6, 0.0025]]},
+)
+
+
+def _bb_sf(m, n, mu, rho):
+    """P(X >= m), X ~ beta-binomial(n) with mean mu and intra-game correlation rho (binomial when rho is 0)"""
+    if m <= 0: return 1.0
+    if m > n: return 0.0
+    tot = 0.0
+    if rho <= 1e-9:
+        for k in range(m, n + 1): tot += math.comb(n, k) * mu ** k * (1 - mu) ** (n - k)
+        return tot
+    a = mu * (1 - rho) / rho; b = (1 - mu) * (1 - rho) / rho
+    lB = math.lgamma(a) + math.lgamma(b) - math.lgamma(a + b)
+    for k in range(m, n + 1):
+        tot += math.comb(n, k) * math.exp(math.lgamma(k + a) + math.lgamma(n - k + b) - math.lgamma(n + a + b) - lB)
+    return tot
+
+
+def ladder_tail(p1, slot, m, lad=LADDER):
+    """chance of m+ hits given the chance of 1+ and the lineup slot"""
+    if p1 is None or not (0.01 < p1 < 0.99): return None
+    dist = lad["pa"].get(int(slot) if slot else 5, lad["pa"][5])
+    rho = lad["rho"].get(m, 0.02) if isinstance(lad["rho"], dict) else lad["rho"]
+    T = lambda mu, mm: sum(w * _bb_sf(mm, k, mu, rho) for k, w in dist)
+    lo, hi = 1e-4, 0.97
+    for _ in range(50):                                   # bisection: T is increasing in mu
+        mid = (lo + hi) / 2
+        if T(mid, 1) < p1: lo = mid
+        else: hi = mid
+    return T((lo + hi) / 2, m)
 KIND_KEY = dict(hr="hr1", hit="hit1", tb="tb2")
 
 
@@ -68,9 +124,13 @@ def amer_p(o):
     return 100 / (v + 100) if v > 0 else -v / (-v + 100)
 
 
-def ks_fee(p, mult):
+def ks_fee(p, mult, stake=None):
+    """Kalshi's taker fee per contract: 0.07 x multiplier x contracts x P x (1 - P), rounded UP to the cent on the whole
+    order. Priced at a `stake`-dollar order (VALUE_CFG ks_stake), not one contract: rounding a single contract's fee up to
+    a full cent charged a 10c homer 1c (10% of the price) when a $20 order really pays about 0.3c a contract."""
     if p is None or not (0 < p < 1): return 0.0
-    return math.ceil(round(100 * 0.07 * mult * p * (1 - p) * 1e6) / 1e6) / 100
+    n = max(1, round((stake if stake is not None else VALUE_CFG.get("ks_stake", 20)) / p))
+    return math.ceil(round(100 * 0.07 * mult * n * p * (1 - p) * 1e6) / 1e6) / 100 / n
 
 
 def ks_quote(entry, series, fees):
@@ -191,9 +251,10 @@ def assess(kind, p_model, fair, offers, cfg, push=0.0):
     ratio = odds(p_model) / odds(fair)
     capped = ratio >= cfg["cap_ratio"] and kind in cfg.get("cap_kinds", (kind,))
     gap = price_edge * best["cost"]          # expected profit per contract that pays $1, on the market's own number
+    bar = dict(cfg, **(cfg.get("bars") or {}).get(kind, {}))                  # per-kind overrides (the ladder rungs)
     if capped: verdict = 0
-    elif price_edge >= cfg["price_good"] and ev >= cfg["good"] and gap >= cfg.get("gap_good", 0): verdict = 2
-    elif price_edge >= cfg["price_lean"] and ev >= cfg["lean"] and gap >= cfg.get("gap_lean", 0): verdict = 1
+    elif price_edge >= bar["price_good"] and ev >= bar["good"] and gap >= bar.get("gap_good", 0): verdict = 2
+    elif price_edge >= bar["price_lean"] and ev >= bar["lean"] and gap >= bar.get("gap_lean", 0): verdict = 1
     else: verdict = 0
     return dict(p_model=p_model, fair=fair, blend=blend, site=best["site"], cost=best["cost"], label=best["label"], ev=ev,
                 price_edge=price_edge, ratio=ratio, capped=capped, verdict=verdict, push=push, n_sites=len(offers))
@@ -306,6 +367,14 @@ def value_bets(sl: dict, cfg: dict = VALUE_CFG) -> list[dict]:
             offers = player_offers(sl, h, key, games)
             v = assess(kind, p, prop_fair(h, key, ratios, cfg), offers, cfg)
             if v: out.append(dict(v, kind=kind, key=key, id=h["id"], pk=h["pk"], name=h["n"], confirmed=confirmed))
+        # the multi-hit rungs, off the 1+ hit rung's fair price (and the model's 1+ hit chance, for display)
+        f1 = prop_fair(h, "hit1", ratios, cfg); m1 = h.get("hiti") or h.get("hit")
+        if f1 is not None and confirmed:
+            for key, m in LADDER["kinds"].items():
+                offers = player_offers(sl, h, key, games)
+                if not offers: continue
+                v = assess(key, ladder_tail(m1, h.get("sl"), m), ladder_tail(f1, h.get("sl"), m), offers, cfg)
+                if v: out.append(dict(v, kind=key, key=key, id=h["id"], pk=h["pk"], name=h["n"], confirmed=confirmed))
     for p in sl["pitchers"]:
         if games[p["pk"]]["state"] != "Preview": continue
         for n in range(3, 11):

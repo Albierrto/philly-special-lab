@@ -435,9 +435,12 @@ function liveDk(h, key) { const lp = S.liveProps[h.id]; if (lp && lp[key] && !S.
 /* ---------- price shopping: what one bet costs at each site, and where it pays the most */
 const SERIES_OF = k => k.startsWith("hr") ? "hr" : k.startsWith("hit") ? "hit" : k.startsWith("tb") ? "tb" : "k";
 function ksFee(p, series) {
+  // Kalshi's fee is rounded up to the cent on the whole order, so per contract it is priced at a normal-size order
+  // (VALUE_CFG ks_stake dollars), not one contract: a lone 10c contract pays a full cent, a $20 order about 0.3c each
   const m = ((slate().markets || {}).ks_fee || {})[series]; const mult = m == null ? 1 : m;
   if (!(p > 0 && p < 1)) return 0;
-  return Math.ceil(Math.round(100 * 0.07 * mult * p * (1 - p) * 1e6) / 1e6) / 100;
+  const n = Math.max(1, Math.round((((HR && HR.value_cfg) || {}).ks_stake || 20) / p));
+  return Math.ceil(Math.round(100 * 0.07 * mult * n * p * (1 - p) * 1e6) / 1e6) / 100 / n;
 }
 const costToAmer = c => c == null || !(c > 0 && c < 1) ? "–" : c >= 0.5 ? "−" + Math.round(100 * c / (1 - c)) : "+" + Math.round(100 * (1 - c) / c);
 const cents = c => c == null ? "–" : (c * 100 < 10 ? (c * 100).toFixed(1).replace(/\.0$/, "") : Math.round(c * 100)) + "¢";
@@ -467,7 +470,7 @@ function playerOffers(sl, who, key) {
   if (dk && dk[1] != null) out.push({ site: "DraftKings", short: "DK", cost: dk[1], label: amerStr(dk[0]), link: (gm.dk || {}).url || "https://sportsbook.draftkings.com/leagues/baseball/mlb" });
   const kq = ksQuote(mkv(who, "ks", key), series);
   if (kq) out.push({ site: "Kalshi", short: "KALSHI", cost: kq.cost, label: cents(kq.cost), link: ((gm.ks || {}).urls || {})[series] || "https://kalshi.com/sports/baseball",
-                     note: `Cheapest bet: 1 contract at ${cents(kq.ask)} + ${cents(kq.fee)} fee = ${cents(kq.ask + kq.fee)}, pays $1.00 (${costToAmer(kq.cost)})`, kq });
+                     note: `Per contract on a $${(((HR && HR.value_cfg) || {}).ks_stake || 20)} order: ${cents(kq.ask)} + ${cents(kq.fee)} fee = ${cents(kq.ask + kq.fee)}, pays $1.00 (${costToAmer(kq.cost)}). Kalshi rounds its fee up to the cent per order, so a single contract pays a full cent.`, kq });
   const pq = pmQuote(mkv(who, "pm", key));
   if (pq) out.push({ site: "Polymarket", short: "POLY", cost: pq.cost, label: cents(pq.cost), link: (gm.pm || {}).props_url || (gm.pm || {}).url,
                      note: `1 share at ${cents(pq.ask)} + ${cents(pq.fee)} fee = ${cents(pq.cost)}, pays $1.00 (${costToAmer(pq.cost)})`, pq });
@@ -675,15 +678,16 @@ function hrDetail(sl, h) {
 
 /* ============================================================ value: model vs market, at the best price */
 const VCFG = Object.assign({
-  w: { hr: 0, hit: 0, tb: 0, k: 0.05, ml: 0.03, tot: 0.05 },
+  w: { hr: 0, hit: 0, tb: 0, k: 0.05, ml: 0.03, tot: 0.05, hit2: 0, hit3: 0 },
   ex_weight: { hr: 0.85, hit: 0.85, tb: 0.7, k: 0.5 },
   dk_curve: { hr: [-0.2831, 0.847, -0.0642, 0.03, 0.40], hit: [-0.1226, 0.9804, -0.0766, 0.40, 0.85],
               tb: [-0.1645, 0.9578, -0.0847, 0.18, 0.65], k: [-0.1392, 0.9538, -0.0378, 0.03, 0.97] },
   dk_shift_max: 0.15, cap_kinds: ["k", "ml", "tot"],
-  good: 0.04, lean: 0.02, price_good: 0.04, price_lean: 0.02, gap_good: 0.015, gap_lean: 0.01, cap_ratio: 1.6, ks_tight: 0.06, pm_tight: 0.03, min_ratio_pairs: 8, pm_fee: 0.05,
+  good: 0.04, lean: 0.02, price_good: 0.04, price_lean: 0.02, gap_good: 0.015, gap_lean: 0.01, cap_ratio: 1.6, ks_tight: 0.06, pm_tight: 0.03, min_ratio_pairs: 8, pm_fee: 0.05, ks_stake: 20,
+  bars: { hit3: { price_good: 9, good: 9, price_lean: 0.10, lean: 0.10, gap_lean: 0.005 } },     // 3+ hits: a lean at most
 }, (HR && HR.value_cfg) || {});
 const BET_KEY = k => k === "hr1" || k === "hit1" || k === "tb2" || /^k\d+$/.test(k);    // the lines the engine prices
-const KIND_NAME = { hr: "to homer", hit: "1+ hit", tb: "2+ total bases", k: "strikeouts", ml: "to win", tot: "total" };
+const KIND_NAME = { hr: "to homer", hit: "1+ hit", tb: "2+ total bases", k: "strikeouts", ml: "to win", tot: "total", hit2: "2+ hits", hit3: "3+ hits" };
 const KIND_KEY = { hr: "hr1", hit: "hit1", tb: "tb2" };
 function median(a) { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
 function ksTightMid(entry) {
@@ -743,6 +747,34 @@ function propFair(sl, who, key) {
   const p = exm != null && book != null ? a * exm + (1 - a) * book : exm != null ? exm : book;
   return { p, parts: F };
 }
+/* Multi-hit rungs priced off the 1+ hit rung: a beta-binomial over the slot's plate appearances (see value.py LADDER).
+   Kalshi prices these rungs as if at-bats were independent; hits in a game come in bunches, so its 2+ and 3+ hit
+   prices run a little low. */
+const LADDER = Object.assign({ rho: { 2: 0.02, 3: 0.02 }, kinds: { hit2: 2, hit3: 3 }, pa: {} }, (HR && HR.ladder) || {});
+function lgam(x) {           // log-gamma (Lanczos), enough for beta-binomial tails
+  const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgam(1 - x);
+  x -= 1; let a = c[0]; const t = x + g + 0.5;
+  for (let i = 1; i < g + 2; i++) a += c[i] / (x + i);
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+}
+function comb(n, k) { let r = 1; for (let i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+function bbSf(m, n, mu, rho) {
+  if (m <= 0) return 1; if (m > n) return 0; let tot = 0;
+  if (rho <= 1e-9) { for (let k = m; k <= n; k++) tot += comb(n, k) * mu ** k * (1 - mu) ** (n - k); return tot; }
+  const a = mu * (1 - rho) / rho, b = (1 - mu) * (1 - rho) / rho, lB = lgam(a) + lgam(b) - lgam(a + b);
+  for (let k = m; k <= n; k++) tot += comb(n, k) * Math.exp(lgam(k + a) + lgam(n - k + b) - lgam(n + a + b) - lB);
+  return tot;
+}
+function ladderTail(p1, slot, m) {
+  if (!(p1 > 0.01 && p1 < 0.99)) return null;
+  const dist = LADDER.pa[slot] || LADDER.pa[5]; if (!dist) return null;
+  const rho = typeof LADDER.rho === "object" ? (LADDER.rho[m] ?? 0.02) : LADDER.rho;
+  const T = (mu, mm) => dist.reduce((a, [k, w]) => a + w * bbSf(mm, k, mu, rho), 0);
+  let lo = 1e-4, hi = 0.97;
+  for (let i = 0; i < 50; i++) { const mid = (lo + hi) / 2; if (T(mid, 1) < p1) lo = mid; else hi = mid; }
+  return T((lo + hi) / 2, m);
+}
 const oddsOf = p => p / (1 - p);
 function assess(kind, pModel, fair, offers, push = 0) {
   // pModel and fair are chances of winning given no push. Return is per $1 at the best price, fees included.
@@ -755,8 +787,9 @@ function assess(kind, pModel, fair, offers, push = 0) {
   const priceEdge = fair * (1 - push) / best.cost + push - 1;
   const ratio = oddsOf(pModel) / oddsOf(fair), capped = ratio >= VCFG.cap_ratio && (VCFG.cap_kinds || [kind]).includes(kind);
   const gap = priceEdge * best.cost;         // expected profit per $1 contract on the market's own number: an edge under a price tick is noise
-  const verdict = capped ? 0 : (priceEdge >= VCFG.price_good && ev >= VCFG.good && gap >= (VCFG.gap_good || 0)) ? 2
-    : (priceEdge >= VCFG.price_lean && ev >= VCFG.lean && gap >= (VCFG.gap_lean || 0)) ? 1 : 0;
+  const bar = Object.assign({}, VCFG, (VCFG.bars || {})[kind] || {});       // per-kind overrides (the ladder rungs)
+  const verdict = capped ? 0 : (priceEdge >= bar.price_good && ev >= bar.good && gap >= (bar.gap_good || 0)) ? 2
+    : (priceEdge >= bar.price_lean && ev >= bar.lean && gap >= (bar.gap_lean || 0)) ? 1 : 0;
   return { pModel, fair, blend, best, ev, priceEdge, ratio, capped, verdict, push, w, gap };
 }
 function verdictPill(v) { return v == null ? "" : `<span class="verdict v${v.verdict}">${v.capped ? "Market disagrees" : ["No value", "Slight value", "Value"][v.verdict]}</span>`; }
@@ -803,6 +836,18 @@ function valueBets(sl) {
       out.push(Object.assign(v, { kind, key, who: h, pk: h.pk, id: `${kind}-${h.id}`, offers, fairParts: fair.parts, confirmed,
         title: `${h.n} ${KIND_NAME[kind]}`, sub: `${h.t} ${h.h ? "vs" : "@"} ${h.o} · ${confirmed ? "batting " + ord(h.sl) : "lineup not posted (proj. " + ord(h.sl) + ")"}` }));
     }
+    // the multi-hit rungs, off the 1+ hit rung's fair price (the model's 1+ hit chance for the display number)
+    const f1 = propFair(sl, h, "hit1");
+    if (f1 && confirmed) {
+      for (const key in LADDER.kinds) {
+        const m = LADDER.kinds[key], offers = playerOffers(sl, h, key); if (!offers.length) continue;
+        const fair = ladderTail(f1.p, h.sl, m);
+        const v = assess(key, ladderTail(h._hitIf, h.sl, m), fair, offers); if (!v) continue;
+        out.push(Object.assign(v, { kind: key, key, who: h, pk: h.pk, id: `${key}-${h.id}`, offers, confirmed, ladder: m,
+          fairParts: [["from the 1+ hit price", f1.p]].concat(f1.parts.filter(x => x[0] !== "DraftKings").map(([s2, p1]) => [`${s2} 1+`, p1])),
+          title: `${h.n} ${KIND_NAME[key]}`, sub: `${h.t} ${h.h ? "vs" : "@"} ${h.o} · batting ${ord(h.sl)}` }));
+      }
+    }
   }
   for (const p of sl.pitchers) {
     if (G[p.pk].state !== "Preview" || !p._ge) continue;
@@ -818,7 +863,7 @@ function valueBets(sl) {
     if (g.state !== "Preview" || !g._m) continue;
     const W = gameOffers(g), pH = g._m.pHome;
     for (const side of ["away", "home"]) {
-      const offers = W.rows.filter(r => r.ml[side]).map(r => ({ site: r.site, short: r.site, cost: r.ml[side].cost, label: r.ml[side].label, link: r.ml[side].link || r.link, note: r.ml[side].note }))
+      const offers = W.rows.filter(r => r.ml[side] && r.ml[side].cost > 0 && r.ml[side].cost < 1).map(r => ({ site: r.site, short: r.site, cost: r.ml[side].cost, label: r.ml[side].label, link: r.ml[side].link || r.link, note: r.ml[side].note }))
         .sort((a, b) => a.cost - b.cost);
       const fair = gameFair(g, W, "ml", side);
       const v = assess("ml", side === "home" ? pH : 1 - pH, fair && fair.p, offers); if (!v) continue;
@@ -829,7 +874,7 @@ function valueBets(sl) {
       const L = W.main; let pO = 0, pP = 0; g._m.total.forEach((v, t) => { if (t > L) pO += v; else if (t === L) pP += v; });
       const pU = 1 - pO - pP;
       for (const side of ["over", "under"]) {
-        const offers = W.rows.filter(r => r.tot[side] && r.tot[side].line === L).map(r => ({ site: r.site, short: r.site, cost: r.tot[side].cost, label: r.tot[side].label, link: r.tot[side].link || r.link, note: r.tot[side].note }))
+        const offers = W.rows.filter(r => r.tot[side] && r.tot[side].line === L && r.tot[side].cost > 0 && r.tot[side].cost < 1).map(r => ({ site: r.site, short: r.site, cost: r.tot[side].cost, label: r.tot[side].label, link: r.tot[side].link || r.link, note: r.tot[side].note }))
           .sort((a, b) => a.cost - b.cost);
         const fair = gameFair(g, W, "tot", side);
         const pM = (side === "over" ? pO : pU) / Math.max(1e-6, 1 - pP);
@@ -894,7 +939,9 @@ function valueCard(v) {
   const fairTxt = v.fairParts.map(([s, p]) => `${s} ${pc(p)}`).join(" · ");
   const pe = signedPct(v.priceEdge), others = v.offers.length > 1 ? ` (the other site${v.offers.length > 2 ? "s" : ""}: ${v.offers.slice(1).map(o => `${o.site} ${pct(o.cost, d)}`).join(", ")})` : "";
   const mdl = v.w > 0 ? `we make it ${pc(v.pModel)}, a small nudge on top` : `our model makes it ${pc(v.pModel)}, shown for context only (on player bets the markets have known more than it does, so it has no say in the verdict)`;
-  const why = v.capped
+  const why = v.ladder && !v.capped
+    ? `${v.verdict ? "A pricing quirk, not a hunch about him." : "No edge at this price."} Kalshi prices its ${v.ladder}+ hit markets as if a hitter's at-bats were independent coin flips off his 1+ hit price. They aren't quite: hits come in bunches (the good day, the big inning, the extra trip to the plate), and since late July ${v.ladder === 2 ? "2+ hit games have come in about 5% more often" : "3+ hit games have come in about 23% more often"} than Kalshi's midpoint said. Pricing that in off the market's own 1+ hit number (${pc((v.fairParts[0] || [])[1])}) puts this at ${pc(v.fair)}; ${esc(b.site)} sells it for ${pc(c)} (${pe}).${v.verdict ? (v.ladder === 2 ? " Tested on the weeks it wasn't fitted on, 2+ hit bets like this returned about +11% over 1,670 bets (Jul 25-Sep 22). Small edge, lots of losing days; it only works as a habit." : " 3+ hit bets like this have been positive too, but on a long shot two months of results can't prove it, so this stays a lean. Small stakes only.") : ""}`
+    : v.capped
     ? `<b>Our model has this at ${v.ratio.toFixed(1)}× the market's odds (${pc(v.pModel)} against ${pc(v.fair)}). On the record so far, gaps that wide have been the model's mistakes, not the market's. Not a bet.</b>`
     : v.verdict === 2
       ? `The market's own number is ${pc(v.fair)}, and ${esc(b.site)} is selling it for ${pc(c)}${others}. That price alone returns ${pe}; ${mdl}.`
@@ -915,19 +962,19 @@ function valueCard(v) {
 }
 function viewValue(sl) {
   const all = valueBets(sl);
-  const kinds = [["all", "All"], ["hr", "Home runs"], ["hit", "Hits"], ["tb", "Total bases"], ["k", "Strikeouts"], ["ml", "Moneyline"], ["tot", "Totals"]];
+  const kinds = [["all", "All"], ["hr", "Home runs"], ["hit", "Hits"], ["multi", "Multi-hit (2+, 3+)"], ["tb", "Total bases"], ["k", "Strikeouts"], ["ml", "Moneyline"], ["tot", "Totals"]];
   const kind = S.vkind || "all", mode = S.vmode || "value";
-  const pool = all.filter(v => kind === "all" || v.kind === kind);
+  const pool = all.filter(v => kind === "all" || v.kind === kind || (kind === "multi" && v.ladder));
   let shown = mode === "value" ? pool.filter(v => v.verdict >= 1).sort((a, b) => (b.verdict - a.verdict) || (b.ev - a.ev)) : pool;
   if (mode === "value") {
-    // a pitcher's strikeout lines are one opinion, not five bets: keep his best line
-    const seen = new Map();
+    // a pitcher's strikeout lines are one opinion, not five bets, and so is a hitter's multi-hit ladder: keep the best one
+    const seen = new Map(), gk = v => v.kind === "k" ? "k" + v.who.id : v.ladder ? "h" + v.who.id : null;
     shown = shown.filter(v => {
-      if (v.kind !== "k") return true;
-      const k = v.who.id; const n = seen.get(k) || 0; seen.set(k, n + 1);
+      const k = gk(v); if (!k) return true;
+      const n = seen.get(k) || 0; seen.set(k, n + 1);
       return n === 0;
     });
-    shown.forEach(v => { if (v.kind === "k") v.moreLines = seen.get(v.who.id) - 1; });
+    shown.forEach(v => { const k = gk(v); if (k) v.moreLines = seen.get(k) - 1; });
   }
   const nV = all.filter(v => v.verdict === 2).length, nS = all.filter(v => v.verdict === 1).length;
   const dks = sl._dks || {}, dkEx = dkCurve("hr", 0.08, (dks.hr || {}).s || 0);

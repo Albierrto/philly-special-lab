@@ -464,7 +464,7 @@ def _pm_ml(ml, away_name, home_name):
     return out
 
 
-KEEP = {"hr1", "hr2", "hit1", "hit2", "tb2", "tb3"}
+KEEP = {"hr1", "hr2", "hit1", "hit2", "hit3", "tb2", "tb3"}
 MK_CACHE = DATA / "hrboard" / "markets"
 
 
@@ -693,7 +693,7 @@ def main(argv=None):
     import os
     payload = dict(built=datetime.now(timezone.utc).isoformat(timespec="seconds"), today=today, slates=slates,
                    relay=(os.environ.get("KALSHI_RELAY") or "").strip().rstrip("/") or None,
-                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG, arb_cfg=ARB.CFG, env=env,
+                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG, arb_cfg=ARB.CFG, env=env, ladder=VAL.LADDER,
                    model=model_block(mj, SC.slim_report(report)), card=card, data_through=str(d["game_date"].max().date()),
                    form_keys=FORM_KEYS)
     SITE.joinpath("data").mkdir(parents=True, exist_ok=True)
