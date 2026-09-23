@@ -50,7 +50,7 @@ def log_picks(slate: dict, folder: Path) -> None:
         entry = by_pk.get(pk, {"hitters": [], "pitchers": []})
         entry["value"] = vb.get(pk, [])
         mk = g.get("mk") or {}; dk = mk.get("dk") or {}; ks = (mk.get("ks") or {}).get("win") or {}
-        entry.update(saved=now, state=g["state"], frozen=started, late=bool(started and not prev),
+        entry.update(saved=now, state=g["state"], frozen=started, late=bool(started and not prev), env=slate.get("env"),
                      home=g["home"]["abbr"], away=g["away"]["abbr"],
                      p_home=(g.get("model") or {}).get("p_home"), mu=[(g.get("model") or {}).get("mu_home"), (g.get("model") or {}).get("mu_away")],
                      dk_home=dk.get("home_p"), dk_total=dk.get("total"),
@@ -60,6 +60,50 @@ def log_picks(slate: dict, folder: Path) -> None:
         else:
             out[pk] = entry
     f.write_text(json.dumps(out, separators=(",", ":")))
+
+
+ENV = dict(days=14, prior=150.0, lo=0.85, hi=1.15)
+
+
+def env_factors(d: pd.DataFrame, folder: Path, today: str, cfg: dict = ENV) -> dict:
+    """How far the league is running from the model on homers and 2+ total bases over the last two weeks, as an odds
+    multiplier for the model's calibration. Graded from the logged boards: hitters in a posted lineup who played, their
+    pre-game chance with any multiplier that board already carried taken back out (so the factor does not chase its
+    own tail), shrunk toward 1 with `prior` expected events and clamped.
+
+    Why: the season backtest ran 10-15% hot on homers from July on (2026's second-half home run rate fell below 2024-25)
+    and 12% hot on the first graded week. On the 2026 backtest a trailing 14-day factor improves log loss on homers and
+    total bases beyond a season-level recalibration (hits: no gain, so hits are left alone)."""
+    from datetime import date, timedelta
+    t0 = (date.fromisoformat(today) - timedelta(days=cfg["days"])).isoformat()
+    x = d[d["season"] == d["season"].max()]
+    res = x.groupby(["game_pk", "batter"]).agg(HR=("hr", "sum"), s1=("s1", "sum"), ev=("events", lambda e: (2 * (e == "double") + 3 * (e == "triple")).sum()))
+    res["TB"] = res["s1"] + res["ev"] + 4 * res["HR"]
+    have = set(x["game_pk"].unique())
+    a = dict(hr=[0.0, 0.0, 0], tb2=[0.0, 0.0, 0])
+    for f in sorted(folder.glob("*.json")):
+        if not (t0 <= f.stem < today): continue
+        for pk, g in json.loads(f.read_text()).items():
+            pk = int(pk)
+            if pk not in have or g.get("late"): continue
+            env = g.get("env") or {}
+            for h in g["hitters"]:
+                if not h.get("il") or (pk, h["id"]) not in res.index: continue
+                r = res.loc[(pk, h["id"])]
+                for k, y in (("hr", r["HR"] >= 1), ("tb2", r["TB"] >= 2)):
+                    p = h.get(k)
+                    if p is None or not (0 < p < 1): continue
+                    m = env.get(k) or 1.0; o = p / (1 - p) / m; p0 = o / (1 + o)       # the chance before that day's multiplier
+                    a[k][0] += float(y); a[k][1] += p0; a[k][2] += 1
+    out = dict(days=cfg["days"], since=t0)
+    for k, (yy, pp, n) in a.items():
+        if n < 200:
+            out[k] = 1.0; out[f"{k}_detail"] = dict(n=n); continue
+        rate = min(cfg["hi"], max(cfg["lo"], (yy + cfg["prior"]) / (pp + cfg["prior"])))
+        pbar = pp / n
+        out[k] = round(rate ** (1 / (1 - pbar)), 4)                                   # rate ratio -> odds multiplier
+        out[f"{k}_detail"] = dict(n=n, actual=int(yy), expected=round(pp, 1), rate=round(rate, 4))
+    return out
 
 
 def _mp(mk, src, key, i):

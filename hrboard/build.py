@@ -648,6 +648,17 @@ def main(argv=None):
     d = load_history(today)
     log(f"history {len(d):,} PA through {d['game_date'].max().date()}")
     mj = M.load()
+    # league environment: the last two weeks of graded boards say how far homers and 2+ total bases are running from the
+    # model; folded into the calibration intercepts, so the page (which re-runs the numbers from the same calib) agrees
+    try:
+        env = SC.env_factors(d, PICKS, today)
+    except Exception as e:
+        log("env factor skipped:", e); env = dict(hr=1.0, tb2=1.0)
+    import math as _m
+    mj["calib"] = {k: list(v) for k, v in mj["calib"].items()}
+    for k in ("hr", "tb2"):
+        mj["calib"][k][0] += _m.log(env.get(k) or 1.0)
+    log(f"environment: homers x{env.get('hr')} odds, 2+ TB x{env.get('tb2')} odds  {env.get('hr_detail')}")
     book = F.SkillBook(d, K_bat=mj["K_bat"], K_pit=mj["K_pit"])
     bp = G.bullpen_frame(d)
     ctx = dict(mj=mj, book=book, bpbook=F.SkillBook(bp, K_pit=dict(mj["K_pit"], hr=400, brl=300)), bshare=G.bullpen_same_share(bp),
@@ -671,6 +682,7 @@ def main(argv=None):
     for k in range(a.days):
         day = (date.fromisoformat(today) + timedelta(days=k)).isoformat()
         s = build_slate(day, d, ctx)
+        if s: s["env"] = dict(hr=env.get("hr", 1.0), tb2=env.get("tb2", 1.0))
         if s: slates.append(s); log(f"  {day}: {len(s['games'])} games, {len(s['hitters'])} hitters, {len(s['pitchers'])} starters")
     # log picks, grade the past
     PICKS.mkdir(parents=True, exist_ok=True)
@@ -681,7 +693,7 @@ def main(argv=None):
     import os
     payload = dict(built=datetime.now(timezone.utc).isoformat(timespec="seconds"), today=today, slates=slates,
                    relay=(os.environ.get("KALSHI_RELAY") or "").strip().rstrip("/") or None,
-                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG, arb_cfg=ARB.CFG,
+                   books_status=BK.status(), value_cfg=VAL.VALUE_CFG, arb_cfg=ARB.CFG, env=env,
                    model=model_block(mj, SC.slim_report(report)), card=card, data_through=str(d["game_date"].max().date()),
                    form_keys=FORM_KEYS)
     SITE.joinpath("data").mkdir(parents=True, exist_ok=True)

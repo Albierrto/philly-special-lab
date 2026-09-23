@@ -675,10 +675,14 @@ function hrDetail(sl, h) {
 
 /* ============================================================ value: model vs market, at the best price */
 const VCFG = Object.assign({
-  w: { hr: 0.15, hit: 0.1, tb: 0.1, k: 0.15, ml: 0.05, tot: 0.05 },
-  dk_ratio: { hr: 1.2, hit: 1.07, tb: 1.11, k: 1.06 },
-  good: 0.04, lean: 0.015, price_good: 0.02, price_lean: 0, cap_ratio: 1.6, ks_tight: 0.06, min_ratio_pairs: 8, pm_fee: 0.05,
+  w: { hr: 0, hit: 0, tb: 0, k: 0.05, ml: 0.03, tot: 0.05 },
+  ex_weight: { hr: 0.85, hit: 0.85, tb: 0.7, k: 0.5 },
+  dk_curve: { hr: [-0.2831, 0.847, -0.0642, 0.03, 0.40], hit: [-0.1226, 0.9804, -0.0766, 0.40, 0.85],
+              tb: [-0.1645, 0.9578, -0.0847, 0.18, 0.65], k: [-0.1392, 0.9538, -0.0378, 0.03, 0.97] },
+  dk_shift_max: 0.15, cap_kinds: ["k", "ml", "tot"],
+  good: 0.04, lean: 0.02, price_good: 0.04, price_lean: 0.02, gap_good: 0.015, gap_lean: 0.01, cap_ratio: 1.6, ks_tight: 0.06, pm_tight: 0.03, min_ratio_pairs: 8, pm_fee: 0.05,
 }, (HR && HR.value_cfg) || {});
+const BET_KEY = k => k === "hr1" || k === "hit1" || k === "tb2" || /^k\d+$/.test(k);    // the lines the engine prices
 const KIND_NAME = { hr: "to homer", hit: "1+ hit", tb: "2+ total bases", k: "strikeouts", ml: "to win", tot: "total" };
 const KIND_KEY = { hr: "hr1", hit: "hit1", tb: "tb2" };
 function median(a) { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
@@ -689,34 +693,55 @@ function ksTightMid(entry) {
   return bid > 0 && ask > 0 && ask - bid <= VCFG.ks_tight ? (bid + ask) / 2 : null;
 }
 function pmMid(entry) {
+  // Polymarket's midpoint counts toward the market's number only when the book is two-sided and tight
   if (!entry) return null;
   const live = entry[3] ? S.pm[entry[3]] : null;
-  const m = live ? live[0] : entry[0];
-  return m > 0 && m < 1 ? m : null;
+  const m = live ? live[0] : entry[0], ask = live ? live[1] : entry[1];
+  if (!(m > 0 && m < 1)) return null;
+  if (ask != null && ask - m > VCFG.pm_tight) return null;
+  return m;
 }
-function dkRatios(sl) {
-  // DraftKings' one-sided prop prices carry its margin. How much, today, is read off the props that also trade tightly on Kalshi.
-  const pre = new Set(sl.games.filter(g => g.state === "Preview").map(g => g.pk)), pairs = { hr: [], hit: [], tb: [], k: [] };
+const lgt = p => Math.log(p / (1 - p)), sgm = z => 1 / (1 + Math.exp(-z));
+function dkCurve(series, p, shift = 0) {
+  // DraftKings' one-sided price to its fair chance. DraftKings charges far more margin on longshots (1.6x Kalshi's number on
+  // a 4% homer, 1.12x on a 20% one), so one ratio per bet type over-rates every longshot; this is the curve fitted on
+  // DraftKings/Kalshi pairs, with the curve's own ratio carried on past the prices it was fitted on.
+  if (!(p > 0 && p < 1)) return null;
+  const [c0, c1, c2, lo, hi] = VCFG.dk_curve[series];
+  const f = q => { const x = lgt(q); return sgm(c0 + c1 * x + c2 * x * x + shift); };
+  if (p < lo) return f(lo) * p / lo;
+  if (p > hi) return 1 - (1 - f(hi)) * (1 - p) / (1 - hi);
+  return f(p);
+}
+function dkShifts(sl) {
+  // how far today's DraftKings prices sit from the curve, read off the props that also trade tightly on Kalshi
+  const pre = new Set(sl.games.filter(g => g.state === "Preview").map(g => g.pk)), res = { hr: [], hit: [], tb: [], k: [] };
   for (const w of sl.hitters.concat(sl.pitchers)) {
     if (!pre.has(w.pk)) continue;
     const dk = (w.mk || {}).dk || {};
     for (const key in dk) {
+      if (!BET_KEY(key)) continue;
       const series = SERIES_OF(key), mid = ksTightMid(mkv(w, "ks", key)), d = liveDk(w, key);
-      if (mid && mid > 0.03 && d && d[1]) pairs[series].push(d[1] / mid);
+      if (mid == null || !(mid > 0.03 && mid < 0.97) || !d || !d[1]) continue;
+      const f = dkCurve(series, d[1]); if (f > 0 && f < 1) res[series].push(lgt(mid) - lgt(f));
     }
   }
-  const out = {};
-  for (const k in pairs) out[k] = pairs[k].length >= VCFG.min_ratio_pairs ? { r: median(pairs[k]), n: pairs[k].length } : { r: VCFG.dk_ratio[k], n: 0 };
-  sl._dkr = out;
+  const out = {}, m = VCFG.dk_shift_max;
+  for (const k in res) out[k] = res[k].length >= VCFG.min_ratio_pairs ? { s: Math.max(-m, Math.min(m, median(res[k]))), n: res[k].length } : { s: 0, n: 0 };
+  sl._dks = out;
   return out;
 }
 function propFair(sl, who, key) {
-  const series = SERIES_OF(key), F = [];
-  const km = ksTightMid(mkv(who, "ks", key)); if (km != null) F.push(["Kalshi", km]);
-  const pm = pmMid(mkv(who, "pm", key)); if (pm != null) F.push(["Polymarket", pm]);
-  const d = liveDk(who, key); if (d && d[1]) F.push(["DraftKings", Math.min(0.99, d[1] / ((sl._dkr || dkRatios(sl))[series].r))]);
+  // the exchanges' midpoints anchor it (Kalshi's has been the sharpest number on batter props); DraftKings through its curve
+  const series = SERIES_OF(key), F = [], ex = [];
+  const km = ksTightMid(mkv(who, "ks", key)); if (km != null) { F.push(["Kalshi", km]); ex.push(km); }
+  const pm = pmMid(mkv(who, "pm", key)); if (pm != null) { F.push(["Polymarket", pm]); ex.push(pm); }
+  const d = liveDk(who, key), sh = ((sl._dks || dkShifts(sl))[series] || {}).s || 0;
+  const book = d && d[1] ? dkCurve(series, d[1], sh) : null; if (book != null) F.push(["DraftKings", book]);
   if (!F.length) return null;
-  return { p: F.reduce((a, x) => a + x[1], 0) / F.length, parts: F };
+  const exm = ex.length ? ex.reduce((a, x) => a + x, 0) / ex.length : null, a = VCFG.ex_weight[series];
+  const p = exm != null && book != null ? a * exm + (1 - a) * book : exm != null ? exm : book;
+  return { p, parts: F };
 }
 const oddsOf = p => p / (1 - p);
 function assess(kind, pModel, fair, offers, push = 0) {
@@ -728,9 +753,11 @@ function assess(kind, pModel, fair, offers, push = 0) {
   const blend = w * pModel + (1 - w) * fair;
   const ev = blend * (1 - push) / best.cost + push - 1;
   const priceEdge = fair * (1 - push) / best.cost + push - 1;
-  const ratio = oddsOf(pModel) / oddsOf(fair), capped = ratio >= VCFG.cap_ratio;
-  const verdict = capped ? 0 : (priceEdge >= VCFG.price_good && ev >= VCFG.good) ? 2 : (priceEdge >= VCFG.price_lean && ev >= VCFG.lean) ? 1 : 0;
-  return { pModel, fair, blend, best, ev, priceEdge, ratio, capped, verdict, push, w };
+  const ratio = oddsOf(pModel) / oddsOf(fair), capped = ratio >= VCFG.cap_ratio && (VCFG.cap_kinds || [kind]).includes(kind);
+  const gap = priceEdge * best.cost;         // expected profit per $1 contract on the market's own number: an edge under a price tick is noise
+  const verdict = capped ? 0 : (priceEdge >= VCFG.price_good && ev >= VCFG.good && gap >= (VCFG.gap_good || 0)) ? 2
+    : (priceEdge >= VCFG.price_lean && ev >= VCFG.lean && gap >= (VCFG.gap_lean || 0)) ? 1 : 0;
+  return { pModel, fair, blend, best, ev, priceEdge, ratio, capped, verdict, push, w, gap };
 }
 function verdictPill(v) { return v == null ? "" : `<span class="verdict v${v.verdict}">${v.capped ? "Market disagrees" : ["No value", "Slight value", "Value"][v.verdict]}</span>`; }
 function signedPct(x, d = 1) { return (x >= 0 ? "+" : "−") + Math.abs(100 * x).toFixed(d) + "%"; }
@@ -762,7 +789,7 @@ function gameFair(g, W, kind, side) {
   return { p: F.reduce((a, x) => a + x[1], 0) / F.length, parts: F };
 }
 function valueBets(sl) {
-  dkRatios(sl);
+  dkShifts(sl);
   const out = [], G = gameMap(sl);
   for (const h of sl.hitters) {
     if (!h._P || G[h.pk].state !== "Preview") continue;
@@ -852,7 +879,7 @@ function oneIn(p) { return p > 0 ? Math.max(2, Math.round(1 / p)) : null; }
 function chanceBars(v, d) {
   // the three numbers that decide it, on one scale: what the price needs, what the market says, what we say
   const rows = [["Break even", v.best.cost, "Buy it at this price and it has to hit this often just to get your money back"],
-                ["Market says", v.fair, "Every site's own odds with their margin taken out, averaged"],
+                ["Market says", v.fair, "The markets' own chance with the margin taken out: mostly Kalshi's midpoint, DraftKings marked down for its margin"],
                 ["Our model", v.pModel, "What our model makes it, before any market is looked at"]];
   const mx = Math.max(v.best.cost, v.fair, v.pModel, 0.02);
   return `<div class="chance">${rows.map(([lab, p, tip], i) => {
@@ -866,12 +893,13 @@ function valueCard(v) {
   const pc = x => pct(x, d);
   const fairTxt = v.fairParts.map(([s, p]) => `${s} ${pc(p)}`).join(" · ");
   const pe = signedPct(v.priceEdge), others = v.offers.length > 1 ? ` (the other site${v.offers.length > 2 ? "s" : ""}: ${v.offers.slice(1).map(o => `${o.site} ${pct(o.cost, d)}`).join(", ")})` : "";
+  const mdl = v.w > 0 ? `we make it ${pc(v.pModel)}, a small nudge on top` : `our model makes it ${pc(v.pModel)}, shown for context only (on player bets the markets have known more than it does, so it has no say in the verdict)`;
   const why = v.capped
-    ? `<b>Our model has this at ${v.ratio.toFixed(1)}× the market's odds (${pc(v.pModel)} against ${pc(v.fair)}). On the record so far, gaps that wide have been the model's mistakes, not the market's: picks like it lost. Not a bet.</b>`
+    ? `<b>Our model has this at ${v.ratio.toFixed(1)}× the market's odds (${pc(v.pModel)} against ${pc(v.fair)}). On the record so far, gaps that wide have been the model's mistakes, not the market's. Not a bet.</b>`
     : v.verdict === 2
-      ? `The market's own number is ${pc(v.fair)}, and ${esc(b.site)} is selling it for ${pc(c)}${others}. That price alone returns ${pe} before our model says a word; we make it ${pc(v.pModel)}, which nudges it further.`
+      ? `The market's own number is ${pc(v.fair)}, and ${esc(b.site)} is selling it for ${pc(c)}${others}. That price alone returns ${pe}; ${mdl}.`
     : v.verdict === 1
-      ? `A small price edge: ${esc(b.site)} at ${pc(c)} is a touch under the market's ${pc(v.fair)} (${pe} on price alone)${others}. We make it ${pc(v.pModel)}.`
+      ? `A small price edge: ${esc(b.site)} at ${pc(c)} is under the market's ${pc(v.fair)} (${pe} on price alone)${others}. Edges this size have only held up about half the time by first pitch. ${mdl[0].toUpperCase() + mdl.slice(1)}.`
       : v.priceEdge < 0
         ? `No edge: the cheapest price implies ${pc(c)} and the market itself only says ${pc(v.fair)}. We make it ${pc(v.pModel)}, but the market is what pays.`
         : `Not enough: the price is only ${pe} under the market and the blended chance (${pc(v.blend)}) does not clear the bar.`;
@@ -879,7 +907,7 @@ function valueCard(v) {
     <div><div class="t">${esc(v.title)} ${verdictPill(v)}<br><small>${v.sub}${v.moreLines ? ` · ${v.moreLines} more of his lines look the same` : ""}</small></div></div>
     <div class="ev"><b style="color:${v.capped ? "var(--ink3)" : v.ev >= 0 ? "var(--good)" : "var(--bad)"}">$${back.toFixed(2)}</b><span>${v.capped ? "on paper, not trusted" : "back on a $10 bet, on average"}</span></div>
     ${chanceBars(v, d)}
-    <div class="bet1">Bet <b>$10</b> at <b>${esc(b.site)}</b> (${esc(b.label)}) and it pays <b>$${win.toFixed(2)}</b> if it hits, nothing if it does not${n ? ` — about a <b>1 in ${n}</b> shot` : ""}.${v.push ? ` Your stake comes back on the push, ${pct(v.push)} of the time.` : ""}${depthNote(v)}</div>
+    <div class="bet1">Bet <b>$10</b> at <b>${esc(b.site)}</b> (${esc(b.label)}) and it pays <b>$${win.toFixed(2)}</b> if it hits, nothing if it does not${n ? `, about a <b>1 in ${n}</b> shot` : ""}.${v.push ? ` Your stake comes back on the push, ${pct(v.push)} of the time.` : ""}${depthNote(v)}</div>
     <div class="why">${why}</div>
     <div class="why"><span class="age">What each market says: ${esc(fairTxt)}${v.confirmed ? "" : " · lineup not posted yet"}</span></div>
     <div class="buys">${v.offers.map((o, i) => `<a class="buy ${i === 0 && v.offers.length > 1 ? "best" : ""}" href="${esc(o.link || "#")}" target="_blank" rel="noopener" title="${esc(o.note || "")}"><span>${i === 0 && v.offers.length > 1 ? "BEST · " : ""}${esc(o.short === "DK" ? "DK" : o.site.toUpperCase())}</span><span class="num">${esc(o.label)}</span><span class="ext">↗</span></a>`).join("")}</div>
@@ -902,7 +930,7 @@ function viewValue(sl) {
     shown.forEach(v => { if (v.kind === "k") v.moreLines = seen.get(v.who.id) - 1; });
   }
   const nV = all.filter(v => v.verdict === 2).length, nS = all.filter(v => v.verdict === 1).length;
-  const dkr = sl._dkr || {};
+  const dks = sl._dks || {}, dkEx = dkCurve("hr", 0.08, (dks.hr || {}).s || 0);
   let body;
   if (mode === "odds") body = oddsBoard(sl, pool);
   else {
@@ -926,10 +954,10 @@ function viewValue(sl) {
     </div>
     <details class="wtb" style="margin:0 0 12px"><summary><b>How to read a card</b></summary><div class="legend" style="margin-top:8px">
       <div><b>Break even</b>How often the bet has to hit just to get your money back. A +400 price or a 20¢ contract needs it one time in five.</div>
-      <div><b>Market says</b>Every site's own odds with their margin taken out, averaged. DraftKings player prices run about ${pct((dkr.hr || {}).r ? dkr.hr.r - 1 : VCFG.dk_ratio.hr - 1)} rich on homers today, so they are marked down before averaging.</div>
-      <div><b>Our model</b>What the model makes it, having never looked at a price. It is a small tilt on the market's number (${Math.round(100 * VCFG.w.hr)}% of the blend on homers, ${Math.round(100 * VCFG.w.k)}% on strikeouts, ${Math.round(100 * VCFG.w.ml)}% on moneylines), because on the graded record the markets have known slightly more than it does.</div>
+      <div><b>Market says</b>The markets' own chance with the margin taken out. Kalshi's midpoint carries most of it on player bets (it has been the sharpest number on the record), Polymarket's counts when its book is tight, and DraftKings is marked down for its margin, which is much bigger on longshots: a homer DraftKings prices at 8% is about ${pct(dkEx, 1)} by the exchanges' reckoning today.</div>
+      <div><b>Our model</b>What the model makes it, having never looked at a price. On player bets it is shown for context and has no say in the verdict: nine graded days say the markets already know everything it knows and more. It is a small tilt on strikeouts (${Math.round(100 * VCFG.w.k)}%) and game lines (${Math.round(100 * VCFG.w.ml)}% on moneylines).</div>
       <div><b>$ back on $10</b>The long-run average at the cheapest price, both exchanges' fees included. Over $10 means it makes money on average; it says nothing about tonight.</div>
-      <div><b><span class="verdict v2">Value</span> / <span class="verdict v1">Slight value</span></b>Value: the cheapest site is at least ${(100 * VCFG.price_good).toFixed(0)}% under the market's own number and $10 comes back as $${(10 * (1 + VCFG.good)).toFixed(2)} or better. Slight: under the market at all, $${(10 * (1 + VCFG.lean)).toFixed(2)} or better. <span class="verdict v0">Market disagrees</span>: our model is ${VCFG.cap_ratio}× the market's odds or more; on the record so far those have lost, so they get no verdict however good they look.</div>
+      <div><b><span class="verdict v2">Value</span> / <span class="verdict v1">Slight value</span></b>Value: the cheapest site is at least ${(100 * VCFG.price_good).toFixed(0)}% under the market's own number, so $10 comes back as $${(10 * (1 + VCFG.good)).toFixed(2)} or better. Slight: at least ${(100 * VCFG.price_lean).toFixed(0)}% under. Either way the gap also has to be real money, at least ${Math.round(100 * VCFG.gap_good * 10) / 10}¢ (Value) or ${Math.round(100 * VCFG.gap_lean)}¢ (Slight) on a $1 contract, because a smaller gap is inside one price tick. Smaller gaps than these have not survived to first pitch on the record, so they are not flagged. <span class="verdict v0">Market disagrees</span> (strikeouts and game lines, where the model has a say): our model is ${VCFG.cap_ratio}× the market's odds or more, and those gaps have been the model's mistakes.</div>
     </div></details>
     ${body}
     <p class="note">Only games that have not started. Player bets use the chance he homers <i>if he plays</i>, because DraftKings voids and Kalshi refunds a player who sits. For fun and research, not betting advice; check that a site is legal where you are.</p>`;
@@ -1463,8 +1491,8 @@ function viewHow() {
       <li><b>FanDuel, BetMGM, Caesars, Fanatics, BetRivers, theScore Bet, Hard Rock, Novig, ProphetX</b>: moneyline, run line and total ${(HR.books_status || {}).configured ? "from The Odds API, a few times a day" : "appear once an Odds API key is added"}. Player bets from these books need a paid plan, so they are not shown.</li>
     </ul>
     <h3>Best bets</h3>
-    <p>Each card on the <b>Best bets</b> tab puts three numbers on one scale: <b>break even</b> (how often the best price needs it to hit just to return your stake), <b>market says</b> (every site's own odds with the margin taken out, averaged), and <b>our model</b>. The dollar figure is what a $10 bet returns on average over the long run, with Kalshi's and Polymarket's taker fees inside the price, and the line under the bars says what that bet actually pays and how long a shot it is.</p>
-    <p>The verdict is driven by <b>price against the market</b>, not by the model against the market. The first four graded days (842 hitter-games, 94 starts, 222 settled picks) said so plainly: the weight that best combines our model with the markets is close to zero for every bet type, and the further the model sat above the market on a pick, the worse the pick did (under 1.15× the market's odds the picks returned +62%; over 2× they lost 81%). Picking on disagreement picks the model's mistakes. So <b>Value</b> now means the cheapest site is selling the bet under the market's own number by 2% or more; the model is a ${Math.round(100 * VCFG.w.hr)}% tilt on homers and ${Math.round(100 * VCFG.w.ml)}% on moneylines; and anything where the model is ${VCFG.cap_ratio}× the market's odds or more is marked <i>Market disagrees</i> and gets no verdict. Every pick is still logged before first pitch and graded on the Scorecard, so these settings get refit as the record grows.</p>
+    <p>Each card on the <b>Best bets</b> tab puts three numbers on one scale: <b>break even</b> (how often the best price needs it to hit just to return your stake), <b>market says</b> (the markets' own chance with the margin taken out, anchored on the exchanges), and <b>our model</b>. The dollar figure is what a $10 bet returns on average over the long run, with Kalshi's and Polymarket's taker fees inside the price, and the line under the bars says what that bet actually pays and how long a shot it is.</p>
+    <p>The verdict is driven by <b>price against the market</b>, not by the model against the market. It was refit on September 23 against every board built in the first nine days (6,340 graded bets at their last price before first pitch, 25,000 prices in all), and the record said four things. The model adds nothing to the markets on player bets: the weight that best combines them is zero for homers, hits and total bases in every resample of the days, so on those it is shown for context and has no say. Kalshi's midpoint is the sharpest single number on player bets, so the market's number now leans on it (85% on homers and hits). DraftKings' margin is not one flat percentage: it charges about 1.6 times Kalshi's number on a 4% homer and 1.12 times on a 20% one, so it is now marked down along a fitted curve instead of by one ratio, which is what used to make long strikeout lines look like 30% to 90% edges. And price gaps under 2% did not survive to first pitch, gaps of 2% to 5% kept about half, 5% and up kept most of it; a gap under about a cent on a $1 contract (inside one price tick) kept nothing, while 1.5¢ and up kept 7% to 10%. So <b>Value</b> is the cheapest site at least ${(100 * VCFG.price_good).toFixed(0)}% under the market's number, and <b>Slight</b> at least ${(100 * VCFG.price_lean).toFixed(0)}%. Every pick is still logged before first pitch and graded on the Scorecard, so these settings get refit as the record grows.</p>
     <p>"Pts" or "edge" elsewhere is the model's chance minus the best price. Markets know things the model does not (late scratches, injuries, weather), so a big gap is a question, not a sure thing. Which sites you can use depends on your state.</p>
     <h3>Arbitrage</h3>
     <p>The <b>Arbitrage</b> tab looks for the same bet priced at two sites in a way that lets you buy both sides for less than the dollar they pay. On Kalshi and Polymarket you can buy either side outright: "yes" costs the ask, and the other side costs one minus the bid. Add each site's taker fee (Kalshi ${(100 * ACFG.ks_rate).toFixed(0)}¢ × its baseball multiplier × contracts × price × (1 − price), rounded up to the next cent on the order; Polymarket ${(100 * ACFG.pm_rate).toFixed(0)}¢ × shares × price × (1 − price)), and if the pair still comes to under $1 the difference is locked whatever happens on the field. Sportsbooks can join the pair too, priced by their odds with no fee on top.</p>

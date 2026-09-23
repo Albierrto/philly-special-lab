@@ -1,22 +1,40 @@
 """Model vs market at the best price: the same arithmetic the page's Best bets tab runs, in Python, so every pre-game
 build can log its value picks and the scorecard can grade them (profit per $1 at the logged price).
 
-fair chance  = average of the markets' own chances, margins removed (exchange midpoints when tight; DraftKings'
-               one-sided player prices divided by how rich they run against Kalshi today; sportsbook two-way lines
-               de-vigged side against side)
-blend        = w x model + (1 - w) x fair          (w by bet type, VALUE_CFG; small, see below)
+fair chance  = the markets' own chance, margins removed, anchored on the exchanges:
+                 exchange part = Kalshi midpoint (when the spread is 6c or less) and Polymarket midpoint (two-sided, 3c or
+                                 less from ask to mid), averaged
+                 book part     = DraftKings' one-sided price through a de-vig CURVE (DraftKings charges far more margin on
+                                 longshots: 1.6x Kalshi's number on a 4% homer, 1.12x on a 20% one), recentred each build
+                                 on that build's own DraftKings/Kalshi pairs
+                 fair = a x exchange + (1 - a) x book, a by bet type (VALUE_CFG ex_weight); sportsbook two-way game lines
+                 de-vigged side against side as before
+blend        = w x model + (1 - w) x fair          (w by bet type; zero for batter props, see below)
 cost         = what a $1 payout costs at the best site, both exchanges' taker fees included
 return / $1  = blend x (1 - push) / cost + push - 1
 price edge   = fair  x (1 - push) / cost + push - 1   (the market's own number against the best price: line shopping)
-Value        = price edge >= +2% and return >= +4%;  Slight = price edge >= 0 and return >= +1.5%
-capped       = model odds >= 1.6 x market odds -> no verdict, whatever the return
+Value        = price edge >= +4%, return >= +4% and at least 1.5c under the market's number on a $1 contract;
+               Slight = +2%, +2% and 1c
+capped       = model odds >= 1.6 x market odds -> no verdict (only where the model has weight: strikeouts, games)
 
-Why the weights are small and the cap exists (fitted 2026-09-20 on the first four graded days, 842 hitter-games and 94
-starts with model, DraftKings and Kalshi side by side): the weight that minimises log loss is 0.00-0.13 for every bet
-type, with 80% bands reaching 0.3-0.5, so the model adds little the markets do not already know. And on the 222 settled
-picks the return fell monotonically with how far the model sat above the market: under 1.15x the market's odds +62%,
-1.15-1.3x +16%, 1.3-1.6x +9%, 1.6-2x -43%, over 2x -81%. Selecting on disagreement selects the model's mistakes. The
-picks that paid were the ones where the best PRICE beat the market's own number.
+Refit 2026-09-23 on nine days of every pre-game board in git (52 snapshots, 6,340 graded bets at the last pre-game
+price, 25,000 candidate prices in all). What the record said:
+  * The model adds nothing to the markets on batter props: the log-loss-optimal weight is 0.00 for homers, hits and
+    total bases with day-bootstrap 80% bands of 0.00-0.00, 0.00-0.07 and 0.00-0.00; its disagreement with the market
+    points the wrong way (coefficient -0.14 to -0.23). Batter-prop weights are now zero, so the model can never
+    manufacture a pick; strikeouts 0.05, moneylines 0.03, totals 0.05.
+  * Kalshi's midpoint is the sharpest number for batter props (weight 1.00 against DraftKings in every day-bootstrap
+    for homers, band 0.89-1.00); DraftKings is at least as good for strikeouts. Hence ex_weight.
+  * DraftKings' markup over Kalshi rises steadily as the price falls (homers: 1.59x under 5c, 1.34x at 5-8c, 1.22x
+    at 8-12c, 1.16x at 12-18c; strikeout ladder 1.40x at the long end to 1.05x at the short end). One ratio per bet
+    type overstated every longshot's fair price, which is where the phantom 20-90% "edges" on long strikeout lines
+    came from, and the old daily ratio was also polluted by the alternate lines (2+ hits, 3+ total bases). The curve
+    is a logit quadratic fitted on 10,000 same-snapshot pairs; leave-one-day-out it cuts the error against Kalshi by
+    a third for hits, strikeouts and total bases.
+  * Price edges under 2% do not survive to first pitch (closing-line value -1% to -2%); 2-5% keep about half; 5%+
+    keep 70-80%. And an edge smaller than a cent or so is inside one price tick: a 15c homer 1c under a 15.5c Kalshi
+    midpoint reads as a 3% edge but held nothing by first pitch, while gaps of 1.5c and more kept +7% to +10%. Hence
+    the bars, in percent and in cents.
 """
 from __future__ import annotations
 import math
@@ -24,11 +42,18 @@ from collections import Counter
 from statistics import median
 
 VALUE_CFG = dict(
-    w=dict(hr=0.15, hit=0.10, tb=0.10, k=0.15, ml=0.05, tot=0.05),
-    dk_ratio=dict(hr=1.2, hit=1.07, tb=1.11, k=1.06),
-    good=0.04, lean=0.015, price_good=0.02, price_lean=0.0, cap_ratio=1.6,
-    ks_tight=0.06, min_ratio_pairs=8, pm_fee=0.05,
+    w=dict(hr=0.0, hit=0.0, tb=0.0, k=0.05, ml=0.03, tot=0.05),
+    ex_weight=dict(hr=0.85, hit=0.85, tb=0.7, k=0.5),
+    # DraftKings one-sided price -> fair, logit(fair) = c0 + c1 x + c2 x^2 with x = logit(DK), inside [lo, hi]; outside
+    # that range the curve's own ratio at the edge carries on (fitted 2026-09-23, 10,022 DK/Kalshi pairs)
+    dk_curve=dict(hr=[-0.2831, 0.847, -0.0642, 0.03, 0.40], hit=[-0.1226, 0.9804, -0.0766, 0.40, 0.85],
+                  tb=[-0.1645, 0.9578, -0.0847, 0.18, 0.65], k=[-0.1392, 0.9538, -0.0378, 0.03, 0.97]),
+    dk_shift_max=0.15, cap_kinds=["k", "ml", "tot"],
+    good=0.04, lean=0.02, price_good=0.04, price_lean=0.02, cap_ratio=1.6,
+    gap_good=0.015, gap_lean=0.01,      # and at least this far under the market in dollars per $1 contract (1.5c / 1c)
+    ks_tight=0.06, pm_tight=0.03, min_ratio_pairs=8, pm_fee=0.05,
 )
+BET_KEYS = {"hr1", "hit1", "tb2"} | {f"k{n}" for n in range(1, 17)}     # the lines the engine prices (alt lines excluded)
 KIND_KEY = dict(hr="hr1", hit="hit1", tb="tb2")
 
 
@@ -62,10 +87,14 @@ def ks_tight_mid(entry, cfg):
     return (bid + ask) / 2 if (bid and ask and bid > 0 and ask > 0 and ask - bid <= cfg["ks_tight"]) else None
 
 
-def pm_mid(entry):
+def pm_mid(entry, cfg=VALUE_CFG):
+    """Polymarket midpoint, only when the book is two-sided and tight (entry = [mid, ask, bid])"""
     if not entry: return None
     m = entry[0]
-    return m if (m is not None and 0 < m < 1) else None
+    if m is None or not (0 < m < 1): return None
+    ask = entry[1] if len(entry) > 1 else None
+    if ask is not None and ask - m > cfg.get("pm_tight", 1): return None
+    return m
 
 
 def pm_fee(p, rate=VALUE_CFG["pm_fee"]):
@@ -99,27 +128,54 @@ def player_offers(sl, who, key, games):
     return sorted(out, key=lambda o: o["cost"])
 
 
-def dk_ratios(sl, games, cfg):
+def _lg(p): return math.log(p / (1 - p))
+def _sg(z): return 1 / (1 + math.exp(-z))
+
+
+def dk_curve(series, p, cfg=VALUE_CFG, shift=0.0):
+    """DraftKings' one-sided price -> its fair chance, through the fitted de-vig curve (see the module docstring)"""
+    if p is None or not (0 < p < 1): return None
+    c0, c1, c2, lo, hi = cfg["dk_curve"][series]
+    def f(q):
+        x = _lg(q); return _sg(c0 + c1 * x + c2 * x * x + shift)
+    if p < lo: return f(lo) * p / lo
+    if p > hi: return 1 - (1 - f(hi)) * (1 - p) / (1 - hi)
+    return f(p)
+
+
+def dk_shifts(sl, games, cfg):
+    """Per bet type, how far today's DraftKings prices sit from the curve against Kalshi's tight midpoints (median logit
+    residual over this build's pairs, the lines the engine prices only); zero when there are too few pairs."""
     pre = {pk for pk, g in games.items() if g["state"] == "Preview"}
-    pairs = {k: [] for k in ("hr", "hit", "tb", "k")}
+    res = {k: [] for k in ("hr", "hit", "tb", "k")}
     for w in sl["hitters"] + sl["pitchers"]:
         if w["pk"] not in pre: continue
         for key, d in ((w.get("mk") or {}).get("dk") or {}).items():
+            if key not in BET_KEYS or not d or not d[1]: continue
             mid = ks_tight_mid(mk(w, "ks", key), cfg)
-            if mid and mid > 0.03 and d and d[1]:
-                pairs[series_of(key)].append(d[1] / mid)
-    return {k: (median(v) if len(v) >= cfg["min_ratio_pairs"] else cfg["dk_ratio"][k]) for k, v in pairs.items()}
+            if mid is None or not (0.03 < mid < 0.97): continue
+            ser = series_of(key); f = dk_curve(ser, d[1], cfg)
+            if f and 0 < f < 1: res[ser].append(_lg(mid) - _lg(f))
+    m = cfg["dk_shift_max"]
+    return {k: (max(-m, min(m, median(v))) if len(v) >= cfg["min_ratio_pairs"] else 0.0) for k, v in res.items()}
 
 
-def prop_fair(who, key, ratios, cfg):
-    F = []
+def dk_ratios(sl, games, cfg):          # kept for callers of the old name; the engine now uses dk_shifts
+    return dk_shifts(sl, games, cfg)
+
+
+def prop_fair(who, key, shifts, cfg):
+    ser = series_of(key); ex = []
     km = ks_tight_mid(mk(who, "ks", key), cfg)
-    if km is not None: F.append(km)
-    pmm = pm_mid(mk(who, "pm", key))
-    if pmm is not None: F.append(pmm)
+    if km is not None: ex.append(km)
+    pmm = pm_mid(mk(who, "pm", key), cfg)
+    if pmm is not None: ex.append(pmm)
     d = mk(who, "dk", key)
-    if d and d[1]: F.append(min(0.99, d[1] / ratios[series_of(key)]))
-    return sum(F) / len(F) if F else None
+    book = dk_curve(ser, d[1], cfg, shifts.get(ser, 0.0)) if (d and d[1]) else None
+    if ex and book is not None:
+        a = cfg["ex_weight"][ser]; return a * sum(ex) / len(ex) + (1 - a) * book
+    if ex: return sum(ex) / len(ex)
+    return book
 
 
 def odds(p):
@@ -133,10 +189,11 @@ def assess(kind, p_model, fair, offers, cfg, push=0.0):
     ev = blend * (1 - push) / best["cost"] + push - 1
     price_edge = fair * (1 - push) / best["cost"] + push - 1
     ratio = odds(p_model) / odds(fair)
-    capped = ratio >= cfg["cap_ratio"]
+    capped = ratio >= cfg["cap_ratio"] and kind in cfg.get("cap_kinds", (kind,))
+    gap = price_edge * best["cost"]          # expected profit per contract that pays $1, on the market's own number
     if capped: verdict = 0
-    elif price_edge >= cfg["price_good"] and ev >= cfg["good"]: verdict = 2
-    elif price_edge >= cfg["price_lean"] and ev >= cfg["lean"]: verdict = 1
+    elif price_edge >= cfg["price_good"] and ev >= cfg["good"] and gap >= cfg.get("gap_good", 0): verdict = 2
+    elif price_edge >= cfg["price_lean"] and ev >= cfg["lean"] and gap >= cfg.get("gap_lean", 0): verdict = 1
     else: verdict = 0
     return dict(p_model=p_model, fair=fair, blend=blend, site=best["site"], cost=best["cost"], label=best["label"], ev=ev,
                 price_edge=price_edge, ratio=ratio, capped=capped, verdict=verdict, push=push, n_sites=len(offers))
@@ -238,7 +295,7 @@ def game_fair(g, rows, main, kind, side, cfg):
 
 def value_bets(sl: dict, cfg: dict = VALUE_CFG) -> list[dict]:
     games = {g["pk"]: g for g in sl["games"]}
-    ratios = dk_ratios(sl, games, cfg)
+    ratios = dk_shifts(sl, games, cfg)
     out = []
     for h in sl["hitters"]:
         if games[h["pk"]]["state"] != "Preview" or h.get("zsp") is None: continue
