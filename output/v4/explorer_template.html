@@ -160,8 +160,8 @@ td.neg{color:var(--cold)}
 .bocard{cursor:pointer}
 .bo-ev{margin:8px 0 0;font-size:12px;line-height:1.4;color:var(--ink2)}
 .bo-ev b{color:var(--ink)}
-.skl{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 0}
-.skl span{font-family:var(--font-m);font-size:11px;line-height:1;padding:4px 6px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.skl{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 0;min-width:0;max-width:100%}
+.skl span{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-m);font-size:11px;line-height:1;padding:4px 6px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
 .skl span em{font-style:normal;color:var(--ink3);margin-left:3px}
 .skl span.hi{border-color:color-mix(in srgb,var(--good) 45%,transparent);background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--ink)}
 .skl span.lo{border-color:color-mix(in srgb,var(--bad) 40%,transparent);background:color-mix(in srgb,var(--bad) 10%,transparent);color:var(--ink)}
@@ -476,8 +476,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <div class="pagehead"><div><h1>Trades</h1><p class="lede">Start from a player in the <b>deal desk</b>, or put players and draft picks on each side of the <b>analyzer</b> and see what the trade does to <b>both</b> teams, in this league's points. Built for a keeper league: only the five hitters and two pitchers a team keeps carry any value into next year, so a player is worth what he adds to <i>that team's</i> best keeper group, not a number in a vacuum.</p></div>
     <div class="seg" role="group" id="trade-mode"><button aria-pressed="true" data-tmode="off">Offseason (keepers + picks)</button><button aria-pressed="false" data-tmode="now">Right now (adds this week's points)</button></div></div>
   <div class="explain"><details><summary>How a trade is scored</summary>
-    <ul><li><b>Value next year</b> = a player's projected 2027 points minus what a replacement-level player would give you (the best bat or arm sitting on waivers). We call that <b>points above replacement</b>.</li>
-    <li><b>Keeper value</b> looks past 2027 too: next year counts in full, 2028 at 60% and 2029 at 35%, with each player aged along the league's own aging curve. A 24-year-old and a 33-year-old with the same 2027 projection are not the same asset.</li>
+    <ul><li><b>Value next year</b> = what a player beats a free agent by on the days he plays: projected 2027 points minus about 3.5 a game for a hitter (a little less at catcher) and 7.2 a start for a pitcher. Those rates were measured by replaying 2026 in this league's format. We call that <b>points above replacement</b>.</li>
+    <li><b>Keeper value</b> looks past 2027 too, as an option: in 2028 and 2029 a player only adds what he is expected to beat the league's keeper line by, because that is the only way he gets kept again, discounted 0.8 a year and aged along the league's own curve. A 24-year-old star and a 33-year-old with the same 2027 projection are not the same asset; a player who will not be keeper-worthy next year carries almost nothing past 2027.</li>
     <li><b>Team effect</b>: we rebuild each team's best keeper group (5 hitters + 2 pitchers) before and after the trade. A sixth good hitter is only worth what he adds over the fifth one he pushes out; a player who would not be kept is worth nothing for next year because he goes back into the draft.</li>
     <li><b>Draft picks</b> are valued from two halves: what the 2027 board says is left at that pick after every team's likely keepers are removed, and what picks at that slot have actually returned in this league's 2024–2026 drafts. The draft is fixed order (no snake), so a team's round-2 pick is the same slot as its round-1 pick, 12 picks later. Slots come from the final regular-season standings: 9th–12th place pick 1–4 in that order, then 8th down to 1st.</li>
     <li><b>Right now</b> mode also adds each hitter's and pitcher's expected points for the rest of this week, from the Streamers model.</li>
@@ -636,7 +636,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   <h2>Keepers and the 2027 draft pool</h2>
   <div class="filters"><label>Team <select id="k-owner"></select></label></div>
   <div class="dash" id="k-verdict"></div>
-  <div class="explain"><details><summary>How the boards below work</summary><p style="margin:6px 0 0">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b> — points above replacement over 2027 in full, 2028 at 60% and 2029 at 35% — because a keeper can be kept again, so two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is the old single-season number, kept as a cross-check. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p></details></div>
+  <div class="explain"><details><summary>How the boards below work</summary><p style="margin:6px 0 0">Each team keeps 5 hitters and 2 pitchers; the draft only holds what is left. The board is ordered by <b>multi-year value</b>: 2027 points above replacement (what he beats a free agent by on the days he plays), plus the option to keep him again in 2028 and 2029 for whatever he is expected to beat the league's keeper line by, discounted 0.8 a year. Two players with the same 2027 projection are not worth the same slot if one is 24 and the other 34. <b>Keep vs draft</b> is that value minus what this team's own first-round pick is worth to them: positive means the slot beats drafting the best man left, and <b>surplus</b> means he clears that bar but someone else on the roster clears it by more. <b>2027 only</b> is his 2027 points above replacement alone. The same keeper groups are used on My team, on the Trades page and to build the draft pool, so nothing on the site disagrees about who a team keeps. A two-way player counts as a <b>pitcher</b> keeper on any roster where his arm earns one of the two slots, and his bat is added to his pitcher value.</p></details></div>
   <div class="grid2">
     <div>
       <h3>Hitter keeper board</h3>
@@ -774,12 +774,20 @@ keeper value 2nd = projected points − projected points of the player ranked (k
 hitters and pitchers each have their own board; a two-way player kept as a pitcher carries pitching + hitting projection</div></details>
 
   <h3>Trade value and draft picks</h3>
-  <p class="plain">A trade is scored by rebuilding each team's best keeper group (5 hitters + 2 pitchers) before and after. A player's worth to a team is what he adds to that group in <b>points above replacement</b>, counting 2027 in full, 2028 at 60% and 2029 at 35%, aged along the curves above. A draft pick is worth half of what the 2027 board says is left at that pick and half of what picks at that slot have actually returned in this league since 2024 (a bust counts as zero: you drop him and stream the spot).</p>
-  <details class="math"><summary>Show the math</summary><div class="formula">points above replacement (PAR) = projected points − projected points of the (12 × 13)th hitter or (12 × 7)th starting pitcher on the board
-value(player, year) = PAR_2027 + 0.6 × max(0, PAR_2028) + 0.35 × max(0, PAR_2029), each year aged by the hitter or pitcher aging curve
+  <p class="plain">A trade is scored by rebuilding each team's best keeper group (5 hitters + 2 pitchers) before and after. A player's worth to a team is what he adds to that group in keeper value: 2027 points above replacement (projected points minus about 3.5 a game for a hitter, 7.2 a start for a pitcher, rates measured by replaying 2026 in this league's format), plus the option to keep him again in 2028 and 2029 for what he is expected to beat the league's keeper line by, discounted 0.8 a year and aged along the curves above. A draft pick is worth half of what the 2027 board says is left at that pick and half of what picks at that slot have actually returned in this league since 2024 (a bust counts as zero: you drop him and stream the spot).</p>
+  <details class="math"><summary>Show the math</summary><div class="formula">hitter PAR = projected points − r_pos × projected games      (games = projected PA ÷ his own PA per game)
+r = projected points per game of the 150th-best regular (1.25 × 12 teams × 10 hitters); r_pos = the lower of r and the
+    15th-best at that position (45th in the outfield). 2027 board: 3.53 everywhere, catcher 3.39, utility-only = r
+pitcher PAR = projected starts × (projected points per start − 7.2)   (+ his bat's PAR for a two-way player)
+    calibration: 2026 replayed game by game in this league's format (real rosters, daily lineups, 10-start cap, free
+    agents streamed with the 12 teams competing); each player's value = team season points with him − without him.
+    hitters: value ≈ points − 3.6 × games (R² .75; points − a fixed season total: R² .21); pitchers: points − 7.2 × starts (R² .85)
+value(player) = PAR_2027 + 0.8 × E[max(0, PAR_2028 − line)] + 0.64 × E[max(0, PAR_2029 − line)]
+    line = PAR of the 60th hitter / 24th starter (the league's keeper line); E[·] over a normal with sd 0.35 × (2028) and
+    0.5 × (2029) the projection's error, how far a value estimate moves in a year; each year aged by the league's curve
 team keeper value = Σ value over its best 5 hitters + best 2 pitchers (others return to the draft and count 0)
 trade effect on a team = keeper value after − before  + Σ picks received − Σ picks given  (+ this week's expected points in "right now" mode)
-pick value(k) = 0.5 × PAR of the k-th best player left after likely keepers + 0.5 × smoothed realized PAR of pick k in the 2024-26 drafts
+pick value(k) = 0.5 × value of the k-th best player left after likely keepers + 0.5 × smoothed realized PAR of pick k in the 2024-26 drafts (same per-game / per-start footing)
 pick k for a team = (round − 1) × 12 + its draft slot (fixed order, no snake); a pick a year further out is worth 80%</div></details>
 
   <h3>League fit</h3>
@@ -949,7 +957,10 @@ function prescore(){
     const eraV = q.map(r=>(lgERA-r.ERA)*r.IP/9), whipV = q.map(r=>(lgWHIP-r.WHIP)*r.IP); const z2=(arr)=>{const mu=arr.reduce((a,b)=>a+b,0)/arr.length; const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-mu)**2,0)/arr.length)||1; return [mu,sd];}; const [em,es]=z2(eraV), [wm,ws]=z2(whipV);
     for (const r of pool){ let z=0; for (const c of ['W','K','SV']) z += ((r[c]||0)-st[c][0])/st[c][1]; z += ((lgERA-r.ERA)*r.IP/9-em)/es + ((lgWHIP-r.WHIP)*r.IP-wm)/ws; r.roto_c = z; r.val = MODE==='roto' ? z : r.pts_c; }
     const sorted = pool.slice().sort((a,b)=>b.val-a.val); sorted.forEach((r,i)=>r.rank_c=i+1);
-    const repl = sorted[Math.min(TEAMS*PSTART+TEAMS-1, sorted.length-1)]?.val ?? 0; for (const r of pool) r.LPAR_c = r.val - repl;
+    // points mode: what he beat a streamed start by, start for start (7.2 points in this league's scoring, measured by replaying
+    // 2026 under the 10-start cap); roto keeps the old ranked baseline
+    if (MODE === 'roto'){ const repl = sorted[Math.min(TEAMS*PSTART+TEAMS-1, sorted.length-1)]?.val ?? 0; for (const r of pool) r.LPAR_c = r.val - repl; }
+    else for (const r of pool) r.LPAR_c = r.val - 7.2*(r.GS||0);
   }
 }
 const XMAP = {'1B':'x1B','2B':'x2B','3B':'x3B','HR':'xHR','R':'xR','RBI':'xRBI'};
@@ -972,9 +983,20 @@ function rescore(){
     for (const r of pool) r.val = MODE==='roto' ? r.roto_c : r.pts_c;
     // ranks + replacement (UT-style) + ADP expected curve
     const sorted = pool.slice().sort((a,b)=>b.val-a.val); sorted.forEach((r,i)=>r.rank_c=i+1);
-    const nslots = TEAMS*HSTART; const replAll = sorted[Math.min(nslots+2*TEAMS-1, sorted.length-1)]?.val ?? 0;
-    const cs = sorted.filter(r=>(r.elig||'').split('/').includes('C')); const replC = cs[Math.min(TEAMS*(D.meta.positions.C||1)+1, cs.length-1)]?.val ?? replAll;
-    for (const r of pool){ const isC=(r.elig||'').split('/').includes('C'); r.repl_c = Math.min(replAll, isC?replC:replAll); r.LPAR_c = r.val - r.repl_c; }
+    if (MODE === 'roto'){
+      const nslots = TEAMS*HSTART; const replAll = sorted[Math.min(nslots+2*TEAMS-1, sorted.length-1)]?.val ?? 0;
+      const cs = sorted.filter(r=>(r.elig||'').split('/').includes('C')); const replC = cs[Math.min(TEAMS*(D.meta.positions.C||1)+1, cs.length-1)]?.val ?? replAll;
+      for (const r of pool){ const isC=(r.elig||'').split('/').includes('C'); r.repl_c = Math.min(replAll, isC?replC:replAll); r.LPAR_c = r.val - r.repl_c; }
+    } else {
+      // points above replacement for the season, on the same per-game footing as the 2027 value engine (see computeValues):
+      // what he beat the free-agent rate by on the days he played. Rate = the season's 150th-best regular by points per
+      // game; a catcher's is the 15th catcher's if that is lower.
+      const reg = pool.filter(r=>(r.G||0)>=100).map(r=>r.pts_c/r.G).sort((a,b)=>b-a); const n = Math.round(1.25*TEAMS*HSTART);
+      const rS = reg.length ? reg[Math.min(n, reg.length)-1] : 0;
+      const cr = pool.filter(r=>(r.G||0)>=100 && (r.elig||'').split('/').includes('C')).map(r=>r.pts_c/r.G).sort((a,b)=>b-a);
+      const rC = cr.length >= Math.round(1.25*TEAMS) ? Math.min(rS, cr[Math.round(1.25*TEAMS)-1]) : rS;
+      for (const r of pool){ const isC=(r.elig||'').split('/').includes('C'); r.repl_c = isC ? rC : rS; r.LPAR_c = r.val - r.repl_c*(r.G||0); }
+    }
     // ADP curve: bins of 12 ranks, median value, monotone (cummin), interpolate
     const dr = pool.filter(r=>r.adp_hitter_rank!=null).sort((a,b)=>a.adp_hitter_rank-b.adp_hitter_rank);
     const bins=[]; for(let i=0;i<dr.length;i+=12){ const b=dr.slice(i,i+12).map(r=>r.val).sort((a,b)=>a-b); bins.push([dr[Math.min(i+6,dr.length-1)].adp_hitter_rank, b[Math.floor(b.length/2)]]); }
@@ -994,18 +1016,18 @@ const TERMS = [
  {k:'pts_gs', name:'Points per start', also:'Pts / start, Pts/GS', what:"A pitcher's points divided by his starts. 10 is an ace, 7 is a solid starter, 4 is a streamer you regret."},
  {k:'xLP', name:'Deserved points', also:'xLP, expected league points', what:"What a hitter should have scored given how hard and where he hit the ball (Statcast expected stats), instead of what actually fell in. Walks, hit-by-pitches and steals stay real.", ex:"620 points with 560 deserved means 60 points of luck; expect him to cool off."},
  {k:'luck', name:'Luck', what:"Points minus deserved points. Positive: his hits fell in more than they should have (sell high). Negative: he was robbed (buy low)."},
- {k:'LPAR', name:'Points above replacement', also:'LPAR, Above repl.', what:"Points above the best free agent you could plug in at his position. It is how a shortstop and a first baseman get compared fairly."},
+ {k:'LPAR', name:'Points above replacement', also:'LPAR, Above repl.', what:"What he beat a free agent by, on the days he actually played: his points minus the free-agent rate times his games (a hitter) or starts (a pitcher). The rates come from replaying the 2026 season in this league's format: about 3.6 points a game for a hitter at any position except catcher, a little lower there, and 7.2 points a start for a pitcher. A missed game is not held against him, because the slot is filled from the bench or the wire at about that rate.", ex:"Pete Crow-Armstrong's 954 points in 156 games is 6.1 a game, 2.5 over the rate, so about 390 above replacement; an everyday hitter scoring 3.6 a game is worth nothing however many points he piles up."},
  {k:'over', name:'Beat draft slot by', also:'vs ADP', what:"How many more points he produced than the typical hitter drafted where he was drafted that year (market ADP)."},
  {k:'BI', name:'Breakout %', also:'BI, Breakout Index', what:"The model's chance that next season is new territory for THIS hitter: a career-best points-per-PA rate at least 0.08 above his previous best, over 350+ plate appearances, finishing top-90. It is only shown for hitters it applies to \u2014 someone who has already been a top-90 bat, or who already made his jump this season, gets a dash instead, because the question does not apply to him. See the Breakouts tab for who already broke out and who might be next.", ex:"Cam Smith at 62 has never had a big season and the skills say one is coming; Aaron Judge gets a dash, not a 4, because he has been in new territory for six years."},
 
  {k:'proj', name:'2027 projection', also:'Proj, Proj pts', what:"Expected points next year: his rate (three parts skills model, one part his own last three seasons, moved a step along the aging curve) times the plate appearances or starts he can be expected to get, trimmed for recent injury history.", ex:"Acuña: an elite 1.03 pts/PA but 582 PA after three injury-shortened years, so 600 points and 48th, not top-10."},
  {k:'proj600', name:'2027 per 600 PA', also:'Proj/600', what:"The projection scaled to a full 600 plate appearances, so a part-timer's rate can be compared with a regular's."},
  {k:'pace', name:'PA pace', what:"Plate appearances per 162 team games while he was on the active roster. A late call-up or an injured month does not count against him."},
- {k:'KSV', name:'Keeper value (2027 only)', also:'KSV, Keeper Surplus Value', what:"Projected 2027 points minus what the best player still on the draft board at a first-round pick would give you, for that one season and with no aging. A useful sanity check, but it is no longer what decides who a team keeps — see Keep vs draft.", ex:"Kurtz at +280 means he projects 280 points better than the best hitter anyone could draft in round one."},
- {k:'DV', name:'Multi-year value', also:'DV, three-year value', what:"Points above replacement over the next three seasons: 2027 in full, 2028 at 60%, 2029 at 35%, aged along the hitter or pitcher curve. This is the number that decides each team's keeper group, because a keeper can be kept again the following year, so a 34-year-old and a 24-year-old with the same 2027 projection are not worth the same slot.", ex:"Trea Turner and Geraldo Perdomo project within a few points for 2027, but Perdomo's three-year value is 246 to Turner's 182, so Perdomo takes the slot."},
+ {k:'KSV', name:'Keeper value', also:'KSV, keep or draft', what:"Keeping him against spending his team's own first-round pick on the best man left. Both sides are on the keeper scale: points above replacement in 2027, plus the chance to keep him again in 2028 and 2029 for whatever he beats the league's keeper line by. Positive means keep him rather than let him go back in the pool. For a free agent it is measured against a typical first-round pick.", ex:"+150 means keeping him beats your first-rounder by about 150 points of keeper value; a negative number means the pick is worth more."},
+ {k:'DV', name:'Multi-year value', also:'DV, keeper-scale value', what:"The number that decides each team's keepers. His 2027 points above replacement in full, plus the option to keep him again: in 2028 and 2029 only what he is expected to beat the league's keeper line by counts (the 60th hitter, the 24th starter), discounted 0.8 a year and allowing for how far his estimate can move before the next deadline. A man who will not be keeper-worthy next year carries almost nothing past 2027; a young star carries a lot.", ex:"Bobby Witt Jr.: 274 above replacement in 2027 and about 280 more from the option to keep him in 2028 and 2029, 555 in all."},
  {k:'KV', name:'Keep vs draft', also:'KV_c', what:"Multi-year value minus what that team's own first-round pick is worth to them. Positive means a keeper slot beats simply drafting the best man left; negative means let him go back in the pool and take the pick. It is on the same three-year scale as everything on the Trades page, so the verdict here and the keep pill can never disagree.", ex:"A hitter at +180 is worth keeping by about a first-round pick and a half."},
- {k:'PAR', name:'Points above replacement, 2027', also:'PAR', what:"Projected 2027 points minus a replacement-level player (the best bat or arm you could get off waivers). The unit the trade analyzer and the draft pick values use."},
- {k:'dyn', name:'Keeper value, multi-year', what:"Used by the trade analyzer: points above replacement for 2027 in full, plus 60% of 2028 and 35% of 2029, aging the player each year along the league's own aging curve."},
+ {k:'PAR', name:'Points above replacement, 2027', also:'PAR', what:"What he is projected to beat a free agent by in 2027, on the days he plays: projected points minus the free-agent rate times his projected games (a hitter) or starts (a pitcher). The unit the trade analyzer and the draft pick values use."},
+ {k:'dyn', name:'Keeper value, multi-year', what:"Used by the trade analyzer and the keeper boards: 2027 points above replacement, plus the option to keep him again in 2028 and 2029 for what he is expected to beat the league's keeper line by, discounted 0.8 a year and aged along the league's own curve."},
  {k:'pick', name:'Draft pick value', what:"What a pick is worth in points above replacement: half from what the 2027 board says is left at that pick after every team's likely keepers, half from what picks at that slot actually returned in this league's 2024–2026 drafts."},
  {k:'exp', name:'Expected points (a day or a start)', also:'Exp pts', what:"Hitter: points per PA × usual PA per game, nudged for the opposing starter, lefty/righty, park, weather, home field and the last 30 days. Pitcher: points per start nudged for the opposing lineup, park and weather, plus a strikeout bonus."},
  {k:'nudge', name:'Nudges (×SP, ×Park, ×Weather …)', also:'Mult', what:"The multipliers behind an expected-points number. 1.10 means +10%. \"Total nudge\" is all of them multiplied together."},
@@ -1061,7 +1083,7 @@ const COLS = [
   {k:'sprint_speed',l:'Sprint',g:'Speed',f:'1',dir:1,def:true},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_pa',l:'Career best /PA',g:'Career',f:'3',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'3',dir:1},{k:'seasons_200',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_PA',l:'Career PA',g:'Career',f:'int',dir:0},{k:'pipeline_rank',l:'Pipeline',g:'Career',f:'int',dir:-1},{k:'PAS',l:'Prospect score',g:'Career',f:'1',dir:1},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1,title:'keeping him against his team\'s own first-round pick, on the keeper scale (see Glossary)'},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 COLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const CI = Object.fromEntries(COLS.map(c=>[c.k,c]));
@@ -1078,7 +1100,7 @@ const PCOLS = [
   {k:'fb_velo',l:'FB velo',g:'Arsenal',f:'1',dir:1,def:true},{k:'movement_uniqueness',l:'Mvmt uniq',g:'Arsenal',f:'2',dir:1},{k:'n_pitches_10',l:'# pitches',g:'Arsenal',f:'int',dir:1},{k:'arsenal_whiff',l:'Ars whiff',g:'Arsenal',f:'1',dir:1},{k:'arsenal_putaway',l:'Put-away',g:'Arsenal',f:'1',dir:1},{k:'arsenal_rv100',l:'Ars RV/100',g:'Arsenal',f:'2',dir:1},{k:'best_pitch',l:'Best',g:'Arsenal',t:'txt',def:true},{k:'best_pitch_whiff',l:'Best whiff',g:'Arsenal',f:'1',dir:1},{k:'n_plus_pitches',l:'Plus pitches',g:'Arsenal',f:'int',dir:1},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_gs',l:'Career best /GS',g:'Career',f:'1',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'1',dir:1},{k:'seasons_10gs',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_GS',l:'Career GS',g:'Career',f:'int',dir:0},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'ip_gs_last',l:'IP / start',g:'2027 (this season only)',f:'2',dir:1,title:'how long they actually let him go this year. It barely persists - regressed on next year it has a slope of 0.10, so nine tenths of a short leash comes off - which is why the track record is carried as points per INNING and re-expressed at a normal leash.'},{k:'comeback',l:'1st yr back',g:'2027 (this season only)',render:v=>v?'<span class="pill w" title="last season was lost (8 starts or fewer) and the one before it was a real season. On the 11 such cases in this data the model came in 1.5 points per start LOW and those pitchers gained 2.2 a start the next year, against -0.3 for everyone else. Too few to fit a coefficient on, so it is flagged, not applied.">back</span>':''},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'ip_gs_last',l:'IP / start',g:'2027 (this season only)',f:'2',dir:1,title:'how long they actually let him go this year. It barely persists - regressed on next year it has a slope of 0.10, so nine tenths of a short leash comes off - which is why the track record is carried as points per INNING and re-expressed at a normal leash.'},{k:'comeback',l:'1st yr back',g:'2027 (this season only)',render:v=>v?'<span class="pill w" title="last season was lost (8 starts or fewer) and the one before it was a real season. On the 11 such cases in this data the model came in 1.5 points per start LOW and those pitchers gained 2.2 a start the next year, against -0.3 for everyone else. Too few to fit a coefficient on, so it is flagged, not applied.">back</span>':''},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1,title:'keeping him against his team\'s own first-round pick, on the keeper scale (see Glossary)'},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 PCOLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const PCI = Object.fromEntries(PCOLS.map(c=>[c.k,c]));
@@ -2075,8 +2097,8 @@ const boPill = r => { const st = boStatus(r);
 let tK, tPool, tKY, tPK, tPPool;
 const tierPill = v=>`<span class="pill ${v==='lock'?'r':v==='clear keep'?'g':v==='marginal'?'w':v==='surplus'?'b':'n'}">${v}</span>`;
 // The seven a team would keep, with the arithmetic that chose them showing. Keeper value is one number on one scale:
-// points above a replacement starter in 2027, plus 60% of 2028 and 35% of 2029, so a 33-year-old and a 26-year-old
-// with the same 2027 projection do not come out equal. The gap column is what actually decides a slot.
+// 2027 points above replacement plus the options to keep him again (see computeValues), so a 33-year-old and a
+// 26-year-old with the same 2027 projection do not come out equal. The gap column is what actually decides a slot.
 function renderVerdict(V, o){
   const sgn = v => (v>=0?'+':'\u2212') + Math.round(Math.abs(v));
   const hs = (V.byO[o]||[]).slice().sort((a,b)=>b.DV_c-a.DV_c);
@@ -2087,35 +2109,30 @@ function renderVerdict(V, o){
     const rows = list.slice(0, n+2).map((r,i)=>{
       const out = i>=n, ref = out ? last : cut, gap = ref==null ? null : r.DV_c - ref;
       return `<tr class="${out?'out':''}"><td class="l">${out?'':i+1}</td>
-        <td class="l name" data-${kind}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(kind==='p'?'SP':eligN(r))} \u00b7 age ${(r.age||0).toFixed(0)}${kind==='h'&&r.scarce_c>0?` \u00b7 <b class="sc" title="scarcity credit: what this position is worth over the deepest one on the field">+${r.scarce_c}${(r.elig||'').includes('/')?' at '+esc(r.pos_c):''}</b>`:''}${out?' \u00b7 on the bubble':''}</span></td>
+        <td class="l name" data-${kind}="${r.mlbam_id}">${esc(r.name)}<span class="sub">${esc(kind==='p'?'SP':eligN(r))} \u00b7 age ${(r.age||0).toFixed(0)}${kind==='h'&&r.scarce_c>0?` \u00b7 <b class="sc" title="position credit: a replacement ${esc(r.pos_c)} scores less a game than the league-wide free-agent rate, so every game he plays at ${esc(r.pos_c)} is worth that much more">+${r.scarce_c} at ${esc(r.pos_c)}</b>`:''}${out?' \u00b7 on the bubble':''}</span></td>
         <td>${Math.round(r.proj_pts + (kind==='p'?(r.proj_pts_hitting||0):0))}<small>${r.proj_pts_hitting>0?'arm + bat':'\u00b1'+Math.round(r.proj_sd||0)}</small></td>
-        <td>${sgn(r.PAR_c)}</td><td>${sgn(r.PAR28_c)}</td><td>${sgn(r.PAR29_c)}</td>
-        <td><b>${Math.round(r.DV_c)}</b><small class="yrs">'28 ${sgn(r.PAR28_c)}<br>'29 ${sgn(r.PAR29_c)}</small></td>
+        <td>${sgn(r.PAR_c)}<small> \u00b7 ${kind==='p' ? `${(r.pgs27_c||0).toFixed(1)} a start` : `${(r.ppg27_c||0).toFixed(2)} a game`}</small></td><td>+${Math.round(r.F28_c||0)}</td><td>+${Math.round(r.F29_c||0)}</td>
+        <td><b>${Math.round(r.DV_c)}</b><small class="yrs">'28 +${Math.round(r.F28_c||0)}<br>'29 +${Math.round(r.F29_c||0)}</small></td>
         <td class="${gap!=null&&gap<0?'neg':''}">${gap==null?'\u2014':sgn(gap)}</td></tr>`;}).join('');
     return `<div class="tblwrap" style="max-height:none"><table class="mini kbig"><thead><tr>
       <th class="l">#</th><th class="l">${kind==='p'?'Pitcher':'Hitter'}</th><th title="2027 projected points, with the model's own measured error">2027 proj</th>
-      <th title="projected points above a replacement starter in 2027">vs repl</th><th title="the same, aged one year">2028</th><th title="the same, aged two years">2029</th>
-      <th title="2027 + 0.6 x 2028 + 0.35 x 2029">Keeper value</th><th title="keeper value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <th title="2027 points above replacement: what he beats a free agent by on the days he plays">2027 vs repl</th><th title="the option to keep him again in 2028: what he is expected to beat the league's keeper line by, discounted">'28 option</th><th title="the same for 2029">'29 option</th>
+      <th title="2027 vs replacement + the 2028 and 2029 options">Keeper value</th><th title="keeper value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   };
-  const rp0 = Object.entries(V.replPos||{}).filter(([p])=>p!=='UT'), deep0 = Math.max(...rp0.map(([,v])=>v));
-  const scarceLine = rp0.map(([p,v])=>[p, Math.round(deep0-v)]).sort((a,b)=>b[1]-a[1]).map(([p,d])=>`${p} +${d}`).join(', ');
-  // why two positions that feel nothing alike can earn the same credit
-  const pt = (V.posTable||[]).slice(); const deepR = Math.max(...pt.map(x=>x.rep), 0);
-  const dedKeys = Object.keys(V.replPos||{}).filter(k=>k!=='UT');
-  const deepP = dedKeys.length ? Math.max(...dedKeys.map(k=>V.replPos[k])) : 0;   // the credit exactly as the board applies it
-  const lgAvg = pt.length ? pt.reduce((a,x)=>a+x.avg*x.slots,0)/pt.reduce((a,x)=>a+x.slots,0) : 0;
-  const sgn0 = v => (v>=0?'+':'\u2212')+Math.round(Math.abs(v));
-  const posBlock = !pt.length ? '' : `<details style="margin-top:10px"><summary>Why a position earns what it earns</summary>
-    <p class="hint" style="margin:8px 0">Rank everyone eligible at a spot by projection. The first ${TEAMS} (${3*TEAMS} in the outfield) are the starters; <b>replacement</b> is the average of the next five, the men you would actually be playing there without one of the ${TEAMS}. The credit is how far a spot's replacement sits below the deepest spot's. <b>Strength</b> is how good the ${TEAMS} starters are, shown because people ask, but it earns nothing: a strong position is one full of men whose own projections are already high, and paying them again for it would count the same goodness twice.</p>
-    <div class="tblwrap" style="max-height:none"><table class="mini kbig posgrid"><thead><tr><th class="l">Pos</th><th>Slots</th><th>Best</th><th title="mean projection of the top ${TEAMS} men eligible here">Starters avg</th><th title="strength: starters average against the league-wide starter average">Strength</th><th title="mean of the five men ranked just past the starters at this spot">Replacement</th><th title="how far the last starter sits above replacement: how hard you fall if yours goes down">Cliff</th><th>Credit</th></tr></thead><tbody>
-    ${pt.slice().sort((a,b)=>a.rep-b.rep).map(x=>`<tr><td class="l"><b>${x.pos}</b><span class="sub">${x.eligible} eligible</span></td><td>${x.slots}</td><td>${Math.round(x.best)}</td><td>${Math.round(x.avg)}</td><td class="${x.avg>=lgAvg?'':'neg'}">${sgn0(x.avg-lgAvg)}</td><td title="${esc((x.next||[]).join(', '))}">${Math.round(x.rep)}</td><td>${Math.round(x.cliff)}</td><td><b>+${Math.round(deepP - (V.replPos[x.pos] ?? deepP))}</b></td></tr>`).join('')}
-    </tbody></table></div>
-    <p class="hint" style="margin:8px 0 0"><b>Cliff</b> is the one thing the credit does not carry: it is how far the last startable man at a spot sits above what you would stream in, so it is the damage if yours goes down mid-season, not the value of keeping him.</p></details>`;
+  const pt = (V.posTable||[]).slice(); const rH = V.replH, rP = V.replP;
+  const cred = pt.filter(x=>x.repl < rH - 0.005).map(x=>`${x.pos} ${(rH - x.repl).toFixed(2)} a game (about +${Math.round((rH - x.repl)*125)} a season)`);
+  const posBlock = !pt.length ? '' : `<details style="margin-top:10px"><summary>Where replacement comes from, and why position hardly matters here</summary>
+    <p class="hint" style="margin:8px 0">The 2026 season was replayed game by game in this league's own format: the real rosters, a daily lineup of C, 1B, 2B, 3B, SS, three OF and two UT chosen by expected points, the 10-start weekly cap, and free agents streamed into empty slots with the twelve teams competing for them. Each rostered player's value was measured as his team's season total with him minus without him. What explained it was <b>points minus about 3.6 a game played</b> for a hitter and <b>points minus 7.2 a start</b> for a pitcher; a season total minus a fixed baseline explained almost none of it. A game a man misses is filled from the bench or the wire at about that rate, so he is worth what he beats it by on the days he plays.</p>
+    <p class="hint" style="margin:8px 0">By position the rates were level everywhere except catcher, which sat a little lower. Two utility slots and a deep wire mean the 13th-best shortstop is starting somewhere and the man you would stream is about as good at every spot. Below, the league-wide rate is the ${CUR+1} projected points a game of the ${Math.round(1.25*TEAMS*HSTART)}th-best regular; a position only gets its own, lower rate when its ${Math.round(1.25*TEAMS)}th-best man (${Math.round(3.75*TEAMS)}th in the outfield) falls below that. A hitter who can only play utility is at the league-wide rate: he earns nothing extra.</p>
+    <div class="tblwrap" style="max-height:none"><table class="mini kbig posgrid"><thead><tr><th class="l">Pos</th><th>Slots</th><th title="projected regulars (100+ games) eligible here">Eligible</th><th title="mean projected points a game of the top ${TEAMS} here">Starters</th><th title="projected points a game of the ${Math.round(1.25*TEAMS)}th-best man here (${Math.round(3.75*TEAMS)}th in the outfield)">Nth best</th><th title="the lower of that and the league-wide rate">Replacement</th><th title="replacement below the league-wide rate, in points a game and over a 125-game season">Credit</th></tr></thead><tbody>
+    ${pt.slice().sort((a,b)=>a.repl-b.repl).map(x=>`<tr><td class="l"><b>${x.pos}</b></td><td>${x.slots}</td><td>${x.eligible}</td><td>${x.avg.toFixed(2)}</td><td title="${esc((x.around||[]).join(', '))}">${x.at.toFixed(2)}</td><td>${x.repl.toFixed(2)}</td><td>${x.repl < rH - 0.005 ? `<b>+${(rH-x.repl).toFixed(2)}</b> <span class="hint">+${Math.round((rH-x.repl)*125)}</span>` : '<span class="hint">0</span>'}</td></tr>`).join('')}
+    <tr><td class="l"><b>UT</b></td><td>${2*TEAMS}</td><td>all</td><td></td><td></td><td>${rH.toFixed(2)}</td><td><span class="hint">0</span></td></tr>
+    </tbody></table></div></details>`;
   const tight = (list,n) => list[n-1] && list[n] ? Math.round(list[n-1].DV_c - list[n].DV_c) : null;
   const th = tight(hs,HKEEP), tp = tight(ps,PKEEP);
   const warn = [th!=null&&th<25?`the fifth hitter slot is ${th} points from the sixth man`:'', tp!=null&&tp<25?`the ${PKEEP===2?'second':'last'} pitcher slot is ${tp} points from the next arm`:''].filter(Boolean);
   $('#k-verdict').innerHTML = `<div class="dcard w12"><h3>The ${HKEEP+PKEEP} ${esc(teamLabel(o))} would keep <small>${HKEEP} hitters and ${PKEEP} pitchers</small></h3>
-    <p class="hint">Everything here is one number: points above a <b>replacement starter</b>, counted in full for 2027, then 60% of 2028 and 35% of 2029. That is why a young man beats an older one they project level on next year. Replacement is worked out <b>per position</b> by filling all ${TEAMS} lineups the best way they can be filled, then averaging the best five men left over at each spot, so a scarce position is credited: ${scarceLine}. Those are points over the deepest spot on the field. The green figure beside a hitter is his: it moves a whole position at once and never reorders men inside one, so it settles bubble cases and leaves the obvious ones alone.</p>
+    <p class="hint"><b>2027 vs repl</b> is what he beats a free agent by on the days he plays: projected points minus ${rH.toFixed(2)} a game for a hitter${cred.length ? ` (${cred.join('; ')} lower at ${pt.filter(x=>x.repl < rH - 0.005).map(x=>x.pos).join(', ')})` : ''}, and minus ${rP.toFixed(1)} a start for a pitcher. Then the <b>option to keep him again</b>: in 2028 and 2029 only what he is expected to beat the league's keeper line by counts (${Math.round(V.cutH||0)} for a hitter, ${Math.round(V.cutP||0)} for a starter: the ${TEAMS*HKEEP}th hitter and ${TEAMS*PKEEP}th arm on this board), discounted 0.8 a year. A man who will not be keeper-worthy next year carries almost nothing past 2027.</p>
     ${posBlock}
     ${block(hs, HKEEP, 'h')}${block(ps, PKEEP, 'p')}
     <p class="hint">${warn.length ? `Close: ${warn.join('; ')}. The \u00b1 on a 2027 projection is the model's own out-of-fold error, so a gap smaller than that is not a real ordering \u2014 treat those as a tie and pick on what you believe about the player.` : `The \u00b1 on a 2027 projection is the model's own out-of-fold error. A gap smaller than that is not a real ordering.`}</p></div>`;
@@ -2159,7 +2176,7 @@ function renderKeepers(){
   renderRealK(V, sel.value);
   // beyond the team's keeper slots a positive value is a trade chip, not a keeper: label it surplus
   const board = (byOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>HKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
-  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 (2027 in full, 2028 at 60%, 2029 at 35%) — this is what decides the keeper order, because a keeper can be kept again'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left'}, {k:'KSV_c',l:'2027 only',render:signed,title:'projected 2027 points above the first-round draft alternative, one season, no aging'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
+  const kcols = [{k:'team_rank',l:'#',f:'int'}, CI.name, CI.age, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'Rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_rank',l:'2027 rank',dir:-1,render:rankBand}, {k:'n_tied',l:'Tied with',dir:-1,render:tiedCell}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'2027 points above replacement plus the option to keep him again in 2028 and 2029: this decides the keeper order, because a keeper can be kept again'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left'}, {k:'PAR_c',l:'2027 only',render:signed,title:'2027 points above replacement alone: what he beats a free agent by on the days he plays'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, CI.il_days_3yr];
   if(!tK) tK = table('t-kboard', kcols, board, {sort:'team_rank', dir:1, color:true}); else tK.setRows(board);
   const n = +$('#p-n').value||50;
   const pool = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
@@ -2167,7 +2184,7 @@ function renderKeepers(){
   if(!tPool) { tPool = table('t-pool', pcols, pool, {sort:'pool_rank', dir:1, limit:n, color:true, rowClass:x=>x.owner===MY?'mine':''}); $('#p-n').addEventListener('change', renderKeepers); } else { tPool.setRows(pool.slice(0,n)); }
   // ---- pitchers: a pitcher-slot keeper is worth his arm over a replacement arm plus, for a two-way player, his bat
   const pboard = (pByOwner[sel.value]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).map((r,i)=>({...r, team_rank:i+1, tier_c: (i+1>PKEEP) ? (r.KV_c>0 ? 'surplus' : 'let go') : r.tier_c}));
-  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'points above replacement over 2027-29 — what decides the keeper order'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s first-round pick is worth to them'}, {k:'KSV_c',l:'2027 only',render:signed}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
+  const pkcols = [{k:'team_rank',l:'#',f:'int'}, PCI.name, PCI.age, {k:'GS',l:'GS',f:'int',dir:1}, {k:'pts_c',l:'2026 pts',f:'0',dir:1}, {k:'rank_c',l:'SP rk',f:'int',dir:-1}, {k:'proj_pts',l:'2027 proj',dir:1,render:projBand}, {k:'proj_pts_hitting',l:'+ bat',render:v=>v>0?Math.round(v):''}, {k:'tot_c',l:'Total',f:'0',dir:1}, {k:'DV_c',l:'Multi-year value',f:'0',dir:1,title:'2027 points above replacement plus the option to keep him again: what decides the keeper order'}, {k:'KV_c',l:'Keep vs draft',render:signed,title:'multi-year value minus what this team\'s first-round pick is worth to them'}, {k:'PAR_c',l:'2027 only',render:signed,title:'2027 points above a streamed start, start for start'}, {k:'tier_c',l:'Verdict',render:tierPill}, {k:'BI',l:'Breakout %',f:'1',dir:1}, PCI.pitching_plus, PCI.il_days_3yr];
   if(!tPK) tPK = table('t-pkboard', pkcols, pboard, {sort:'team_rank', dir:1, color:true, pct:PPCT, ci:PCI, card:openPitcherCard}); else tPK.setRows(pboard);
   const pn = +$('#pp-n').value||50;
   const ppool = pc.slice().sort((a,b)=>b.tot_c-a.tot_c).filter(r=>!r.kept_c).map((r,i)=>({...r, pool_rank:i+1}));
@@ -2807,59 +2824,70 @@ function prepScores(){
 }
 function computeValues(){
   const {cur, pc} = prepScores();
-  const hs = cur.slice().sort((a,b)=>b.proj_pts-a.proj_pts), ps = pc.slice().sort((a,b)=>(b.tot_c??b.proj_pts)-(a.tot_c??a.proj_pts));
-  const replH = hs[Math.min(TEAMS*ROSTERED_H-1, hs.length-1)]?.proj_pts ?? 0, replP = (ps[Math.min(TEAMS*ROSTERED_P-1, ps.length-1)]?.tot_c) ?? 0;
-  // ---- scarcity: a hitter is worth what he beats AT HIS POSITION, not what he beats league-wide.
-  // Rank every man eligible at a spot by his projection. The starters are the first 12 (36 in the outfield) and
-  // the replacement is the mean of the next five: the men you would actually be playing there if you did not have
-  // one of the twelve. That is the standard positional-replacement definition every draft guide uses, and it is
-  // deliberately the simple one. The previous version filled all 120 slots in the league at once, utility spots
-  // included, and read replacement off whoever was left; that is exact as an assignment, but it made the level at
-  // a position depend on the 121st-to-140th best hitters in the league, a tail full of part-timers whose
-  // projections move every time the model does. One model revision took first base from +1 to +25 without a single
-  // first baseman changing. Ranked within the position, first base is the deepest spot in the league and earns
-  // nothing, which is what anyone who has looked at a first-base list already knew.
-  // The utility slots are position-agnostic, so they do not create scarcity and are left out on purpose: if
-  // anything they let a deep position's surplus be used, which is a reason not to credit it. The levels are
-  // recentred on the league-wide number the rest of the model is calibrated against, so this only moves a
-  // position RELATIVE to the others, by a constant, and never reorders men within one.
-  const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3}, UTIL = 2;
+  // ---- replacement is per GAME for hitters and per START for pitchers, not per season.
+  // Measured, not assumed: the 2026 season was replayed in this league's own format from every game log (real rosters,
+  // daily lineups C/1B/2B/3B/SS/OF x3/UT x2 chosen by expected points, the 10-start weekly cap, free agents streamed
+  // into empty slots with the twelve teams competing for them), and each rostered player's value was measured as his
+  // team's season total with him minus without him. What explains that number:
+  //   hitters   points minus 3.6 x games played              R2 .75   (season points minus a fixed total: R2 .21)
+  //   pitchers  points minus 7.2 x games started             R2 .85
+  // A missed game is not a lost game: the slot is filled from the bench or the wire at about replacement rate, so a
+  // man is worth what he beats replacement by on the days he plays. The old season-total baseline charged a part-timer
+  // for every game he missed and paid a durable average hitter for simply showing up.
+  // Position barely matters once utility slots and a deep free-agent pool are in play: catcher's replacement sits a
+  // little lower, every other spot is level with the league-wide rate, and a hitter who can only play utility is at
+  // exactly the league-wide rate, so he earns nothing extra. (The previous board took the MINIMUM over every slot a man
+  // could fill, utility included, and its utility level had come out below every real position: every non-catcher in
+  // the league was valued at "UT +61".)
+  // Both rates are read off this year's projection board so they move with the scoring settings: the hitter rate is the
+  // projected points per game of the 150th-best regular (1.25 x teams x hitters started; the realized rank-150 rate was
+  // 3.62, 3.70 and 3.54 in 2024-26, the simulation's fitted rate 3.6), and a position's is the same rank WITHIN the
+  // position (15th catcher, 45th outfielder) if that is lower. The start rate is fixed at the simulated 7.2, the average
+  // a streamed start actually scored, because projected rates are pulled toward the middle and a rank on them would
+  // put a replacement start near 8.6, well above what the wire gives.
+  const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3};
   const posOf = r => eligN(r).split('/').filter(x=>x in DED);
-  const slotsOf = r => { const e = posOf(r); return e.length ? [...e, 'UT'] : ['UT']; };
-  const posRank = {}; Object.keys(DED).forEach(p=> posRank[p] = hs.filter(r=>posOf(r).includes(p)));   // hs is sorted by projection
-  const meanPts = list => list.length ? list.reduce((a,b)=>a+b.proj_pts,0)/list.length : replH;
-  const replPos = (()=>{
-    const raw = {UT: hs[Math.min(TEAMS*(Object.values(DED).reduce((a,b)=>a+b,0)+UTIL), hs.length-1)]?.proj_pts ?? replH};
-    Object.keys(DED).forEach(p=>{ const n = TEAMS*DED[p]; raw[p] = meanPts(posRank[p].slice(n, n+5)); });
-    let wsum = 0, w = 0; Object.keys(DED).forEach(p=>{ wsum += raw[p]*DED[p]; w += DED[p]; });
-    const mid = w ? wsum/w : raw.UT;                         // recentre so the league-wide scale does not move
-    const out = {}; Object.keys(raw).forEach(p=> out[p] = replH + (raw[p] - mid));
-    return out;
-  })();
-  const replOf = r => Math.min(...slotsOf(r).map(p=> replPos[p] ?? replPos.UT));
-  // the credit is one number, but it is built from two different things and people reasonably want to see both:
-  // how good the twelve men at a spot are (STRENGTH), and how good the next man off the pile is (REPLACEMENT).
-  // Only the second one is owed a credit: a strong position is a position full of men whose own projections are
-  // already high, and paying them again for it would count the same goodness twice.
-  const posTable = Object.keys(DED).map(p=>{
-    const n = TEAMS*DED[p], L = posRank[p], starters = L.slice(0, n), next = L.slice(n, n+5);
-    const worst = starters.length ? starters[starters.length-1].proj_pts : 0, rep = meanPts(next);
-    return {pos:p, slots:n, eligible:L.length, best:starters[0]?.proj_pts||0, avg:meanPts(starters), worst, rep, cliff: worst-rep,
-            next: next.map(r=>r.name)};
-  });
-  const deepest = Math.max(...Object.keys(DED).map(p=>replPos[p]));
+  const paPerG = id => { const h = (BY_ID[id]||[]).filter(x=>x.season>=CUR-1 && (x.PA||0)>=100 && (x.G||0)>0); const pa = h.reduce((a,x)=>a+x.PA,0), g = h.reduce((a,x)=>a+x.G,0); return g ? Math.min(4.7, Math.max(3.4, pa/g)) : 4.1; };
+  for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const pa = p.proj_PA || r.proj_PA || 500; r.pag_c = paPerG(r.mlbam_id); r.G27_c = pa / r.pag_c; r.ppg27_c = r.proj_pts / Math.max(1, r.G27_c); }
+  const reg = cur.filter(r=>r.G27_c >= 100).sort((a,b)=>b.ppg27_c-a.ppg27_c);
+  const nthRate = (list, n) => list.length ? list[Math.min(Math.max(0, n-1), list.length-1)].ppg27_c : 0;
+  const nH = Math.round(1.25*TEAMS*HSTART), replH = nthRate(reg, nH), replP = 7.2;
+  const replPos = {UT: replH}, posTable = [];
+  Object.keys(DED).forEach(p=>{ const L = reg.filter(r=>posOf(r).includes(p)), n = Math.round(1.25*TEAMS*DED[p]); const at = L.length >= n ? L[n-1].ppg27_c : replH;
+    replPos[p] = Math.min(replH, at);
+    const st = L.slice(0, TEAMS*DED[p]);
+    posTable.push({pos:p, slots:TEAMS*DED[p], eligible:L.length, n, at, repl:replPos[p], avg: st.length ? st.reduce((a,x)=>a+x.ppg27_c,0)/st.length : 0,
+                   around: L.slice(Math.max(0, n-3), n+2).map(x=>`${x.name} ${x.ppg27_c.toFixed(2)}`)}); });
+  const posBest = r => { const e = posOf(r); return e.length ? e.reduce((a,b)=> replPos[a] <= replPos[b] ? a : b) : 'UT'; };
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
     const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
-    const rp = replOf(r); r.repl_c = rp; r.pos_c = slotsOf(r).reduce((a,b)=> (replPos[a]??replPos.UT) <= (replPos[b]??replPos.UT) ? a : b);
-    r.scarce_c = Math.round(deepest - rp);                  // what his position is worth over the DEEPEST one, so it is a credit and never a fine
-    r.PAR_c = r.proj_pts - rp; r.PAR28_c = r28*pa28 - rp; r.PAR29_c = r29*pa29 - rp; r.DV_c = r.PAR_c + 0.6*Math.max(0,r.PAR28_c) + 0.35*Math.max(0,r.PAR29_c); }
+    r.pos_c = posBest(r); const rp = replPos[r.pos_c]; r.repl_c = rp;
+    r.scarce_c = Math.round((replH - rp) * r.G27_c);        // his position's edge over the league-wide rate, in season points; zero for all but a few
+    r.PAR_c = r.proj_pts - rp*r.G27_c; r.PAR28_c = r28*pa28 - rp*pa28/r.pag_c; r.PAR29_c = r29*pa29 - rp*pa29/r.pag_c; }
   for (const r of pc){ const p = PPROJ[r.mlbam_id]||{}; const gs = p.proj_GS || 25, pg = p.proj_pts_gs ?? (r.proj_pts/gs), hit = r.proj_pts_hitting||0; const a = r.age+1;
     const pg28 = pg + ageStep(PAGE, a), pg29 = pg28 + ageStep(PAGE, a+1); const gs28 = gs*(a+1>=34?0.93:1), gs29 = gs28*(a+2>=34?0.93:1);
-    // a two-way player in a pitcher slot is worth his arm over a replacement ARM plus his bat over a replacement BAT
-    // (his own hitter row already carries that, aged): comparing his combined total with the pitcher baseline double-counted the bat
+    // a two-way player in a pitcher slot is worth his arm over a replacement START plus his bat over a replacement GAME
     const hr = hit>0 ? cur.find(x=>x.mlbam_id===r.mlbam_id) : null;
-    r.PAR_c = (r.proj_pts - replP) + (hr ? hr.PAR_c : 0); r.PAR28_c = (pg28*gs28 - replP) + (hr ? hr.PAR28_c : 0); r.PAR29_c = (pg29*gs29 - replP) + (hr ? hr.PAR29_c : 0);
-    r.DV_c = r.PAR_c + 0.6*Math.max(0,r.PAR28_c) + 0.35*Math.max(0,r.PAR29_c); }
+    r.GS27_c = gs; r.pgs27_c = pg;
+    r.PAR_c = gs*(pg - replP) + (hr ? hr.PAR_c : 0); r.PAR28_c = gs28*(pg28 - replP) + (hr ? hr.PAR28_c : 0); r.PAR29_c = gs29*(pg29 - replP) + (hr ? hr.PAR29_c : 0); }
+  // ---- keeper value: 2027 in full, then the chance to keep him AGAIN.
+  // Keepers are free and re-chosen every winter, so what a man is worth beyond 2027 is an option, not a guaranteed
+  // season: next year he is kept only if he beats the league's keeper line (the 60th hitter / 24th arm on this board),
+  // and only what he beats it by is worth anything, because otherwise that slot goes to somebody else. The expected
+  // value of that option counts his uncertainty, which is how a volatile 24-year-old projecting just under the line
+  // still carries some future and a 34-year-old projecting just over it carries less than his mean says. Future
+  // seasons are discounted 0.8 a year. The old number counted every point over replacement in 2028 (60%) and 2029
+  // (35%), which paid future value to men who would never be kept.
+  const DISC = 0.8;
+  const erf = x => { const t = 1/(1+0.3275911*Math.abs(x)); const y = 1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x >= 0 ? y : -y; };
+  const EP = (mu, sd) => { if (!(sd > 0)) return Math.max(0, mu); const z = mu/sd; return mu*0.5*(1+erf(z/Math.SQRT2)) + sd*Math.exp(-z*z/2)/Math.sqrt(2*Math.PI); };
+  const lineAt = (list, n) => { const v = list.map(r=>r.PAR_c).sort((x,y)=>y-x); return v.length ? Math.max(0, v[Math.min(n, v.length)-1]) : 0; };
+  const cutH = lineAt(cur, TEAMS*HKEEP), cutP = lineAt(pc, TEAMS*PKEEP);
+  // The spread of that option is how far his value ESTIMATE will move before next winter's decision, not how far his
+  // 2027 season can land: a three-year weighted rate revises by about 0.32 points a game a year (43 season points),
+  // so the 2028 option uses 0.35 of the 2027 projection's error (about 55) and 2029 half of it.
+  for (const r of cur){ const sd = r.proj_sd || 150; r.F28_c = DISC*EP(r.PAR28_c - cutH, 0.35*sd); r.F29_c = DISC*DISC*EP(r.PAR29_c - cutH, 0.5*sd); r.DV_c = r.PAR_c + r.F28_c + r.F29_c; }
+  for (const r of pc){ const sd = r.proj_sd || 110; r.F28_c = DISC*EP(r.PAR28_c - cutP, 0.35*sd); r.F29_c = DISC*DISC*EP(r.PAR29_c - cutP, 0.5*sd); r.DV_c = r.PAR_c + r.F28_c + r.F29_c; }
   // ---- the one keeper set, decided here and read everywhere (Keepers tab, My team, Trades, the draft pool).
   // Pitchers first, so a two-way player who earns a pitcher slot stops competing for a hitter slot on that same team —
   // and that now applies to all twelve rosters, not only the one whose real 2026 keeper slots we happen to know.
@@ -2879,15 +2907,20 @@ function computeValues(){
   const picks = [null]; for (let k=1; k<=TEAMS*15; k++){ const model = Math.max(0, avail[k-1]?.par ?? 0), mdv = Math.max(0, avail[k-1]?.dv ?? 0); const h = +(hist[Math.min(k, hmax)] ?? 0);
     picks[k] = {k, round: Math.floor((k-1)/TEAMS)+1, slot: ((k-1)%TEAMS)+1, model:+model.toFixed(1), hist:+h.toFixed(1), model_dv:+mdv.toFixed(1), hist_dv:+(h*RAT).toFixed(1),
                 value:+(0.5*mdv + 0.5*h*RAT).toFixed(1), value_1yr:+(0.5*model + 0.5*h).toFixed(1), best: avail[k-1]?.name||'', bestKind: avail[k-1]?.kind}; }
-  VAL = {cur, pc, replH, replP, replPos, posTable, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
+  VAL = {cur, pc, replH, replP, replPos, posTable, cutH, cutP, disc:DISC, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
   // ---- keep-or-draft: what a keeper slot is worth over spending that team's first pick on the best man left.
   // One number on the three-year scale, so the verdict on the Keepers tab cannot contradict the keep pill beside it.
   const first = {}; Object.keys({...byO, ...pByO}).forEach(o=>{
     const hs = (byO[o]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).slice(0,HKEEP), ps = (pByO[o]||[]).slice().sort((x,y)=>y.DV_c-x.DV_c).slice(0,PKEEP);
     first[o] = pickFit({type:'pick', team:o, round:1, year:CUR+1}, hs, ps); });
   const tier = (kv, f) => kv >= f ? 'lock' : kv >= 0.3*f ? 'clear keep' : kv > 0 ? 'marginal' : 'let go';
-  [...cur, ...pc].forEach(r=>{ const f = first[r.owner]; if(f==null){ r.KV_c = null; r.tier_c = ''; return; }
-    r.KV_c = Math.round(r.DV_c - f); r.tier_c = tier(r.KV_c, Math.max(20, f)); });
+  const fs = Object.values(first).sort((a,b)=>a-b), fMed = fs.length ? fs[Math.floor(fs.length/2)] : 0;
+  [...cur, ...pc].forEach(r=>{ const f = first[r.owner]; if(f==null){ r.KV_c = Math.round(r.DV_c - fMed); r.tier_c = ''; }
+    else { r.KV_c = Math.round(r.DV_c - f); r.tier_c = tier(r.KV_c, Math.max(20, f)); } });
+  // every table that shows "Keeper value" or a verdict reads these, so the pipeline's older one-season numbers never
+  // sit next to the engine's on the same page
+  cur.forEach(r=>{ r.KSV = r.KV_c; r.keep_tier = r.tier_c; r.likely_kept = !!r.kept_c; const p = PROJ[r.mlbam_id]; if (p){ p.KSV = r.KV_c; p.keep_tier = r.tier_c; p.DV = Math.round(r.DV_c); p.likely_kept = !!r.kept_c; } });
+  pc.forEach(r=>{ r.KSV = r.KV_c; r.keep_tier = r.tier_c; const p = PPROJ[r.mlbam_id]; if (p){ p.KSV = r.KV_c; p.keep_tier = r.tier_c; p.DV = Math.round(r.DV_c); } });
   return VAL;
 }
 // draft slots per team (fixed order, no snake). Default: last year's order; editable.
@@ -2908,10 +2941,10 @@ const pickLike = (v, hs, ps) => { if(!VAL) return ''; const a = Math.abs(v); con
 function renderPicks(){
   const V = VAL || computeValues(); const slots = draftSlots(); const slotTeam = {}; Object.entries(slots).forEach(([t,sl])=>{ (slotTeam[sl] ||= []).push(t); });
   const rows = V.picks.slice(1).map(p=>({...p, team: (slotTeam[p.slot]||[]).join(', ')}));
-  const cols = [{k:'k',l:'Pick',f:'int'},{k:'round',l:'Round',f:'int'},{k:'slot',l:'Slot',f:'int'},{k:'team',l:'Whose (assumed)',t:'txt'},{k:'value',l:'Value (3 years)',f:'1',title:'What the pick is worth on the same scale as a player: the player you would take, counted for 2027 in full, 2028 at 60% and 2029 at 35% (he can be kept too)'},{k:'value_1yr',l:'Value (2027 only)',f:'1',title:'Half the 2027 board, half what this slot has returned in the league, for 2027 alone'},{k:'model',l:'2027 board',f:'1',title:'points above replacement of the best player left at this pick after likely keepers'},{k:'hist',l:'Returned 2024-26',f:'1',title:'smoothed realized points above replacement of picks at this slot in the league'},{k:'best',l:'Best left (2027 board)',t:'txt'}];
+  const cols = [{k:'k',l:'Pick',f:'int'},{k:'round',l:'Round',f:'int'},{k:'slot',l:'Slot',f:'int'},{k:'team',l:'Whose (assumed)',t:'txt'},{k:'value',l:'Value (3 years)',f:'1',title:'What the pick is worth on the same scale as a player: the player you would take, his 2027 value plus the option to keep him again (he can be kept too)'},{k:'value_1yr',l:'Value (2027 only)',f:'1',title:'Half the 2027 board, half what this slot has returned in the league, for 2027 alone'},{k:'model',l:'2027 board',f:'1',title:'points above replacement of the best player left at this pick after likely keepers'},{k:'hist',l:'Returned 2024-26',f:'1',title:'smoothed realized points above replacement of picks at this slot in the league'},{k:'best',l:'Best left (2027 board)',t:'txt'}];
   if (!window.tPicks) window.tPicks = table('t-picks', cols, rows, {sort:'k', dir:1}); else tPicks.setRows(rows);
   const first = V.picks[1], r2 = V.picks[TEAMS+1], r5 = V.picks[4*TEAMS+1], r10 = V.picks[9*TEAMS+1];
-  $('#picks-lede').innerHTML = `With every team's likely keepers off the board, the first pick is worth about <b>${first.value}</b>, a second-rounder <b>${r2.value}</b>, a fifth-rounder <b>${r5.value}</b> and a tenth-rounder <b>${r10.value}</b>: points above replacement over three seasons, the same scale players are valued on here, because the player you draft can be kept afterwards. For 2027 alone those are ${first.value_1yr}, ${r2.value_1yr}, ${r5.value_1yr} and ${r10.value_1yr}. The league's own history says the top of this draft is flatter than a redraft league: in 2024–2026, rounds one through three returned nearly the same value (${(D.pick_hist||{})[1]??'–'} vs ${(D.pick_hist||{})[2*TEAMS+1]??'–'}), because the stars are all kept. Replacement level: hitter ${Math.round(V.replH)} projected points, pitcher ${Math.round(V.replP)}.`;
+  $('#picks-lede').innerHTML = `With every team's likely keepers off the board, the first pick is worth about <b>${first.value}</b>, a second-rounder <b>${r2.value}</b>, a fifth-rounder <b>${r5.value}</b> and a tenth-rounder <b>${r10.value}</b> on the keeper scale players are valued on here (2027 above replacement plus the option to keep him again), because the player you draft can be kept afterwards. For 2027 alone those are ${first.value_1yr}, ${r2.value_1yr}, ${r5.value_1yr} and ${r10.value_1yr}. The league's own history says the top of this draft is flatter than a redraft league: in 2024–2026, rounds one through three returned nearly the same value (${(D.pick_hist||{})[1]??'–'} vs ${(D.pick_hist||{})[2*TEAMS+1]??'–'}), because the stars are all kept. Replacement: ${V.replH.toFixed(2)} points a game for a hitter, ${V.replP.toFixed(1)} a start for a pitcher.`;
   // chart
   const W=560,H=220,pl=42,pb=28; const mx=V.picks.length-1, my=Math.max(...V.picks.slice(1).map(p=>Math.max(p.value,p.model,p.hist)))||1; const X=x=>pl+(x-1)/(mx-1)*(W-pl-10), Y=y=>H-pb-(y/my)*(H-pb-10);
   const path = key => V.picks.slice(1).map((p,i)=>(i?'L':'M')+X(p.k).toFixed(1)+' '+Y(p[key]).toFixed(1)).join(' ');
@@ -3145,7 +3178,7 @@ function deskWhy(d){
   const inMe = d.get.filter(a=>a.type!=='pick'), outMe = d.give.filter(a=>a.type!=='pick');
   const inK = inMe.filter(a=>m.keptAfter.has(a.id)), inX = inMe.filter(a=>!m.keptAfter.has(a.id));
   if (inK.length) bits.push(`${nm(inK)} ${inK.length>1?'join':'joins'} your keeper group${m.bumped.length ? `, pushing out ${m.bumped.map(r=>lastName(r.name)).join(' and ')}` : ''}`);
-  if (inX.length) bits.push(`${nm(inX)} would still sit outside your keeper group, so this is a ${CUR+1}-only move for you`);
+  if (inX.length) bits.push(`${nm(inX)} would not make your keeper group, so for you he goes back in the pool at the keeper deadline`);
   const spare = outMe.filter(a=>!m.keptBefore.has(a.id)), core = outMe.filter(a=>m.keptBefore.has(a.id));
   if (spare.length) bits.push(`${nm(spare)} ${spare.length>1?'sit':'sits'} outside your keeper group, so ${spare.length>1?'they cost':'he costs'} you nothing next year`);
   if (core.length) bits.push(`you give up ${core.length>1?'keepers':'a keeper'} in ${nm(core)}`);
