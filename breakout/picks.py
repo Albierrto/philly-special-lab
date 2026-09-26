@@ -1,9 +1,12 @@
 """Draft-pick values from the league's own drafts.
 
 For every pick in the league's 2024-2026 drafts (180 picks a year, keepers are not picks) we look up what the player
-actually returned that season in league points, hitters and pitchers alike, and express it as points above a
-replacement-level player (the best bat or arm you could have grabbed off waivers instead). A pick that busted counts
-as zero, not negative, because you drop him and stream the spot. Pooled over three drafts and smoothed into a curve
+actually returned that season in league points, hitters and pitchers alike, and express it as points above
+replacement on the same footing the Trades and Keepers pages use: a hitter is worth what he beat the free-agent rate
+by on the days he played (points minus replacement points per game x games), a starter what he beat a streamed start
+by (points minus 7.2 x starts). Replacement per game is that season's 150th-best regular by points per game (12 teams x
+10 hitters x 1.25), which replayed at 3.62, 3.70 and 3.54 in 2024-26 against the 3.6 a season simulation in this
+league's format measured. A pick that busted counts as zero, not negative, because you drop him and stream the spot. Pooled over three drafts and smoothed into a curve
 that only goes down as the pick number goes up, that is the "what picks at this slot have actually returned" half of
 the pick value used on the Trades page; the other half is what the 2027 board says is left at that pick.
 
@@ -16,8 +19,7 @@ import numpy as np
 import pandas as pd
 from . import config as C
 
-ROSTERED_H = 13   # hitters rostered per team (10 starters + ~3 bench)
-ROSTERED_P = 7    # starting pitchers rostered per team (5 starters + ~2 bench)
+START_REPL = 7.2  # points a streamed start scores, from the 2026 season replayed under the 10-start cap
 
 
 def nk(s: str) -> str:
@@ -34,7 +36,7 @@ def load_drafts() -> pd.DataFrame:
 
 
 def realized(drafts: pd.DataFrame, teams: int = 12) -> pd.DataFrame:
-    h = pd.read_csv(C.OUT / "v2" / "hitter_seasons_full.csv")[["name", "season", "pts", "PA"]]
+    h = pd.read_csv(C.OUT / "v2" / "hitter_seasons_full.csv")[["name", "season", "pts", "PA", "G"]]
     p = pd.read_csv(C.OUT / "v3" / "pitcher_seasons_full.csv")[["name", "season", "pts", "GS", "IP"]]
     h["nkey"] = h["name"].map(nk); p["nkey"] = p["name"].map(nk)
     # one line per player-season (a traded player can have two rows): keep the larger
@@ -42,20 +44,22 @@ def realized(drafts: pd.DataFrame, teams: int = 12) -> pd.DataFrame:
     p = p.sort_values("pts", ascending=False).drop_duplicates(["nkey", "season"])
     repl = {}
     for y in sorted(drafts["season"].unique()):
-        hy = h[h.season == y].sort_values("pts", ascending=False); py = p[(p.season == y) & (p.GS >= 5)].sort_values("pts", ascending=False)
-        repl[y] = dict(h=float(hy["pts"].iloc[min(teams * ROSTERED_H, len(hy) - 1)]), p=float(py["pts"].iloc[min(teams * ROSTERED_P, len(py) - 1)]))
+        hy = h[(h.season == y) & (h.G >= 100)].assign(ppg=lambda x: x.pts / x.G).sort_values("ppg", ascending=False)
+        repl[y] = dict(h=float(hy["ppg"].iloc[min(round(1.25 * teams * 10), len(hy)) - 1]) if len(hy) else 3.6, p=START_REPL)
     d = drafts.copy(); d["nkey"] = d["player"].map(nk)
-    hm = h.set_index(["nkey", "season"])["pts"]; pm = p.set_index(["nkey", "season"])["pts"]
+    hm = h.set_index(["nkey", "season"])[["pts", "G"]]; pm = p.set_index(["nkey", "season"])[["pts", "GS"]]
     rows = []
     for r in d.itertuples():
         is_p = str(r.pos).upper() in ("SP", "P", "RP") or "SP" in str(r.pos).upper().split("/")
-        hp = hm.get((r.nkey, r.season)); pp = pm.get((r.nkey, r.season))
-        # two-way or ambiguous: take the larger of his hitting / pitching lines
-        pts = max([v for v in (hp, pp) if v is not None and not np.isnan(v)] or [0.0])
-        kind = "p" if (is_p or (pp is not None and (hp is None or pp > hp))) else "h"
-        rp = repl[r.season][kind]
+        k = (r.nkey, r.season); hv = hm.loc[k] if k in hm.index else None; pv = pm.loc[k] if k in pm.index else None
+        # value over replacement on each side; a two-way or ambiguous line takes the larger
+        h_par = float(hv["pts"] - repl[r.season]["h"] * hv["G"]) if hv is not None else None
+        p_par = float(pv["pts"] - START_REPL * pv["GS"]) if pv is not None else None
+        kind = "p" if (is_p or (p_par is not None and (h_par is None or p_par > h_par))) else "h"
+        par = (p_par if kind == "p" else h_par) or 0.0
+        pts = float((pv if kind == "p" else hv)["pts"]) if (pv if kind == "p" else hv) is not None else 0.0
         rows.append(dict(season=r.season, overall=int(r.overall), round=int(r.round), team=r.team, player=r.player, pos=r.pos, kind=kind,
-                         pts=round(float(pts), 1), repl=round(rp, 1), par=round(max(0.0, float(pts) - rp), 1)))
+                         pts=round(pts, 1), repl=round(repl[r.season][kind], 2), par=round(max(0.0, par), 1)))
     return pd.DataFrame(rows), repl
 
 
