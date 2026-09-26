@@ -125,48 +125,48 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 824703,2026-09-25,2026-09-25T17:05:00Z,Final,3,Fenway Park,day,S,112,Chicago Cubs,False,111,Boston Red Sox,605280.0,Clay Holmes,listed,687941.0,Alec Gamboa,listed
 823491,2026-09-25,2026-09-25T20:05:00Z,Final,3313,Yankee Stadium,night,Y,147,New York Yankees,True,110,Baltimore Orioles,694341.0,Brendan Beck,listed,669432.0,Trevor Rogers,listed
 823491,2026-09-25,2026-09-25T20:05:00Z,Final,3313,Yankee Stadium,night,Y,110,Baltimore Orioles,False,147,New York Yankees,669432.0,Trevor Rogers,listed,694341.0,Brendan Beck,listed
-823489,2026-09-25,2026-09-25T20:10:00Z,In Progress,3313,Yankee Stadium,night,Y,147,New York Yankees,True,110,Baltimore Orioles,642232.0,Ryan Yarbrough,listed,687064.0,Brandon Young,listed
-823489,2026-09-25,2026-09-25T20:10:00Z,In Progress,3313,Yankee Stadium,night,Y,110,Baltimore Orioles,False,147,New York Yankees,687064.0,Brandon Young,listed,642232.0,Ryan Yarbrough,listed
+823489,2026-09-25,2026-09-25T20:10:00Z,Final,3313,Yankee Stadium,night,Y,147,New York Yankees,True,110,Baltimore Orioles,642232.0,Ryan Yarbrough,listed,687064.0,Brandon Young,listed
+823489,2026-09-25,2026-09-25T20:10:00Z,Final,3313,Yankee Stadium,night,Y,110,Baltimore Orioles,False,147,New York Yankees,687064.0,Brandon Young,listed,642232.0,Ryan Yarbrough,listed
 824706,2026-09-25,2026-09-25T21:35:00Z,Final,3,Fenway Park,night,S,111,Boston Red Sox,True,112,Chicago Cubs,678394.0,Brayan Bello,listed,656849.0,David Peterson,listed
 824706,2026-09-25,2026-09-25T21:35:00Z,Final,3,Fenway Park,night,S,112,Chicago Cubs,False,111,Boston Red Sox,656849.0,David Peterson,listed,678394.0,Brayan Bello,listed
-823409,2026-09-25,2026-09-25T22:40:00Z,In Progress,2681,Citizens Bank Park,night,N,143,Philadelphia Phillies,True,139,Tampa Bay Rays,650911.0,Cristopher Sánchez,listed,642547.0,Freddy Peralta,listed
-823409,2026-09-25,2026-09-25T22:40:00Z,In Progress,2681,Citizens Bank Park,night,N,139,Tampa Bay Rays,False,143,Philadelphia Phillies,642547.0,Freddy Peralta,listed,650911.0,Cristopher Sánchez,listed
-824220,2026-09-25,2026-09-25T22:40:00Z,Player challenge,2394,Comerica Park,night,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,695549.0,Jackson Jobe,listed,696149.0,Bubba Chandler,listed
-824220,2026-09-25,2026-09-25T22:40:00Z,Player challenge,2394,Comerica Park,night,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,696149.0,Bubba Chandler,listed,695549.0,Jackson Jobe,listed
-822681,2026-09-25,2026-09-25T22:45:00Z,In Progress,3309,Nationals Park,night,N,120,Washington Nationals,True,121,New York Mets,674841.0,Andrew Alvarez,listed,642376.0,Jefry Yan,listed
-822681,2026-09-25,2026-09-25T22:45:00Z,In Progress,3309,Nationals Park,night,N,121,New York Mets,False,120,Washington Nationals,642376.0,Jefry Yan,listed,674841.0,Andrew Alvarez,listed
-822760,2026-09-25,2026-09-25T23:07:00Z,In Progress,14,Rogers Centre,night,N,141,Toronto Blue Jays,True,113,Cincinnati Reds,667755.0,José Soriano,listed,666157.0,Nick Lodolo,listed
-822760,2026-09-25,2026-09-25T23:07:00Z,In Progress,14,Rogers Centre,night,N,113,Cincinnati Reds,False,141,Toronto Blue Jays,666157.0,Nick Lodolo,listed,667755.0,José Soriano,listed
-823816,2026-09-25,2026-09-25T23:10:00Z,In Progress,4169,loanDepot park,night,N,146,Miami Marlins,True,144,Atlanta Braves,691587.0,Eury Pérez,listed,678061.0,Ray Kerr,listed
-823816,2026-09-25,2026-09-25T23:10:00Z,In Progress,4169,loanDepot park,night,N,144,Atlanta Braves,False,146,Miami Marlins,678061.0,Ray Kerr,listed,691587.0,Eury Pérez,listed
-823735,2026-09-25,2026-09-25T23:40:00Z,In Progress,32,American Family Field,night,N,158,Milwaukee Brewers,True,138,St. Louis Cardinals,688107.0,Robert Gasser,listed,700241.0,Michael McGreevy,listed
-823735,2026-09-25,2026-09-25T23:40:00Z,In Progress,32,American Family Field,night,N,138,St. Louis Cardinals,False,158,Milwaukee Brewers,700241.0,Michael McGreevy,listed,688107.0,Robert Gasser,listed
-824058,2026-09-25,2026-09-25T23:40:00Z,In Progress,7,Kauffman Stadium,night,N,118,Kansas City Royals,True,114,Cleveland Guardians,702070.0,Noah Cameron,listed,668909.0,Gavin Williams,listed
-824058,2026-09-25,2026-09-25T23:40:00Z,In Progress,7,Kauffman Stadium,night,N,114,Cleveland Guardians,False,118,Kansas City Royals,668909.0,Gavin Williams,listed,702070.0,Noah Cameron,listed
-824544,2026-09-25,2026-09-25T23:40:00Z,In Progress,4,Rate Field,night,N,145,Chicago White Sox,True,115,Colorado Rockies,680732.0,Sean Burke,listed,608372.0,Tomoyuki Sugano,listed
-824544,2026-09-25,2026-09-25T23:40:00Z,In Progress,4,Rate Field,night,N,115,Colorado Rockies,False,145,Chicago White Sox,608372.0,Tomoyuki Sugano,listed,680732.0,Sean Burke,listed
-823652,2026-09-25,2026-09-26T00:10:00Z,In Progress,3312,Target Field,night,N,142,Minnesota Twins,True,140,Texas Rangers,657746.0,Joe Ryan,listed,594798.0,Jacob deGrom,listed
-823652,2026-09-25,2026-09-26T00:10:00Z,In Progress,3312,Target Field,night,N,140,Texas Rangers,False,142,Minnesota Twins,594798.0,Jacob deGrom,listed,657746.0,Joe Ryan,listed
-823248,2026-09-25,2026-09-26T01:40:00Z,Pre-Game,2680,Petco Park,night,N,135,San Diego Padres,True,109,Arizona Diamondbacks,663554.0,Casey Mize,listed,694297.0,Brandon Pfaadt,listed
-823248,2026-09-25,2026-09-26T01:40:00Z,Pre-Game,2680,Petco Park,night,N,109,Arizona Diamondbacks,False,135,San Diego Padres,694297.0,Brandon Pfaadt,listed,663554.0,Casey Mize,listed
-824947,2026-09-25,2026-09-26T01:40:00Z,Pre-Game,2529,Sutter Health Park,night,N,133,Athletics,True,117,Houston Astros,682052.0,Jacob Lopez,listed,686613.0,Hunter Brown,listed
-824947,2026-09-25,2026-09-26T01:40:00Z,Pre-Game,2529,Sutter Health Park,night,N,117,Houston Astros,False,133,Athletics,686613.0,Hunter Brown,listed,682052.0,Jacob Lopez,listed
-823085,2026-09-25,2026-09-26T02:10:00Z,Pre-Game,680,T-Mobile Park,night,N,136,Seattle Mariners,True,108,Los Angeles Angels,682243.0,Bryce Miller,listed,672282.0,Reid Detmers,listed
-823085,2026-09-25,2026-09-26T02:10:00Z,Pre-Game,680,T-Mobile Park,night,N,108,Los Angeles Angels,False,136,Seattle Mariners,672282.0,Reid Detmers,listed,682243.0,Bryce Miller,listed
-823167,2026-09-25,2026-09-26T02:15:00Z,Pre-Game,2395,Oracle Park,night,N,137,San Francisco Giants,True,119,Los Angeles Dodgers,805074.0,Yunior Marte,listed,669373.0,Tarik Skubal,listed
-823167,2026-09-25,2026-09-26T02:15:00Z,Pre-Game,2395,Oracle Park,night,N,119,Los Angeles Dodgers,False,137,San Francisco Giants,669373.0,Tarik Skubal,listed,805074.0,Yunior Marte,listed
+823409,2026-09-25,2026-09-25T22:40:00Z,Final,2681,Citizens Bank Park,night,N,143,Philadelphia Phillies,True,139,Tampa Bay Rays,650911.0,Cristopher Sánchez,listed,642547.0,Freddy Peralta,listed
+823409,2026-09-25,2026-09-25T22:40:00Z,Final,2681,Citizens Bank Park,night,N,139,Tampa Bay Rays,False,143,Philadelphia Phillies,642547.0,Freddy Peralta,listed,650911.0,Cristopher Sánchez,listed
+824220,2026-09-25,2026-09-25T22:40:00Z,Final,2394,Comerica Park,night,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,695549.0,Jackson Jobe,listed,696149.0,Bubba Chandler,listed
+824220,2026-09-25,2026-09-25T22:40:00Z,Final,2394,Comerica Park,night,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,696149.0,Bubba Chandler,listed,695549.0,Jackson Jobe,listed
+822681,2026-09-25,2026-09-25T22:45:00Z,Final,3309,Nationals Park,night,N,120,Washington Nationals,True,121,New York Mets,674841.0,Andrew Alvarez,listed,642376.0,Jefry Yan,listed
+822681,2026-09-25,2026-09-25T22:45:00Z,Final,3309,Nationals Park,night,N,121,New York Mets,False,120,Washington Nationals,642376.0,Jefry Yan,listed,674841.0,Andrew Alvarez,listed
+822760,2026-09-25,2026-09-25T23:07:00Z,Final,14,Rogers Centre,night,N,141,Toronto Blue Jays,True,113,Cincinnati Reds,667755.0,José Soriano,listed,666157.0,Nick Lodolo,listed
+822760,2026-09-25,2026-09-25T23:07:00Z,Final,14,Rogers Centre,night,N,113,Cincinnati Reds,False,141,Toronto Blue Jays,666157.0,Nick Lodolo,listed,667755.0,José Soriano,listed
+823816,2026-09-25,2026-09-25T23:10:00Z,Final,4169,loanDepot park,night,N,146,Miami Marlins,True,144,Atlanta Braves,691587.0,Eury Pérez,listed,678061.0,Ray Kerr,listed
+823816,2026-09-25,2026-09-25T23:10:00Z,Final,4169,loanDepot park,night,N,144,Atlanta Braves,False,146,Miami Marlins,678061.0,Ray Kerr,listed,691587.0,Eury Pérez,listed
+823735,2026-09-25,2026-09-25T23:40:00Z,Final,32,American Family Field,night,N,158,Milwaukee Brewers,True,138,St. Louis Cardinals,688107.0,Robert Gasser,listed,700241.0,Michael McGreevy,listed
+823735,2026-09-25,2026-09-25T23:40:00Z,Final,32,American Family Field,night,N,138,St. Louis Cardinals,False,158,Milwaukee Brewers,700241.0,Michael McGreevy,listed,688107.0,Robert Gasser,listed
+824058,2026-09-25,2026-09-25T23:40:00Z,Final,7,Kauffman Stadium,night,N,118,Kansas City Royals,True,114,Cleveland Guardians,702070.0,Noah Cameron,listed,668909.0,Gavin Williams,listed
+824058,2026-09-25,2026-09-25T23:40:00Z,Final,7,Kauffman Stadium,night,N,114,Cleveland Guardians,False,118,Kansas City Royals,668909.0,Gavin Williams,listed,702070.0,Noah Cameron,listed
+824544,2026-09-25,2026-09-25T23:40:00Z,Final,4,Rate Field,night,N,145,Chicago White Sox,True,115,Colorado Rockies,680732.0,Sean Burke,listed,608372.0,Tomoyuki Sugano,listed
+824544,2026-09-25,2026-09-25T23:40:00Z,Final,4,Rate Field,night,N,115,Colorado Rockies,False,145,Chicago White Sox,608372.0,Tomoyuki Sugano,listed,680732.0,Sean Burke,listed
+823652,2026-09-25,2026-09-26T00:10:00Z,Final,3312,Target Field,night,N,142,Minnesota Twins,True,140,Texas Rangers,657746.0,Joe Ryan,listed,594798.0,Jacob deGrom,listed
+823652,2026-09-25,2026-09-26T00:10:00Z,Final,3312,Target Field,night,N,140,Texas Rangers,False,142,Minnesota Twins,594798.0,Jacob deGrom,listed,657746.0,Joe Ryan,listed
+823248,2026-09-25,2026-09-26T01:40:00Z,Final,2680,Petco Park,night,N,135,San Diego Padres,True,109,Arizona Diamondbacks,663554.0,Casey Mize,listed,694297.0,Brandon Pfaadt,listed
+823248,2026-09-25,2026-09-26T01:40:00Z,Final,2680,Petco Park,night,N,109,Arizona Diamondbacks,False,135,San Diego Padres,694297.0,Brandon Pfaadt,listed,663554.0,Casey Mize,listed
+824947,2026-09-25,2026-09-26T01:40:00Z,Final,2529,Sutter Health Park,night,N,133,Athletics,True,117,Houston Astros,682052.0,Jacob Lopez,listed,686613.0,Hunter Brown,listed
+824947,2026-09-25,2026-09-26T01:40:00Z,Final,2529,Sutter Health Park,night,N,117,Houston Astros,False,133,Athletics,686613.0,Hunter Brown,listed,682052.0,Jacob Lopez,listed
+823085,2026-09-25,2026-09-26T02:10:00Z,Final,680,T-Mobile Park,night,N,136,Seattle Mariners,True,108,Los Angeles Angels,682243.0,Bryce Miller,listed,672282.0,Reid Detmers,listed
+823085,2026-09-25,2026-09-26T02:10:00Z,Final,680,T-Mobile Park,night,N,108,Los Angeles Angels,False,136,Seattle Mariners,672282.0,Reid Detmers,listed,682243.0,Bryce Miller,listed
+823167,2026-09-25,2026-09-26T02:15:00Z,Final,2395,Oracle Park,night,N,137,San Francisco Giants,True,119,Los Angeles Dodgers,805074.0,Yunior Marte,listed,669373.0,Tarik Skubal,listed
+823167,2026-09-25,2026-09-26T02:15:00Z,Final,2395,Oracle Park,night,N,119,Los Angeles Dodgers,False,137,San Francisco Giants,669373.0,Tarik Skubal,listed,805074.0,Yunior Marte,listed
 822678,2026-09-26,2026-09-26T16:35:00Z,Scheduled,3309,Nationals Park,day,N,120,Washington Nationals,True,121,New York Mets,813349.0,Connelly Early,listed,804636.0,Jonah Tong,listed
 822678,2026-09-26,2026-09-26T16:35:00Z,Scheduled,3309,Nationals Park,day,N,121,New York Mets,False,120,Washington Nationals,804636.0,Jonah Tong,listed,813349.0,Connelly Early,listed
-824219,2026-09-26,2026-09-26T17:10:00Z,Scheduled,2394,Comerica Park,day,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,434378.0,Justin Verlander,listed,,,
-824219,2026-09-26,2026-09-26T17:10:00Z,Scheduled,2394,Comerica Park,day,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,,,,434378.0,Justin Verlander,listed
+824219,2026-09-26,2026-09-26T17:10:00Z,Pre-Game,2394,Comerica Park,day,N,116,Detroit Tigers,True,134,Pittsburgh Pirates,434378.0,Justin Verlander,listed,489446.0,Kirby Yates,listed
+824219,2026-09-26,2026-09-26T17:10:00Z,Pre-Game,2394,Comerica Park,day,N,134,Pittsburgh Pirates,False,116,Detroit Tigers,489446.0,Kirby Yates,listed,434378.0,Justin Verlander,listed
 822759,2026-09-26,2026-09-26T19:07:00Z,Scheduled,14,Rogers Centre,day,N,141,Toronto Blue Jays,True,113,Cincinnati Reds,702056.0,Trey Yesavage,listed,695076.0,Rhett Lowder,listed
 822759,2026-09-26,2026-09-26T19:07:00Z,Scheduled,14,Rogers Centre,day,N,113,Cincinnati Reds,False,141,Toronto Blue Jays,695076.0,Rhett Lowder,listed,702056.0,Trey Yesavage,listed
 823165,2026-09-26,2026-09-26T20:05:00Z,Scheduled,2395,Oracle Park,day,N,137,San Francisco Giants,True,119,Los Angeles Dodgers,683363.0,Matt Wilkinson,listed,605483.0,Blake Snell,listed
 823165,2026-09-26,2026-09-26T20:05:00Z,Scheduled,2395,Oracle Park,day,N,119,Los Angeles Dodgers,False,137,San Francisco Giants,605483.0,Blake Snell,listed,683363.0,Matt Wilkinson,listed
-823653,2026-09-26,2026-09-26T20:10:00Z,Scheduled,3312,Target Field,day,N,142,Minnesota Twins,True,140,Texas Rangers,641927.0,Bailey Ober,listed,,,
-823653,2026-09-26,2026-09-26T20:10:00Z,Scheduled,3312,Target Field,day,N,140,Texas Rangers,False,142,Minnesota Twins,,,,641927.0,Bailey Ober,listed
-823813,2026-09-26,2026-09-26T20:10:00Z,Scheduled,4169,loanDepot park,day,N,146,Miami Marlins,True,144,Atlanta Braves,,,,,,
-823813,2026-09-26,2026-09-26T20:10:00Z,Scheduled,4169,loanDepot park,day,N,144,Atlanta Braves,False,146,Miami Marlins,,,,,,
+823653,2026-09-26,2026-09-26T20:10:00Z,Scheduled,3312,Target Field,day,N,142,Minnesota Twins,True,140,Texas Rangers,641927.0,Bailey Ober,listed,543135.0,Nathan Eovaldi,listed
+823653,2026-09-26,2026-09-26T20:10:00Z,Scheduled,3312,Target Field,day,N,140,Texas Rangers,False,142,Minnesota Twins,543135.0,Nathan Eovaldi,listed,641927.0,Bailey Ober,listed
+823813,2026-09-26,2026-09-26T20:10:00Z,Scheduled,4169,loanDepot park,day,N,146,Miami Marlins,True,144,Atlanta Braves,667652.0,Jack Ralston,listed,608718.0,Brent Suter,listed
+823813,2026-09-26,2026-09-26T20:10:00Z,Scheduled,4169,loanDepot park,day,N,144,Atlanta Braves,False,146,Miami Marlins,608718.0,Brent Suter,listed,667652.0,Jack Ralston,listed
 823733,2026-09-26,2026-09-26T23:10:00Z,Scheduled,32,American Family Field,night,N,158,Milwaukee Brewers,True,138,St. Louis Cardinals,669160.0,Dustin May,listed,687273.0,Quinn Mathews,listed
 823733,2026-09-26,2026-09-26T23:10:00Z,Scheduled,32,American Family Field,night,N,138,St. Louis Cardinals,False,158,Milwaukee Brewers,687273.0,Quinn Mathews,listed,669160.0,Dustin May,listed
 824057,2026-09-26,2026-09-26T23:10:00Z,Scheduled,7,Kauffman Stadium,night,N,118,Kansas City Royals,True,114,Cleveland Guardians,608379.0,Michael Wacha,listed,676440.0,Tanner Bibee,listed
@@ -179,12 +179,12 @@ gamePk,date,gameDate,status,venue_id,venue,dayNight,doubleHeader,team_id,team,ho
 823245,2026-09-26,2026-09-27T00:40:00Z,Scheduled,2680,Petco Park,night,N,109,Arizona Diamondbacks,False,135,San Diego Padres,,,,621111.0,Walker Buehler,listed
 823083,2026-09-26,2026-09-27T01:40:00Z,Scheduled,680,T-Mobile Park,night,N,136,Seattle Mariners,True,108,Los Angeles Angels,807739.0,Kade Anderson,listed,696270.0,Ryan Johnson,listed
 823083,2026-09-26,2026-09-27T01:40:00Z,Scheduled,680,T-Mobile Park,night,N,108,Los Angeles Angels,False,136,Seattle Mariners,696270.0,Ryan Johnson,listed,807739.0,Kade Anderson,listed
-824949,2026-09-26,2026-09-27T01:40:00Z,Scheduled,2529,Sutter Health Park,night,N,133,Athletics,True,117,Houston Astros,678022.0,Jack Perkins,listed,669713.0,Hayden Wesneski,projected
-824949,2026-09-26,2026-09-27T01:40:00Z,Scheduled,2529,Sutter Health Park,night,N,117,Houston Astros,False,133,Athletics,669713.0,Hayden Wesneski,projected,678022.0,Jack Perkins,listed
+824949,2026-09-26,2026-09-27T01:40:00Z,Scheduled,2529,Sutter Health Park,night,N,133,Athletics,True,117,Houston Astros,678022.0,Jack Perkins,listed,669713.0,Hayden Wesneski,listed
+824949,2026-09-26,2026-09-27T01:40:00Z,Scheduled,2529,Sutter Health Park,night,N,117,Houston Astros,False,133,Athletics,669713.0,Hayden Wesneski,listed,678022.0,Jack Perkins,listed
 822679,2026-09-27,2026-09-27T19:05:00Z,Scheduled,3309,Nationals Park,day,N,120,Washington Nationals,True,121,New York Mets,687792.0,DJ Herz,listed,640455.0,Sean Manaea,listed
 822679,2026-09-27,2026-09-27T19:05:00Z,Scheduled,3309,Nationals Park,day,N,121,New York Mets,False,120,Washington Nationals,640455.0,Sean Manaea,listed,687792.0,DJ Herz,listed
-823164,2026-09-27,2026-09-27T19:05:00Z,Scheduled,2395,Oracle Park,day,N,137,San Francisco Giants,True,119,Los Angeles Dodgers,694738.0,Landen Roupp,projected,,,
-823164,2026-09-27,2026-09-27T19:05:00Z,Scheduled,2395,Oracle Park,day,N,119,Los Angeles Dodgers,False,137,San Francisco Giants,,,,694738.0,Landen Roupp,projected
+823164,2026-09-27,2026-09-27T19:05:00Z,Scheduled,2395,Oracle Park,day,N,137,San Francisco Giants,True,119,Los Angeles Dodgers,,,,,,
+823164,2026-09-27,2026-09-27T19:05:00Z,Scheduled,2395,Oracle Park,day,N,119,Los Angeles Dodgers,False,137,San Francisco Giants,,,,,,
 823408,2026-09-27,2026-09-27T19:05:00Z,Scheduled,2681,Citizens Bank Park,day,N,143,Philadelphia Phillies,True,139,Tampa Bay Rays,554430.0,Zack Wheeler,listed,607259.0,Nick Martinez,listed
 823408,2026-09-27,2026-09-27T19:05:00Z,Scheduled,2681,Citizens Bank Park,day,N,139,Tampa Bay Rays,False,143,Philadelphia Phillies,607259.0,Nick Martinez,listed,554430.0,Zack Wheeler,listed
 824705,2026-09-27,2026-09-27T19:05:00Z,Scheduled,12,Tropicana Field,day,N,111,Boston Red Sox,True,112,Chicago Cubs,,,,,,

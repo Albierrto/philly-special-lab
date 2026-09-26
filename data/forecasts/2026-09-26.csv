@@ -1,0 +1,459 @@
+date,kind,mlbam_id,name,team,gamePk,opp,exp_pts,src,owner,elig,active,made_utc
+2026-09-26,H,660688.0,Keibert Ruiz,Washington Nationals,822678,New York Mets,3.14,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,665953.0,Andrés Chaparro,Washington Nationals,822678,New York Mets,2.97,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,677588.0,José Tena,Washington Nationals,822678,New York Mets,2.15,listed,FA,2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,678391.0,Jorbit Vivas,Washington Nationals,822678,New York Mets,3.13,listed,FA,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,682928.0,CJ Abrams,Washington Nationals,822678,New York Mets,4.52,listed,BAMBI,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,683083.0,Nasim Nuñez,Washington Nationals,822678,New York Mets,2.41,listed,FA,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,686452.0,Drew Millas,Washington Nationals,822678,New York Mets,2.92,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,686611.0,Dylan Crews,Washington Nationals,822678,New York Mets,3.77,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691781.0,Brady House,Washington Nationals,822678,New York Mets,3.09,listed,FA,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,694673.0,Abimelec Ortiz,Washington Nationals,822678,New York Mets,2.72,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,695578.0,James Wood,Washington Nationals,822678,New York Mets,4.75,listed,BB,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,695670.0,Harry Ford,Washington Nationals,822678,New York Mets,2.62,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,695734.0,Daylen Lile,Washington Nationals,822678,New York Mets,4.31,listed,GK,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,696285.0,Jacob Young,Washington Nationals,822678,New York Mets,2.97,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,686894.0,Joey Wiemer,Washington Nationals,822678,New York Mets,2.41,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,691002.0,Yohandy Morales,Washington Nationals,822678,New York Mets,2.74,listed,GK,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,543760.0,Marcus Semien,New York Mets,822678,Washington Nationals,3.75,listed,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,593871.0,Jorge Polanco,New York Mets,822678,Washington Nationals,3.13,listed,FA,1B/2B,False,2026-09-26T14:34:00Z
+2026-09-26,H,596019.0,Francisco Lindor,New York Mets,822678,Washington Nationals,4.04,listed,Dpf,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,620443.0,Luis Torrens,New York Mets,822678,Washington Nationals,2.79,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,665742.0,Juan Soto,New York Mets,822678,Washington Nationals,4.29,listed,THALER,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666182.0,Bo Bichette,New York Mets,822678,Washington Nationals,4.33,listed,GLIZZY,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,666624.0,Christopher Morel,New York Mets,822678,Washington Nationals,2.33,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668901.0,Mark Vientos,New York Mets,822678,Washington Nationals,3.09,listed,FA,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,669004.0,MJ Melendez,New York Mets,822678,Washington Nationals,2.51,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,676724.0,Jared Young,New York Mets,822678,Washington Nationals,3.28,listed,FA,1B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,682626.0,Francisco Alvarez,New York Mets,822678,Washington Nationals,3.26,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,683146.0,Brett Baty,New York Mets,822678,Washington Nationals,2.82,listed,FA,1B/2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,701807.0,Carson Benge,New York Mets,822678,Washington Nationals,4.45,listed,GK,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,805999.0,A.J. Ewing,New York Mets,822678,Washington Nationals,4.1,listed,CH,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,595879.0,Javier Báez,Detroit Tigers,824219,Pittsburgh Pirates,2.63,listed,FA,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,650402.0,Gleyber Torres,Detroit Tigers,824219,Pittsburgh Pirates,3.98,listed,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,656716.0,Zach McKinstry,Detroit Tigers,824219,Pittsburgh Pirates,2.67,listed,FA,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,663837.0,Matt Vierling,Detroit Tigers,824219,Pittsburgh Pirates,2.81,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,672761.0,Wenceel Pérez,Detroit Tigers,824219,Pittsburgh Pirates,3.14,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,679529.0,Spencer Torkelson,Detroit Tigers,824219,Pittsburgh Pirates,3.92,listed,Dan,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,680664.0,Eduardo Valencia,Detroit Tigers,824219,Pittsburgh Pirates,3.54,listed,CH,C/1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,681481.0,Kerry Carpenter,Detroit Tigers,824219,Pittsburgh Pirates,3.22,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,682985.0,Riley Greene,Detroit Tigers,824219,Pittsburgh Pirates,4.8,listed,CH,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,690993.0,Colt Keith,Detroit Tigers,824219,Pittsburgh Pirates,2.74,listed,FA,1B/2B/3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,693307.0,Dillon Dingler,Detroit Tigers,824219,Pittsburgh Pirates,4.03,listed,MMM,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,701162.0,Ben Malgeri,Detroit Tigers,824219,Pittsburgh Pirates,2.54,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,701678.0,Hao-Yu Lee,Detroit Tigers,824219,Pittsburgh Pirates,4.07,listed,FA,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,703601.0,Max Clark,Detroit Tigers,824219,Pittsburgh Pirates,4.01,listed,CS,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,805808.0,Kevin McGonigle,Detroit Tigers,824219,Pittsburgh Pirates,5.01,listed,GLIZZY,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,807726.0,John Peck,Detroit Tigers,824219,Pittsburgh Pirates,3.32,listed,FA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,814430.0,Brett Callahan,Detroit Tigers,824219,Pittsburgh Pirates,2.22,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,542303.0,Marcell Ozuna,Pittsburgh Pirates,824219,Detroit Tigers,3.74,listed,FA,UT,False,2026-09-26T14:34:00Z
+2026-09-26,H,656811.0,Ryan O'Hearn,Pittsburgh Pirates,824219,Detroit Tigers,4.06,listed,GK,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,663968.0,Jake Mangum,Pittsburgh Pirates,824219,Detroit Tigers,3.51,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,664040.0,Brandon Lowe,Pittsburgh Pirates,824219,Detroit Tigers,4.72,listed,BB,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,665833.0,Oneil Cruz,Pittsburgh Pirates,824219,Detroit Tigers,4.88,listed,CJF,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668804.0,Bryan Reynolds,Pittsburgh Pirates,824219,Detroit Tigers,4.22,listed,MMM,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669707.0,Jared Triolo,Pittsburgh Pirates,824219,Detroit Tigers,2.06,listed,FA,1B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,680779.0,Henry Davis,Pittsburgh Pirates,824219,Detroit Tigers,3.25,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,682848.0,Endy Rodríguez,Pittsburgh Pirates,824219,Detroit Tigers,3.66,listed,FA,C/1B,False,2026-09-26T14:34:00Z
+2026-09-26,H,682997.0,Tyler Callihan,Pittsburgh Pirates,824219,Detroit Tigers,2.52,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,687462.0,Spencer Horwitz,Pittsburgh Pirates,824219,Detroit Tigers,3.43,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,693304.0,Nick Gonzales,Pittsburgh Pirates,824219,Detroit Tigers,3.99,listed,CJF,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,694377.0,Nick Yorke,Pittsburgh Pirates,824219,Detroit Tigers,2.31,listed,FA,2B/3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,694378.0,Jacob Gonzalez,Pittsburgh Pirates,824219,Detroit Tigers,2.32,listed,FA,1B/2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,699013.0,Esmerlyn Valdez,Pittsburgh Pirates,824219,Detroit Tigers,3.65,listed,LTTA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,804606.0,Konnor Griffin,Pittsburgh Pirates,824219,Detroit Tigers,4.19,listed,THALER,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,804668.0,Rafael Flores Jr.,Pittsburgh Pirates,824219,Detroit Tigers,3.73,listed,FA,C/1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,543807.0,George Springer,Toronto Blue Jays,822759,Cincinnati Reds,4.62,listed,LTTA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,664702.0,Myles Straw,Toronto Blue Jays,822759,Cincinnati Reds,2.96,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,664770.0,Nathan Lukes,Toronto Blue Jays,822759,Cincinnati Reds,3.77,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,665489.0,Vladimir Guerrero Jr.,Toronto Blue Jays,822759,Cincinnati Reds,4.45,listed,CJF,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,665926.0,Andrés Giménez,Toronto Blue Jays,822759,Cincinnati Reds,3.55,listed,Dan,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,669701.0,Josh Smith,Toronto Blue Jays,822759,Cincinnati Reds,2.9,listed,FA,1B/2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,672386.0,Alejandro Kirk,Toronto Blue Jays,822759,Cincinnati Reds,4.58,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,672960.0,Kazuma Okamoto,Toronto Blue Jays,822759,Cincinnati Reds,4.51,listed,Dpf,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,676391.0,Ernie Clement,Toronto Blue Jays,822759,Cincinnati Reds,3.44,listed,CS,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,676914.0,Davis Schneider,Toronto Blue Jays,822759,Cincinnati Reds,2.45,listed,FA,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,678218.0,Brandon Valenzuela,Toronto Blue Jays,822759,Cincinnati Reds,2.83,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,682818.0,Yohendrick Piñango,Toronto Blue Jays,822759,Cincinnati Reds,3.2,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,703520.0,Brett Bateman,Toronto Blue Jays,822759,Cincinnati Reds,4.7,listed,THALER,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,807727.0,Charles McAdoo,Toronto Blue Jays,822759,Cincinnati Reds,2.65,listed,FA,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,553993.0,Eugenio Suárez,Cincinnati Reds,822759,Toronto Blue Jays,4.04,listed,FA,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,624431.0,Jose Trevino,Cincinnati Reds,822759,Toronto Blue Jays,3.17,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,663647.0,Ke'Bryan Hayes,Cincinnati Reds,822759,Toronto Blue Jays,1.8,listed,FA,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,663886.0,Tyler Stephenson,Cincinnati Reds,822759,Toronto Blue Jays,3.72,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,666181.0,Will Benson,Cincinnati Reds,822759,Toronto Blue Jays,2.02,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,667472.0,Dane Myers,Cincinnati Reds,822759,Toronto Blue Jays,3.19,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668709.0,JJ Bleday,Cincinnati Reds,822759,Toronto Blue Jays,3.48,listed,THALER,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668715.0,Spencer Steer,Cincinnati Reds,822759,Toronto Blue Jays,3.61,listed,CJF,1B/2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,670770.0,TJ Friedl,Cincinnati Reds,822759,Toronto Blue Jays,1.79,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,680574.0,Matt McLain,Cincinnati Reds,822759,Toronto Blue Jays,3.17,listed,FA,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,682622.0,Noelvi Marte,Cincinnati Reds,822759,Toronto Blue Jays,3.1,listed,FA,3B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,682829.0,Elly De La Cruz,Cincinnati Reds,822759,Toronto Blue Jays,4.57,listed,MMM,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,694362.0,Blake Dunn,Cincinnati Reds,822759,Toronto Blue Jays,4.07,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,695490.0,Edwin Arroyo,Cincinnati Reds,822759,Toronto Blue Jays,2.63,listed,FA,2B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,699302.0,Héctor Rodríguez,Cincinnati Reds,822759,Toronto Blue Jays,3.54,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,701398.0,Sal Stewart,Cincinnati Reds,822759,Toronto Blue Jays,4.38,listed,BB,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,682877.0,Juan Brito,Cincinnati Reds,822759,Toronto Blue Jays,2.91,listed,FA,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,642715.0,Willy Adames,San Francisco Giants,823165,Los Angeles Dodgers,3.67,listed,FA,SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,646240.0,Rafael Devers,San Francisco Giants,823165,Los Angeles Dodgers,4.16,listed,Dan,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,656305.0,Matt Chapman,San Francisco Giants,823165,Los Angeles Dodgers,3.85,listed,FA,3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,664056.0,Harrison Bader,San Francisco Giants,823165,Los Angeles Dodgers,3.54,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,669477.0,Casey Schmitt,San Francisco Giants,823165,Los Angeles Dodgers,4.11,listed,FA,1B/2B/3B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,678545.0,Osleivis Basabe,San Francisco Giants,823165,Los Angeles Dodgers,2.45,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,683766.0,Christian Koss,San Francisco Giants,823165,Los Angeles Dodgers,3.25,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,687551.0,Drew Gilbert,San Francisco Giants,823165,Los Angeles Dodgers,2.36,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691740.0,Daniel Susac,San Francisco Giants,823165,Los Angeles Dodgers,3.06,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,694376.0,Shay Whitcomb,San Francisco Giants,823165,Los Angeles Dodgers,2.56,listed,FA,2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,701852.0,Drew Cavanaugh,San Francisco Giants,823165,Los Angeles Dodgers,2.47,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,805811.0,Bryce Eldridge,San Francisco Giants,823165,Los Angeles Dodgers,4.72,listed,CH,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,806367.0,Turner Hill,San Francisco Giants,823165,Los Angeles Dodgers,3.57,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,808982.0,Jung Hoo Lee,San Francisco Giants,823165,Los Angeles Dodgers,3.47,listed,GLIZZY,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,813841.0,Jonah Cox,San Francisco Giants,823165,Los Angeles Dodgers,3.38,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,606992.0,Eric Haase,San Francisco Giants,823165,Los Angeles Dodgers,2.65,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,668800.0,Andrew Knizner,San Francisco Giants,823165,Los Angeles Dodgers,2.4,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,682674.0,Victor Bericoto,San Francisco Giants,823165,Los Angeles Dodgers,2.9,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687529.0,Grant McCray,San Francisco Giants,823165,Los Angeles Dodgers,2.12,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,500743.0,Miguel Rojas,Los Angeles Dodgers,823165,San Francisco Giants,2.06,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,518692.0,Freddie Freeman,Los Angeles Dodgers,823165,San Francisco Giants,3.72,listed,MMM,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,571970.0,Max Muncy,Los Angeles Dodgers,823165,San Francisco Giants,3.58,listed,Dpf,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,605141.0,Mookie Betts,Los Angeles Dodgers,823165,San Francisco Giants,4.47,listed,Dpf,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,606192.0,Teoscar Hernández,Los Angeles Dodgers,823165,San Francisco Giants,4.47,listed,CJF,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,660271.0,Shohei Ohtani,Los Angeles Dodgers,823165,San Francisco Giants,4.34,listed,BB,UT,True,2026-09-26T14:34:00Z
+2026-09-26,H,663656.0,Kyle Tucker,Los Angeles Dodgers,823165,San Francisco Giants,4.07,listed,MMM,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669242.0,Tommy Edman,Los Angeles Dodgers,823165,San Francisco Giants,3.66,listed,FA,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669257.0,Will Smith,Los Angeles Dodgers,823165,San Francisco Giants,3.4,listed,LTTA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,669743.0,Alex Call,Los Angeles Dodgers,823165,San Francisco Giants,1.93,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,676439.0,Hunter Feduccia,Los Angeles Dodgers,823165,San Francisco Giants,2.42,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,681624.0,Andy Pages,Los Angeles Dodgers,823165,San Francisco Giants,4.34,listed,CS,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687221.0,Dalton Rushing,Los Angeles Dodgers,823165,San Francisco Giants,2.46,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,690976.0,Alex Freeland,Los Angeles Dodgers,823165,San Francisco Giants,2.41,listed,FA,2B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,808975.0,Hyeseong Kim,Los Angeles Dodgers,823165,San Francisco Giants,2.76,listed,FA,2B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,571771.0,Enrique Hernández,Los Angeles Dodgers,823165,San Francisco Giants,2.17,listed,FA,1B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669289.0,Santiago Espinal,Los Angeles Dodgers,823165,San Francisco Giants,1.45,listed,FA,3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,669899.0,Ryan Ward,Los Angeles Dodgers,823165,San Francisco Giants,2.83,listed,FA,1B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,800543.0,Josue De Paula,Los Angeles Dodgers,823165,San Francisco Giants,3.71,listed,MMM,UT,True,2026-09-26T14:34:00Z
+2026-09-26,H,605137.0,Josh Bell,Minnesota Twins,823653,Texas Rangers,3.83,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,605170.0,Victor Caratini,Minnesota Twins,823653,Texas Rangers,2.96,listed,FA,C/1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,621439.0,Byron Buxton,Minnesota Twins,823653,Texas Rangers,4.7,listed,BAMBI,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,656484.0,Tristan Gray,Minnesota Twins,823653,Texas Rangers,2.53,listed,FA,2B/3B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,663616.0,Trevor Larnach,Minnesota Twins,823653,Texas Rangers,3.21,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,665019.0,Kody Clemens,Minnesota Twins,823653,Texas Rangers,3.88,listed,LTTA,1B/2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668885.0,Austin Martin,Minnesota Twins,823653,Texas Rangers,2.72,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668904.0,Royce Lewis,Minnesota Twins,823653,Texas Rangers,3.73,listed,Dpf,1B/2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,668952.0,Ryan Kreidler,Minnesota Twins,823653,Texas Rangers,2.2,listed,FA,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,670242.0,Matt Wallner,Minnesota Twins,823653,Texas Rangers,3.59,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,680777.0,Ryan Jeffers,Minnesota Twins,823653,Texas Rangers,3.87,listed,CH,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,686797.0,Brooks Lee,Minnesota Twins,823653,Texas Rangers,3.91,listed,BAMBI,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,701785.0,Kaelen Culpepper,Minnesota Twins,823653,Texas Rangers,3.66,listed,FA,SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,807712.0,Luke Keaschall,Minnesota Twins,823653,Texas Rangers,4.67,listed,Dpf,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,656577.0,Alex Jackson,Minnesota Twins,823653,Texas Rangers,1.98,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,702176.0,Alan Roden,Minnesota Twins,823653,Texas Rangers,2.9,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,805805.0,Walker Jenkins,Minnesota Twins,823653,Texas Rangers,3.37,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,543309.0,Kyle Higashioka,Texas Rangers,823653,Minnesota Twins,3.04,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,553869.0,Elias Díaz,Texas Rangers,823653,Minnesota Twins,2.74,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,592626.0,Joc Pederson,Texas Rangers,823653,Minnesota Twins,2.63,listed,FA,1B,False,2026-09-26T14:34:00Z
+2026-09-26,H,607043.0,Brandon Nimmo,Texas Rangers,823653,Minnesota Twins,3.54,listed,Dan,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,608369.0,Corey Seager,Texas Rangers,823653,Minnesota Twins,3.87,listed,BB,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,643376.0,Danny Jansen,Texas Rangers,823653,Minnesota Twins,3.41,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,669394.0,Jake Burger,Texas Rangers,823653,Minnesota Twins,3.78,listed,CJF,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,670032.0,Nicky Lopez,Texas Rangers,823653,Minnesota Twins,2.07,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,673962.0,Josh Jung,Texas Rangers,823653,Minnesota Twins,4.1,listed,MMM,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,677649.0,Ezequiel Duran,Texas Rangers,823653,Minnesota Twins,3.71,listed,CJF,1B/2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,679822.0,Justin Foscue,Texas Rangers,823653,Minnesota Twins,2.19,listed,FA,1B/2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,694497.0,Evan Carter,Texas Rangers,823653,Minnesota Twins,2.61,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,694671.0,Wyatt Langford,Texas Rangers,823653,Minnesota Twins,4.29,listed,BAMBI,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,696030.0,Alejandro Osuna,Texas Rangers,823653,Minnesota Twins,2.01,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,457705.0,Andrew McCutchen,Texas Rangers,823653,Minnesota Twins,2.13,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,683227.0,Cody Freeman,Texas Rangers,823653,Minnesota Twins,2.44,listed,FA,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,695508.0,Cam Cauley,Texas Rangers,823653,Minnesota Twins,1.21,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,665052.0,Griffin Conine,Miami Marlins,823813,Atlanta Braves,3.51,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,665923.0,Esteury Ruiz,Miami Marlins,823813,Atlanta Braves,2.63,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669065.0,Kyle Stowers,Miami Marlins,823813,Atlanta Braves,4.06,listed,GLIZZY,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669364.0,Xavier Edwards,Miami Marlins,823813,Atlanta Braves,3.64,listed,LTTA,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,672640.0,Otto Lopez,Miami Marlins,823813,Atlanta Braves,4.54,listed,Dan,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,677870.0,Leo Jiménez,Miami Marlins,823813,Atlanta Braves,2.7,listed,FA,1B/2B/3B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,681715.0,Heriberto Hernández,Miami Marlins,823813,Atlanta Braves,4.3,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,682663.0,Agustín Ramírez,Miami Marlins,823813,Atlanta Braves,3.13,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,683357.0,Owen Caissie,Miami Marlins,823813,Atlanta Braves,2.78,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,688363.0,Graham Pauley,Miami Marlins,823813,Atlanta Braves,2.46,listed,FA,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,691594.0,Javier Sanoja,Miami Marlins,823813,Atlanta Braves,4.07,listed,CS,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691788.0,Joe Mack,Miami Marlins,823813,Atlanta Braves,2.79,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,805300.0,Jakob Marsee,Miami Marlins,823813,Atlanta Braves,4.46,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,573262.0,Mike Yastrzemski,Atlanta Braves,823813,Miami Marlins,2.91,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,621566.0,Matt Olson,Atlanta Braves,823813,Miami Marlins,4.06,listed,MMM,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,642086.0,Dominic Smith,Atlanta Braves,823813,Miami Marlins,2.2,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,643289.0,Mauricio Dubón,Atlanta Braves,823813,Miami Marlins,3.83,listed,LTTA,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,645277.0,Ozzie Albies,Atlanta Braves,823813,Miami Marlins,3.58,listed,Dpf,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,657041.0,Lane Thomas,Atlanta Braves,823813,Miami Marlins,2.51,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,660670.0,Ronald Acuña Jr.,Atlanta Braves,823813,Miami Marlins,4.65,listed,GK,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,663586.0,Austin Riley,Atlanta Braves,823813,Miami Marlins,3.37,listed,CH,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,669221.0,Sean Murphy,Atlanta Braves,823813,Miami Marlins,3.59,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,671739.0,Michael Harris II,Atlanta Braves,823813,Miami Marlins,4.2,listed,CS,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,673490.0,Ha-Seong Kim,Atlanta Braves,823813,Miami Marlins,2.2,listed,FA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,686948.0,Drake Baldwin,Atlanta Braves,823813,Miami Marlins,4.99,listed,BAMBI,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,805347.0,Jim Jarvis,Atlanta Braves,823813,Miami Marlins,3.13,listed,FA,SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,592885.0,Christian Yelich,Milwaukee Brewers,823733,St. Louis Cardinals,3.63,listed,LTTA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,596142.0,Gary Sánchez,Milwaukee Brewers,823733,St. Louis Cardinals,3.06,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,641343.0,Jake Bauers,Milwaukee Brewers,823733,St. Louis Cardinals,4.08,listed,THALER,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,661388.0,William Contreras,Milwaukee Brewers,823733,St. Louis Cardinals,4.54,listed,GLIZZY,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,663368.0,Blake Perkins,Milwaukee Brewers,823733,St. Louis Cardinals,1.84,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,663604.0,Brandon Lockridge,Milwaukee Brewers,823733,St. Louis Cardinals,2.69,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666152.0,David Hamilton,Milwaukee Brewers,823733,St. Louis Cardinals,2.72,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,668930.0,Brice Turang,Milwaukee Brewers,823733,St. Louis Cardinals,3.9,listed,CH,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,669003.0,Garrett Mitchell,Milwaukee Brewers,823733,St. Louis Cardinals,3.44,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,683734.0,Andrew Vaughn,Milwaukee Brewers,823733,St. Louis Cardinals,2.85,listed,FA,1B/3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,686217.0,Sal Frelick,Milwaukee Brewers,823733,St. Louis Cardinals,2.78,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687401.0,Joey Ortiz,Milwaukee Brewers,823733,St. Louis Cardinals,3.07,listed,FA,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,694192.0,Jackson Chourio,Milwaukee Brewers,823733,St. Louis Cardinals,5.19,listed,BAMBI,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,800325.0,Luis Lara,Milwaukee Brewers,823733,St. Louis Cardinals,3.16,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,806198.0,Cooper Pratt,Milwaukee Brewers,823733,St. Louis Cardinals,3.49,listed,CH,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,666310.0,Bo Naylor,Milwaukee Brewers,823733,St. Louis Cardinals,2.91,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,602104.0,Ramón Urías,St. Louis Cardinals,823733,Milwaukee Brewers,1.58,listed,FA,2B/3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,663494.0,Bryan Torres,St. Louis Cardinals,823733,Milwaukee Brewers,2.67,listed,FA,C/2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,665877.0,José Fermín,St. Louis Cardinals,823733,Milwaukee Brewers,2.96,listed,FA,2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669357.0,Nolan Gorman,St. Louis Cardinals,823733,Milwaukee Brewers,2.87,listed,FA,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,671056.0,Iván Herrera,St. Louis Cardinals,823733,Milwaukee Brewers,3.95,listed,LTTA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,676475.0,Alec Burleson,St. Louis Cardinals,823733,Milwaukee Brewers,4.14,listed,LTTA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,677592.0,Everson Pereira,St. Louis Cardinals,823733,Milwaukee Brewers,2.67,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,686780.0,Pedro Pagés,St. Louis Cardinals,823733,Milwaukee Brewers,2.15,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,687363.0,Victor Scott II,St. Louis Cardinals,823733,Milwaukee Brewers,1.06,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691023.0,Jordan Walker,St. Louis Cardinals,823733,Milwaukee Brewers,3.69,listed,CJF,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691026.0,Masyn Winn,St. Louis Cardinals,823733,Milwaukee Brewers,2.84,listed,FA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,691458.0,Blaze Jordan,St. Louis Cardinals,823733,Milwaukee Brewers,3.01,listed,FA,1B/3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,695336.0,Thomas Saggese,St. Louis Cardinals,823733,Milwaukee Brewers,3.48,listed,MMM,2B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,695491.0,Joshua Báez,St. Louis Cardinals,823733,Milwaukee Brewers,3.38,listed,BAMBI,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,699625.0,Jimmy Crooks,St. Louis Cardinals,823733,Milwaukee Brewers,2.67,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,701675.0,Nathan Church,St. Louis Cardinals,823733,Milwaukee Brewers,3.31,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,802139.0,JJ Wetherholt,St. Louis Cardinals,823733,Milwaukee Brewers,3.74,listed,THALER,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,699024.0,Leo Bernal,St. Louis Cardinals,823733,Milwaukee Brewers,4.12,listed,BB,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,516782.0,Starling Marte,Kansas City Royals,824057,Cleveland Guardians,2.89,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,521692.0,Salvador Perez,Kansas City Royals,824057,Cleveland Guardians,4.1,listed,Dan,C/1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,664728.0,Kyle Isbel,Kansas City Royals,824057,Cleveland Guardians,2.94,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,668942.0,Josh Rojas,Kansas City Royals,824057,Cleveland Guardians,2.61,listed,FA,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,670231.0,John Rave,Kansas City Royals,824057,Cleveland Guardians,3.61,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,672580.0,Maikel Garcia,Kansas City Royals,824057,Cleveland Guardians,3.97,listed,CS,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,677951.0,Bobby Witt Jr.,Kansas City Royals,824057,Cleveland Guardians,4.96,listed,BB,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,679845.0,Nick Loftin,Kansas City Royals,824057,Cleveland Guardians,3.57,listed,FA,2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,686469.0,Vinnie Pasquantino,Kansas City Royals,824057,Cleveland Guardians,4.58,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,686475.0,Tyler Tolbert,Kansas City Royals,824057,Cleveland Guardians,1.55,listed,FA,2B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,686555.0,Isaac Collins,Kansas City Royals,824057,Cleveland Guardians,3.19,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,686681.0,Michael Massey,Kansas City Royals,824057,Cleveland Guardians,3.75,listed,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,695506.0,Jac Caglianone,Kansas City Royals,824057,Cleveland Guardians,4.39,listed,CH,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,695600.0,Carter Jensen,Kansas City Royals,824057,Cleveland Guardians,5.05,listed,BB,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,595978.0,Austin Hedges,Cleveland Guardians,824057,Kansas City Royals,3.1,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,608070.0,José Ramírez,Cleveland Guardians,824057,Kansas City Royals,4.11,listed,MMM,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,656555.0,Rhys Hoskins,Cleveland Guardians,824057,Kansas City Royals,3.31,listed,FA,1B,False,2026-09-26T14:34:00Z
+2026-09-26,H,663993.0,Nathaniel Lowe,Cleveland Guardians,824057,Kansas City Royals,3.16,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,666176.0,Jo Adell,Cleveland Guardians,824057,Kansas City Royals,3.85,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,672275.0,Patrick Bailey,Cleveland Guardians,824057,Kansas City Royals,3.04,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,677587.0,Brayan Rocchio,Cleveland Guardians,824057,Kansas City Royals,3.91,listed,CJF,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,680757.0,Steven Kwan,Cleveland Guardians,824057,Kansas City Royals,4.45,listed,Dan,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,681807.0,David Fry,Cleveland Guardians,824057,Kansas City Royals,2.29,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,682177.0,Daniel Schneemann,Cleveland Guardians,824057,Kansas City Royals,2.03,listed,FA,2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,682657.0,Angel Martínez,Cleveland Guardians,824057,Kansas City Royals,3.93,listed,GK,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,683953.0,Travis Bazzana,Cleveland Guardians,824057,Kansas City Royals,4.22,listed,THALER,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,690984.0,Petey Halpin,Cleveland Guardians,824057,Kansas City Royals,2.1,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,694197.0,Angel Genao,Cleveland Guardians,824057,Kansas City Royals,2.68,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,700932.0,Kyle Manzardo,Cleveland Guardians,824057,Kansas City Royals,3.36,listed,FA,1B,False,2026-09-26T14:34:00Z
+2026-09-26,H,800050.0,Chase DeLauter,Cleveland Guardians,824057,Kansas City Royals,4.31,listed,GK,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,696135.0,Kahlil Watson,Cleveland Guardians,824057,Kansas City Royals,3.44,listed,FA,SS/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,545341.0,Randal Grichuk,Chicago White Sox,824543,Colorado Rockies,2.73,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,643217.0,Andrew Benintendi,Chicago White Sox,824543,Colorado Rockies,2.59,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,663698.0,Joey Bart,Chicago White Sox,824543,Colorado Rockies,2.57,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,668670.0,Jake Rogers,Chicago White Sox,824543,Colorado Rockies,2.5,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,671976.0,Tristan Peters,Chicago White Sox,824543,Colorado Rockies,2.75,listed,Dpf,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,678246.0,Miguel Vargas,Chicago White Sox,824543,Colorado Rockies,4.46,listed,GLIZZY,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,682668.0,Luisangel Acuña,Chicago White Sox,824543,Colorado Rockies,1.32,listed,FA,2B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,686668.0,Brenton Doyle,Chicago White Sox,824543,Colorado Rockies,2.17,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691011.0,Drew Romo,Chicago White Sox,824543,Colorado Rockies,3.12,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,691019.0,Kyle Teel,Chicago White Sox,824543,Colorado Rockies,3.4,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,695657.0,Colson Montgomery,Chicago White Sox,824543,Colorado Rockies,3.73,listed,THALER,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,695731.0,Braden Montgomery,Chicago White Sox,824543,Colorado Rockies,2.88,listed,CJF,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,700337.0,Edgar Quero,Chicago White Sox,824543,Colorado Rockies,2.4,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,803011.0,Sam Antonacci,Chicago White Sox,824543,Colorado Rockies,3.48,listed,BAMBI,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,805367.0,Chase Meidroth,Chicago White Sox,824543,Colorado Rockies,4.2,listed,LTTA,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,808959.0,Munetaka Murakami,Chicago White Sox,824543,Colorado Rockies,3.74,listed,CJF,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,650489.0,Willi Castro,Colorado Rockies,824543,Chicago White Sox,3.76,listed,THALER,1B/2B/3B/SS/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,664954.0,Brett Sullivan,Colorado Rockies,824543,Chicago White Sox,2.66,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,664983.0,Jake McCarthy,Colorado Rockies,824543,Chicago White Sox,4.21,listed,MMM,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666160.0,Mickey Moniak,Colorado Rockies,824543,Chicago White Sox,3.13,listed,Dpf,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666397.0,Edouard Julien,Colorado Rockies,824543,Chicago White Sox,2.87,listed,FA,1B/2B,False,2026-09-26T14:34:00Z
+2026-09-26,H,671289.0,Tyler Freeman,Colorado Rockies,824543,Chicago White Sox,3.41,listed,FA,2B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,678662.0,Ezequiel Tovar,Colorado Rockies,824543,Chicago White Sox,2.8,listed,FA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,681198.0,TJ Rumfield,Colorado Rockies,824543,Chicago White Sox,4.15,listed,BB,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,681393.0,Connor Norby,Colorado Rockies,824543,Chicago White Sox,3.49,listed,FA,1B/2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,687597.0,Jordan Beck,Colorado Rockies,824543,Chicago White Sox,1.98,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687859.0,Troy Johnston,Colorado Rockies,824543,Chicago White Sox,3.02,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691720.0,Kyle Karros,Colorado Rockies,824543,Chicago White Sox,3.54,listed,FA,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,694249.0,Cole Carrigg,Colorado Rockies,824543,Chicago White Sox,3.9,listed,BB,SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,696100.0,Hunter Goodman,Colorado Rockies,824543,Chicago White Sox,3.79,listed,CJF,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,690924.0,Braxton Fulford,Colorado Rockies,824543,Chicago White Sox,1.8,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,691182.0,Adael Amador,Colorado Rockies,824543,Chicago White Sox,3.39,listed,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,691728.0,Zac Veen,Colorado Rockies,824543,Chicago White Sox,2.02,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,694514.0,Sterlin Thompson,Colorado Rockies,824543,Chicago White Sox,2.64,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,547180.0,Bryce Harper,Philadelphia Phillies,823407,Tampa Bay Rays,4.69,listed,BAMBI,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,592663.0,J.T. Realmuto,Philadelphia Phillies,823407,Tampa Bay Rays,3.33,listed,Dpf,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,607208.0,Trea Turner,Philadelphia Phillies,823407,Tampa Bay Rays,4.15,listed,CS,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,624641.0,Edmundo Sosa,Philadelphia Phillies,823407,Tampa Bay Rays,2.21,listed,FA,2B/3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,650333.0,Luis Arraez,Philadelphia Phillies,823407,Tampa Bay Rays,3.89,listed,GLIZZY,1B/2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,656537.0,Derek Hill,Philadelphia Phillies,823407,Tampa Bay Rays,1.58,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,656941.0,Kyle Schwarber,Philadelphia Phillies,823407,Tampa Bay Rays,4.35,listed,CS,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,664761.0,Alec Bohm,Philadelphia Phillies,823407,Tampa Bay Rays,3.54,listed,CS,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,666969.0,Adolis García,Philadelphia Phillies,823407,Tampa Bay Rays,3.19,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,669016.0,Brandon Marsh,Philadelphia Phillies,823407,Tampa Bay Rays,2.57,listed,Dpf,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,681082.0,Bryson Stott,Philadelphia Phillies,823407,Tampa Bay Rays,3.76,listed,CS,2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,702222.0,Justin Crawford,Philadelphia Phillies,823407,Tampa Bay Rays,2.78,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,596117.0,Garrett Stubbs,Philadelphia Phillies,823407,Tampa Bay Rays,1.36,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,650559.0,Bryan De La Cruz,Philadelphia Phillies,823407,Tampa Bay Rays,2.4,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,665561.0,Rafael Marchán,Philadelphia Phillies,823407,Tampa Bay Rays,1.86,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,687282.0,Gabriel Rincones Jr.,Philadelphia Phillies,823407,Tampa Bay Rays,2.94,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,622761.0,Jorge Mateo,Tampa Bay Rays,823407,Philadelphia Phillies,2.12,,FA,2B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,650490.0,Yandy Díaz,Tampa Bay Rays,823407,Philadelphia Phillies,3.91,,LTTA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,656775.0,Cedric Mullins,Tampa Bay Rays,823407,Philadelphia Phillies,2.98,,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,663743.0,Nick Fortes,Tampa Bay Rays,823407,Philadelphia Phillies,2.33,,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,666018.0,Jonathan Aranda,Tampa Bay Rays,823407,Philadelphia Phillies,4.23,,BAMBI,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,668723.0,Ryan Vilade,Tampa Bay Rays,823407,Philadelphia Phillies,2.44,,FA,1B/2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,670764.0,Taylor Walls,Tampa Bay Rays,823407,Philadelphia Phillies,3.47,,FA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,676356.0,Jonny DeLuca,Tampa Bay Rays,823407,Philadelphia Phillies,3.0,,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,680700.0,Richie Palacios,Tampa Bay Rays,823407,Philadelphia Phillies,3.11,,FA,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,683748.0,Victor Mesa Jr.,Tampa Bay Rays,823407,Philadelphia Phillies,3.55,,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,689414.0,Liam Hicks,Tampa Bay Rays,823407,Philadelphia Phillies,3.39,,MMM,C/1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,691406.0,Junior Caminero,Tampa Bay Rays,823407,Philadelphia Phillies,3.87,,BAMBI,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,802415.0,Chandler Simpson,Tampa Bay Rays,823407,Philadelphia Phillies,4.11,,BAMBI,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,810938.0,Ben Williamson,Tampa Bay Rays,823407,Philadelphia Phillies,2.87,,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,641584.0,Jake Fraley,Tampa Bay Rays,823407,Philadelphia Phillies,2.72,,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,592206.0,Nick Castellanos,San Diego Padres,823245,Arizona Diamondbacks,3.03,,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,592518.0,Manny Machado,San Diego Padres,823245,Arizona Diamondbacks,4.22,,CS,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,593428.0,Xander Bogaerts,San Diego Padres,823245,Arizona Diamondbacks,3.96,,FA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,609280.0,Miguel Andujar,San Diego Padres,823245,Arizona Diamondbacks,3.29,,FA,3B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,630105.0,Jake Cronenworth,San Diego Padres,823245,Arizona Diamondbacks,3.31,,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,650859.0,Luis Rengifo,San Diego Padres,823245,Arizona Diamondbacks,3.19,,FA,2B/3B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,657656.0,Ramón Laureano,San Diego Padres,823245,Arizona Diamondbacks,3.88,,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,657757.0,Gavin Sheets,San Diego Padres,823245,Arizona Diamondbacks,3.07,,FA,1B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,664034.0,Ty France,San Diego Padres,823245,Arizona Diamondbacks,4.08,,BB,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,665487.0,Fernando Tatis Jr.,San Diego Padres,823245,Arizona Diamondbacks,4.82,,BB,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666023.0,Freddy Fermin,San Diego Padres,823245,Arizona Diamondbacks,2.45,,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,669134.0,Luis Campusano,San Diego Padres,823245,Arizona Diamondbacks,3.65,,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,669392.0,Samad Taylor,San Diego Padres,823245,Arizona Diamondbacks,3.58,,GLIZZY,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687957.0,Dustin Harris,San Diego Padres,823245,Arizona Diamondbacks,3.12,,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,701538.0,Jackson Merrill,San Diego Padres,823245,Arizona Diamondbacks,4.27,,CH,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,823550.0,Sung-Mun Song,San Diego Padres,823245,Arizona Diamondbacks,1.23,,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,660710.0,Rodolfo Durán,San Diego Padres,823245,Arizona Diamondbacks,2.25,,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,669720.0,Austin Hays,San Diego Padres,823245,Arizona Diamondbacks,2.13,,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687749.0,Jase Bowen,San Diego Padres,823245,Arizona Diamondbacks,0.79,,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,806956.0,Ethan Salas,San Diego Padres,823245,Arizona Diamondbacks,2.16,,THALER,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,543510.0,James McCann,Arizona Diamondbacks,823245,San Diego Padres,3.1,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,545121.0,Ildemaro Vargas,Arizona Diamondbacks,823245,San Diego Padres,2.47,listed,FA,1B/2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,571448.0,Nolan Arenado,Arizona Diamondbacks,823245,San Diego Padres,3.99,listed,FA,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,596146.0,Max Kepler,Arizona Diamondbacks,823245,San Diego Padres,2.84,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,606466.0,Ketel Marte,Arizona Diamondbacks,823245,San Diego Padres,3.72,listed,GK,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,656976.0,Pavin Smith,Arizona Diamondbacks,823245,San Diego Padres,2.6,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,660821.0,Jesús Sánchez,Arizona Diamondbacks,823245,San Diego Padres,2.02,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,663457.0,Lars Nootbaar,Arizona Diamondbacks,823245,San Diego Padres,3.34,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666971.0,Lourdes Gurriel Jr.,Arizona Diamondbacks,823245,San Diego Padres,3.39,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,672515.0,Gabriel Moreno,Arizona Diamondbacks,823245,San Diego Padres,4.61,listed,THALER,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,672695.0,Geraldo Perdomo,Arizona Diamondbacks,823245,San Diego Padres,3.88,listed,CS,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,680728.0,Adrian Del Castillo,Arizona Diamondbacks,823245,San Diego Padres,2.29,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,682998.0,Corbin Carroll,Arizona Diamondbacks,823245,San Diego Padres,3.39,listed,Dan,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,691783.0,Jordan Lawlar,Arizona Diamondbacks,823245,San Diego Padres,2.66,listed,BAMBI,3B/SS/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,694371.0,Tommy Troy,Arizona Diamondbacks,823245,San Diego Padres,2.21,listed,FA,2B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,694374.0,Tim Tawa,Arizona Diamondbacks,823245,San Diego Padres,3.41,listed,FA,1B/2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,699912.0,Jose Fernandez,Arizona Diamondbacks,823245,San Diego Padres,2.47,listed,FA,1B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,814439.0,Ryan Waldschmidt,Arizona Diamondbacks,823245,San Diego Padres,2.94,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,608701.0,Rob Refsnyder,Seattle Mariners,823083,Los Angeles Angels,1.89,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,621493.0,Taylor Ward,Seattle Mariners,823083,Los Angeles Angels,2.42,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,641487.0,J.P. Crawford,Seattle Mariners,823083,Los Angeles Angels,3.64,listed,FA,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,641598.0,Mitch Garver,Seattle Mariners,823083,Los Angeles Angels,2.41,listed,FA,C,False,2026-09-26T14:34:00Z
+2026-09-26,H,642215.0,Weston Wilson,Seattle Mariners,823083,Los Angeles Angels,2.15,listed,FA,3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,645302.0,Victor Robles,Seattle Mariners,823083,Los Angeles Angels,1.45,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,647304.0,Josh Naylor,Seattle Mariners,823083,Los Angeles Angels,3.49,listed,GLIZZY,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,660844.0,Leo Rivas,Seattle Mariners,823083,Los Angeles Angels,2.42,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,663728.0,Cal Raleigh,Seattle Mariners,823083,Los Angeles Angels,3.95,listed,CH,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,668227.0,Randy Arozarena,Seattle Mariners,823083,Los Angeles Angels,4.08,listed,GLIZZY,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,670042.0,Luke Raley,Seattle Mariners,823083,Los Angeles Angels,2.7,listed,FA,1B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,677594.0,Julio Rodríguez,Seattle Mariners,823083,Los Angeles Angels,3.82,listed,BB,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,680977.0,Brendan Donovan,Seattle Mariners,823083,Los Angeles Angels,3.7,listed,FA,2B/3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,686527.0,Dominic Canzone,Seattle Mariners,823083,Los Angeles Angels,3.78,listed,GK,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,702284.0,Cole Young,Seattle Mariners,823083,Los Angeles Angels,3.32,listed,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,806068.0,Colt Emerson,Seattle Mariners,823083,Los Angeles Angels,2.86,listed,FA,3B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,640902.0,Jhonny Pereda,Seattle Mariners,823083,Los Angeles Angels,2.79,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,801126.0,Brock Rodden,Seattle Mariners,823083,Los Angeles Angels,1.71,listed,FA,SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,545361.0,Mike Trout,Los Angeles Angels,823083,Seattle Mariners,3.74,listed,THALER,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,623168.0,Tyler Heineman,Los Angeles Angels,823083,Seattle Mariners,1.8,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,624428.0,Adam Frazier,Los Angeles Angels,823083,Seattle Mariners,1.62,listed,FA,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,624585.0,Jorge Soler,Los Angeles Angels,823083,Seattle Mariners,3.18,listed,Dan,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,642350.0,Jose Siri,Los Angeles Angels,823083,Seattle Mariners,1.99,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,660162.0,Yoán Moncada,Los Angeles Angels,823083,Seattle Mariners,2.34,listed,FA,3B,False,2026-09-26T14:34:00Z
+2026-09-26,H,666139.0,Josh Lowe,Los Angeles Angels,823083,Seattle Mariners,2.15,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,672724.0,Oswald Peraza,Los Angeles Angels,823083,Seattle Mariners,2.36,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,685133.0,Wade Meckler,Los Angeles Angels,823083,Seattle Mariners,3.05,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687093.0,Vaughn Grissom,Los Angeles Angels,823083,Seattle Mariners,3.31,listed,FA,1B/2B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,687263.0,Zach Neto,Los Angeles Angels,823083,Seattle Mariners,4.01,listed,LTTA,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,694203.0,Denzer Guzman,Los Angeles Angels,823083,Seattle Mariners,2.67,listed,FA,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,694208.0,Moisés Ballesteros,Los Angeles Angels,823083,Seattle Mariners,2.9,listed,FA,C/1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,694384.0,Nolan Schanuel,Los Angeles Angels,823083,Seattle Mariners,3.17,listed,FA,1B,False,2026-09-26T14:34:00Z
+2026-09-26,H,695681.0,Christian Moore,Los Angeles Angels,823083,Seattle Mariners,2.99,listed,FA,2B,True,2026-09-26T14:34:00Z
+2026-09-26,H,518595.0,Travis d'Arnaud,Los Angeles Angels,823083,Seattle Mariners,2.15,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,622268.0,Donovan Walton,Athletics,824949,Houston Astros,3.19,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,641680.0,Jonah Heim,Athletics,824949,Houston Astros,3.14,listed,GK,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,643446.0,Jeff McNeil,Athletics,824949,Houston Astros,4.1,listed,FA,1B/2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,666126.0,Carlos Cortes,Athletics,824949,Houston Astros,2.96,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,667670.0,Brent Rooker,Athletics,824949,Houston Astros,4.39,listed,GLIZZY,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,669127.0,Shea Langeliers,Athletics,824949,Houston Astros,4.09,listed,CS,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,671732.0,Lawrence Butler,Athletics,824949,Houston Astros,4.35,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,675961.0,Alika Williams,Athletics,824949,Houston Astros,2.85,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,680869.0,Zack Gelof,Athletics,824949,Houston Astros,4.37,listed,LTTA,2B/3B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,687231.0,Darell Hernaiz,Athletics,824949,Houston Astros,2.22,listed,FA,2B/3B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,687515.0,Colby Thomas,Athletics,824949,Houston Astros,2.04,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,691016.0,Tyler Soderstrom,Athletics,824949,Houston Astros,4.41,listed,Dpf,1B/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,691777.0,Max Muncy,Athletics,824949,Houston Astros,3.27,listed,Dpf,3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,695720.0,Tommy White,Athletics,824949,Houston Astros,2.82,listed,FA,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,701762.0,Nick Kurtz,Athletics,824949,Houston Astros,4.89,listed,BB,1B,False,2026-09-26T14:34:00Z
+2026-09-26,H,703607.0,Henry Bolte,Athletics,824949,Houston Astros,4.7,listed,CS,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,805779.0,Jacob Wilson,Athletics,824949,Houston Astros,4.25,listed,FA,SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,661531.0,Brian Serven,Athletics,824949,Houston Astros,2.96,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,672016.0,Denzel Clarke,Athletics,824949,Houston Astros,1.67,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,811965.0,Joshua Kuroda-Grauer,Athletics,824949,Houston Astros,3.55,listed,Dpf,3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,514888.0,Jose Altuve,Houston Astros,824949,Athletics,3.8,listed,BAMBI,2B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,543877.0,Christian Vázquez,Houston Astros,824949,Athletics,2.62,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,572233.0,Christian Walker,Houston Astros,824949,Athletics,3.54,listed,FA,1B,True,2026-09-26T14:34:00Z
+2026-09-26,H,621043.0,Carlos Correa,Houston Astros,824949,Athletics,4.19,listed,Dan,3B/SS,False,2026-09-26T14:34:00Z
+2026-09-26,H,662139.0,Daulton Varsho,Houston Astros,824949,Athletics,3.46,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,664774.0,LaMonte Wade Jr.,Houston Astros,824949,Athletics,2.12,listed,FA,1B/OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,665161.0,Jeremy Peña,Houston Astros,824949,Athletics,4.28,listed,CS,SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,666211.0,Taylor Trammell,Houston Astros,824949,Athletics,2.89,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,669397.0,Nick Allen,Houston Astros,824949,Athletics,1.48,listed,FA,2B/3B/SS,True,2026-09-26T14:34:00Z
+2026-09-26,H,670541.0,Yordan Alvarez,Houston Astros,824949,Athletics,4.93,listed,MMM,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,670623.0,Isaac Paredes,Houston Astros,824949,Athletics,4.27,listed,Dan,1B/3B,True,2026-09-26T14:34:00Z
+2026-09-26,H,673237.0,Yainer Diaz,Houston Astros,824949,Athletics,3.78,listed,FA,C,True,2026-09-26T14:34:00Z
+2026-09-26,H,676369.0,Nelson Velázquez,Houston Astros,824949,Athletics,1.95,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,676694.0,Jake Meyers,Houston Astros,824949,Athletics,2.05,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,678489.0,Jorge Barrosa,Houston Astros,824949,Athletics,1.32,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,694388.0,Joey Loperfido,Houston Astros,824949,Athletics,2.88,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,694728.0,Brice Matthews,Houston Astros,824949,Athletics,2.81,listed,FA,2B/SS/OF,False,2026-09-26T14:34:00Z
+2026-09-26,H,701358.0,Cam Smith,Houston Astros,824949,Athletics,3.43,listed,FA,OF,True,2026-09-26T14:34:00Z
+2026-09-26,H,701305.0,Zach Dezenzo,Houston Astros,824949,Athletics,2.23,listed,FA,OF,False,2026-09-26T14:34:00Z
+2026-09-26,P,813349.0,Connelly Early,Washington Nationals,822678,New York Mets,9.74,listed,GK,SP,False,2026-09-26T14:34:00Z
+2026-09-26,P,804636.0,Jonah Tong,New York Mets,822678,Washington Nationals,7.52,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,434378.0,Justin Verlander,Detroit Tigers,824219,Pittsburgh Pirates,6.13,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,489446.0,Kirby Yates,Pittsburgh Pirates,824219,Detroit Tigers,7.11,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,702056.0,Trey Yesavage,Toronto Blue Jays,822759,Cincinnati Reds,9.96,listed,BAMBI,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,695076.0,Rhett Lowder,Cincinnati Reds,822759,Toronto Blue Jays,5.22,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,683363.0,Matt Wilkinson,San Francisco Giants,823165,Los Angeles Dodgers,6.08,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,605483.0,Blake Snell,Los Angeles Dodgers,823165,San Francisco Giants,11.3,listed,BAMBI,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,641927.0,Bailey Ober,Minnesota Twins,823653,Texas Rangers,7.75,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,543135.0,Nathan Eovaldi,Texas Rangers,823653,Minnesota Twins,10.61,listed,LTTA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,667652.0,Jack Ralston,Miami Marlins,823813,Atlanta Braves,7.1,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,608718.0,Brent Suter,Atlanta Braves,823813,Miami Marlins,6.33,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,669160.0,Dustin May,Milwaukee Brewers,823733,St. Louis Cardinals,8.43,listed,THALER,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,687273.0,Quinn Mathews,St. Louis Cardinals,823733,Milwaukee Brewers,8.59,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,608379.0,Michael Wacha,Kansas City Royals,824057,Cleveland Guardians,10.03,listed,CJF,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,676440.0,Tanner Bibee,Cleveland Guardians,824057,Kansas City Royals,11.66,listed,CJF,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,663436.0,Davis Martin,Chicago White Sox,824543,Colorado Rockies,6.94,listed,CH,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,500779.0,Jose Quintana,Colorado Rockies,824543,Chicago White Sox,6.14,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,643377.0,Griffin Jax,Tampa Bay Rays,823407,Philadelphia Phillies,9.56,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,621111.0,Walker Buehler,San Diego Padres,823245,Arizona Diamondbacks,8.41,listed,CS,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,807739.0,Kade Anderson,Seattle Mariners,823083,Los Angeles Angels,9.72,listed,BAMBI,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,696270.0,Ryan Johnson,Los Angeles Angels,823083,Seattle Mariners,8.45,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,678022.0,Jack Perkins,Athletics,824949,Houston Astros,7.53,listed,FA,SP,True,2026-09-26T14:34:00Z
+2026-09-26,P,669713.0,Hayden Wesneski,Houston Astros,824949,Athletics,7.72,listed,GLIZZY,SP,True,2026-09-26T14:34:00Z
