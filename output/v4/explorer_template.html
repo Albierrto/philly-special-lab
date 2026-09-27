@@ -390,6 +390,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
   .brand div{display:none} .brand{margin-right:2px}
   .teamsel select{max-width:108px} .search{min-width:98px}
 }
+@media (max-width:400px){
+  /* once the live dot shows, brand + team + search + dot + two buttons ran 18px past a 360 screen */
+  .teamsel select{max-width:96px} .search{min-width:72px}
+}
 .lockb{font:600 10px/1 var(--font-b);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;vertical-align:middle;margin-left:4px}
 .lockb:hover{background:var(--accent);color:#fff}
 .lockb.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -743,7 +747,7 @@ beat: ≥ +75 pts, ≥ +25 ranks, top-150 finish     big beat: ≥ +150, ≥ +60
   <div id="agingchart"></div>
 
   <h3>Projected 2027 points</h3>
-  <p class="plain">A player's expected points next year: his rate times the plate appearances he can be expected to get. The rate is one regression on this year's Statcast skills, deserved points, discipline, speed and age, with his own last two seasons sitting alongside them as inputs, so the model decides for itself how much of a man's past to believe (it believes last year a great deal and two years ago hardly at all). It replaced a boosted tree in September 2026 because with 1,300 seasons to learn from the tree was memorising them: held out a season at a time the regression is closer in every one of five years. Playing time comes from his <b>pace</b> while he was actually on the roster, so a late call-up or an injury-shortened year does not read as a part-time player, and it is trimmed for injury history (this year's IL days in full, last year's 60%, two years ago 30%) and age.</p>
+  <p class="plain">A player's expected points next year: his rate times the plate appearances he can be expected to get. The rate is one regression on this year's Statcast skills, deserved points, discipline, speed and age, with his own last two seasons sitting alongside them as inputs, so the model decides for itself how much of a man's past to believe (it believes last year a great deal and two years ago hardly at all). It replaced a boosted tree in September 2026 because with 1,300 seasons to learn from the tree was memorising them: held out a season at a time the regression is closer in every one of five years. Playing time comes from his <b>pace</b> while he was actually on the roster, so a late call-up or an injury-shortened year does not read as a part-time player, and it is trimmed for injury history (this year's IL days in full, last year's 60%, two years ago 30%) and age. A fitted model then folds in two market reads: where he was drafted last March and where he actually finished. Before the finish rank was in, last March's opinion held breakouts back (2021-25: top-50 finishers the market had outside its top 75 got 63 more plate appearances the next year than projected) and propped up stars who had a bad year; with it, both miss by under 10, and playing-time error is lower in every held-out season.</p>
   <details class="math"><summary>Show the math</summary><div class="formula">rate = ridge(Statcast skills, deserved points, discipline, speed, age, this year's pts/PA and PA, last year's pts/PA and PA, two years ago pts/PA and PA)
 ridge alpha 30, standardised inputs, medians for a missing prior season; flat from alpha 3 to 100 out of sample, so not a tuned number
 no aging step is added afterwards: the model's own age term carries it, and adding half a step back moved r by .001 and made the error worse
@@ -2848,7 +2852,7 @@ function computeValues(){
   const DED = {C:1, '1B':1, '2B':1, '3B':1, SS:1, OF:3};
   const posOf = r => eligN(r).split('/').filter(x=>x in DED);
   const paPerG = id => { const h = (BY_ID[id]||[]).filter(x=>x.season>=CUR-1 && (x.PA||0)>=100 && (x.G||0)>0); const pa = h.reduce((a,x)=>a+x.PA,0), g = h.reduce((a,x)=>a+x.G,0); return g ? Math.min(4.7, Math.max(3.4, pa/g)) : 4.1; };
-  for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const pa = p.proj_PA || r.proj_PA || 500; r.pag_c = paPerG(r.mlbam_id); r.G27_c = pa / r.pag_c; r.ppg27_c = r.proj_pts / Math.max(1, r.G27_c); }
+  for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const pa = p.proj_PA || r.proj_PA || 500; r.pag_c = paPerG(r.mlbam_id); r.G27_c = Math.min(162, pa / r.pag_c); r.ppg27_c = r.proj_pts / Math.max(1, r.G27_c); }
   const reg = cur.filter(r=>r.G27_c >= 100).sort((a,b)=>b.ppg27_c-a.ppg27_c);
   const nthRate = (list, n) => list.length ? list[Math.min(Math.max(0, n-1), list.length-1)].ppg27_c : 0;
   const nH = Math.round(1.25*TEAMS*HSTART), replH = nthRate(reg, nH), replP = 7.2;
@@ -2863,7 +2867,7 @@ function computeValues(){
     const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
     r.pos_c = posBest(r); const rp = replPos[r.pos_c]; r.repl_c = rp;
     r.scarce_c = Math.round((replH - rp) * r.G27_c);        // his position's edge over the league-wide rate, in season points; zero for all but a few
-    r.PAR_c = r.proj_pts - rp*r.G27_c; r.PAR28_c = r28*pa28 - rp*pa28/r.pag_c; r.PAR29_c = r29*pa29 - rp*pa29/r.pag_c; }
+    r.PAR_c = r.proj_pts - rp*r.G27_c; r.PAR28_c = r28*pa28 - rp*Math.min(162, pa28/r.pag_c); r.PAR29_c = r29*pa29 - rp*Math.min(162, pa29/r.pag_c); }
   for (const r of pc){ const p = PPROJ[r.mlbam_id]||{}; const gs = p.proj_GS || 25, pg = p.proj_pts_gs ?? (r.proj_pts/gs), hit = r.proj_pts_hitting||0; const a = r.age+1;
     const pg28 = pg + ageStep(PAGE, a), pg29 = pg28 + ageStep(PAGE, a+1); const gs28 = gs*(a+1>=34?0.93:1), gs29 = gs28*(a+2>=34?0.93:1);
     // a two-way player in a pitcher slot is worth his arm over a replacement START plus his bat over a replacement GAME
