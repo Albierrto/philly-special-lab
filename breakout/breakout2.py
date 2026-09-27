@@ -416,11 +416,20 @@ def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
     Only the most recent preseason ADP is ever available when this runs, so that is what it is measured with.
     The market is used ONLY for playing time. The rate stays the model's, because there it is already better.
     """
-    F = ["base_pa", "PA", "age", "lg_adp", "has_adp"]
+    F = ["base_pa", "PA", "age", "lg_adp", "has_adp", "lg_fin", "lg_fin2", "adp_x_fin"]
     def prep(x):
         x = x.copy()
         x["lg_adp"] = np.log(x["adp_hitter_rank"].clip(1, 900).fillna(900)) if "adp_hitter_rank" in x else np.log(900)
         x["has_adp"] = x["adp_hitter_rank"].notna().astype(float) if "adp_hitter_rank" in x else 0.0
+        # Where he actually finished this season, next to where the market had him last March. With only the ADP, a
+        # hitter who went from pick 150 to a top-50 finish was dragged toward a part-time role (2021-25, top-50 finishers
+        # the market had outside its top 75: 63 PA more the next year than projected) while a star the market loved
+        # was pushed up (top-50 finishers inside its top 25: 35 PA fewer). The finish rank, with a curve and its
+        # interaction with the ADP, takes both to about 7-8 PA and cuts PA error in every held-out season
+        # (MAE 128.0 to 124.1, r .631 to .655).
+        x["lg_fin"] = np.log(x["final_hitter_rank"].clip(1, 900).fillna(900)) if "final_hitter_rank" in x else np.log(900)
+        x["lg_fin2"] = x["lg_fin"] ** 2
+        x["adp_x_fin"] = x["lg_adp"] * x["lg_fin"]
         return x
     nxt = d[["mlbam_id", "season", "PA"]].copy(); nxt["season"] -= 1
     tr = d[d["PA"] >= 150].merge(nxt.rename(columns={"PA": "next_PA"}), on=["mlbam_id", "season"], how="inner")
