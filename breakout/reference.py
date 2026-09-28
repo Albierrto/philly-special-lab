@@ -38,7 +38,7 @@ def newest(prefix: str, cols: list[str] | None = None, stale_days: int = STALE_D
     got = _dated(prefix)
     if not got: return pd.DataFrame(columns=cols), None
     stamp, path = got[-1]
-    age = (date.fromisoformat(asof or date.today().isoformat()) - date.fromisoformat(stamp)).days
+    age = (date.fromisoformat(asof or C.league_today().isoformat()) - date.fromisoformat(stamp)).days
     if age > stale_days: return pd.DataFrame(columns=cols), None
     d = pd.read_csv(path)
     for c in cols:
@@ -74,7 +74,7 @@ def check(path: str) -> int:
 
 
 def status(asof: str | None = None) -> pd.DataFrame:
-    today = date.fromisoformat(asof or date.today().isoformat()); rows = []
+    today = date.fromisoformat(asof or C.league_today().isoformat()); rows = []
     for prefix in SCHEMA:
         got = _dated(prefix)
         stamp = got[-1][0] if got else None

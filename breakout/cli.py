@@ -34,6 +34,16 @@ def main(argv=None):
             sources.mlb_season("fielding", y, refresh=True); sources.fantasypros_adp(y, refresh=True)
     ps = player_seasons(seasons, league["scoring_hitting"])
     ps.to_parquet(C.DATA / "player_seasons.parquet")
+    # playing-time availability for every season the models train on (see availability.availability). A failed fetch
+    # keeps the previous file rather than stopping the rebuild.
+    try:
+        from .availability import availability
+        av = availability(ps, seasons=seasons, refresh_current=True)
+        if len(av):
+            av.to_parquet(C.DATA / "availability.parquet", index=False)
+            print(f"      availability: {len(av)} hitter-seasons, {av['season'].min()}-{av['season'].max()}, last game {av['last_game'].max()}")
+    except Exception as e:
+        print("      availability refresh failed, keeping the previous file:", e)
     print(f"[2/6] scoring vs ADP curves ... ({len(ps)} hitter-seasons)")
     sc = score_seasons(ps)
     multi = multi_year(sc)

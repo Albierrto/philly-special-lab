@@ -65,7 +65,10 @@ def schedule(start: str, end: str) -> pd.DataFrame:
     rows = []
     for d in j.get("dates", []):
         for g in d["games"]:
-            if g.get("gameType") not in ("R", "P", "F", "D", "L", "W"):
+            # regular season only: the league's scoring periods end with it, and a postseason game has no settled
+            # opponent until the series is set ("SD/CHC"), which left 20 of 26 starts and 364 of 519 hitter-days with no
+            # expected points and crashed the Today page
+            if g.get("gameType") != "R":
                 continue
             for side, opp in (("home", "away"), ("away", "home")):
                 t = g["teams"][side]; o = g["teams"][opp]

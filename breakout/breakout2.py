@@ -128,6 +128,9 @@ def prepare(ps_x: pd.DataFrame, prospects: pd.DataFrame | None = None, injuries:
     if prospects is not None and "pedigree" in prospects:
         d = d.merge(prospects[["mlbam_id", "pedigree", "pipeline_rank", "prospect_status", "PAS"]], on="mlbam_id", how="left")
         d["pedigree"] = d["pedigree"].fillna(0.15)
+        # the prospect table is TODAY's status; stamped on 2021-25 rows it labelled a 2022 season with a 2026 ranking
+        past = d["season"] < d["season"].max()
+        d.loc[past, ["pipeline_rank", "prospect_status", "PAS"]] = np.nan
     else:
         d["pedigree"] = 0.15
     return d
@@ -416,7 +419,7 @@ def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
     Only the most recent preseason ADP is ever available when this runs, so that is what it is measured with.
     The market is used ONLY for playing time. The rate stays the model's, because there it is already better.
     """
-    F = ["base_pa", "PA", "age", "lg_adp", "has_adp", "lg_fin", "lg_fin2", "adp_x_fin"]
+    F = ["base_pa", "PA", "age30", "young", "base_x_age", "pa_x_age", "lg_adp", "has_adp", "lg_fin", "lg_fin2", "adp_x_fin"]
     def prep(x):
         x = x.copy()
         x["lg_adp"] = np.log(x["adp_hitter_rank"].clip(1, 900).fillna(900)) if "adp_hitter_rank" in x else np.log(900)
@@ -425,14 +428,29 @@ def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
         # hitter who went from pick 150 to a top-50 finish was dragged toward a part-time role (2021-25, top-50 finishers
         # the market had outside its top 75: 63 PA more the next year than projected) while a star the market loved
         # was pushed up (top-50 finishers inside its top 25: 35 PA fewer). The finish rank, with a curve and its
-        # interaction with the ADP, takes both to about 7-8 PA and cuts PA error in every held-out season
-        # (MAE 128.0 to 124.1, r .631 to .655).
+        # interaction with the ADP, takes both to under 10.
         x["lg_fin"] = np.log(x["final_hitter_rank"].clip(1, 900).fillna(900)) if "final_hitter_rank" in x else np.log(900)
         x["lg_fin2"] = x["lg_fin"] ** 2
         x["adp_x_fin"] = x["lg_adp"] * x["lg_fin"]
+        # Age, split, and let it scale with how much he plays. A single linear age term (-8.5 PA a year) fitted mostly on
+        # part-timers aging out of jobs, and cut healthy veteran regulars far too hard: 2021-25, 33+ hitters with 600+ PA
+        # got 572 the next year against 508 projected (+65), 31+ regulars who finished 40th-120th +74. Aging only past 30,
+        # a separate young term, and age x playing time take the 33+ regulars to +26 and the 31+ group to +11 without
+        # moving anyone else (young regulars 0, stars -5).
+        x["age30"] = (x["age"] - 30).clip(lower=0); x["young"] = (26 - x["age"]).clip(lower=0)
+        x["base_x_age"] = x["base_pa"] / 600 * x["age30"]; x["pa_x_age"] = x["PA"] / 600 * x["age30"]
         return x
-    nxt = d[["mlbam_id", "season", "PA"]].copy(); nxt["season"] -= 1
-    tr = d[d["PA"] >= 150].merge(nxt.rename(columns={"PA": "next_PA"}), on=["mlbam_id", "season"], how="inner")
+    # Target: next season's PA INCLUDING the seasons that never happened. Fitting only on hitters who played again
+    # taught the model that nobody loses a year (167 of 2,035 hitter-seasons had no next season; the raw MLB feed puts
+    # them at 0.6 PA), which left it 18 PA high on average. A missing next season counts as what the feed says (0 if
+    # absent) unless he was 35+, where missing mostly means retired: a retired man is not in anyone's draft.
+    last = int(d["season"].max())
+    inD = d.set_index(["mlbam_id", "season"])["PA"].to_dict()
+    raw = _raw_pa(range(int(d["season"].min()) + 1, last + 1))
+    tr = d[(d["PA"] >= 150) & (d["season"] < last)].copy()
+    tr["next_PA"] = [inD.get((i, s + 1), raw.get((i, s + 1), 0)) for i, s in zip(tr["mlbam_id"], tr["season"])]
+    lost = np.array([(i, s + 1) not in inD for i, s in zip(tr["mlbam_id"], tr["season"])])
+    tr = tr[~(lost & (tr["age"] >= 35).to_numpy())]
     if len(tr) < 100:
         return cur["base_pa"].clip(200, 700)                   # not enough history to fit: fall back to the rule
     seasons = sorted(tr["season"].unique())
@@ -446,6 +464,19 @@ def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
     mu = tr[F].mean()
     m = LinearRegression().fit(tr[F].fillna(mu), tr["next_PA"])
     return pd.Series(np.clip(m.predict(te[F].fillna(mu)), 200, 700), index=cur.index)
+
+
+def _raw_pa(years) -> dict:
+    """(mlbam_id, season) -> PA from the raw MLB season feed (every player with a plate appearance), for next seasons
+    too thin to be in the modelling table. Missing files are skipped: the caller then counts 0."""
+    import json
+    out = {}
+    for y in years:
+        p = DATA / "mlb" / f"hitting_{y}.json"
+        if not p.exists(): continue
+        for s in json.loads(p.read_text()):
+            k = (s["player"]["id"], y); out[k] = out.get(k, 0) + (s["stat"].get("plateAppearances") or 0)
+    return out
 
 
 def _base_pa(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
@@ -486,7 +517,7 @@ def project_v2(d: pd.DataFrame, season: int) -> pd.DataFrame:
     hist3["w"] = hist3["season"].map({season: 1.0, season - 1: 0.6, season - 2: 0.3}) * hist3["PA"]
     track = (hist3["pts_pa"] * hist3["w"]).groupby(hist3["mlbam_id"]).sum() / hist3["w"].groupby(hist3["mlbam_id"]).sum()
     cur["track_rate"] = cur["mlbam_id"].map(track).fillna(cur["pts_pa"])
-    cur["age_step"] = age_adjustment(curve, cur["age"] + 1)         # shown on the card; the multi-year view uses the curve itself
+    cur["age_step"] = age_adjustment(curve, cur["age"])             # this age to next (2026 to 2027); shown on the card only. It was the 2027-28 step
     cur["proj_rate"] = cur["proj_rate_raw"]
     # PA expectation from pace while on the roster (late call-ups and IL time do not count as "didn't play"), falling back to raw PA
     pace_col = "pa_pace_162" if "pa_pace_162" in d.columns else None

@@ -49,13 +49,23 @@ def realized(drafts: pd.DataFrame, teams: int = 12) -> pd.DataFrame:
     d = drafts.copy(); d["nkey"] = d["player"].map(nk)
     hm = h.set_index(["nkey", "season"])[["pts", "G"]]; pm = p.set_index(["nkey", "season"])[["pts", "GS"]]
     rows = []
+    HIT = {"C", "1B", "2B", "3B", "SS", "OF", "LF", "CF", "RF", "DH", "UT", "IF", "MI", "CI"}
     for r in d.itertuples():
-        is_p = str(r.pos).upper() in ("SP", "P", "RP") or "SP" in str(r.pos).upper().split("/")
+        pos = {x.strip() for x in str(r.pos).upper().replace(",", "/").split("/")}
+        # 2024 was drafted under a format with relief slots; relief-only picks say nothing about what a slot returns in
+        # today's SP-only league (a reliever cannot be started), so they are left out of the curve rather than scored as
+        # a starter with zero starts, which counted his whole season as value (19 picks, 1,606 points).
+        if pos & {"RP"} and not pos & {"SP", "P"} and not pos & HIT:
+            continue
+        is_p, is_h = bool(pos & {"SP", "P"}), bool(pos & HIT)
         k = (r.nkey, r.season); hv = hm.loc[k] if k in hm.index else None; pv = pm.loc[k] if k in pm.index else None
-        # value over replacement on each side; a two-way or ambiguous line takes the larger
         h_par = float(hv["pts"] - repl[r.season]["h"] * hv["G"]) if hv is not None else None
         p_par = float(pv["pts"] - START_REPL * pv["GS"]) if pv is not None else None
-        kind = "p" if (is_p or (p_par is not None and (h_par is None or p_par > h_par))) else "h"
+        # the drafted position decides which line is his; only a two-way or unlabeled pick takes the larger. Matching by
+        # name alone once handed Luis Garcia Jr. (2B) the reliever Luis Garcia's season.
+        if is_p and not is_h: kind = "p"
+        elif is_h and not is_p: kind = "h"
+        else: kind = "p" if (p_par is not None and (h_par is None or p_par > h_par)) else "h"
         par = (p_par if kind == "p" else h_par) or 0.0
         pts = float((pv if kind == "p" else hv)["pts"]) if (pv if kind == "p" else hv) is not None else 0.0
         rows.append(dict(season=r.season, overall=int(r.overall), round=int(r.round), team=r.team, player=r.player, pos=r.pos, kind=kind,

@@ -18,24 +18,47 @@ from .names import key
 FREE = ("FA", "W (Sun)", "W (Mon)")
 
 
+PITCH_POS = {"SP", "RP", "P"}
+TWO_WAY = {key("Shohei Ohtani")}       # one man on both boards: rostered at DH, started as a pitcher
+NO_CLUB = {"", "MULTI", "NONE", "NAN", "- - -"}
+
+
+def _club(c) -> str | None:
+    c = str(c).upper().strip() if c is not None else ""
+    return None if c in NO_CLUB else c
+
+
 class Owners:
     def __init__(self, ro: pd.DataFrame, synced: str):
         ro = ro.copy(); ro["nkey"] = ro["player"].apply(key)
+        ro["kind"] = ro["pos"].map(lambda p: "P" if str(p).upper() in PITCH_POS else "H")
         self.dup = set(ro.loc[ro["nkey"].duplicated(keep=False), "nkey"])
         self.uniq = {r.nkey: r.owner for r in ro[~ro["nkey"].isin(self.dup)].itertuples()}
         self.by_club = {(r.nkey, str(r.mlb).upper()): r.owner for r in ro.itertuples()}
+        self.cands = {}
+        for r in ro.itertuples(): self.cands.setdefault(r.nkey, []).append((str(r.mlb).upper(), r.kind, r.owner))
         self.synced = synced; self.n = len(ro); self.rows = ro
 
-    def get(self, name: str, club: str | None = None, default: str = "FA", ambiguous: bool = False) -> str:
-        """Owner of `name`. `club` (MLB abbreviation) breaks ties when Fantrax rosters two players with the same name, and
-        is required to match when the caller knows the name is shared by two MLB players (`ambiguous`: two Max Muncys,
-        only one rostered) so the unrostered namesake stays a free agent."""
-        k = key(name); c = str(club).upper() if club else None
-        if c and (k, c) in self.by_club: return self.by_club[(k, c)]
-        if ambiguous and c: return default
-        if k in self.uniq: return self.uniq[k]
-        vals = {v for (kk, _), v in self.by_club.items() if kk == k}
-        return vals.pop() if len(vals) == 1 else default
+    def get(self, name: str, club: str | None = None, default: str = "FA", ambiguous: bool = False, kind: str | None = None) -> str:
+        """Owner of `name`.
+
+        `ambiguous`: the name belongs to two different MLB players of the same kind (two Max Muncys, both hitters), so
+        the club has to match or the unrostered namesake would inherit the owner. `kind` ('H' / 'P'): the name is shared
+        by a hitter and a PITCHER who are different people (Luis Garcia Jr. and the reliever Luis Garcia: the name key
+        drops "Jr."), so only a roster row of the same kind can match. A traded player's club is "multi", which is no
+        club at all: it can never be required to match, and for an unambiguous name it is not needed.
+        """
+        k = key(name); c = _club(club)
+        rows = self.cands.get(k, [])
+        if kind:
+            rows = [r for r in rows if r[1] == kind] or (rows if k in TWO_WAY else [])
+        if not rows: return default
+        if c:
+            hit = [o for (mlb, _, o) in rows if mlb == c]
+            if hit: return hit[0]
+        if ambiguous: return default
+        owners_ = {o for (_, _, o) in rows}
+        return owners_.pop() if len(owners_) == 1 else default
 
 
 def owners(season: int | None = None) -> Owners:
@@ -52,12 +75,18 @@ def owners(season: int | None = None) -> Owners:
     return Owners(ro, synced)
 
 
-def stamp(df: pd.DataFrame, name_col: str = "name", club_col: str | None = None, ow: Owners | None = None) -> pd.DataFrame:
-    """Replace (or add) df['owner'] from the sync. Rows whose name is unknown to Fantrax are free agents."""
+def stamp(df: pd.DataFrame, name_col: str = "name", club_col: str | None = None, ow: Owners | None = None, kind: str | None = None) -> pd.DataFrame:
+    """Replace (or add) df['owner'] from the sync. Rows whose name is unknown to Fantrax are free agents. Two different
+    players in df with the same name key (by mlbam_id when present) must match on club."""
     ow = ow or owners(); df = df.copy()
     clubs = df[club_col] if club_col and club_col in df.columns else pd.Series([None] * len(df), index=df.index)
-    keys = df[name_col].apply(key); shared = set(keys[keys.duplicated(keep=False)])
-    df["owner"] = [ow.get(n, c, ambiguous=k in shared) for n, c, k in zip(df[name_col], clubs, keys)]
+    keys = df[name_col].apply(key)
+    if "mlbam_id" in df.columns:
+        per = pd.DataFrame({"k": keys, "id": df["mlbam_id"]}).drop_duplicates()
+        shared = set(per.loc[per["k"].duplicated(keep=False), "k"])
+    else:
+        shared = set(keys[keys.duplicated(keep=False)])
+    df["owner"] = [ow.get(n, c, ambiguous=k in shared, kind=kind) for n, c, k in zip(df[name_col], clubs, keys)]
     return df
 
 
@@ -103,28 +132,36 @@ def apply(data: dict, ow: Owners | None = None) -> dict:
         p = pd.read_csv(pp, usecols=lambda c: c in ("mlbam_id", "name")); pn = {int(r.mlbam_id): (r.name, None) for r in p.itertuples()}
     hn = {**_columnar_names(data.get("seasons", {}), "name", "team_abbr"), **hn}
     pn = {**_columnar_names(data.get("pitchers", {}), "name"), **pn}
-    # names shared by two different MLB players (two Max Muncys): the club has to match for either to be "owned"
-    cnt = {}
-    for nm, _ in list(hn.values()) + list(pn.values()): cnt[key(nm)] = cnt.get(key(nm), 0) + 1
-    shared = {k for k, n in cnt.items() if n > 1}
+    # a name shared by two different MLB players of the SAME kind (two Max Muncys): the club has to match. A name shared
+    # by a hitter and a different pitcher (Luis Garcia Jr. / Luis Garcia): only a roster row of the right kind counts.
+    def dupes(names):
+        cnt = {}
+        for pid, (nm, _) in names.items(): cnt.setdefault(key(nm), set()).add(pid)
+        return {k for k, ids in cnt.items() if len(ids) > 1}
+    shared_h, shared_p = dupes(hn), dupes(pn)
+    hk_ids = {}; pk_ids = {}
+    for pid, (nm, _) in hn.items(): hk_ids.setdefault(key(nm), set()).add(pid)
+    for pid, (nm, _) in pn.items(): pk_ids.setdefault(key(nm), set()).add(pid)
+    cross = {k for k in hk_ids if k in pk_ids and hk_ids[k] != pk_ids[k]}
     changed = 0
-    for blk, names in (("projections", hn), ("pitcher_proj", pn)):
+    for blk, names, shared, kind in (("projections", hn, shared_h, "H"), ("pitcher_proj", pn, shared_p, "P")):
         b = data.get(blk)
         if not b or "owner" not in b.get("cols", []): continue
         i_o, i_id = b["cols"].index("owner"), b["cols"].index("mlbam_id")
         for r in b["rows"]:
             nm, club = names.get(r[i_id], (None, None))
             if nm is None: continue
-            new = ow.get(nm, club, ambiguous=key(nm) in shared)
+            new = ow.get(nm, club, ambiguous=key(nm) in shared, kind=kind if key(nm) in cross else None)
             if new != r[i_o]: changed += 1
             r[i_o] = new
     pitcher_slot = {key(k["player"]) for k in meta.get("real_keepers", []) if k.get("slot") == "pitcher"}
     if data.get("projections"): _likely_kept(data["projections"], hk, pitcher_slot, hn, home=meta.get("my_abbrev"))
     if data.get("pitcher_proj"): _likely_kept(data["pitcher_proj"], pk)
     for blk in ("prospects", "pool", "pitcher_pool"):
+        kind = "P" if blk == "pitcher_pool" else "H"
         for r in data.get(blk, []) or []:
             if "name" in r:
-                new = ow.get(r["name"])
+                new = ow.get(r["name"], kind=kind if key(r["name"]) in cross else None)
                 if new != r.get("owner"): changed += 1
                 r["owner"] = new
     # the full Fantrax rosters (313 rows), each tied to the ids the tables know, so a team page can list everyone,
@@ -144,9 +181,18 @@ def apply(data: dict, ow: Owners | None = None) -> dict:
 def stamp_streamers(s: dict, ow: Owners | None = None) -> dict:
     """Fresh owners on the streamer payload (hitter_days, hitter_week, pitcher_starts rows carry a name and an owner)."""
     ow = ow or owners()
+    from .build import TEAM_ABBR
     for blk in ("hitter_days", "hitter_week", "pitcher_starts"):
-        for r in s.get(blk, []) or []:
-            if r.get("name"): r["owner"] = ow.get(r["name"])
+        rows = s.get(blk, []) or []
+        ids = {}
+        for r in rows:
+            if r.get("name"): ids.setdefault(key(r["name"]), set()).add(r.get("mlbam_id"))
+        shared = {k for k, v in ids.items() if len(v) > 1}
+        kind = "P" if blk == "pitcher_starts" else "H"
+        for r in rows:
+            if r.get("name"):
+                club = TEAM_ABBR.get(r.get("team"), r.get("team"))
+                r["owner"] = ow.get(r["name"], club, ambiguous=key(r["name"]) in shared, kind=kind)
     s.setdefault("meta", {})["owners_synced"] = ow.synced
     return s
 

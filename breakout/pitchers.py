@@ -51,6 +51,20 @@ def mlb_pitching(year: int) -> pd.DataFrame:
             p.parent.mkdir(parents=True, exist_ok=True)     # a fresh CI runner has no data/mlb cache at all
             p.write_text(json.dumps(out))
         return json.loads(p.read_text())
+    def load_split(code):
+        p = DATA / "mlb" / f"pitching_split_{code}_{year}.json"
+        if not p.exists():
+            try:
+                out, offset = [], 0
+                while True:
+                    u = (f"https://statsapi.mlb.com/api/v1/stats?stats=statSplits&sitCodes={code}&group=pitching&season={year}&sportId=1"
+                         f"&playerPool=all&limit=1000&offset={offset}")
+                    st = _S.get(u, timeout=120).json()["stats"][0]; sp = st.get("splits", []); out += sp; offset += len(sp)
+                    if not sp or offset >= st.get("totalSplits", 0): break
+                p.parent.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(out))
+            except Exception:
+                return []
+        return json.loads(p.read_text())
     rows = {}
     for s in load("season"):
         p, st = s["player"], s["stat"]
@@ -70,12 +84,34 @@ def mlb_pitching(year: int) -> pd.DataFrame:
             rows[pid].update(QS=st.get("qualityStarts", 0), k_minus_bb=_f(st.get("strikeoutsMinusWalksPercentage")),
                              whiff_pct_adv=_f(st.get("whiffPercentage")), pitches_per_ip=_f(st.get("pitchesPerInning")),
                              gb_pct=_f(st.get("groundOutsToAirouts")), babip=_f(st.get("babip")))
+    # the same season counted in STARTS ONLY (MLB's "Starter" split), so a swingman's bullpen work is not divided by his
+    # start count. Mason Montgomery 2026 closed games and made 5 openers: total points over starts read 27.9 a start and
+    # put him 104th on the 2027 board as a 15-start pitcher; as a starter he scored 2.6 a start.
+    for s in load_split("sp"):
+        pid = s["player"]["id"]; st = s["stat"]
+        if pid in rows:
+            ipa, _, ipb = str(st.get("inningsPitched", "0")).partition(".")
+            r = rows[pid]
+            r["IP_sp"] = r.get("IP_sp", 0) + int(ipa) + int(ipb or 0) / 3
+            for k_, src in (("K_sp", "strikeOuts"), ("ER_sp", "earnedRuns"), ("CG_sp", "completeGames"), ("SHO_sp", "shutouts"), ("BS_sp", "blownSaves")):
+                r[k_] = r.get(k_, 0) + (st.get(src) or 0)
     df = pd.DataFrame(list(rows.values()))
     df["pts"] = sum(w * df[c] for c, w in PSCORE.items())
-    df["pts_gs"] = np.where(df["GS"] > 0, df["pts"] / df["GS"].replace(0, np.nan), np.nan)
+    if "IP_sp" in df.columns:
+        for c in ("IP_sp", "K_sp", "ER_sp", "CG_sp", "SHO_sp", "BS_sp"): df[c] = df[c].fillna(0)
+        # quality starts only happen in starts, so the season count is the starter count
+        df["pts_sp_total"] = df["IP_sp"] + df["K_sp"] - df["ER_sp"] + 4 * df["QS"].fillna(0) + 10 * df["CG_sp"] + 8 * df["SHO_sp"] - 3 * df["BS_sp"]
+        df.loc[df["GS"] == 0, "pts_sp_total"] = np.nan
+    else:
+        df["pts_sp_total"] = np.where(df["GS"] > 0, df["pts"], np.nan)          # split unavailable: fall back to the season total
+    df["pts_all_gs"] = np.where(df["GS"] > 0, df["pts"] / df["GS"].replace(0, np.nan), np.nan)
+    df["pts_gs"] = np.where(df["GS"] > 0, df["pts_sp_total"] / df["GS"].replace(0, np.nan), np.nan)
     df["pts_ip"] = df["pts"] / df["IP"].replace(0, np.nan)
     df["age"] = ((pd.Timestamp(f"{year}-06-30") - pd.to_datetime(df["birth_date"])).dt.days / 365.25).round(1)
-    df["is_sp"] = (df["GS"] >= 5) | ((df["GS"] >= 3) & (df["GS"] / df["G"].replace(0, np.nan) >= 0.5))
+    # a STARTER: most of his games were starts, or he started a lot anyway (a swingman with 12+). A reliever who opened
+    # five games (Montgomery: 5 of 63) is not projected as a 15-start pitcher.
+    share = df["GS"] / df["G"].replace(0, np.nan)
+    df["is_sp"] = ((df["GS"] >= 5) & ((share >= 0.5) | (df["GS"] >= 12))) | ((df["GS"] >= 3) & (share >= 0.5))
     df["nkey"] = df["name"].apply(key)
     return df
 
@@ -352,6 +388,17 @@ def comeback_year(d: pd.DataFrame, rows: pd.DataFrame) -> pd.Series:
     return (prev <= 8) & (prev2 >= 15)
 
 
+def _raw_gs(years) -> dict:
+    """(mlbam_id, season) -> games started from the raw MLB season feed (every pitcher, no innings floor)."""
+    out = {}
+    for y in years:
+        p = DATA / "mlb" / f"pitching_season_{y}.json"
+        if not p.exists(): continue
+        for s in json.loads(p.read_text()):
+            k = (s["player"]["id"], y); out[k] = out.get(k, 0) + (s["stat"].get("gamesStarted") or 0)
+    return out
+
+
 def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
     """Points per start = ridge(skills, track record, age) fitted to next-year points per start, times projected starts.
 
@@ -390,7 +437,18 @@ def project(d: pd.DataFrame, season: int) -> pd.DataFrame:
         # Rasmussen's cohort - it projected 1.40 starts too FEW (MAE 9.194); dropping it leaves bias +0.15 (MAE 8.983),
         # and overall MAE goes 8.580 -> 8.532. The age factor survives because it was checked separately.
         return np.where(rows["age"] >= DUR_AGE_FROM, DUR_AGE_MULT, 1.0)
-    gp = d[(d["is_sp"]) & (d["GS"] >= 10)].merge(d[["mlbam_id", "season", "GS"]].assign(season=lambda x: x["season"] - 1).rename(columns={"GS": "next_GS"}), on=["mlbam_id", "season"])
+    # Target: next season's starts INCLUDING seasons that never happened. The table drops pitchers under 10 IP, so a
+    # starter whose next year went to Tommy John simply had no pair and the ridge never saw "next season: 0" - 122 of 926
+    # starter seasons, 2021-25 (Giolito 2023, Crawford 2024, Pepiot 2025). Fitted on survivors it ran +2.3 starts high
+    # out of sample; with them in, +0.1 at the same MAE. The raw MLB feed gives the real count (0 if he never appeared);
+    # a 36+ starter with no next season is treated as retired rather than hurt, since nobody drafts a retired man.
+    last = int(d["season"].max())
+    raw_gs = _raw_gs(range(int(d["season"].min()) + 1, last + 1))
+    inD = d.set_index(["mlbam_id", "season"])["GS"].to_dict()
+    gp = d[(d["is_sp"]) & (d["GS"] >= 10) & (d["season"] < last)].copy()
+    gp["next_GS"] = [inD.get((i, s_ + 1), raw_gs.get((i, s_ + 1), 0)) for i, s_ in zip(gp["mlbam_id"], gp["season"])]
+    gone = np.array([(i, s_ + 1) not in inD and (i, s_ + 1) not in raw_gs for i, s_ in zip(gp["mlbam_id"], gp["season"])])
+    gp = gp[~(gone & (gp["age"] >= 36).to_numpy())]
     # QUALITY BELONGS IN THE STARTS MODEL. Without it, a short season means the same thing whoever threw it, and that is
     # plainly false: a rotation spot is earned. Residual next-year starts against the ridge on (GS, prev GS, age) rise
     # +0.855 per point of points-per-start (se 0.140, t +6.10), +0.224 per point of Pitching+ (t +6.36), +0.476 per

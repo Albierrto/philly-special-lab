@@ -80,12 +80,17 @@ def archive(day: str | None = None) -> str:
     ps = [r for r in _rows(s["pitcher_starts"]) if r["date"] == day and r.get("sp_source") != "replaced"]
     if not hd and not ps: print(f"scorecard: nothing scheduled for {day}"); return ""
     out = FC / f"{day}.csv"
-    if out.exists():
-        # a later run may refresh it (probables firm up through the morning) but only before anything has started
-        first = _first_pitch(day)
-        if first is not None and _now() >= first:
+    # a later run may refresh it (probables firm up through the morning) but only before anything has started, and a
+    # FIRST run after first pitch must not archive either: its splits already include the day's completed at-bats, so
+    # it would be grading a "forecast" written with part of the answer in hand (4 of the first 14 days were first
+    # written between 3 and 4:30 pm ET)
+    first = _first_pitch(day)
+    if first is not None and _now() >= first:
+        if out.exists():
             print(f"scorecard: {day} is already under way - keeping the forecast that was on the page before it started")
-            return str(out)
+        else:
+            print(f"scorecard: {day} is already under way and was never archived before first pitch - not archiving it now")
+        return str(out) if out.exists() else ""
     rows = ([dict(kind="H", mlbam_id=r["mlbam_id"], name=r["name"], team=r.get("team"), gamePk=r["gamePk"],
                   opp=r.get("opp"), exp_pts=r["exp_pts"], src=r.get("opp_sp_source"),
                   owner=r.get("owner"), elig=r.get("elig"), active=r.get("active")) for r in hd]
@@ -195,11 +200,13 @@ def log_current_period():
     if not cfg_p.exists(): return None
     sch = json.loads(cfg_p.read_text()).get("schedule", {})
     today = C.league_today().isoformat()
-    per = next((p for p in sch.get("periods", []) if p["start"] <= today <= p["end"]), None)
+    # Fantrax stores a period Monday to the NEXT Monday (each end is the next start), so the end is exclusive: an
+    # inclusive test put every period's first Monday in the previous period
+    per = next((p for p in sch.get("periods", []) if p["start"] <= today < p["end"]), None)
     if not per: return None
     teams = set()
     for f in sorted(SC.glob("20*.csv")):
-        if not (per["start"] <= f.stem <= per["end"]): continue
+        if not (per["start"] <= f.stem < per["end"]): continue
         d = pd.read_csv(f)
         if "owner" in d.columns:
             teams |= {o for o in d["owner"].dropna().unique() if o and str(o) not in ("FA", "W (Sun)", "W (Mon)")}

@@ -18,9 +18,9 @@ _S = requests.Session(); _S.headers.update({"User-Agent": "Mozilla/5.0"})
 API = "https://statsapi.mlb.com/api/v1"
 
 
-def season_schedule(season: int) -> pd.DataFrame:
+def season_schedule(season: int, refresh: bool = False) -> pd.DataFrame:
     p = DATA / "availability" / f"schedule_{season}.parquet"
-    if p.exists():
+    if p.exists() and not refresh:
         return pd.read_parquet(p)
     j = _S.get(f"{API}/schedule", params=dict(sportId=1, season=season, gameType="R", startDate=f"{season}-03-01", endDate=f"{season}-10-05"), timeout=120).json()
     rows = []
@@ -34,46 +34,65 @@ def season_schedule(season: int) -> pd.DataFrame:
     return df
 
 
-def game_logs(ids, season: int, refresh=False) -> pd.DataFrame:
-    """First/last game, games played and teams for each hitter-season, cached."""
-    p = DATA / "availability" / f"gamelogs_{season}.parquet"
-    have = pd.read_parquet(p) if p.exists() and not refresh else pd.DataFrame(columns=["mlbam_id"])
-    todo = [int(i) for i in ids if int(i) not in set(have["mlbam_id"])]
-    rows = []
-    for pid in todo:
+def _one_log(pid: int, season: int) -> dict | None:
+    for attempt in range(3):
         try:
             j = _S.get(f"{API}/people/{pid}/stats", params=dict(stats="gameLog", group="hitting", season=season), timeout=60).json()
+            break
         except Exception:
-            time.sleep(1); continue
-        sp = (j.get("stats") or [{}])[0].get("splits", [])
-        sp = [s for s in sp if s.get("game", {}).get("gameType", "R") == "R"]
-        if not sp:
-            rows.append(dict(mlbam_id=pid, season=season, first_game=None, last_game=None, games=0, segments="[]")); continue
-        dates = sorted(s["date"] for s in sp)
-        # contiguous team segments (traded players): (team_id, first date with that team, last date with that team)
-        segs = []
-        for s in sorted(sp, key=lambda x: x["date"]):
-            tid = (s.get("team") or {}).get("id")
-            if segs and segs[-1][0] == tid:
-                segs[-1][2] = s["date"]
-            else:
-                segs.append([tid, s["date"], s["date"]])
-        rows.append(dict(mlbam_id=pid, season=season, first_game=dates[0], last_game=dates[-1], games=len(sp), segments=json.dumps(segs)))
-        time.sleep(0.05)
-    df = pd.concat([have, pd.DataFrame(rows)], ignore_index=True) if rows else have
+            time.sleep(1 + attempt)
+    else:
+        return None
+    sp = (j.get("stats") or [{}])[0].get("splits", [])
+    sp = [s for s in sp if s.get("game", {}).get("gameType", "R") == "R"]
+    if not sp:
+        return dict(mlbam_id=pid, season=season, first_game=None, last_game=None, games=0, segments="[]")
+    dates = sorted(s["date"] for s in sp)
+    # contiguous team segments (traded players): (team_id, first date with that team, last date with that team)
+    segs = []
+    for s in sorted(sp, key=lambda x: x["date"]):
+        tid = (s.get("team") or {}).get("id")
+        if segs and segs[-1][0] == tid:
+            segs[-1][2] = s["date"]
+        else:
+            segs.append([tid, s["date"], s["date"]])
+    return dict(mlbam_id=pid, season=season, first_game=dates[0], last_game=dates[-1], games=len(sp), segments=json.dumps(segs))
+
+
+def game_logs(ids, season: int, refresh=False) -> pd.DataFrame:
+    """First/last game, games played and teams for each hitter-season, cached. refresh=True re-reads every id (the
+    season in progress, whose last game moves); otherwise only ids not yet cached are fetched. Eight at a time."""
+    from concurrent.futures import ThreadPoolExecutor
+    p = DATA / "availability" / f"gamelogs_{season}.parquet"
+    have = pd.read_parquet(p) if p.exists() else pd.DataFrame(columns=["mlbam_id"])
+    want = [int(i) for i in ids]
+    todo = want if refresh else [i for i in want if i not in set(have["mlbam_id"].astype(int))]
+    with ThreadPoolExecutor(8) as ex:
+        rows = [r for r in ex.map(lambda i: _one_log(i, season), todo) if r is not None]
     if rows:
+        new = pd.DataFrame(rows)
+        have = have[~have["mlbam_id"].astype(int).isin(new["mlbam_id"])] if len(have) else have
+        df = pd.concat([have, new], ignore_index=True)
         p.parent.mkdir(parents=True, exist_ok=True); df.to_parquet(p, index=False)
-    return df[df["mlbam_id"].isin([int(i) for i in ids])]
+    else:
+        df = have
+    return df[df["mlbam_id"].astype(int).isin(want)]
 
 
-def availability(ps: pd.DataFrame, seasons=(2024, 2025, 2026), asof: str | None = None) -> pd.DataFrame:
-    """Per hitter-season: team games available (window minus IL), PA pace per 162, games share, call-up flag."""
+def availability(ps: pd.DataFrame, seasons=(2024, 2025, 2026), asof: str | None = None, refresh_current: bool = False) -> pd.DataFrame:
+    """Per hitter-season: team games available (window minus IL), PA pace per 162, games share, call-up flag.
+
+    Built for EVERY season the models train on. It used to exist for 2024-26 only, so the playing-time model's main
+    input (base_pa, which uses pace when it has it) meant raw PA in three of its five training seasons and pace in the
+    other two, averaging 40-57 PA apart for the same players. refresh_current re-reads the latest season's logs, which
+    otherwise froze at the date they were first fetched."""
     out = []
     for season in seasons:
         sub = ps[(ps["season"] == season) & (ps["PA"] >= 30)]
         if not len(sub):
             continue
-        sched = season_schedule(season); logs = game_logs(sub["mlbam_id"].tolist(), season)
+        live = refresh_current and season == max(seasons)
+        sched = season_schedule(season, refresh=live); logs = game_logs(sub["mlbam_id"].tolist(), season, refresh=live)
         il = il_table(season)
         end_cap = pd.Timestamp(min(SEASON_END[season], asof or SEASON_END[season])) if season == max(seasons) else pd.Timestamp(SEASON_END[season])
         team_dates = {tid: sorted(pd.to_datetime(g["date"]).tolist()) for tid, g in sched.groupby("team_id")}

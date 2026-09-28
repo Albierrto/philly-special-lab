@@ -28,6 +28,14 @@ def main(argv=None):
 
     print("[1/7] schedule, venues, rotations")
     tm = ST.teams(); sch = ST.schedule(start, end); ven = ST.venues()
+    # past the last regular-season Sunday there are no games this week: keep serving the final week (as the site did the
+    # morning after the season ended) rather than an empty table that stops every step below
+    back = 0
+    while not len(sch) and not a.start and back < 6:
+        back += 1
+        start = (date.fromisoformat(start) - timedelta(days=7)).isoformat(); end = (date.fromisoformat(start) + timedelta(days=6)).isoformat()
+        sch = ST.schedule(start, end)
+    if back: print(f"  no regular-season games this week: serving the last week that had them, {start} .. {end}")
     rec = ST.recent_starters((asof).isoformat(), days=16)
     sp_table = pd.read_csv(C.OUT / "v3" / "pitcher_seasons_full.csv"); s26 = sp_table[sp_table["season"] == 2026]
     regular = set(s26[(s26["GS"] >= 5) & (s26["IP"] / s26["GS"] >= 4.0)]["mlbam_id"])
@@ -52,13 +60,16 @@ def main(argv=None):
 
     print("[3/7] hitters")
     hs = pd.read_csv(C.OUT / "v3" / "hitter_projections_2027.csv")
-    hs = hs[hs["PA"] >= a.min_pa][["mlbam_id", "name", "bats", "team", "PA", "G", "pts_pa", "xLP_pa", "elig", "owner", "sprint_speed", "xwoba", "k_percent"]].copy()
+    hs = hs[hs["PA"] >= a.min_pa][["mlbam_id", "name", "bats", "team", "team_abbr", "PA", "G", "pts_pa", "xLP_pa", "elig", "owner", "sprint_speed", "xwoba", "k_percent"]].copy() if "team_abbr" in hs.columns else hs[hs["PA"] >= a.min_pa][["mlbam_id", "name", "bats", "team", "PA", "G", "pts_pa", "xLP_pa", "elig", "owner", "sprint_speed", "xwoba", "k_percent"]].copy()
     # players below the projection cutoff (PA<100) still matter as streamers: pull from the full seasons file
     full = pd.read_csv(C.OUT / "v2" / "hitter_seasons_full.csv"); full = full[(full["season"] == 2026) & (full["PA"] >= a.min_pa)]
     extra = full[~full["mlbam_id"].isin(hs["mlbam_id"])][["mlbam_id", "name", "bats", "team", "team_abbr", "PA", "G", "pts_pa", "xLP_pa", "elig", "sprint_speed", "xwoba", "k_percent"]].copy()
-    extra = extra.drop(columns=["team_abbr"]); hs = pd.concat([hs, extra], ignore_index=True)
-    # ownership always comes from this morning's Fantrax sync, never from the (older) projection table
-    ow = OW.owners(); hs = OW.stamp(hs, "name", ow=ow)
+    if "team_abbr" not in hs.columns: extra = extra.drop(columns=["team_abbr"])
+    hs = pd.concat([hs, extra], ignore_index=True)
+    # ownership always comes from this morning's Fantrax sync, never from the (older) projection table. Two players with
+    # one name (the Dodgers' and the Athletics' Max Muncy) are told apart by club, and a hitter never inherits the owner
+    # of a pitcher whose name normalizes the same.
+    ow = OW.owners(); hs = OW.stamp(hs, "name", club_col="team_abbr" if "team_abbr" in hs.columns else None, ow=ow, kind="H")
     # anyone on a Fantrax roster belongs in the tables whatever his playing time: a September call-up a manager just picked
     # up (Leo Bernal, 49 PA) has to show in his own lineup even though he is far below the streamer cutoff
     rostered = {k: o for k, o in zip(ow.rows["player"].apply(key), ow.rows["owner"])}
@@ -91,7 +102,7 @@ def main(argv=None):
     if missing:
         add = sch[sch["sp_id"].isin(missing)].drop_duplicates("sp_id")[["sp_id", "sp_name"]].rename(columns={"sp_id": "mlbam_id", "sp_name": "name"})
         pp = pd.concat([pp, add], ignore_index=True)
-    pp = OW.stamp(pp, "name", ow=ow)   # Fantrax sync wins here too
+    pp = OW.stamp(pp, "name", ow=ow, kind="P")   # Fantrax sync wins here too
     print(f"  owners as of the Fantrax sync {ow.synced} ({ow.n} rostered)")
     for c in ("pts_gs", "GS", "K", "BF", "IP", "xwoba", "k_percent", "pitching_plus", "stuff_plus", "xera", "proj_pts_gs_raw", "pts_gs_prev", "GS_prev"):
         if c not in pp.columns: pp[c] = np.nan
