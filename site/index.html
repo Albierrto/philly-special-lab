@@ -1020,8 +1020,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close" aria-label="Close player page" title="Close">✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260928T2008"></script>
-<script src="data/streamers.js?v=20260928T2008"></script>
+<script src="data/lab.js?v=20260928T2019"></script>
+<script src="data/streamers.js?v=20260928T2019"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -2663,7 +2663,7 @@ function poPlayersView(P){
   const key = {val, lcs: vl, ws: vw, DS: o => o.by.DS, LCS: o => o.by.LCS, WS: o => o.by.WS, pl: o => o.p.LCS, pw: o => o.p.WS, n: o => o.n, t: o => o.t}[PO.sort] || val;
   rows.sort((a, b) => { const x = key(a), y = key(b); return typeof x === 'string' ? x.localeCompare(y) * (PO.dir === -1 ? -1 : 1) : (PO.dir === -1 ? y - x : x - y); });
   const th = (k, l, title) => `<th data-sort="${k}" aria-sort="${PO.sort===k ? (PO.dir===-1 ? 'descending' : 'ascending') : 'none'}"${title ? ` title="${esc(title)}"` : ''} style="cursor:pointer">${l}</th>`;
-  const role = o => o.kind === 'P' ? o.role : (o.slot ? `bats ${o.slot}${o.ps < 0.85 ? ` (${poPct(o.ps)} to start)` : ''}` : 'bench');
+  const role = o => o.kind === 'P' ? o.role + (o.sv_share ? ` (${poPct(o.sv_share)} of saves)` : '') : (o.slot ? `bats ${o.slot}${o.ps < 0.85 ? ` (${poPct(o.ps)} to start)` : ''}` : 'bench');
   const line = o => o.kind === 'P' ? `${o.line.GS} GS, ${o.line.IP} IP, ${o.line.K} K, ${o.line.ERA} ERA` : `${o.line.HR} HR, ${o.line.R} R, ${o.line.RBI} RBI, ${o.line.SB} SB, .${String(Math.round(1000*o.line.AVG)).padStart(3,'0')}`;
   const under = path ? (PO.pick === 'custom' ? 'your custom bracket' : `bracket #${+PO.pick + 1}`) : 'no bracket (expected over every path, weighted by its chance)';
   return `<div class="filters">
@@ -2674,9 +2674,9 @@ function poPlayersView(P){
     <label><input type="checkbox" id="po-il"${PO.il?' checked':''}> count injured-list men (at their chance of playing)</label>
     <label>Search <input id="po-q" value="${esc(PO.q)}" placeholder="name"></label><span class="count">${rows.length} players · values under ${esc(under)}</span></div>
   <div class="tblwrap"><table><thead><tr><th class="l sticky">Player</th>${th('t','Club')}<th class="l">Role</th>${th('DS','DS','Holdem points in the Division Series, if his club plays it')}${th('LCS','LCS','points in the LCS, if his club gets there')}${th('WS','WS','points in the World Series, if his club gets there')}${th('pl','LCS %','chance his club reaches the LCS')}${th('pw','WS %','chance his club reaches the World Series')}${th('val','Held','value held from the Division Series: DS + 2x LCS + 3x WS')}${th('lcs','+LCS','value if added for the LCS: LCS + 2x WS')}${th('ws','+WS','value if added for the World Series')}<th class="l">Season</th></tr></thead><tbody>
-    ${rows.map(o => `<tr class="${o.il ? 'out' : ''}"><td class="l sticky name" data-h="${o.id}">${ava(o.n, o.t, 28, o.id)} <b>${esc(o.n)}</b>${o.il ? ` <span class="pill w" title="${esc(o.il)}">IL ${poPct(o.avail)}</span>` : ''}<div class="sub">${esc(o.pos.join('/'))}</div></td><td>${poTag(o.t, true)}</td><td class="l hint">${esc(role(o))}</td><td>${o.by.DS.toFixed(1)}</td><td>${o.by.LCS.toFixed(1)}</td><td>${o.by.WS.toFixed(1)}</td><td>${poPct(o.p.LCS)}</td><td>${poPct(o.p.WS)}</td><td><b>${val(o).toFixed(1)}</b></td><td>${vl(o).toFixed(1)}</td><td>${vw(o).toFixed(1)}</td><td class="l hint" style="white-space:nowrap">${esc(line(o))}</td></tr>`).join('')}
+    ${rows.map(o => `<tr class="${o.il ? 'out' : ''}"><td class="l sticky name" data-h="${o.id}">${ava(o.n, o.t, 28, o.id)} <b>${esc(o.n)}</b>${o.il ? ` <span class="pill w" title="${esc(o.il)}">IL ${poPct(o.avail)}</span>` : ''}<div class="sub">${esc(o.pos.join('/'))}</div></td><td>${poTag(o.t, true)}</td><td class="l hint">${esc(role(o))}${o.note ? `<div class="sub" style="white-space:normal;min-width:160px;max-width:240px">${esc(o.note)}</div>` : ''}</td><td>${o.by.DS.toFixed(1)}</td><td>${o.by.LCS.toFixed(1)}</td><td>${o.by.WS.toFixed(1)}</td><td>${poPct(o.p.LCS)}</td><td>${poPct(o.p.WS)}</td><td><b>${val(o).toFixed(1)}</b></td><td>${vl(o).toFixed(1)}</td><td>${vw(o).toFixed(1)}</td><td class="l hint" style="white-space:nowrap">${esc(line(o))}</td></tr>`).join('')}
   </tbody></table></div>
-  <p class="hint">DS, LCS and WS are expected Holdem points in that series if his club plays it: games the series is expected to last, times his points a game (season rates shrunk toward the league, his lineup slot's plate appearances, hitting deflated ${Math.round(100*(1-P.assumptions.hit_deflate))}% for October pitching; starters at ${P.assumptions.sp_ip_scale}x their season innings a start with earned runs up ${Math.round(100*(P.assumptions.sp_er_scale-1))}%, the rotation slot deciding which games he starts; closers get ${P.assumptions.closer_save_share} of the club's wins as saves). Injured-list men are scaled by a chance of playing at all (10-day ${poPct(P.assumptions.il_avail.D10)}, 15-day ${poPct(P.assumptions.il_avail.D15)}, 60-day ${poPct(P.assumptions.il_avail.D60)}). Click a name for his card where the lab has one.</p>`;
+  <p class="hint">DS, LCS and WS are expected Holdem points in that series if his club plays it: games the series is expected to last, times his points a game (season rates shrunk toward the league, his lineup slot's plate appearances, hitting deflated ${Math.round(100*(1-P.assumptions.hit_deflate))}% for October pitching; starters at ${P.assumptions.sp_ip_scale}x their season innings a start with earned runs up ${Math.round(100*(P.assumptions.sp_er_scale-1))}%, the rotation slot deciding which games he starts; closers get ${P.assumptions.closer_save_share} of the club's wins as saves). Injured-list men are scaled by a chance of playing at all (10-day ${poPct(P.assumptions.il_avail.D10)}, 15-day ${poPct(P.assumptions.il_avail.D15)}, 60-day ${poPct(P.assumptions.il_avail.D60)}). A role with a dated note under it is what the manager or the beat reporters have said (rotation order, a closer sharing the ninth, a hitter back in the lineup every day); the rest are the model's order from September. Click a name for his card where the lab has one.</p>`;
 }
 function poRosterView(P){
   const byId = Object.fromEntries(P.players.map(o => [o.id, o]));
@@ -3839,6 +3839,6 @@ renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); b
 window.LEAGUE_ON = true; setLeague(LEAGUE, null, true);   // Philly lands where it always has (Today in season, My team after); NFBC opens its board
 </script>
 
-<script src="live.js?v=20260928T2008"></script>
+<script src="live.js?v=20260928T2019"></script>
 </body>
 </html>
