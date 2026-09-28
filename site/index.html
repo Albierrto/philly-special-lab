@@ -288,7 +288,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 /* ---------- trade page */
 .trade{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
 .tside{grid-column:span 6;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
-.tside h3{margin:0 0 8px;display:flex;align-items:center;gap:10px} .tside h3 select{font-size:14px}
+.tside h3{margin:0 0 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0} .tside h3 select{font-size:14px;max-width:100%;min-width:0}
 .asset{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .asset:first-child{border-top:0}
 .asset .nm{font-weight:600;font-size:15px} .asset .sub{font-size:12.5px;color:var(--ink3)}
@@ -460,6 +460,54 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 .deal .num{text-align:right;white-space:nowrap;font-family:var(--font-d);font-size:15px;line-height:1.15}
 .deal .num small{display:block;font-family:var(--font-b);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 .deal .why{grid-column:1/-1;font-size:11.5px;line-height:1.4;color:var(--ink3);margin-top:1px}
+
+/* ---------- UI refresh (2026-09-28): softer surfaces, clearer hierarchy, a card header that never collides */
+:root{--r-lg:14px;--r-md:10px;--shadow-sm:0 1px 2px rgba(0,0,0,.18),0 0 0 1px rgba(255,255,255,.02)}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){--shadow-sm:0 1px 3px rgba(16,24,40,.07),0 1px 2px rgba(16,24,40,.04)} }
+:root[data-theme="light"]{--shadow-sm:0 1px 3px rgba(16,24,40,.07),0 1px 2px rgba(16,24,40,.04)}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1{letter-spacing:.005em}
+.pagehead{margin-bottom:18px}
+.lede{font-size:15.5px;line-height:1.55}
+.dash,.today-grid,.trade{gap:16px}
+.dcard,.tside,.verdict,.desk{border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:16px 18px}
+.dcard h3{font-size:19px;margin-bottom:10px}
+.tblwrap,.filters,.explain{border-radius:var(--r-lg)}
+.tblwrap{box-shadow:var(--shadow-sm)}
+th{font-size:11px;letter-spacing:.06em}
+tbody tr:hover td,tbody tr:hover td.sticky{background-color:color-mix(in srgb,var(--cold) 9%,var(--panel))}
+.pill{border-radius:999px;padding:0 9px;line-height:21px}
+.kpi{border-radius:var(--r-md);padding:10px 12px}
+.kpi b{font-size:26px}
+.kpi.hi{background:color-mix(in srgb,var(--accent) 11%,var(--panel2));border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+.kpi.hi b{color:var(--ink)}
+.navbtn{border-radius:10px}
+.rail .grp{padding-top:14px}
+/* player page: full-bleed header, a round close button that sits in its own corner, tiles that fill their row */
+#card-body.card-body{padding:0}
+#card-body > .card-body{padding:4px clamp(14px,2.4vw,26px) 20px}
+#card-body > .cardtrade{padding:0 clamp(14px,2.4vw,26px)}
+.card .close{top:14px;right:14px;width:38px;height:38px;min-height:38px;padding:0;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;line-height:1;background:rgba(0,0,0,.30);color:#fff;border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(4px)}
+.card .close:hover{background:rgba(0,0,0,.45)}
+.pband{padding:24px 64px 18px clamp(14px,2.4vw,26px)}
+.pband h2{font-size:clamp(24px,5.2vw,34px);line-height:1.02;overflow-wrap:anywhere}
+.card .kpis{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+/* team hero on My team */
+.dcard.hero{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--panel)) 0%,var(--panel) 55%)}
+.herogrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.hstat{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border:0;background:none;text-align:left;color:inherit;cursor:pointer;font:inherit;border-radius:12px;min-width:0}
+.hstat:hover,.hstat:focus-visible{background:color-mix(in srgb,var(--panel2) 70%,transparent)}
+.hstat small{font-family:var(--font-m);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.hstat b{font-family:var(--font-d);font-size:clamp(28px,4vw,40px);font-weight:700;line-height:1}
+.hstat span{font-size:12.5px;color:var(--ink2);line-height:1.35}
+@media (max-width:700px){ .herogrid{grid-template-columns:repeat(2,minmax(0,1fr))} .hstat b{font-size:30px} }
+/* phones: the day/night switch moves into Settings so the team picker gets the room */
+@media (max-width:560px){ #theme-btn{display:none} .teamsel select{max-width:132px} .dcard,.tside,.verdict,.desk{padding:14px 14px} }
+.drawer .themerow{display:none}
+.mst{display:none}
+@media (max-width:560px){ th.opt2,td.opt2{display:none} #dash td.name{white-space:normal} #dash .mst{display:block;margin:3px 0 0} #dash .mst:empty{display:none} #dash td .pill{white-space:nowrap} #dash table td,#dash table th{padding-left:8px;padding-right:8px} }
+@media (max-width:900px){ .mst{display:inline;margin-left:6px} .mst .pill{font-size:10.5px;line-height:18px;padding:0 7px} }
+@media (max-width:560px){ .drawer .themerow{display:flex} }
 </style>
 
 <header class="topbar">
@@ -491,7 +539,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
     <div class="seg" role="group" id="trade-mode"><button aria-pressed="true" data-tmode="off">Offseason (keepers + picks)</button><button aria-pressed="false" data-tmode="now">Right now (adds this week's points)</button></div></div>
   <div class="explain"><details><summary>How a trade is scored</summary>
     <ul><li><b>Value next year</b> = what a player beats a free agent by on the days he plays: projected 2027 points minus about 3.5 a game for a hitter (a little less at catcher) and 7.2 a start for a pitcher. Those rates were measured by replaying 2026 in this league's format. We call that <b>points above replacement</b>.</li>
-    <li><b>Keeper value</b> looks past 2027 too, as an option: in 2028 and 2029 a player only adds what he is expected to beat the league's keeper line by, because that is the only way he gets kept again, discounted 0.8 a year and aged along the league's own curve. A 24-year-old star and a 33-year-old with the same 2027 projection are not the same asset; a player who will not be keeper-worthy next year carries almost nothing past 2027.</li>
+    <li><b>Multi-year value</b> looks past 2027 too, as an option: in 2028 and 2029 a player only adds what he is expected to beat the league's keeper line by, because that is the only way he gets kept again, discounted 0.8 a year and aged along the league's own curve. A 24-year-old star and a 33-year-old with the same 2027 projection are not the same asset; a player who will not be keeper-worthy next year carries almost nothing past 2027.</li>
     <li><b>Team effect</b>: we rebuild each team's best keeper group (5 hitters + 2 pitchers) before and after the trade. A sixth good hitter is only worth what he adds over the fifth one he pushes out; a player who would not be kept is worth nothing for next year because he goes back into the draft.</li>
     <li><b>Draft picks</b> are valued from two halves: what the 2027 board says is left at that pick after every team's likely keepers are removed, and what picks at that slot have actually returned in this league's 2024–2026 drafts. The draft is fixed order (no snake), so a team's round-2 pick is the same slot as its round-1 pick, 12 picks later. Slots come from the final regular-season standings: 9th–12th place pick 1–4 in that order, then 8th down to 1st.</li>
     <li><b>Right now</b> mode also adds each hitter's and pitcher's expected points for the rest of this week, from the Streamers model.</li>
@@ -741,10 +789,10 @@ deserved points = Σ weight(event) × x(event);   luck = points − deserved poi
 Check: across 987 consecutive 300-PA seasons, deserved points per PA predicted next year's points per PA with r = 0.52, actual points per PA only 0.47.</div></details>
 
   <h3>Points above replacement</h3>
-  <p class="plain">How many points a player gives you over the best free agent you could plug into his spot. Catchers are compared with catchers; everyone else with the pool as a whole. It is the fairest way to compare a shortstop with a first baseman.</p>
-  <details class="math"><summary>Show the math</summary><div class="formula">fill C, SS, 2B, 3B, 1B, OF for every team with the best available hitters, then the UT slots
-replacement(pos) = points of the best hitter still unrostered at that position (+2 bench bats per team)
-points above replacement = points − min(replacement at his positions, replacement at UT)</div></details>
+  <p class="plain">How many points a player gives you over the free agent who would play instead, <b>on the days he plays</b>. A missed game is not a lost game here: the slot is filled from the bench or the wire at about replacement rate, so a hitter is worth what he beats a streamed bat by per game and a starter what he beats a streamed start by. Those rates were measured by replaying 2026 in this league's format (real rosters, daily lineups, the 10-start cap, all twelve teams streaming against each other): about 3.5 points a game for a hitter, a little less at catcher, and 7.2 a start. Every other position sits at the league-wide rate because the two utility slots and a deep wire even them out, so a utility-only hitter earns nothing extra.</p>
+  <details class="math"><summary>Show the math</summary><div class="formula">season (2026 table): points − r × games for a hitter (r = that season's 150th-best regular by points per game; catcher the lower of r and the 15th catcher), points − 7.2 × starts for a starter
+2027 board: projected points − r_pos × projected games; projected starts × (projected points per start − 7.2)
+replay fit: hitters value ≈ points − 3.6 × games (R² .75, against .21 for points minus a fixed season total); starters points − 7.2 × starts (R² .85)</div></details>
 
   <h3>Beat his draft slot by</h3>
   <p class="plain">How many more (or fewer) points a hitter produced than the typical hitter drafted where he was drafted, using that year's preseason ADP. "Beat" means +75 points, 25 spots better than drafted, and a top-150 finish.</p>
@@ -757,13 +805,15 @@ beat: ≥ +75 pts, ≥ +25 ranks, top-150 finish     big beat: ≥ +150, ≥ +60
   <div id="agingchart"></div>
 
   <h3>Projected 2027 points</h3>
-  <p class="plain">A player's expected points next year: his rate times the plate appearances he can be expected to get. The rate is one regression on this year's Statcast skills, deserved points, discipline, speed and age, with his own last two seasons sitting alongside them as inputs, so the model decides for itself how much of a man's past to believe (it believes last year a great deal and two years ago hardly at all). It replaced a boosted tree in September 2026 because with 1,300 seasons to learn from the tree was memorising them: held out a season at a time the regression is closer in every one of five years. Playing time comes from his <b>pace</b> while he was actually on the roster, so a late call-up or an injury-shortened year does not read as a part-time player, and it is trimmed for injury history (this year's IL days in full, last year's 60%, two years ago 30%) and age. A fitted model then folds in two market reads: where he was drafted last March and where he actually finished. Before the finish rank was in, last March's opinion held breakouts back (2021-25: top-50 finishers the market had outside its top 75 got 63 more plate appearances the next year than projected) and propped up stars who had a bad year; with it, both miss by under 10, and playing-time error is lower in every held-out season.</p>
+  <p class="plain">A player's expected points next year: his rate times the plate appearances he can be expected to get. The rate is one regression on this year's Statcast skills, deserved points, discipline, speed and age, with his own last two seasons sitting alongside them as inputs, so the model decides for itself how much of a man's past to believe (it believes last year a great deal and two years ago hardly at all). It replaced a boosted tree in September 2026 because with 1,300 seasons to learn from the tree was memorising them: held out a season at a time the regression is closer in every one of five years. Playing time is its own fitted model. It starts from his <b>pace</b> while he was actually on the roster (a late call-up or an injury-shortened year does not read as a part-time player; pace is now measured the same way for every training season, 2021 on), trimmed for injury history, then reads his age and two market views: where he was drafted last March and where he actually finished. Before the finish rank was in, last March's opinion held breakouts back (top-50 finishers the market had outside its top 75 got 63 more plate appearances the next year than projected) and propped up stars who had a bad year. Age only counts past 30 and scales with how much he plays, because one straight-line age term cut healthy veteran regulars too hard (33+ with 600+ PA got 572 the next year against 508 projected). And the model now learns from the seasons that never happened: a hitter who lost the next year to injury counts as the few plate appearances he got, not as a missing row, so the projection is an honest expectation with injury risk in it. Sourced news the model cannot see (a surgery that costs half of 2027) is applied on top and labelled on the card.</p>
   <details class="math"><summary>Show the math</summary><div class="formula">rate = ridge(Statcast skills, deserved points, discipline, speed, age, this year's pts/PA and PA, last year's pts/PA and PA, two years ago pts/PA and PA)
 ridge alpha 30, standardised inputs, medians for a missing prior season; flat from alpha 3 to 100 out of sample, so not a tuned number
 no aging step is added afterwards: the model's own age term carries it, and adding half a step back moved r by .001 and made the error worse
-pace = PA per 162 team games while on the active roster (IL stints and days before the call-up excluded)
-weighted IL days = this year + 0.6 × last year + 0.3 × two years ago
-projected PA = (0.6 × 2026 pace + 0.4 × mean pace 2024-26, seasons with 150+ PA) × (1 − 0.0008 × weighted IL days, cap 250) × (0.95 if age ≥ 33), clipped 200-700
+pace = PA per 162 team games while on the active roster (IL stints and days before the call-up excluded), every season 2021-26
+base PA = (0.6 × this year's pace + 0.4 × mean pace of the previous two seasons with 150+ PA) × (1 − 0.0008 × weighted IL days) × (0.95 if 33+)
+projected PA = linear fit of next-year PA on base PA, PA, (age − 30)+, (26 − age)+, base PA × (age − 30)+, PA × (age − 30)+,
+               log ADP rank, log final rank, its square, log ADP × log final rank; trained on every hitter-season with 150+ PA,
+               a lost next season counted as the PA the MLB feed shows (0 if none), except 35+ (treated as retired); clipped 200-700
 projected points = rate × projected PA
 Check (leave-one-season-out, 200+ PA both years): Spearman .500 against .451 for the boosted tree it replaced, mean error .087 against .091, and it wins every held-out season including 2025→26 (.446 against .378), the year every method finds hardest. The table above is the same check in Pearson r.</div></details>
 
@@ -781,17 +831,18 @@ held out a season at a time: AUC .81 pooled against .77 for the tree alone; the 
   </div>
   <p>Using 2025 data only, the 25 highest Breakout % hitters produced a new-level 2026 at a 16% clip against a 3.3% base rate; Caglianone, Otto Lopez, Crow-Armstrong and Meidroth were all inside that top 25. Trout's 2027 Breakout % is 1.9.</p>
 
-  <h3>Keeper value</h3>
-  <p class="plain">How many more points a player projects for 2027 than the best player you could draft <b>instead</b> of keeping him: the best hitter (or pitcher) left on the board once every team has removed its likely keepers, at a first-round pick. Positive means keeping him beats drafting. <b>Lock</b> is 120+ for hitters and 80+ for pitchers, <b>clear keep</b> 40+ / 25+, <b>marginal</b> above zero, <b>let go</b> below. "2nd" is the same idea measured against a second-round pick.</p>
-  <details class="math"><summary>Show the math</summary><div class="formula">keeper value = projected points − projected points of the player ranked (keepers league-wide + 12)
-keeper value 2nd = projected points − projected points of the player ranked (keepers league-wide + 24)
-hitters and pitchers each have their own board; a two-way player kept as a pitcher carries pitching + hitting projection</div></details>
+  <h3>Multi-year value and keep vs draft</h3>
+  <p class="plain">Two numbers, always under these two names. <b>Multi-year value</b> is 2027 points above replacement plus the option to keep him again in 2028 and 2029 (only what he is expected to beat the league's keeper line by counts, discounted 0.8 a year); it decides the keeper order. <b>Keep vs draft</b> is that value minus what his team's own first-round pick is worth to them: how much a keeper slot beats simply drafting the best man left. The verdict reads it against that pick: <b>lock</b> when he is worth more than the pick, <b>clear keep</b> at 30% of it, <b>marginal</b> above zero. A player outside his team's best five hitters and two pitchers is <b>surplus</b> (worth more to someone else, so trade him) or <b>let go</b>.</p>
+  <details class="math"><summary>Show the math</summary><div class="formula">multi-year value = PAR_2027 + 0.8 × E[max(0, PAR_2028 − line)] + 0.64 × E[max(0, PAR_2029 − line)]
+line = PAR of the 60th hitter / 24th starter (a two-way player kept in a pitcher slot is left out of the hitter line)
+keep vs draft = multi-year value − value of that team's own round-1 pick to that team
+verdict: kept and ≥ pick → lock; ≥ 0.3 × pick → clear keep; > 0 → marginal; outside the 5 + 2 → surplus if > 0, else let go</div></details>
 
   <h3>Trade value and draft picks</h3>
   <p class="plain">A trade is scored by rebuilding each team's best keeper group (5 hitters + 2 pitchers) before and after. A player's worth to a team is what he adds to that group in keeper value: 2027 points above replacement (projected points minus about 3.5 a game for a hitter, 7.2 a start for a pitcher, rates measured by replaying 2026 in this league's format), plus the option to keep him again in 2028 and 2029 for what he is expected to beat the league's keeper line by, discounted 0.8 a year and aged along the curves above. A draft pick is worth half of what the 2027 board says is left at that pick and half of what picks at that slot have actually returned in this league since 2024 (a bust counts as zero: you drop him and stream the spot).</p>
   <details class="math"><summary>Show the math</summary><div class="formula">hitter PAR = projected points − r_pos × projected games      (games = projected PA ÷ his own PA per game)
-r = projected points per game of the 150th-best regular (1.25 × 12 teams × 10 hitters); r_pos = the lower of r and the
-    15th-best at that position (45th in the outfield). 2027 board: 3.53 everywhere, catcher 3.39, utility-only = r
+r = projected points per game of the 150th-best regular (1.25 × 12 teams × 10 hitters), regulars = the 250 hitters with the most projected games; r_pos = the lower of r and the
+    15th-best at that position (45th in the outfield). on the 2027 board about 3.5 everywhere, a little lower at catcher, utility-only = r (the live numbers are in the Keepers tab)
 pitcher PAR = projected starts × (projected points per start − 7.2)   (+ his bat's PAR for a two-way player)
     calibration: 2026 replayed game by game in this league's format (real rosters, daily lineups, 10-start cap, free
     agents streamed with the 12 teams competing); each player's value = team season points with him − without him.
@@ -801,7 +852,8 @@ value(player) = PAR_2027 + 0.8 × E[max(0, PAR_2028 − line)] + 0.64 × E[max(0
     0.5 × (2029) the projection's error, how far a value estimate moves in a year; each year aged by the league's curve
 team keeper value = Σ value over its best 5 hitters + best 2 pitchers (others return to the draft and count 0)
 trade effect on a team = keeper value after − before  + Σ picks received − Σ picks given  (+ this week's expected points in "right now" mode)
-pick value(k) = 0.5 × value of the k-th best player left after likely keepers + 0.5 × smoothed realized PAR of pick k in the 2024-26 drafts (same per-game / per-start footing)
+pick value(k) = 0.5 × multi-year value of the k-th best player left after likely keepers + 0.5 × smoothed realized PAR of pick k in the 2024-26 drafts × the pool's value-to-2027 ratio
+    (relief-only picks from the 2024 format left out); never less than pick k+1, since its holder can always take that player
 pick k for a team = (round − 1) × 12 + its draft slot (fixed order, no snake); a pick a year further out is worth 80%</div></details>
 
   <h3>League fit</h3>
@@ -900,9 +952,10 @@ that decide whether anyone gets a second start in the week:
 <aside class="drawer" id="settings" aria-label="League settings">
   <button class="btn small" id="settings-close" style="position:absolute;top:12px;right:14px">Close ✕</button>
   <h2>League settings</h2>
+  <div class="themerow" style="align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px"><span class="hint">Appearance</span><button class="btn small" id="theme-btn2" type="button">Day / night</button></div>
   <p class="hint">Everything re-scores when you change these. Presets approximate each site's default points; edit the weights for your league.</p>
   <div class="leaguebar" id="leaguebar">
-    <label>Scoring preset <select id="preset"></select></label>
+    <label>Scoring preset <select id="preset"></select></label><p class="hint" style="margin:-4px 0 4px">Presets rescore the 2026 season tables. 2027 projections, keeper values, picks and trades stay in this league's scoring.</p>
     <label>Mode <span class="seg" role="group"><button aria-pressed="true" data-mode="points" id="mode-points">Points</button><button aria-pressed="false" data-mode="roto" id="mode-roto">5x5 Roto</button></span></label>
     <label>Teams <input type="number" id="teams" value="12" min="4" max="30"></label>
     <label>Hitters started <input type="number" id="hstart" value="10" min="5" max="16"></label>
@@ -916,9 +969,9 @@ that decide whether anyone gets a second start in the week:
 </aside>
 
 <div class="overlay" id="overlay"></div>
-<aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close">Close ✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260928T0052"></script>
-<script src="data/streamers.js?v=20260928T0052"></script>
+<aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close" aria-label="Close player page" title="Close">✕</button><div id="card-body" class="card-body"></div></aside>
+<script src="data/lab.js?v=20260928T1621"></script>
+<script src="data/streamers.js?v=20260928T1621"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -936,12 +989,12 @@ const PROJ = Object.fromEntries(unpack(D.projections).map(p => [p.mlbam_id, p]))
 const BY_ID = {}; ROWS.forEach(r => (BY_ID[r.mlbam_id] ||= []).push(r)); Object.values(BY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
 const SEASONS = [...new Set(ROWS.map(r=>r.season))].sort();
 const CUR = D.meta.season; const HOME_ABBR = D.meta.my_abbrev; let MY = (D.meta.default_team ?? HOME_ABBR); try{ const s=localStorage.getItem('lab-team'); if(s!==null) MY=s; }catch(e){}
-ROWS.forEach(r => { r.OUT = Math.max(0, (r.AB||0) - (r.H||0)); const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, bi_line:p.bi_line, bi_why:p.bi_why, bi_skills:p.bi_skills, bi_comps:p.bi_comps, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
+ROWS.forEach(r => { r.OUT = Math.max(0, (r.AB||0) - (r.H||0)); const p = PROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, bi_line:p.bi_line, bi_why:p.bi_why, bi_skills:p.bi_skills, bi_comps:p.bi_comps, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_600:p.proj_pts_600, proj_rank_600:p.proj_rank_600, proj_PA:p.proj_PA, avail_note:p.avail_note, durability:p.durability, age_step:p.age_step, kept_2026_as:p.kept_2026_as, bo_status:p.bo_status, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); });
 // pitchers
 const PROWS = unpack(D.pitchers); const PSEASONS = [...new Set(PROWS.map(r=>r.season))].sort();
 const PPROJ = Object.fromEntries(unpack(D.pitcher_proj).map(p => [p.mlbam_id, p]));
 const PBY_ID = {}; PROWS.forEach(r => (PBY_ID[r.mlbam_id] ||= []).push(r)); Object.values(PBY_ID).forEach(a => a.sort((x,y)=>x.season-y.season));
-PROWS.forEach(r => { const p = PPROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_gs:p.proj_pts_gs, proj_GS:p.proj_GS, durability:p.durability, age_step:p.age_step, KSV:p.KSV, keep_tier:p.keep_tier, likely_kept:p.likely_kept, kept_2026_as:p.kept_2026_as, proj_pts_hitting:p.proj_pts_hitting, proj_pts_total:p.proj_pts_total, ip_gs_last:p.ip_gs_last, comeback:p.comeback, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); r.elig = 'SP'; r.team_abbr = r.team; });
+PROWS.forEach(r => { const p = PPROJ[r.mlbam_id]; r.owner = (r.season===CUR && p) ? p.owner : (r.season===CUR ? 'FA' : ''); if (r.season===CUR && p) Object.assign(r, {BI:p.BI, proj_pts:p.proj_pts, proj_rank:p.proj_rank, proj_pts_gs:p.proj_pts_gs, proj_GS:p.proj_GS, avail_note:p.avail_note, durability:p.durability, age_step:p.age_step, kept_2026_as:p.kept_2026_as, proj_pts_hitting:p.proj_pts_hitting, proj_pts_total:p.proj_pts_total, ip_gs_last:p.ip_gs_last, comeback:p.comeback, proj_sd:p.proj_sd, rank_lo:p.rank_lo, rank_hi:p.rank_hi, n_tied:p.n_tied}); r.elig = 'SP'; r.team_abbr = r.team; });
 // prospects
 const PROS_BY_ID = Object.fromEntries(D.prospects.map(p => [p.mlbam_id, p]));
 const PLINES = {}; D.prospect_lines.forEach(l => (PLINES[l.mlbam_id] ||= []).push(l));
@@ -1031,19 +1084,19 @@ const TERMS = [
  {k:'pts_gs', name:'Points per start', also:'Pts / start, Pts/GS', what:"A pitcher's points divided by his starts. 10 is an ace, 7 is a solid starter, 4 is a streamer you regret."},
  {k:'xLP', name:'Deserved points', also:'xLP, expected league points', what:"What a hitter should have scored given how hard and where he hit the ball (Statcast expected stats), instead of what actually fell in. Walks, hit-by-pitches and steals stay real.", ex:"620 points with 560 deserved means 60 points of luck; expect him to cool off."},
  {k:'luck', name:'Luck', what:"Points minus deserved points. Positive: his hits fell in more than they should have (sell high). Negative: he was robbed (buy low)."},
- {k:'LPAR', name:'Points above replacement', also:'LPAR, Above repl.', what:"What he beat a free agent by, on the days he actually played: his points minus the free-agent rate times his games (a hitter) or starts (a pitcher). The rates come from replaying the 2026 season in this league's format: about 3.6 points a game for a hitter at any position except catcher, a little lower there, and 7.2 points a start for a pitcher. A missed game is not held against him, because the slot is filled from the bench or the wire at about that rate.", ex:"Pete Crow-Armstrong's 954 points in 156 games is 6.1 a game, 2.5 over the rate, so about 390 above replacement; an everyday hitter scoring 3.6 a game is worth nothing however many points he piles up."},
+ {k:'LPAR', name:'Points above replacement', also:'LPAR, Above repl.', what:"What he beat a free agent by, on the days he actually played: his points minus the free-agent rate times his games (a hitter) or starts (a pitcher). The rates come from replaying the 2026 season in this league's format: about 3.6 points a game for a hitter at any position except catcher, a little lower there, and 7.2 points a start for a pitcher. A missed game is not held against him, because the slot is filled from the bench or the wire at about that rate.", ex:()=>{ const r = ROWS.find(x=>x.season===CUR && x.name==='Pete Crow-Armstrong'); if(!r || !r.G) return "an everyday hitter scoring exactly the free-agent rate a game is worth nothing however many points he piles up."; const ppg = r.pts_c/r.G; return `Pete Crow-Armstrong's ${Math.round(r.pts_c)} points in ${r.G} games is ${ppg.toFixed(1)} a game, so about ${Math.round(r.LPAR_c)} above replacement; an everyday hitter scoring the free-agent rate a game is worth nothing however many points he piles up.`; }},
  {k:'over', name:'Beat draft slot by', also:'vs ADP', what:"How many more points he produced than the typical hitter drafted where he was drafted that year (market ADP)."},
  {k:'BI', name:'Breakout %', also:'BI, Breakout Index', what:"The model's chance that next season is new territory for THIS hitter: a career-best points-per-PA rate at least 0.08 above his previous best, over 350+ plate appearances, finishing top-90. It is only shown for hitters it applies to \u2014 someone who has already been a top-90 bat, or who already made his jump this season, gets a dash instead, because the question does not apply to him. See the Breakouts tab for who already broke out and who might be next.", ex:"Cam Smith at 62 has never had a big season and the skills say one is coming; Aaron Judge gets a dash, not a 4, because he has been in new territory for six years."},
 
  {k:'proj', name:'2027 projection', also:'Proj, Proj pts', what:"Expected points next year: his rate (three parts skills model, one part his own last three seasons, moved a step along the aging curve) times the plate appearances or starts he can be expected to get, trimmed for recent injury history.", ex:"Acuña: an elite 1.03 pts/PA but 582 PA after three injury-shortened years, so 600 points and 48th, not top-10."},
  {k:'proj600', name:'2027 per 600 PA', also:'Proj/600', what:"The projection scaled to a full 600 plate appearances, so a part-timer's rate can be compared with a regular's."},
  {k:'pace', name:'PA pace', what:"Plate appearances per 162 team games while he was on the active roster. A late call-up or an injured month does not count against him."},
- {k:'KSV', name:'Keeper value', also:'KSV, keep or draft', what:"Keeping him against spending his team's own first-round pick on the best man left. Both sides are on the keeper scale: points above replacement in 2027, plus the chance to keep him again in 2028 and 2029 for whatever he beats the league's keeper line by. Positive means keep him rather than let him go back in the pool. For a free agent it is measured against a typical first-round pick.", ex:"+150 means keeping him beats your first-rounder by about 150 points of keeper value; a negative number means the pick is worth more."},
- {k:'DV', name:'Multi-year value', also:'DV, keeper-scale value', what:"The number that decides each team's keepers. His 2027 points above replacement in full, plus the option to keep him again: in 2028 and 2029 only what he is expected to beat the league's keeper line by counts (the 60th hitter, the 24th starter), discounted 0.8 a year and allowing for how far his estimate can move before the next deadline. A man who will not be keeper-worthy next year carries almost nothing past 2027; a young star carries a lot.", ex:"Bobby Witt Jr.: 274 above replacement in 2027 and about 280 more from the option to keep him in 2028 and 2029, 555 in all."},
+ {k:'KSV', name:'Keep vs draft', also:'KSV, keep or draft', what:"Keeping him against spending his team's own first-round pick on the best man left. Both sides are on the keeper scale: points above replacement in 2027, plus the chance to keep him again in 2028 and 2029 for whatever he beats the league's keeper line by. Positive means keep him rather than let him go back in the pool. For a free agent it is measured against a typical first-round pick.", ex:"+150 means keeping him beats your first-rounder by about 150 points of keeper value; a negative number means the pick is worth more."},
+ {k:'DV', name:'Multi-year value', also:'DV, keeper-scale value', what:"The number that decides each team's keepers. His 2027 points above replacement in full, plus the option to keep him again: in 2028 and 2029 only what he is expected to beat the league's keeper line by counts (the 60th hitter, the 24th starter), discounted 0.8 a year and allowing for how far his estimate can move before the next deadline. A man who will not be keeper-worthy next year carries almost nothing past 2027; a young star carries a lot.", ex:()=>{ const r = VAL && VAL.cur.find(x=>x.name==='Bobby Witt Jr.'); return r ? `Bobby Witt Jr.: ${Math.round(r.PAR_c)} above replacement in ${CUR+1} and about ${Math.round(r.DV_c-r.PAR_c)} more from the option to keep him in ${CUR+2} and ${CUR+3}, ${Math.round(r.DV_c)} in all.` : ''; }},
  {k:'KV', name:'Keep vs draft', also:'KV_c', what:"Multi-year value minus what that team's own first-round pick is worth to them. Positive means a keeper slot beats simply drafting the best man left; negative means let him go back in the pool and take the pick. It is on the same three-year scale as everything on the Trades page, so the verdict here and the keep pill can never disagree.", ex:"A hitter at +180 is worth keeping by about a first-round pick and a half."},
  {k:'PAR', name:'Points above replacement, 2027', also:'PAR', what:"What he is projected to beat a free agent by in 2027, on the days he plays: projected points minus the free-agent rate times his projected games (a hitter) or starts (a pitcher). The unit the trade analyzer and the draft pick values use."},
- {k:'dyn', name:'Keeper value, multi-year', what:"Used by the trade analyzer and the keeper boards: 2027 points above replacement, plus the option to keep him again in 2028 and 2029 for what he is expected to beat the league's keeper line by, discounted 0.8 a year and aged along the league's own curve."},
- {k:'pick', name:'Draft pick value', what:"What a pick is worth in points above replacement: half from what the 2027 board says is left at that pick after every team's likely keepers, half from what picks at that slot actually returned in this league's 2024–2026 drafts."},
+ 
+ {k:'pick', name:'Draft pick value', what:"What a pick is worth on the same multi-year scale as a keeper: half from what the 2027 board says is left at that pick after every team's likely keepers, half from what picks at that slot actually returned in this league's 2024–2026 drafts. A pick is never worth less than the one after it."},
  {k:'exp', name:'Expected points (a day or a start)', also:'Exp pts', what:"Hitter: points per PA × usual PA per game, nudged for the opposing starter, lefty/righty, park, weather, home field and the last 30 days. Pitcher: points per start nudged for the opposing lineup, park and weather, plus a strikeout bonus."},
  {k:'nudge', name:'Nudges (×SP, ×Park, ×Weather …)', also:'Mult', what:"The multipliers behind an expected-points number. 1.10 means +10%. \"Total nudge\" is all of them multiplied together."},
  {k:'PAS', name:'Prospect score', also:'PAS', what:"0–100: pedigree (Pipeline rank) 35, age for his level 25, minor-league bat 25, big-league sample 15."},
@@ -1072,8 +1125,8 @@ const TERMS = [
 const TERM = Object.fromEntries(TERMS.map(t=>[t.k,t]));
 const COL_TERM = {pts_c:'pts', pts:'pts', pts_pa_c:'pts_pa', pts_gs_c:'pts_gs', pts_gs_2026:'pts_gs', base_gs:'pts_gs', xLP_c:'xLP', luck_c:'luck', LPAR_c:'LPAR', over_c:'over', BI:'BI', proj_pts:'proj', tot_c:'proj', proj_pts_total:'proj', proj_pts_gs:'pts_gs', proj_pts_600:'proj600', pa_pace_162:'pace', KSV:'KSV', KSV_c:'KSV', KSV2_c:'KSV', KSV_2nd:'KSV', DV_c:'DV', KV_c:'KV', PAR_c:'PAR', exp_pts:'exp', week_pts:'exp', mult:'nudge', avg_mult:'nudge', f_sp:'nudge', f_platoon:'nudge', f_park:'nudge', f_wx:'nudge', f_form:'nudge', f_opp:'nudge', PAS:'PAS', stuff_plus:'stuff', location_plus:'loc', pitching_plus:'pplus', xwoba:'xwoba', sp_xwoba:'xwoba', xera:'xera', barrel_batted_rate:'brl', avg_best_speed:'ev50', avg_swing_speed:'bat', k_percent:'kbb', bb_percent:'kbb', il_days_3yr:'il', park_runs:'park', park_hr:'park', wind_out:'wind', pl_tier:'tier', cbs:'cbs', lineup:'lineup', keep_tier:'verdict', tier_c:'verdict', sp_source:'P'};
 const colTitle = c => c.title || (COL_TERM[c.k] && TERM[COL_TERM[c.k]] ? TERM[COL_TERM[c.k]].name + ': ' + TERM[COL_TERM[c.k]].what : (c.g||''));
-const RELABEL = {pts_c:'Points', pts_pa_c:'Pts / PA', pts_gs_c:'Pts / start', LPAR_c:'Above repl.', xLP_c:'Deserved', luck_c:'Luck', over_c:'Beat slot by', BI:'Breakout %', proj_pts:'2027 proj', proj_rank:'2027 rank', proj_pts_600:'2027 / 600', proj_PA:'2027 PA', proj_pts_gs:'2027 / start', proj_GS:'2027 starts', proj_pts_total:'2027 incl. bat', KSV:'Keeper value', keep_tier:'Verdict', PAS:'Prospect score', pa_pace_162:'PA pace', il_days_3yr:'IL days 3y', barrel_batted_rate:'Barrel %', avg_best_speed:'EV50', avg_swing_speed:'Bat speed', rank_c:'Rank', roto_c:'Roto z', k_minus_bb:'K−BB %', xera:'xERA'};
-function renderGlossary(){ $('#glossary').innerHTML = TERMS.map(t=>`<div class="gterm"><b>${esc(t.name)}</b>${t.also?`<div class="also">also shown as: ${esc(t.also)}</div>`:''}<p>${esc(t.what)}</p>${t.ex?`<div class="ex">Example: ${esc(t.ex)}</div>`:''}</div>`).join(''); }
+const RELABEL = {pts_c:'Points', pts_pa_c:'Pts / PA', pts_gs_c:'Pts / start', LPAR_c:'Above repl.', xLP_c:'Deserved', luck_c:'Luck', over_c:'Beat slot by', BI:'Breakout %', proj_pts:'2027 proj', proj_rank:'2027 rank', proj_pts_600:'2027 / 600', proj_PA:'2027 PA', proj_pts_gs:'2027 / start', proj_GS:'2027 starts', proj_pts_total:'2027 incl. bat', KSV:'Keep vs draft', keep_tier:'Verdict', PAS:'Prospect score', pa_pace_162:'PA pace', il_days_3yr:'IL days 3y', barrel_batted_rate:'Barrel %', avg_best_speed:'EV50', avg_swing_speed:'Bat speed', rank_c:'Rank', roto_c:'Roto z', k_minus_bb:'K−BB %', xera:'xERA'};
+function renderGlossary(){ $('#glossary').innerHTML = TERMS.map(t=>{ let ex = t.ex; try{ if (typeof ex==='function') ex = ex(); }catch(e){ ex = ''; } return `<div class="gterm"><b>${esc(t.name)}</b>${t.also?`<div class="also">also shown as: ${esc(t.also)}</div>`:''}<p>${esc(t.what)}</p>${ex?`<div class="ex">Example: ${esc(ex)}</div>`:''}</div>`; }).join(''); }
 
 // ---------- column catalogue
 // A ranked list reads as if 13th and 14th are different things. They are not. Out of fold a season projection
@@ -1098,7 +1151,7 @@ const COLS = [
   {k:'sprint_speed',l:'Sprint',g:'Speed',f:'1',dir:1,def:true},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_pa',l:'Career best /PA',g:'Career',f:'3',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'3',dir:1},{k:'seasons_200',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_PA',l:'Career PA',g:'Career',f:'int',dir:0},{k:'pipeline_rank',l:'Pipeline',g:'Career',f:'int',dir:-1},{k:'PAS',l:'Prospect score',g:'Career',f:'1',dir:1},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1,title:'keeping him against his team\'s own first-round pick, on the keeper scale (see Glossary)'},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_600',l:'2027 / 600',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_PA',l:'Proj PA',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keep vs draft',g:'2027 (this season only)',f:'0',dir:1,title:'keeping him against his team\'s own first-round pick, on the keeper scale (see Glossary)'},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 COLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const CI = Object.fromEntries(COLS.map(c=>[c.k,c]));
@@ -1115,7 +1168,7 @@ const PCOLS = [
   {k:'fb_velo',l:'FB velo',g:'Arsenal',f:'1',dir:1,def:true},{k:'movement_uniqueness',l:'Mvmt uniq',g:'Arsenal',f:'2',dir:1},{k:'n_pitches_10',l:'# pitches',g:'Arsenal',f:'int',dir:1},{k:'arsenal_whiff',l:'Ars whiff',g:'Arsenal',f:'1',dir:1},{k:'arsenal_putaway',l:'Put-away',g:'Arsenal',f:'1',dir:1},{k:'arsenal_rv100',l:'Ars RV/100',g:'Arsenal',f:'2',dir:1},{k:'best_pitch',l:'Best',g:'Arsenal',t:'txt',def:true},{k:'best_pitch_whiff',l:'Best whiff',g:'Arsenal',f:'1',dir:1},{k:'n_plus_pitches',l:'Plus pitches',g:'Arsenal',f:'int',dir:1},
   {k:'il_days',l:'IL d',g:'Health',f:'int',dir:-1},{k:'il_stints',l:'IL #',g:'Health',f:'int',dir:-1},{k:'il_days_3yr',l:'IL d 3y',g:'Health',f:'int',dir:-1,def:true},
   {k:'career_best_gs',l:'Career best /GS',g:'Career',f:'1',dir:1},{k:'gap_to_best',l:'Gap to best',g:'Career',f:'1',dir:1},{k:'seasons_10gs',l:'Seasons',g:'Career',f:'int',dir:0},{k:'career_GS',l:'Career GS',g:'Career',f:'int',dir:0},
-  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'ip_gs_last',l:'IP / start',g:'2027 (this season only)',f:'2',dir:1,title:'how long they actually let him go this year. It barely persists - regressed on next year it has a slope of 0.10, so nine tenths of a short leash comes off - which is why the track record is carried as points per INNING and re-expressed at a normal leash.'},{k:'comeback',l:'1st yr back',g:'2027 (this season only)',render:v=>v?'<span class="pill w" title="last season was lost (8 starts or fewer) and the one before it was a real season. On the 11 such cases in this data the model came in 1.5 points per start LOW and those pitchers gained 2.2 a start the next year, against -0.3 for everyone else. Too few to fit a coefficient on, so it is flagged, not applied.">back</span>':''},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keeper value',g:'2027 (this season only)',f:'0',dir:1,title:'keeping him against his team\'s own first-round pick, on the keeper scale (see Glossary)'},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
+  {k:'BI',l:'Breakout %',g:'2027 (this season only)',dir:1,def:true,render:(v,r)=>boShow(r)?(v==null?'':(+v).toFixed(1)):'<span class="hint" title="not a breakout candidate — see the Breakouts tab">–</span>'},{k:'proj_pts',l:'Proj pts',g:'2027 (this season only)',dir:1,def:true,render:projBand},{k:'proj_rank',l:'2027 rank',g:'2027 (this season only)',dir:-1,render:rankBand},{k:'n_tied',l:'Tied with',g:'2027 (this season only)',dir:-1,render:tiedCell},{k:'proj_pts_gs',l:'2027 / start',g:'2027 (this season only)',f:'1',dir:1},{k:'ip_gs_last',l:'IP / start',g:'2027 (this season only)',f:'2',dir:1,title:'how long they actually let him go this year. It barely persists - regressed on next year it has a slope of 0.10, so nine tenths of a short leash comes off - which is why the track record is carried as points per INNING and re-expressed at a normal leash.'},{k:'comeback',l:'1st yr back',g:'2027 (this season only)',render:v=>v?'<span class="pill w" title="last season was lost (8 starts or fewer) and the one before it was a real season. On the 11 such cases in this data the model came in 1.5 points per start LOW and those pitchers gained 2.2 a start the next year, against -0.3 for everyone else. Too few to fit a coefficient on, so it is flagged, not applied.">back</span>':''},{k:'proj_GS',l:'Proj GS',g:'2027 (this season only)',f:'0',dir:1},{k:'proj_pts_total',l:'Proj incl. bat',g:'2027 (this season only)',f:'0',dir:1},{k:'KSV',l:'Keep vs draft',g:'2027 (this season only)',f:'0',dir:1,title:'keeping him against his team\'s own first-round pick, on the keeper scale (see Glossary)'},{k:'keep_tier',l:'Verdict',g:'2027 (this season only)',t:'txt'},
 ];
 PCOLS.forEach(c=>{ if(RELABEL[c.k]) c.l = RELABEL[c.k]; });
 const PCI = Object.fromEntries(PCOLS.map(c=>[c.k,c]));
@@ -1224,7 +1277,7 @@ function buildLeagueBar(){
   $('#ppreset').addEventListener('change', e=>{ const v=e.target.value; if(v!=='custom'){ PW = {...Object.fromEntries(PEVENTS.map(x=>[x,0])), ...PPRESETS[v]}; renderWts(); refreshAll(); } });
   $('#toggle-wts').addEventListener('click', ()=>{ $('#wts-wrap').hidden = !$('#wts-wrap').hidden; });
   $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{ MODE=b.dataset.mode; $$('[data-mode]').forEach(x=>x.setAttribute('aria-pressed', x===b)); refreshAll(); }));
-  $('#teams').addEventListener('input', e=>{ TEAMS=+e.target.value||12; refreshAll(); });
+  $('#teams').addEventListener('input', e=>{ TEAMS=+e.target.value||12; SLOTS_BY_TEAM=null; refreshAll(); });
   $('#hstart').addEventListener('input', e=>{ HSTART=+e.target.value||10; refreshAll(); });
   $('#pstart').addEventListener('input', e=>{ PSTART=+e.target.value||5; refreshAll(); });
   $('#hkeep').addEventListener('input', e=>{ HKEEP=+e.target.value||0; refreshAll(); });
@@ -1236,7 +1289,7 @@ function renderWts(){
   $('#wts').innerHTML = EVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${W[e]??0}"></label>`).join(''); $$('#wts input').forEach(i=>i.addEventListener('input',e=>{ W[e.target.dataset.e]=+e.target.value||0; $('#preset').value='custom'; refreshAll(); }));
   $('#pwts').innerHTML = PEVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${PW[e]??0}"></label>`).join(''); $$('#pwts input').forEach(i=>i.addEventListener('input',e=>{ PW[e.target.dataset.e]=+e.target.value||0; $('#ppreset').value='custom'; refreshAll(); }));
 }
-function refreshAll(){ rescore(); prescore(); buildPct(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); if (typeof renderRehab==='function' && $('#rh-out')) renderRehab(); }
+function refreshAll(){ rescore(); prescore(); buildPct(); computeValues(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); if (typeof renderRehab==='function' && $('#rh-out')) renderRehab(); }
 
 // ---------- player card
 // a man on a rehab assignment, said on his own card, because that is where you look before deciding to sit him
@@ -1261,7 +1314,7 @@ function ptsBand(id, kind, seasonPts, rank, extra){
     ${extra||''}</div>`;
 }
 const sec = (title, body, open=false, note='') => body ? `<details class="sec"${open?' open':''}><summary>${title}${note?` <small>${note}</small>`:''}</summary><div class="secbody">${body}</div></details>` : '';
-const kp = (l,v)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+const kp = (l,v,c='')=>`<div class="kpi${c?' '+c:''}"><b>${v}</b><span>${l}</span></div>`;
 function showCard(html, id){ $('#card-body').innerHTML = html;
   // from any player page: straight to the deal desk with him picked, as a buy or a sell depending on whose he is
   if (id != null && typeof deskFind === 'function' && VAL){ const f = deskFind(id); if (f && !isFA(f.owner)){ const mine = f.owner === tr.a;
@@ -1306,11 +1359,10 @@ function hitterSection(id, sub=false){
   const cols = [{k:'season',l:'Yr',f:'int'},{k:'age',l:'Age',f:'1'},{k:'team_abbr',l:'Tm',t:'txt'},{k:'PA',l:'PA',f:'int'},{k:'pts_c',l:'Pts',f:'0'},{k:'pts_pa_c',l:'/PA',f:'3'},{k:'rank_c',l:'Rk',f:'int'},{k:'adp_hitter_rank',l:'ADP rk',f:'int'},{k:'over_c',l:'Beat ADP by',f:'0'},{k:'xLP_c',l:'Deserved',f:'0'},{k:'luck_c',l:'Luck',f:'0'},{k:'HR',l:'HR',f:'int'},{k:'SB',l:'SB',f:'int'},{k:'xwoba',l:'xwOBA',f:'3'},{k:'barrel_batted_rate',l:'Barrel %',f:'1'},{k:'avg_swing_speed',l:'Bat',f:'1'},{k:'k_percent',l:'K%',f:'1'},{k:'bb_percent',l:'BB%',f:'1'},{k:'sprint_speed',l:'Spr',f:'1'},{k:'il_days',l:'IL d',f:'int'}];
   const rowsHtml = hist.map(r=>`<tr>${cols.map(c=>`<td class="${c.t==='txt'?'l':''}" style="${cellStyle(CI[c.k]||{dir:0}, r.season, r[c.k])}">${fmt(c, r[c.k])}</td>`).join('')}</tr>`).join('');
   const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
-  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('Keeper value', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
-  const pj2 = p ? `<div class="kpis">${kp('2027 rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / 600 PA', p.proj_pts_600??'–')}${kp('2027 PA', p.proj_PA??'–')}${kp('Keeper value (2nd)', p.KSV_2nd==null?'–':(p.KSV_2nd>=0?'+':'')+p.KSV_2nd)}</div>` : '';
-  const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
+  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${sub ? '' : kp('Multi-year value', p.DV??'–', 'hi')+kp('Keep vs draft', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV, 'hi')}` : '';
+  const pj2 = p ? `<div class="kpis">${kp('2027 rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / 600 PA', p.proj_pts_600??'–')}${kp('2027 PA', p.proj_PA??'–')}</div>` : '';
   const subline = `${esc(last.elig||'')} · ${esc(last.team_abbr||'')} · bats ${esc(last.bats||'?')} · age ${last.age} · owner ${esc(last.owner||'–')}${last.prospect_status?' · '+esc(last.prospect_status):''}${last.pipeline_rank?' · Pipeline #'+last.pipeline_rank:''}`;
-  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
+  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', (p?.kept_2026_as && MY===HOME_ABBR)?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', p?.avail_note?`<span class="pill r" title="${esc(p.avail_note)}">2027 playing time adjusted</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
     ${ptsBand(id, 'h', last.pts_c, last.rank_c)}
@@ -1322,7 +1374,7 @@ function hitterSection(id, sub=false){
     ${sec('Trends', `
     <div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>`, false, `${yrs[0]}–${yrs[yrs.length-1]}`)}
     ${sec('Playing time and injuries', `${last.avail_games!=null?`<p class="hint" style="margin:4px 0 8px"><b>Playing time ${last.season}:</b> first game ${esc(last.first_game||'')}${last.days_late>21?` (${last.days_late} days after opening day, a late call-up)`:''} · played ${last.G} of ${Math.round(last.avail_games)} games he was available for${last.il_games_in_window?` (${Math.round(last.il_games_in_window)} team games lost to the IL)`:''} · pace <b>${Math.round(last.pa_pace_162)} PA</b> per 162. Raw PA understates a late call-up or an injured player; the projection uses this pace.</p>`:''}<p class="hint">${il}</p>`)}
-    ${sec('2027 projection', `${pj2}${p ? `<p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is one regression on this year's contact quality, discipline, speed and age, with his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'} per PA, weighted to this year) sitting alongside as inputs; the aging curve says ${(p.age_step??0)>=0?'+':''}${(p.age_step??0).toFixed(2)} for his age and the model's own age term already carries that. Playing time starts from his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and is trimmed ${Math.round((1-(p.durability??1))*100)}% for injury history${p.il_days_w!=null?` (${Math.round(p.il_days_w)} weighted IL days: this year in full, last year 60%, two years ago 30%)`:''}${last.age>=32?' and age':''}.</p>${p.BI!=null && boShow(last) ? `<p class="hint" style="font-size:14px"><b>Breakout ${p.BI}%.</b> That is the chance 2027 is a new career level for him${p.bi_line!=null?` (${p.bi_line.toFixed(2)} points per PA or better)`:''}. The projection above is his <b>typical</b> year, the middle of what 2027 could be; a <b>breakout season</b> for him looks like about <b>${(()=>{ const v = breakoutSeason({...last, proj_pts:p.proj_pts, proj_PA:p.proj_PA, bi_line:p.bi_line}); return v!=null?v:'\u2013'; })()}</b> points.${p.bi_why?` <b>Why:</b> ${esc(p.bi_why)}.`:''}</p>${skillChips(p.bi_skills)}${compsBlock(p, true)}` : ''}` : ''}`)}
+    ${sec('2027 projection', `${pj2}${p ? `<p class="hint" style="font-size:14px"><b>${p.proj_rate?.toFixed(2)} points per PA × ${p.proj_PA} PA.</b> The rate is one regression on this year's contact quality, discipline, speed and age, with his own last three seasons (${p.track_rate!=null?p.track_rate.toFixed(2):'–'} per PA, weighted to this year) sitting alongside as inputs; the aging curve says ${(p.age_step??0)>=0?'+':''}${(p.age_step??0).toFixed(2)} for his age and the model's own age term already carries that. Playing time is a fitted model: his pace while on the roster${last.pa_pace_162?` (${Math.round(last.pa_pace_162)} PA per 162)`:''} and injury history, his age, where the market drafted him last March and where he actually finished, trained on every hitter including the ones who lost the next season.${p.avail_note?` <b>Adjusted for news:</b> ${esc(p.avail_note)}.`:''}</p>${p.BI!=null && boShow(last) ? `<p class="hint" style="font-size:14px"><b>Breakout ${p.BI}%.</b> That is the chance 2027 is a new career level for him${p.bi_line!=null?` (${p.bi_line.toFixed(2)} points per PA or better)`:''}. The projection above is his <b>typical</b> year, the middle of what 2027 could be; a <b>breakout season</b> for him looks like about <b>${(()=>{ const v = breakoutSeason({...last, proj_pts:p.proj_pts, proj_PA:p.proj_PA, bi_line:p.bi_line}); return v!=null?v:'\u2013'; })()}</b> points.${p.bi_why?` <b>Why:</b> ${esc(p.bi_why)}.`:''}</p>${skillChips(p.bi_skills)}${compsBlock(p, true)}` : ''}` : ''}`)}
   </div>`;
 }
 
@@ -1354,11 +1406,10 @@ function pitcherSection(id, sub){
   const il = hist.filter(r=>r.il_reasons).map(r=>`${r.season}: ${esc(r.il_reasons)} (${r.il_days} d)`).join('<br>') || 'no IL stints found 2021-2026';
   const sl = [['pitching_plus','Pitching+',v=>v.toFixed(1)],['stuff_plus','Stuff+',v=>v.toFixed(1)],['location_plus','Location+',v=>v.toFixed(1)],['k_percent','K%',v=>v.toFixed(1)+'%'],['bb_percent','BB% (low good)',v=>v.toFixed(1)+'%'],['xera','xERA (low good)',v=>v.toFixed(2)],['whiff_percent','Whiff%',v=>v.toFixed(1)+'%'],['z_swing_miss_percent','In-zone miss%',v=>v.toFixed(1)+'%'],['oz_swing_percent','Chase%',v=>v.toFixed(1)+'%'],['edge_percent','Edge%',v=>v.toFixed(1)+'%'],['meatball_percent','Meatball% (low good)',v=>v.toFixed(1)+'%'],['f_strike_percent','First-strike%',v=>v.toFixed(1)+'%'],['groundballs_percent','GB%',v=>v.toFixed(1)+'%'],['hard_hit_percent','Hard-hit% agn (low good)',v=>v.toFixed(1)+'%'],['barrel_batted_rate','Barrel% agn (low good)',v=>v.toFixed(1)+'%'],['fb_velo','Fastball velo',v=>v.toFixed(1)],['movement_uniqueness','Movement uniqueness',v=>v.toFixed(2)],['arsenal_putaway','Put-away%',v=>v.toFixed(1)+'%']];
   const sliders = sl.map(([k,l,f])=>{ const c=PCI[k]||{dir:1}; let q=pct(last.season,k,last[k],PPCT); if(q!=null&&c.dir<0) q=1-q; return slider(l,last[k],q,f); }).join('');
-  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('Keeper value', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV)}` : '';
+  const pj = p ? `${kp('Breakout %', p.BI??'–')}${kp('2027 proj', p.proj_pts??'–')}${kp('Multi-year value', p.DV??'–', 'hi')}${kp('Keep vs draft', p.KSV==null?'–':(p.KSV>=0?'+':'')+p.KSV, 'hi')}` : '';
   const pj2 = p ? `<div class="kpis">${kp('2027 SP rank', p.proj_rank?'#'+p.proj_rank:'–')}${kp('2027 / start', p.proj_pts_gs??'–')}${kp('2027 starts', p.proj_GS??'–')}${(p.proj_pts_hitting||0)>0?kp('+ hitting', Math.round(p.proj_pts_hitting)):''}</div>` : '';
-  const keptTag = (p?.kept_2026_as && MY===HOME_ABBR) ? ` · <span class="pill ${p.kept_2026_as==='pitcher'?'b':'w'}">your 2026 keeper (${p.kept_2026_as} slot)</span>` : '';
   const subline = `SP · ${esc(last.throws||'')}HP · ${esc(last.team||'')} · age ${last.age} · owner ${esc(last.owner||'–')}`;
-  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', p?.kept_2026_as?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
+  const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', (p?.kept_2026_as && MY===HOME_ABBR)?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', p?.avail_note?`<span class="pill r" title="${esc(p.avail_note)}">2027 starts adjusted</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
     ${ptsBand(id, 'p', last.pts_c, last.rank_c)}
@@ -1368,7 +1419,7 @@ function pitcherSection(id, sub){
     ${sec('Arsenal and percentiles', `<p class="hint">${esc(last.arsenal_desc||'no arsenal table (fewer than 50 IP or pre-2021)')}${last.best_pitch?` · best pitch by run value: <b>${esc(last.best_pitch)}</b> (${(last.best_pitch_whiff??0).toFixed(1)}% whiff) · ${last.n_plus_pitches??0} plus pitch${last.n_plus_pitches===1?'':'es'} · ${last.n_pitches_10??0} pitches thrown 10%+`:''}</p><div class="grid2">${sliders}</div>`, false, `${last.season}`)}
     ${sec('Trends', `<div class="grid2">${trend.map(([k,l,f])=>`<div class="zrow"><span>${l}</span>${bars(k,f)}<span class="count">${last[k]==null?'':f(last[k])}</span></div>`).join('')}</div>`, false, `${yrs[0]}–${yrs[yrs.length-1]}`)}
     ${sec('Injured list', `<p class="hint">${il}</p>`)}
-    ${sec('2027 projection', `${pj2}${p ? `<p class="hint"><b>${p.proj_pts_gs?.toFixed(2)} points per start × ${p.proj_GS} starts → ${p.proj_pts} pts.</b> The rate is ${p.proj_pts_gs_raw?.toFixed(2)} as a 27-year-old (three parts his Pitching+ skills, one part his last three seasons per start) ${(p.age_step??0)>=0?'plus':'minus'} ${Math.abs(p.age_step??0).toFixed(2)} for age ${Math.round(last.age+1)}. Starts come from this year's ${last.GS}, last year's and his age, × ${p.durability} for recent IL time${last.age>=34?' and being 34+':''}${(p.proj_pts_hitting||0)>0?` pitching + ${Math.round(p.proj_pts_hitting)} hitting = ${Math.round(p.proj_pts_total)} for a pitcher-slot keeper`:''}. Breakout % ${p.BI} = chance 2027 is a new career level in points per start.</p>` : ''}`)}
+    ${sec('2027 projection', `${pj2}${p ? `<p class="hint"><b>${p.proj_pts_gs?.toFixed(2)} points per start × ${p.proj_GS} starts → ${p.proj_pts} pts.</b> The rate is ${p.proj_pts_gs_raw?.toFixed(2)} as a 27-year-old (his Pitching+ skills and his last three seasons, weighted about equally, counting starts only) ${(p.age_step??0)>=0?'plus':'minus'} ${Math.abs(p.age_step??0).toFixed(2)} for age ${Math.round(last.age+1)}. Starts come from this year's ${last.GS}, last year's, his age and how good he is (a rotation spot is earned)${last.age>=35?', × 0.93 at 36+':''}, fitted on every starter including the ones who lost the next year to injury${p.avail_note?`. <b>Adjusted for news:</b> ${esc(p.avail_note)}; the model's own ${p.proj_GS_28} starts carry into 2028`:''}${(p.proj_pts_hitting||0)>0?` pitching + ${Math.round(p.proj_pts_hitting)} hitting = ${Math.round(p.proj_pts_total)} for a pitcher-slot keeper`:''}. Breakout % ${p.BI} = chance 2027 is a new career level in points per start.</p>` : ''}`)}
   </div>`;
 }
 $('#overlay').addEventListener('click', closeCard); $('#card-close').addEventListener('click', closeCard); document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCard(); });
@@ -1528,6 +1579,9 @@ function renderPRF(){
 // ---------- streamers tab
 const SD = D.streamers || null;
 const SHD = SD ? unpack(SD.hitter_days) : [], SPS = SD ? unpack(SD.pitcher_starts) : [], SGM = SD ? unpack(SD.games) : [];
+// a game with no settled matchup can come through with no expected points; count it as 0 rather than let one
+// null stop the whole Today page (it did, on a build that caught the first postseason week)
+[...SHD, ...SPS].forEach(r=>{ if (r.exp_pts == null || !isFinite(r.exp_pts)) { r.exp_pts = 0; r.no_proj = true; } });
 // A fantasy week starts Monday, so by Tuesday the table was still recommending Monday's starts: Quinn Mathews
 // showed as a two-start pitcher worth 18.0 for the week when one of those starts had already been thrown and
 // only 8.1 was left to pick up. 'rest' is the default view for that reason - what you can still act on.
@@ -1704,7 +1758,7 @@ function renderMyWeek(){
   // never get, so the bar is now the worst start you would still use out of the slots you have left.
   const TDY = localISO();
   const mine = SHD.filter(r=>r.owner===MY); const myStarts = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts);
-  const thrown = myStarts.filter(r=>r.date < TDY), ahead = myStarts.filter(r=>r.date >= TDY);
+  const thrown = SPS.filter(r=>r.owner===MY && r.sp_source!=='replaced' && r.date < TDY), ahead = myStarts.filter(r=>r.date >= TDY);   // a start thrown before an IL move still used one of the ten
   const slotsLeft = Math.max(0, 10 - thrown.length);
   const faStarts = SPS.filter(r=>isFA(r.owner) && r.active!==0 && r.sp_source!=='replaced' && goodRole(r) && r.date >= TDY).sort((a,b)=>b.exp_pts-a.exp_pts);
   const tenth = slotsLeft ? (ahead[slotsLeft-1]?.exp_pts ?? 0) : Infinity;
@@ -1790,7 +1844,10 @@ const SCHED = (D.meta.schedule && D.meta.schedule.games) || [];
 const FIRST_PO = (D.meta.schedule && D.meta.schedule.first_playoff_period) || 99;
 // which scoring period a given day falls in. It defaults to the real today, but the matchup page can hand it a day
 // you picked instead, so the simulator can be run from any day of the week rather than only from whatever day it is.
-const curPeriod = (day) => { const t = day || localISO(); return PERIODS.find(p => p.start <= t && t <= p.end) || PERIODS[PERIODS.length-1] || null; };
+// Fantrax stores a period Monday to the NEXT Monday (each end is the next start), so the end is exclusive: an inclusive
+// test put every period's first Monday in the previous period and simulated that Monday alone
+const curPeriod = (day) => { const t = day || localISO(); return PERIODS.find(p => p.start <= t && t < p.end) || PERIODS[PERIODS.length-1] || null; };
+const dayBefore = iso => { const d = new Date(iso+'T12:00:00'); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); };
 // What each team has ACTUALLY averaged per period this season. Fantrax's read-only API exposes a roster status but
 // not the lineup a manager has set, so "what if he leaves his lineup alone" is not knowable from here. This is the
 // honest stand-in: the projection below assumes a perfectly set lineup, and a manager's own season pace says how
@@ -1882,7 +1939,7 @@ function renderMatchup(){
     + (TDY !== dflt ? `<button data-mday="" title="back to the real today" style="border-style:dashed">back to ${dayWord(dflt).toLowerCase()}</button>` : '');
   $$('#m-days button').forEach(b=>b.addEventListener('click', ()=>{ MST.day = b.dataset.mday || null; renderMatchup(); }));
   const per = curPeriod(TDY);
-  const from = TDY, to = per ? per.end : allDays[allDays.length-1];
+  const from = TDY, to = per ? dayBefore(per.end) : allDays[allDays.length-1];
   // the streamer build only carries one week of schedule, so a period that runs past it is simulated short rather
   // than wrong. Saying so beats quietly handing back a total that is missing a day of games.
   const haveTo = allDays[allDays.length-1];
@@ -1895,7 +1952,7 @@ function renderMatchup(){
   MST.me = sel('#m-me', MST.me || MY || teams[0]);
   MST.opp = sel('#m-opp', MST.opp || oppGuess || teams.find(t=>t!==MST.me));
   const playoff = per && per.n >= FIRST_PO;
-  $('#m-lede').innerHTML = `Period <b>${per?per.n:'?'}</b>${per?` (${dayLabel(per.start)} – ${dayLabel(per.end)})`:''}. ${TDY!==realTDY?`<b>Running as if it were ${dayLabel(TDY)}.</b> `:''}Simulating <b>${dayLabel(from)} through ${dayLabel(shortBy?haveTo:to)}</b>${shortBy?` <b>(this build only has games through ${dayLabel(haveTo)}, so ${dayLabel(to).split(',')[0]} is not in the total)</b>`:''} — ${MST.sims.toLocaleString()} times each side, by drawing real single-game results rather than assuming a bell curve. The lineup is solved once from expected points, the way you would set it, and the ten-start pitcher cap is respected on both sides. <b>These are the days still to come only</b> — put what each side has already banked this period in the boxes and the totals become projected finals.${playoff?' <b>Playoff period:</b> Fantrax only publishes seeds for the bracket, not teams, so pick your opponent yourself.':''}`;
+  $('#m-lede').innerHTML = `Period <b>${per?per.n:'?'}</b>${per?` (${dayLabel(per.start)} – ${dayLabel(dayBefore(per.end))})`:''}. ${TDY!==realTDY?`<b>Running as if it were ${dayLabel(TDY)}.</b> `:''}Simulating <b>${dayLabel(from)} through ${dayLabel(shortBy?haveTo:to)}</b>${shortBy?` <b>(this build only has games through ${dayLabel(haveTo)}, so ${dayLabel(to).split(',')[0]} is not in the total)</b>`:''} — ${MST.sims.toLocaleString()} times each side, by drawing real single-game results rather than assuming a bell curve. The lineup is solved once from expected points, the way you would set it, and the ten-start pitcher cap is respected on both sides. <b>These are the days still to come only</b> — put what each side has already banked this period in the boxes and the totals become projected finals.${playoff?' <b>Playoff period:</b> Fantrax only publishes seeds for the bracket, not teams, so pick your opponent yourself.':''}`;
 
   const A = sideSlate(MST.me, from, to), B = sideSlate(MST.opp, from, to);
   const baseA = +$('#m-mine-now').value || 0, baseB = +$('#m-opp-now').value || 0;
@@ -2132,7 +2189,7 @@ function renderVerdict(V, o){
     return `<div class="tblwrap" style="max-height:none"><table class="mini kbig"><thead><tr>
       <th class="l">#</th><th class="l">${kind==='p'?'Pitcher':'Hitter'}</th><th title="2027 projected points, with the model's own measured error">2027 proj</th>
       <th title="2027 points above replacement: what he beats a free agent by on the days he plays">2027 vs repl</th><th title="the option to keep him again in 2028: what he is expected to beat the league's keeper line by, discounted">'28 option</th><th title="the same for 2029">'29 option</th>
-      <th title="2027 vs replacement + the 2028 and 2029 options">Keeper value</th><th title="keeper value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <th title="2027 vs replacement + the 2028 and 2029 options">Multi-year value</th><th title="multi-year value over the best man left off">Gap</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   };
   const pt = (V.posTable||[]).slice(); const rH = V.replH, rP = V.replP;
   const cred = pt.filter(x=>x.repl < rH - 0.005).map(x=>`${x.pos} ${(rH - x.repl).toFixed(2)} a game (about +${Math.round((rH - x.repl)*125)} a season)`);
@@ -2178,8 +2235,8 @@ function renderRealK(V, o){
       <td>${again?'<span class="pill g">keep again</span>':'<span class="pill n">let go</span>'}</td></tr>`;}).join('');
   const again = rows.filter(x=>x.r && x.r.kept_c).length;
   host.innerHTML = `<div class="dcard w12"><h3>Your actual 2026 keepers <small>what you declared, and what the model makes of them now</small></h3>
-    <p class="hint">${again} of the ${rows.length} would be kept again for 2027. Rank is where he finished 2026 among hitters, or among starters for an arm; keeper value is the same three-year number as the card at the top of this page.</p>
-    <div class="tblwrap" style="max-height:none"><table class="mini kbig"><thead><tr><th class="l">Slot</th><th class="l">Player</th><th>2026 pts</th><th>Rank</th><th>2027 proj</th><th>Keeper value</th><th class="l">2027 verdict</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+    <p class="hint">${again} of the ${rows.length} would be kept again for 2027. Rank is where he finished 2026 among hitters, or among starters for an arm; the value column is the same multi-year value as the card at the top of this page.</p>
+    <div class="tblwrap" style="max-height:none"><table class="mini kbig"><thead><tr><th class="l">Slot</th><th class="l">Player</th><th>2026 pts</th><th>Rank</th><th>2027 proj</th><th>Multi-year value</th><th class="l">2027 verdict</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
   $$('#k-real-block td.name[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h)));
   $$('#k-real-block td.name[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
 }
@@ -2282,7 +2339,8 @@ function pband(name, team, sub, chips=[], id){ return `<div class="pband" style=
 
 // ---------- theme + settings + navigation
 function setTheme(t){ if(t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); try{ localStorage.setItem('lab-theme', t||''); }catch(e){} }
-$('#theme-btn').addEventListener('click', ()=>{ const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); setTheme(cur==='dark' ? 'light' : 'dark'); });
+const flipTheme = ()=>{ const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); setTheme(cur==='dark' ? 'light' : 'dark'); };
+$('#theme-btn').addEventListener('click', flipTheme); $('#theme-btn2')?.addEventListener('click', flipTheme);
 try{ const t=localStorage.getItem('lab-theme'); if(t) setTheme(t); }catch(e){}
 $('#settings-btn').addEventListener('click', ()=>{ $('#settings').classList.toggle('open'); });
 $('#settings-close').addEventListener('click', ()=>$('#settings').classList.remove('open'));
@@ -2319,7 +2377,7 @@ const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f
 (function buildTeamSel(){ const sel = $('#team-sel'); const owners = [...new Set([...Object.values(PROJ).map(p=>p.owner), ...Object.values(PPROJ).map(p=>p.owner)].filter(o=>o && !isFA(o)))].sort();
   sel.innerHTML = '<option value="">League view</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY) ? MY : '';
   if(!owners.includes(MY)) MY = '';
-  window.setTeam = function(o){ MY = o || ''; sel.value = MY; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(x=>x.value===MY)) ko.value = MY; tr.a = MY || tr.a; tr.give = {a:[], b:[]}; DESK.sel = null; DESK.team = ''; DESK.filter = ''; refreshAll(); renderStreamers(); renderPros(); if (MY) goTab('today'); };
+  window.setTeam = function(o){ MY = o || ''; sel.value = MY; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(x=>x.value===MY)) ko.value = MY; tr.a = MY || tr.a; tr.give = {a:[], b:[]}; DESK.sel = null; DESK.team = ''; DESK.filter = ''; MST.me = MY || null; MST.opp = null; refreshAll(); renderStreamers(); renderPros(); if (typeof renderMatchup==='function' && $('#m-me')) renderMatchup(); if (MY) goTab('today'); };
   sel.addEventListener('change', ()=>setTeam(sel.value));
 })();
 
@@ -2349,7 +2407,7 @@ function renderDash(){
     cards += `<div class="dcard w6"><h3>Breakout watch <small>chance of a new career level in 2027</small></h3><div class="rowlist">${bo.map(r=>rowH(r, `${r.BI.toFixed(0)}%<small>breakout</small>`, `${esc(r.elig||'')} · age ${r.age} · ${Math.round(r.pts_c)} pts · ${isFA(r.owner)?'free agent':esc(r.owner)}`)).join('')}</div><button class="go" data-go="breakouts">Full breakout board →</button></div>`;
     $('#dash').innerHTML = cards;
     $$('#dash .row[data-h]').forEach(el=>el.addEventListener('click',()=>openCard(+el.dataset.h))); $$('#dash .row[data-p]').forEach(el=>el.addEventListener('click',()=>openPitcherCard(+el.dataset.p)));
-    $$('#dash .go').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go))); $$('#dash [data-team]').forEach(b=>b.addEventListener('click',()=>setTeam(b.dataset.team)));
+    $$('#dash .go, #dash .hstat').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go))); $$('#dash [data-team]').forEach(b=>b.addEventListener('click',()=>setTeam(b.dataset.team)));
     return;
   }
   // ---- my team
@@ -2380,9 +2438,20 @@ function renderDash(){
   const pRows = pRoster.map(r=>{ const c = pInfo(r.mlbam_id); return {r, c, week: weekP(r.mlbam_id), dv: c.DV_c}; }).sort((a,b)=>(b.c.pts_c||0)-(a.c.pts_c||0));
   const statusPill = r => r.active===0 ? `<span class="pill r">${esc(r.status||'out')}</span>` : (r.nodata ? `<span class="pill n">${esc(r.status||'no MLB data yet')}</span>` : '');
   const hotPill = h => h==null ? '' : h>=0.04 ? `<span class="pill g" title="30-day wOBA ${h>=0?'+':''}${h.toFixed(3)} vs season">hot</span>` : h<=-0.04 ? `<span class="pill b" title="30-day wOBA ${h.toFixed(3)} vs season">cold</span>` : '';
-  cards += `<div class="dcard w12"><h3>Your roster <small>season points, form, this week, and what the model would keep</small></h3><div class="tblwrap" style="max-height:none"><table><thead><tr><th class="l">Hitter</th><th class="l">Status</th><th>2026 pts</th><th>Pts / PA</th><th>Luck</th><th>This week</th><th>2027 proj</th><th class="l">Keeper</th></tr></thead><tbody>${hRows.map(({r,c,hot,week,dv})=>`<tr><td class="l name" data-id="${r.mlbam_id}" data-kind="h"><b>${esc(r.name)}</b><span class="sub">${esc(r.elig||'')} · ${esc(abbrOf(r.team))}</span></td><td class="l">${statusPill(r)} ${hotPill(hot)}</td><td>${c.pts_c!=null?Math.round(c.pts_c):'–'}</td><td>${c.pts_pa_c!=null?c.pts_pa_c.toFixed(2):'–'}</td><td>${c.luck_c!=null?signed(c.luck_c):''}</td><td>${week?week.toFixed(1):'–'}</td><td>${c.proj_pts!=null?Math.round(c.proj_pts):'–'}</td><td class="l">${c.pslot?'<span class="pill b" title="counts as one of your two pitcher keepers; his bat is added to his pitcher value">kept as pitcher</span> ':(keptIds.has('h'+r.mlbam_id)?'<span class="pill g">keep</span> ':'')}${c.pslot?'':tierP(tierOf(c, keptIds.has('h'+r.mlbam_id)))}</td></tr>`).join('')}</tbody></table></div>
-    <div class="tblwrap" style="max-height:none;margin-top:10px"><table><thead><tr><th class="l">Pitcher</th><th class="l">Status</th><th>2026 pts</th><th>Pts / start</th><th>Pitching+</th><th>Starts this wk</th><th>This week</th><th>2027 proj</th><th class="l">Keeper</th></tr></thead><tbody>${pRows.map(({r,c,week,dv})=>`<tr><td class="l name" data-id="${r.mlbam_id}" data-kind="p"><b>${esc(r.name)}</b><span class="sub">SP · ${esc(abbrOf(r.team))}</span></td><td class="l">${statusPill(r)}</td><td>${c.pts_c!=null?Math.round(c.pts_c):'–'}</td><td>${c.pts_gs_c!=null?c.pts_gs_c.toFixed(1):'–'}</td><td>${c.pitching_plus!=null?c.pitching_plus.toFixed(0):'–'}</td><td>${myStarts.filter(x=>x.mlbam_id===r.mlbam_id).length}</td><td>${week?week.toFixed(1):'–'}</td><td>${c.tot_c!=null?Math.round(c.tot_c):(c.proj_pts!=null?Math.round(c.proj_pts):'–')}</td><td class="l">${keptIds.has('p'+r.mlbam_id)?'<span class="pill g">keep</span> ':''}${tierP(tierOf(c, keptIds.has('p'+r.mlbam_id)))}</td></tr>`).join('')}</tbody></table></div>
-    <p class="hint" style="margin-top:8px">Luck = points minus deserved points this year (big positive = sell high). Keep = would be in your best 5 hitters + 2 pitchers for 2027 by multi-year value; the verdict pill is the keeper value in words, and <b>surplus</b> means he beats the draft pool but is behind your five (or two) — trade currency, worth full value to a team with a slot.</p></div>`;
+  // the four numbers a manager looks for first in the offseason, each one a way into the page that explains it
+  { const kvSum = [...ks.hs, ...ks.ps].reduce((a,r)=>a+(r.DV_c||0),0);
+    const sur = [...tp.h, ...tp.p].filter(r=>r.tier_c==='surplus').sort((a,b)=>b.DV_c-a.DV_c);
+    const r1k = pickOverall(MY, 1), r1v = pickValue(MY, 1, CUR+1);
+    const boR = ROWS.filter(r=>r.season===CUR && r.owner===MY && boShow(r) && r.BI!=null).sort((a,b)=>b.BI-a.BI)[0];
+    cards += `<div class="dcard w12 hero"><div class="herogrid">
+      <button class="hstat" data-go="keepers"><small>Keeper group</small><b>${Math.round(kvSum)}</b><span>multi-year value of your ${ks.hs.length} hitters and ${ks.ps.length} pitchers</span></button>
+      <button class="hstat" data-go="drafts"><small>Your first pick</small><b>#${r1k}</b><span>worth about ${Math.round(r1v)} on the same scale</span></button>
+      <button class="hstat" data-go="trades"><small>Trade chips</small><b>${sur.length}</b><span>${sur.length ? sur.slice(0,3).map(r=>esc(r.name)).join(', ') : 'nobody outside your keepers beats the pool'}</span></button>
+      <button class="hstat" data-go="breakouts"><small>Breakout watch</small><b>${boR ? boR.BI.toFixed(0)+'%' : '–'}</b><span>${boR ? esc(boR.name)+', chance of a new career level' : 'no candidate on your roster'}</span></button>
+    </div></div>`; }
+  cards += `<div class="dcard w12"><h3>Your roster <small>season points, form, this week, and what the model would keep</small></h3><div class="tblwrap" style="max-height:none"><table><thead><tr><th class="l">Hitter</th><th class="l opt">Status</th><th class="opt2">2026 pts</th><th class="opt">Pts / PA</th><th class="opt">Luck</th><th class="opt">This week</th><th>2027 proj</th><th class="l">Keeper</th></tr></thead><tbody>${hRows.map(({r,c,hot,week,dv})=>`<tr><td class="l name" data-id="${r.mlbam_id}" data-kind="h"><b>${esc(r.name)}</b><span class="mst">${[statusPill(r), hotPill(hot)].filter(Boolean).join(' ')}</span><span class="sub">${esc(r.elig||'')} · ${esc(abbrOf(r.team))}</span></td><td class="l opt">${statusPill(r)} ${hotPill(hot)}</td><td class="opt2">${c.pts_c!=null?Math.round(c.pts_c):'–'}</td><td class="opt">${c.pts_pa_c!=null?c.pts_pa_c.toFixed(2):'–'}</td><td class="opt">${c.luck_c!=null?signed(c.luck_c):''}</td><td class="opt">${week?week.toFixed(1):'–'}</td><td>${c.proj_pts!=null?Math.round(c.proj_pts):'–'}</td><td class="l">${c.pslot?'<span class="pill b" title="counts as one of your two pitcher keepers; his bat is added to his pitcher value">kept (SP slot)</span>':tierP(tierOf(c, keptIds.has('h'+r.mlbam_id)))}</td></tr>`).join('')}</tbody></table></div>
+    <div class="tblwrap" style="max-height:none;margin-top:10px"><table><thead><tr><th class="l">Pitcher</th><th class="l opt">Status</th><th class="opt2">2026 pts</th><th class="opt">Pts / start</th><th class="opt">Pitching+</th><th class="opt">Starts this wk</th><th class="opt">This week</th><th>2027 proj</th><th class="l">Keeper</th></tr></thead><tbody>${pRows.map(({r,c,week,dv})=>`<tr><td class="l name" data-id="${r.mlbam_id}" data-kind="p"><b>${esc(r.name)}</b><span class="mst">${statusPill(r)}</span><span class="sub">SP · ${esc(abbrOf(r.team))}</span></td><td class="l opt">${statusPill(r)}</td><td class="opt2">${c.pts_c!=null?Math.round(c.pts_c):'–'}</td><td class="opt">${c.pts_gs_c!=null?c.pts_gs_c.toFixed(1):'–'}</td><td class="opt">${c.pitching_plus!=null?c.pitching_plus.toFixed(0):'–'}</td><td class="opt">${myStarts.filter(x=>x.mlbam_id===r.mlbam_id).length}</td><td class="opt">${week?week.toFixed(1):'–'}</td><td>${c.tot_c!=null?Math.round(c.tot_c):(c.proj_pts!=null?Math.round(c.proj_pts):'–')}</td><td class="l">${tierP(tierOf(c, keptIds.has('p'+r.mlbam_id)))}</td></tr>`).join('')}</tbody></table></div>
+    <p class="hint" style="margin-top:8px">Luck = points minus deserved points this year (big positive = sell high). The keeper pill is the verdict: <b>lock</b>, <b>clear keep</b> and <b>marginal</b> are in your best 5 hitters + 2 pitchers for 2027 by multi-year value, and <b>surplus</b> means he beats the draft pool but is behind your five (or two) — trade currency, worth full value to a team with a slot.</p></div>`;
   // keeper picture
   const bubbleH = tp.h.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(HKEEP, HKEEP+2), bubbleP = tp.p.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(PKEEP, PKEEP+1);
   cards += `<div class="dcard w6"><h3>Your keepers for 2027 <small>the model's five and two, and who is on the bubble</small></h3><div class="rowlist">${ks.hs.map((r,i)=>rowH(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `${i+1}. ${esc(eligN(r))} · age ${r.age} · 2027 proj ${Math.round(r.proj_pts)} · ${esc(r.tier_c||'')}${r.kept_2026_as&&MY===HOME_ABBR?' · kept 2026':''}`)).join('')}${ks.ps.map((r,i)=>rowP(r, `${Math.round(r.DV_c)}<small>multi-yr value</small>`, `P${i+1}. SP · age ${r.age} · 2027 proj ${Math.round(r.tot_c??r.proj_pts)} · ${esc(r.tier_c||'')}`)).join('')}</div>${bubbleH.length||bubbleP.length?`<p class="hint" style="margin-top:8px">Next in line: ${[...bubbleH.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)})`), ...bubbleP.map(r=>`${esc(r.name)} (${Math.round(r.DV_c)}, SP)`)].join(', ')}.</p>`:''}<button class="go" data-go="keepers">Full keeper boards →</button></div>`;
@@ -2401,7 +2470,7 @@ function renderDash(){
   $('#dash').innerHTML = cards;
   $$('#dash .row[data-h], #dash td.name[data-kind="h"]').forEach(el=>{ const id = +(el.dataset.h||el.dataset.id); if (id) el.addEventListener('click',()=>openCard(id)); else el.classList.add('noclick'); });
   $$('#dash .row[data-p], #dash td.name[data-kind="p"]').forEach(el=>{ const id = +(el.dataset.p||el.dataset.id); if (id) el.addEventListener('click',()=>openPitcherCard(id)); else el.classList.add('noclick'); });
-  $$('#dash .go').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)));
+  $$('#dash .go, #dash .hstat').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)));
 }
 
 
@@ -2864,7 +2933,11 @@ function computeValues(){
   const posOf = r => eligN(r).split('/').filter(x=>x in DED);
   const paPerG = id => { const h = (BY_ID[id]||[]).filter(x=>x.season>=CUR-1 && (x.PA||0)>=100 && (x.G||0)>0); const pa = h.reduce((a,x)=>a+x.PA,0), g = h.reduce((a,x)=>a+x.G,0); return g ? Math.min(4.7, Math.max(3.4, pa/g)) : 4.1; };
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const pa = p.proj_PA || r.proj_PA || 500; r.pag_c = paPerG(r.mlbam_id); r.G27_c = Math.min(162, pa / r.pag_c); r.ppg27_c = r.proj_pts / Math.max(1, r.G27_c); }
-  const reg = cur.filter(r=>r.G27_c >= 100).sort((a,b)=>b.ppg27_c-a.ppg27_c);
+  // "Regulars" = the 250 hitters with the most projected games: about how many play 100+ games in a real season
+  // (241-252 every year 2021-26). A fixed 100-game cut on PROJECTED games shrank with the projections: once playing time
+  // was projected as an honest expectation (injury risk in it), only 166 cleared 100 and the 150th-best fell to 3.32 a
+  // game, a rate no free agent gives you. Ranked inside the 250, the 150th is 3.67 (realized 2024-26: 3.62, 3.70, 3.59).
+  const reg = cur.slice().sort((a,b)=>b.G27_c-a.G27_c).slice(0, 250).sort((a,b)=>b.ppg27_c-a.ppg27_c);
   const nthRate = (list, n) => list.length ? list[Math.min(Math.max(0, n-1), list.length-1)].ppg27_c : 0;
   const nH = Math.round(1.25*TEAMS*HSTART), replH = nthRate(reg, nH), replP = 7.2;
   const replPos = {UT: replH}, posTable = [];
@@ -2875,12 +2948,12 @@ function computeValues(){
                    around: L.slice(Math.max(0, n-3), n+2).map(x=>`${x.name} ${x.ppg27_c.toFixed(2)}`)}); });
   const posBest = r => { const e = posOf(r); return e.length ? e.reduce((a,b)=> replPos[a] <= replPos[b] ? a : b) : 'UT'; };
   for (const r of cur){ const p = PROJ[r.mlbam_id]||{}; const rate = p.proj_rate ?? (r.proj_pts/Math.max(1,p.proj_PA||r.proj_PA||500)); const pa = p.proj_PA || r.proj_PA || 500; const a = r.age+1;
-    const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa28 = pa*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
+    const r28 = rate + ageStep(HAGE, a), r29 = r28 + ageStep(HAGE, a+1); const pa0 = p.proj_PA_28 ?? pa; const pa28 = pa0*(a+1>=33?0.95:1), pa29 = pa28*(a+2>=33?0.95:1);
     r.pos_c = posBest(r); const rp = replPos[r.pos_c]; r.repl_c = rp;
     r.scarce_c = Math.round((replH - rp) * r.G27_c);        // his position's edge over the league-wide rate, in season points; zero for all but a few
     r.PAR_c = r.proj_pts - rp*r.G27_c; r.PAR28_c = r28*pa28 - rp*Math.min(162, pa28/r.pag_c); r.PAR29_c = r29*pa29 - rp*Math.min(162, pa29/r.pag_c); }
-  for (const r of pc){ const p = PPROJ[r.mlbam_id]||{}; const gs = p.proj_GS || 25, pg = p.proj_pts_gs ?? (r.proj_pts/gs), hit = r.proj_pts_hitting||0; const a = r.age+1;
-    const pg28 = pg + ageStep(PAGE, a), pg29 = pg28 + ageStep(PAGE, a+1); const gs28 = gs*(a+1>=34?0.93:1), gs29 = gs28*(a+2>=34?0.93:1);
+  for (const r of pc){ const p = PPROJ[r.mlbam_id]||{}; const gs = p.proj_GS ?? 25, pg = p.proj_pts_gs ?? (r.proj_pts/Math.max(1,gs)), hit = r.proj_pts_hitting||0; const a = r.age+1;
+    const gs0 = p.proj_GS_28 ?? gs; const pg28 = pg + ageStep(PAGE, a), pg29 = pg28 + ageStep(PAGE, a+1); const gs28 = gs0*(a+1>=36?0.93:1), gs29 = gs28*(a+2>=36?0.93:1);
     // a two-way player in a pitcher slot is worth his arm over a replacement START plus his bat over a replacement GAME
     const hr = hit>0 ? cur.find(x=>x.mlbam_id===r.mlbam_id) : null;
     r.GS27_c = gs; r.pgs27_c = pg;
@@ -2896,8 +2969,9 @@ function computeValues(){
   const DISC = 0.8;
   const erf = x => { const t = 1/(1+0.3275911*Math.abs(x)); const y = 1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x >= 0 ? y : -y; };
   const EP = (mu, sd) => { if (!(sd > 0)) return Math.max(0, mu); const z = mu/sd; return mu*0.5*(1+erf(z/Math.SQRT2)) + sd*Math.exp(-z*z/2)/Math.sqrt(2*Math.PI); };
-  const lineAt = (list, n) => { const v = list.map(r=>r.PAR_c).sort((x,y)=>y-x); return v.length ? Math.max(0, v[Math.min(n, v.length)-1]) : 0; };
-  const cutH = lineAt(cur, TEAMS*HKEEP), cutP = lineAt(pc, TEAMS*PKEEP);
+  const lineAt = (list, n) => { if (!(n > 0)) return 0; const v = list.map(r=>r.PAR_c).sort((x,y)=>y-x); return v.length ? Math.max(0, v[Math.min(n, v.length)-1]) : 0; };
+  const twoWay = new Set(pc.filter(r=>(r.proj_pts_hitting||0)>0).map(r=>r.mlbam_id));
+  const cutH = lineAt(cur.filter(r=>!twoWay.has(r.mlbam_id)), TEAMS*HKEEP), cutP = lineAt(pc, TEAMS*PKEEP);
   // The spread of that option is how far his value ESTIMATE will move before next winter's decision, not how far his
   // 2027 season can land: a three-year weighted rate revises by about 0.32 points a game a year (43 season points),
   // so the 2028 option uses 0.35 of the 2027 projection's error (about 55) and 2029 half of it.
@@ -2919,9 +2993,14 @@ function computeValues(){
   // a drafted player can be kept afterwards, so a pick is worth the same three-year value a player is; the league's own
   // realized history is a one-season number, so it is put on the same footing with the pool's median value-to-2027 ratio
   const rats = avail.filter(a=>a.par>20 && a.dv>0).map(a=>a.dv/a.par).sort((x,y)=>x-y); const RAT = rats.length ? rats[Math.floor(rats.length/2)] : 1.9;
-  const picks = [null]; for (let k=1; k<=TEAMS*15; k++){ const model = Math.max(0, avail[k-1]?.par ?? 0), mdv = Math.max(0, avail[k-1]?.dv ?? 0); const h = +(hist[Math.min(k, hmax)] ?? 0);
+  // the three-year half reads the pool in three-year order. It used to take the DV of whoever was k-th by 2027 value,
+  // so pick 2 (a young hitter) was worth more than pick 1 (a 37-year-old arm): 62 places where a later pick beat an
+  // earlier one. And a pick can never be worth less than the next one, since its holder can always take that player.
+  const availDV = avail.slice().sort((a,b)=>b.dv-a.dv);
+  const picks = [null]; for (let k=1; k<=TEAMS*15; k++){ const model = Math.max(0, avail[k-1]?.par ?? 0), mdv = Math.max(0, availDV[k-1]?.dv ?? 0); const h = +(hist[Math.min(k, hmax)] ?? 0);
     picks[k] = {k, round: Math.floor((k-1)/TEAMS)+1, slot: ((k-1)%TEAMS)+1, model:+model.toFixed(1), hist:+h.toFixed(1), model_dv:+mdv.toFixed(1), hist_dv:+(h*RAT).toFixed(1),
-                value:+(0.5*mdv + 0.5*h*RAT).toFixed(1), value_1yr:+(0.5*model + 0.5*h).toFixed(1), best: avail[k-1]?.name||'', bestKind: avail[k-1]?.kind}; }
+                value:+(0.5*mdv + 0.5*h*RAT).toFixed(1), value_1yr:+(0.5*model + 0.5*h).toFixed(1), best: avail[k-1]?.name||'', bestKind: availDV[k-1]?.kind}; }
+  for (let k=picks.length-2; k>=1; k--){ for (const f of ['value','value_1yr','model','model_dv']) picks[k][f] = Math.max(picks[k][f], picks[k+1][f]); }
   VAL = {cur, pc, replH, replP, replPos, posTable, cutH, cutP, disc:DISC, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO};
   // ---- keep-or-draft: what a keeper slot is worth over spending that team's first pick on the best man left.
   // One number on the three-year scale, so the verdict on the Keepers tab cannot contradict the keep pill beside it.
@@ -2931,13 +3010,15 @@ function computeValues(){
   const tier = (kv, f) => kv >= f ? 'lock' : kv >= 0.3*f ? 'clear keep' : kv > 0 ? 'marginal' : 'let go';
   const fs = Object.values(first).sort((a,b)=>a-b), fMed = fs.length ? fs[Math.floor(fs.length/2)] : 0;
   [...cur, ...pc].forEach(r=>{ const f = first[r.owner]; if(f==null){ r.KV_c = Math.round(r.DV_c - fMed); r.tier_c = ''; }
-    else { r.KV_c = Math.round(r.DV_c - f); r.tier_c = tier(r.KV_c, Math.max(20, f)); } });
+    else { r.KV_c = Math.round(r.DV_c - f); r.tier_c = r.kept_c ? tier(r.KV_c, Math.max(20, f)) : (r.KV_c > 0 ? 'surplus' : 'let go'); } });
   // every table that shows "Keeper value" or a verdict reads these, so the pipeline's older one-season numbers never
   // sit next to the engine's on the same page
   cur.forEach(r=>{ r.KSV = r.KV_c; r.keep_tier = r.tier_c; r.likely_kept = !!r.kept_c; const p = PROJ[r.mlbam_id]; if (p){ p.KSV = r.KV_c; p.keep_tier = r.tier_c; p.DV = Math.round(r.DV_c); p.likely_kept = !!r.kept_c; } });
-  pc.forEach(r=>{ r.KSV = r.KV_c; r.keep_tier = r.tier_c; const p = PPROJ[r.mlbam_id]; if (p){ p.KSV = r.KV_c; p.keep_tier = r.tier_c; p.DV = Math.round(r.DV_c); } });
+  pc.forEach(r=>{ r.KSV = r.KV_c; r.keep_tier = r.tier_c; r.likely_kept = !!r.kept_c; const p = PPROJ[r.mlbam_id]; if (p){ p.KSV = r.KV_c; p.keep_tier = r.tier_c; p.DV = Math.round(r.DV_c); } });
   return VAL;
 }
+// the n-th best keeper's value on a sorted group, or 0 when the group is shorter or keepers are set to 0
+const nthDV = (arr, n) => (n > 0 && arr && arr.length >= n) ? arr[n-1].DV_c : 0;
 // draft slots per team (fixed order, no snake). Default: last year's order; editable.
 let SLOTS_BY_TEAM = null;
 function draftSlots(){ if (SLOTS_BY_TEAM) return SLOTS_BY_TEAM; const owners = [...new Set([...Object.values(PROJ).map(p=>p.owner), ...Object.values(PPROJ).map(p=>p.owner)].filter(o=>o && !isFA(o)))].sort();
@@ -2949,7 +3030,7 @@ const pickOverall = (team, round) => (round-1)*TEAMS + (draftSlots()[team] || TE
 const pickValue = (team, round, year) => { const v = VAL.picks[Math.min(pickOverall(team, round), VAL.picks.length-1)]?.value ?? 0; return +(v * (year > CUR+1 ? 0.8 : 1)).toFixed(1); };
 // nearest pick to a value, on the same marginal scale the trade ledger uses (2027 always, later years only for a keeper)
 const pickLike = (v, hs, ps) => { if(!VAL) return ''; const a = Math.abs(v); const val = k => { const pk = VAL.picks[k]; if(!pk) return 0; const par = 0.5*pk.model + 0.5*pk.hist, dv = 0.5*pk.model_dv + 0.5*pk.hist_dv;
-    const cut = !hs ? 0 : (pk.bestKind==='p' ? (ps.length>=PKEEP ? Math.max(0, ps[PKEEP-1].DV_c) : 0) : (hs.length>=HKEEP ? Math.max(0, hs[HKEEP-1].DV_c) : 0)); return par + (dv > cut ? Math.max(0, dv - par) : 0); };
+    const cut = !hs ? 0 : (pk.bestKind==='p' ? Math.max(0, nthDV(ps, PKEEP)) : Math.max(0, nthDV(hs, HKEEP))); return par + (dv > cut ? Math.max(0, dv - par) : 0); };
   const top = val(1); if (a > top*1.15) return 'more than a first-round pick';
   let best = null; for (let k=1;k<VAL.picks.length;k++){ const d = Math.abs(val(k) - a); if(best==null || d<best.d) best={d,k}; } if(!best) return '';
   return a < val(best.k)*0.5 && best.k===VAL.picks.length-1 ? 'less than a last-round pick' : `a pick around #${best.k} (round ${VAL.picks[best.k].round})`; };
@@ -2967,7 +3048,7 @@ function renderPicks(){
   $('#pickchart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Draft pick values"><g>${[0,50,100,150,200,250,300].filter(v=>v<=my).map(v=>`<line x1="${pl}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join('')}</g>${dots}<path d="${path('model')}" fill="none" stroke="var(--cold)" stroke-width="1.5" stroke-dasharray="4 3"/><path d="${path('hist')}" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="4 3"/><path d="${path('value')}" fill="none" stroke="var(--ink)" stroke-width="2.5"/>${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(r=>`<text x="${X((r-1)*TEAMS+1)}" y="${H-8}" text-anchor="start">${r}</text>`).join('')}</svg><div class="legend"><span class="c">2027 board</span><span style="color:var(--amber)">▬ returned 2024–26</span><span>▬ value used (average of the two)</span><span>dots = every real pick since 2024</span> · x-axis: round</div>`;
   const owners = Object.keys(slots).sort((a,b)=>slots[a]-slots[b]);
   $('#slotgrid').innerHTML = owners.map(o=>`<div><b><input type="number" min="1" max="${TEAMS}" value="${slots[o]}" data-slot="${esc(o)}" style="width:54px;font-family:var(--font-d);font-size:18px;padding:2px 4px"></b>${esc(teamLabel(o))}</div>`).join('');
-  $$('#slotgrid input').forEach(i=>i.addEventListener('change',()=>{ SLOTS_BY_TEAM[i.dataset.slot] = Math.max(1, Math.min(TEAMS, +i.value||TEAMS)); try{ localStorage.setItem('lab-slots', JSON.stringify(SLOTS_BY_TEAM)); }catch(e){} renderPicks(); renderTrade(); }));
+  $$('#slotgrid input').forEach(i=>i.addEventListener('change',()=>{ SLOTS_BY_TEAM[i.dataset.slot] = Math.max(1, Math.min(TEAMS, +i.value||TEAMS)); try{ localStorage.setItem('lab-slots', JSON.stringify(SLOTS_BY_TEAM)); }catch(e){} refreshAll(); }));
 }
 
 // ---------- trade analyzer
@@ -2987,7 +3068,7 @@ function pickParts(round, team, year){ const k = Math.min(pickOverall(team, roun
   if(!pk) return {par:0, dv:0, disc:1, pk:null}; const disc = year > CUR+1 ? 0.8 : 1;
   return {pk, disc, par: (0.5*pk.model + 0.5*pk.hist) * disc, dv: (0.5*pk.model_dv + 0.5*pk.hist_dv) * disc}; }
 function pickFit(a, hs, ps){ const {pk, par, dv} = pickParts(a.round, a.team, a.year); if(!pk) return 0;
-  const cut = pk.bestKind==='p' ? (ps.length>=PKEEP ? Math.max(0, ps[PKEEP-1].DV_c) : 0) : (hs.length>=HKEEP ? Math.max(0, hs[HKEEP-1].DV_c) : 0);
+  const cut = pk.bestKind==='p' ? Math.max(0, nthDV(ps, PKEEP)) : Math.max(0, nthDV(hs, HKEEP));
   return +(par + (dv > cut ? Math.max(0, dv - par) : 0)).toFixed(1); }
 function playerFit(team, obj, kind, skipIds){
   const tp = teamPlayers(team); const skip = skipIds || new Set();
@@ -3037,7 +3118,7 @@ function evalSwap(rost, out, inn, full){
   const pin = inn.reduce((x,a)=>x + (a.type==='pick' ? pickFit(a, after.hs, after.ps) : 0), 0);
   const pout = out.reduce((x,a)=>x + (a.type==='pick' ? pickFit(a, before.hs, before.ps) : 0), 0);
   const v = +(after.v - before.v + pin - pout).toFixed(1);
-  return full ? {v, kept: new Set([...after.hs.map(r=>'h'+r.mlbam_id), ...after.ps.map(r=>'p'+r.mlbam_id)]), cut:{h: after.hs.length>=HKEEP?after.hs[HKEEP-1].DV_c:0, p: after.ps.length>=PKEEP?after.ps[PKEEP-1].DV_c:0}} : v; }
+  return full ? {v, kept: new Set([...after.hs.map(r=>'h'+r.mlbam_id), ...after.ps.map(r=>'p'+r.mlbam_id)]), cut:{h: nthDV(after.hs, HKEEP), p: nthDV(after.ps, PKEEP)}} : v; }
 // a player coming back has to actually make the receiving team's keeper group, or he is a throw-in dressed as a return
 const lands = (rost, out, inn) => { const e = evalSwap(rost, out, inn, true);
   return inn.every(a=>a.type==='pick' || e.kept.has(a.type+a.id)) ? e.v : null; };
@@ -3047,7 +3128,7 @@ function findDeals(me){
   const others = Object.keys(R).filter(t=>t!==me);
   const players = t => [...R[t].h.filter(r=>r.DV_c>0).map(r=>({type:'h', id:r.mlbam_id, r})), ...R[t].p.filter(r=>r.DV_c>0).map(r=>({type:'p', id:r.mlbam_id, r}))];
   const picksOf = t => Array.from({length:10}, (_,i)=>({type:'pick', team:t, round:i+1, year:CUR+1}));
-  const cutOf = ro => { const k = keeperSet(ro.h, ro.p); return {h: k.hs.length>=HKEEP?k.hs[HKEEP-1].DV_c:0, p: k.ps.length>=PKEEP?k.ps[PKEEP-1].DV_c:0}; };
+  const cutOf = ro => { const k = keeperSet(ro.h, ro.p); return {h: nthDV(k.hs, HKEEP), p: nthDV(k.ps, PKEEP)}; };
   const myP = players(me), myPicks = picksOf(me), myCut = cutOf(mine), out = [];
   for (const t of others){
     const th = R[t], theirP = players(t), theirPicks = picksOf(t);
@@ -3101,7 +3182,7 @@ function renderFinder(){
     return bits.length ? bits.join('; ') + '.' : 'both keeper groups come out ahead.'; };
   const pvp = list.filter(d=>d.give.every(a=>a.type!=='pick') && d.get.every(a=>a.type!=='pick')).length;
   const R = teamRosters(); const myK = keeperSet(R[me].h, R[me].p);
-  const myCut = myK.hs.length>=HKEEP ? myK.hs[HKEEP-1].DV_c : 0;
+  const myCut = nthDV(myK.hs, HKEEP);
   const above = (VAL.cur||[]).filter(r=>r.owner && !isFA(r.owner) && r.owner!==me && !r.pslot && r.DV_c > myCut).length;
   const note = list.length && !pvp
     ? `<p class="hint" style="margin:0 0 8px">No player-for-player deal clears the bar: only ${above} hitter${above===1?'':'s'} on another roster ${above===1?'beats':'beat'} your fifth keeper (${Math.round(myCut)}), and each is his own team's keeper, so nobody sells him at a price you would pay. Converting a spare into a pick is the trade that is actually available to you.</p>` : '';
@@ -3123,7 +3204,7 @@ $$('[data-fmode]').forEach(b=>b.addEventListener('click',()=>{ FIND_MODE=b.datas
 const DESK = { sel:null, team:'', sort:'fair', filter:'' };
 const deskKey = a => a.type==='pick' ? `pk${a.team}-${a.year}-${a.round}` : a.type+a.id;
 const deskPicks = t => [...Array.from({length:10}, (_,i)=>({type:'pick', team:t, round:i+1, year:CUR+1})), ...Array.from({length:3}, (_,i)=>({type:'pick', team:t, round:i+1, year:CUR+2}))];
-const deskCut = ro => { const k = keeperSet(ro.h, ro.p); return {h: k.hs.length>=HKEEP ? k.hs[HKEEP-1].DV_c : 0, p: k.ps.length>=PKEEP ? k.ps[PKEEP-1].DV_c : 0}; };
+const deskCut = ro => { const k = keeperSet(ro.h, ro.p); return {h: nthDV(k.hs, HKEEP), p: nthDV(k.ps, PKEEP)}; };
 const deskShort = t => teamLabel(t).replace(/ \(.*\)$/,'');
 const deskAssets = (ro, cut, n) => [...ro.h.filter(r=>r.DV_c>0 && r.DV_c > 0.5*cut.h).map(r=>({type:'h', id:r.mlbam_id, r})), ...ro.p.filter(r=>r.DV_c>0 && r.DV_c > 0.5*cut.p).map(r=>({type:'p', id:r.mlbam_id, r}))].sort((a,b)=>b.r.DV_c-a.r.DV_c).slice(0, n);
 // find a player on any roster; Ohtani and any other two-way man resolve to his pitcher row, which carries his bat
@@ -3218,7 +3299,7 @@ function renderDesk(){
   const row = (x, K, mineSide) => { const r = x.r, k = K.has(x.type+r.mlbam_id), on = !!DESK.sel && DESK.sel.id===r.mlbam_id;
     const tag = k ? '<span class="pill g">keeper</span>' : (r.DV_c > 0 ? `<span class="pill b" title="${mineSide ? 'outside your keeper group: worth nothing to you next year, full value to a team with room for him' : 'outside their keeper group, so moving him costs them nothing next year'}">${mineSide ? 'surplus' : 'gettable'}</span>` : '');
     const pos = x.type==='h' ? (eligN(r)||'') : ((r.proj_pts_hitting||0) > 0 ? 'SP + bat' : 'SP');
-    return `<button class="rrow${r.DV_c > 0 ? '' : ' dim'}" data-desk="${x.type}:${r.mlbam_id}" aria-pressed="${on}">${ava(r.name, r.team_abbr||r.team, 26, r.mlbam_id)}<span style="min-width:0"><span class="nm">${esc(r.name)}</span><span class="sub">${esc(pos)} · ${CUR+1} proj ${Math.round(x.type==='h' ? r.proj_pts : (r.tot_c ?? r.proj_pts))} ${tag}</span></span><span class="v" title="keeper value: ${CUR+1} points above replacement in full, ${CUR+2} at 60%, ${CUR+3} at 35%">${Math.round(r.DV_c)}<small>value</small></span></button>`; };
+    return `<button class="rrow${r.DV_c > 0 ? '' : ' dim'}" data-desk="${x.type}:${r.mlbam_id}" aria-pressed="${on}">${ava(r.name, r.team_abbr||r.team, 26, r.mlbam_id)}<span style="min-width:0"><span class="nm">${esc(r.name)}</span><span class="sub">${esc(pos)} · ${CUR+1} proj ${Math.round(x.type==='h' ? r.proj_pts : (r.tot_c ?? r.proj_pts))} ${tag}</span></span><span class="v" title="multi-year value: ${CUR+1} points above replacement in full, plus the option to keep him again in ${CUR+2} and ${CUR+3} (what he beats the keeper line by, discounted 0.8 a year)">${Math.round(r.DV_c)}<small>value</small></span></button>`; };
   $('#desk-me').textContent = `· ${deskShort(me)}`;
   $('#desk-mine').innerHTML = rows(me).map(x=>row(x, kept(me), true)).join('');
   $('#desk-team').innerHTML = owners.filter(o=>o!==me).map(o=>`<option value="${esc(o)}" ${o===DESK.team?'selected':''}>${esc(teamLabel(o))}</option>`).join('');
@@ -3280,7 +3361,7 @@ function evenIt(){
   const R = teamRosters(), A = R[tr.a], B = R[tr.b]; if (!A || !B || !tr.give.a.length || !tr.give.b.length) return null;
   const withR = a => a.type==='pick' ? a : ({...a, r: (a.type==='h' ? VAL.cur : VAL.pc).find(x=>x.mlbam_id===a.id)});
   const ga = tr.give.a.map(withR), gb = tr.give.b.map(withR); if ([...ga, ...gb].some(a=>a.type!=='pick' && !a.r)) return null;
-  const g1 = evalSwap(A, ga, gb), g2 = evalSwap(B, gb, ga); const gap = g1 - g2; if (Math.abs(gap) < Math.max(10, 0.2*(Math.abs(g1)+Math.abs(g2))/2)) return null;
+  const g1 = evalSwap(A, ga, gb), g2 = evalSwap(B, gb, ga); const gap = g1 - g2; if (Math.abs(gap) < Math.max(8, 0.1*(Math.abs(g1)+Math.abs(g2)))) return null;   // the verdict's own bar (renderTrade)
   const key = gap > 0 ? 'a' : 'b', team = gap > 0 ? tr.a : tr.b, ro = gap > 0 ? A : B; const used = new Set((key==='a' ? ga : gb).map(deskKey));
   const cands = [...Array.from({length:15}, (_,i)=>({type:'pick', team, round:i+1, year:CUR+1})), ...Array.from({length:3}, (_,i)=>({type:'pick', team, round:i+1, year:CUR+2})),
                  ...ro.h.filter(r=>r.DV_c>0).map(r=>({type:'h', id:r.mlbam_id, r})), ...ro.p.filter(r=>r.DV_c>0).map(r=>({type:'p', id:r.mlbam_id, r}))].filter(a=>!used.has(deskKey(a)));
@@ -3338,10 +3419,10 @@ function renderTrade(){
   const ledger = (name, ev) => `<table><tbody><tr><td class="l" title="change in this team's best ${HKEEP} hitters and ${PKEEP} pitchers; a player they cannot keep is worth nothing here">Keeper group (${HKEEP}H + ${PKEEP}P)</td><td>${signed(ev.keeperDelta)}</td></tr><tr><td class="l" title="whoever they draft is on the roster all of ${CUR+1} whether or not he is kept, so a pick always carries that year; the later years count only if he would crack their keeper group">Draft picks received − given</td><td>${signed(ev.picksIn - ev.picksOut)}</td></tr>${tr.mode==='now'?`<tr><td class="l">Rest of this week</td><td>${signed(ev.rosIn - ev.rosOut)}</td></tr>`:''}<tr class="tot"><td class="l">Net to ${esc(poss(name))} roster</td><td>${signed(ev.total)}</td></tr><tr><td class="l" style="padding-top:12px" title="the most any of the 12 rosters would gain by adding what they gave up">Open market: given up</td><td style="padding-top:12px">${ev.mktOut?'−'+Math.round(ev.mktOut):'0'}</td></tr><tr><td class="l" title="the most any of the 12 rosters would gain by adding what they received">Open market: received</td><td>${ev.mktIn?'+'+Math.round(ev.mktIn):'0'}</td></tr><tr class="tot"><td class="l" title="not what this trade does for them: what these assets are worth to the team best set up to use them">Market value, ${esc(name)}</td><td>${signed(Math.round(ev.mkt))}</td></tr></tbody></table>`;
   const ev = both ? evenIt() : null;
   const evenHtml = ev && ev.opts.length ? `<div class="evenit"><span class="hint">To even it, ${esc(teamLabel(ev.team).replace(/ \(.*\)$/,''))} adds:</span>${ev.opts.map((o,i)=>`<button class="btn small" data-even="${i}" title="${esc(nA)} ${signedTxt(o.n1)}, ${esc(nB)} ${signedTxt(o.n2)} after adding it">${o.c.type==='pick' ? `<b>${o.c.year} round ${o.c.round}</b>` : `<b>${esc(o.c.r.name)}</b>`} → ${signedTxt(o.n1)} / ${signedTxt(o.n2)}</button>`).join('')}</div>` : '';
-  $('#trade').innerHTML = side('a', tr.a, tr.b) + side('b', tr.b, tr.a) + `<div class="verdict"><h3>Verdict</h3><div class="big ${cls}">${esc(verdict)}</div>${sub?`<p class="hint" style="margin:6px 0 0">${sub}</p>`:''}${evenHtml}<div class="ledger"><div>${ledger(nA, evA)}</div><div>${ledger(nB, evB)}</div></div><p class="hint" style="margin-top:8px">Everything is in points above replacement over the next three seasons (${CUR+1} in full, ${CUR+2} at 60%, ${CUR+3} at 35%). <b>Net to the roster</b> is the headline and the only number that scores the trade: what it does to that team's best ${HKEEP} hitters + ${PKEEP} pitchers, plus picks. A player the team cannot keep returns to the draft pool at the keeper deadline, so he is worth nothing there; a pick is worth the ${CUR+1} value of whoever is taken with it in every case, because the 15 rounds fill the 22-man roster, and the later years on top only when that player would crack their keeper group. <b>Market value</b> answers a different question, what these assets would be worth to the team in the league best set up to use them, so it is the check on whether you are selling a surplus star cheap, not a verdict on the trade. When the two disagree, that gap <i>is</i> the trade: move a player you cannot keep to the team that has a slot for him, and charge for it. ${MY?`${esc(teamLabel(MY).replace(/ \(.*\)$/,''))} is you`:'pick your team in the top bar'}. Draft slots for 2027 follow the league rule (9th–12th place pick 1–4, then 8th down to 1st) from the final regular-season standings; edit them below if the league changes them.</p></div>`;
-  $('#tr-a').addEventListener('change', e=>{ tr.a = e.target.value; tr.give.a = []; if(tr.b===tr.a) tr.b = owners.find(o=>o!==tr.a); renderTrade(); renderFinder(); renderDesk(); });
+  $('#trade').innerHTML = side('a', tr.a, tr.b) + side('b', tr.b, tr.a) + `<div class="verdict"><h3>Verdict</h3><div class="big ${cls}">${esc(verdict)}</div>${sub?`<p class="hint" style="margin:6px 0 0">${sub}</p>`:''}${evenHtml}<div class="ledger"><div>${ledger(nA, evA)}</div><div>${ledger(nB, evB)}</div></div><p class="hint" style="margin-top:8px">Everything is in points above replacement over the next three seasons (${CUR+1} in full, then the option to keep him again in ${CUR+2} and ${CUR+3}: only what he beats the keeper line by, discounted 0.8 a year). <b>Net to the roster</b> is the headline and the only number that scores the trade: what it does to that team's best ${HKEEP} hitters + ${PKEEP} pitchers, plus picks. A player the team cannot keep returns to the draft pool at the keeper deadline, so he is worth nothing there; a pick is worth the ${CUR+1} value of whoever is taken with it in every case, because the 15 rounds fill the 22-man roster, and the later years on top only when that player would crack their keeper group. <b>Market value</b> answers a different question, what these assets would be worth to the team in the league best set up to use them, so it is the check on whether you are selling a surplus star cheap, not a verdict on the trade. When the two disagree, that gap <i>is</i> the trade: move a player you cannot keep to the team that has a slot for him, and charge for it. ${MY?`${esc(teamLabel(MY).replace(/ \(.*\)$/,''))} is you`:'pick your team in the top bar'}. Draft slots for 2027 follow the league rule (9th–12th place pick 1–4, then 8th down to 1st) from the final regular-season standings; edit them below if the league changes them.</p></div>`;
+  $('#tr-a').addEventListener('change', e=>{ tr.a = e.target.value; tr.give.a = []; if(tr.b===tr.a){ tr.b = owners.find(o=>o!==tr.a); tr.give.b = []; } renderTrade(); renderFinder(); renderDesk(); });
   if (ev) $$('#trade [data-even]').forEach(b=>b.addEventListener('click', ()=>{ const o = ev.opts[+b.dataset.even]; tr.give[ev.key].push(o.c.type==='pick' ? {type:'pick', team:o.c.team, round:o.c.round, year:o.c.year} : {type:o.c.type, id:o.c.id}); renderTrade(); }));
-  $('#tr-b').addEventListener('change', e=>{ tr.b = e.target.value; tr.give.b = []; if(tr.a===tr.b) tr.a = owners.find(o=>o!==tr.b); renderTrade(); });
+  $('#tr-b').addEventListener('change', e=>{ tr.b = e.target.value; tr.give.b = []; if(tr.a===tr.b){ tr.a = owners.find(o=>o!==tr.b); tr.give.a = []; } renderTrade(); });
   $$('#trade .x').forEach(b=>b.addEventListener('click',()=>{ tr.give[b.dataset.side].splice(+b.dataset.i,1); renderTrade(); }));
   $$('#trade .tr-addpick').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.side; const team = k==='a'?tr.a:tr.b; const round = +$(`.tr-round[data-side="${k}"]`).value, year = +$(`.tr-year[data-side="${k}"]`).value; if(!tr.give[k].some(a=>a.type==='pick'&&a.round===round&&a.year===year)) tr.give[k].push({type:'pick', team, round, year}); renderTrade(); }));
   $$('#trade .tr-q').forEach(inp=>{ const k = inp.dataset.side, team = k==='a'?tr.a:tr.b, dd = $(`#tr-dd-${k}`); const tp = teamPlayers(team);
@@ -3355,10 +3436,10 @@ $$('[data-tmode]').forEach(b=>b.addEventListener('click',()=>{ tr.mode=b.dataset
 function renderValues(){ computeValues(); renderPicks(); renderTrade(); renderFinder(); renderDesk(); }
 
 // ---------- tabs + boot
-buildLeagueBar(); rescore(); prescore(); buildPct(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
-renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); buildRehab(); renderScorecard(); goTab(MY ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
+buildLeagueBar(); rescore(); prescore(); buildPct(); computeValues(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
+renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); buildRehab(); renderScorecard(); goTab(MY && [...new Set(SHD.map(r=>r.date))].some(d=>d>=localISO()) ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260928T0052"></script>
+<script src="live.js?v=20260928T1621"></script>
 </body>
 </html>
