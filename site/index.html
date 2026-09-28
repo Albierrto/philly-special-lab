@@ -561,8 +561,9 @@ tbody tr:hover td,tbody tr:hover td.sticky{background-color:color-mix(in srgb,va
     <li><b>Right now</b> mode also adds each hitter's and pitcher's expected points for the rest of this week, from the Streamers model.</li>
     <li><b>The deal desk</b> searches instead of guessing. For a player you want, it tries every package from your roster of one or two players, one or two picks, a player and a pick, or two players and a pick, and keeps the ones his team would come out ahead on; when you would be overpaying it also tries them handing a pick back. For a player you are selling, it does the same from every other roster, or from the one team you pick. A player thrown in has to make the keeper group he is joining, or he is not really part of the price. <b>Fair to both</b> ranks by the smaller of the two gains, so the top deal is the one most likely to be accepted; <b>Best for me</b> ranks by your gain alone, as long as they still gain something. When no deal helps both sides, the desk shows the price instead: the cheapest packages they would take, with what that costs you.</li>
     <li><b>To even it</b>, under the verdict, is the single pick or player from the side that is ahead that brings the trade closest to level.</li>
-    <li><b>Minor leaguers</b> can be traded too. A team keeps up to two of them on top of its 5 hitters and 2 pitchers, as long as they have never played in the majors (the green flag on Fantrax); a slot left empty is filled in the minor-league draft. So a minor leaguer is worth what he beats the prospect that slot would hold anyway. His own value is on the same three-year scale as everyone else and is read off what actually happened to minor leaguers like him (same level, same age for it, a bat or arm as good) from 2021 to 2025: how often they reached the majors the next year, what they scored when they did, and whether they became keepers. A rookie rarely beats a streamed bat by much in his first year, and once he debuts he needs a regular keeper slot, which is why even the best prospects are worth about a late-round pick here. MLB Pipeline's rank moves each one halfway toward the value typical of prospects ranked near him.</li>
-    <li><b>Draft picks</b> are the ones each team actually holds on Fantrax, including traded ones. A traded pick keeps its original team's slot.</li>
+    <li><b>Minor leaguers</b> can be traded too. A team keeps up to two of them on top of its 5 hitters and 2 pitchers, as long as they have never played in the majors (the green flag on Fantrax); a slot left empty is filled in the minor-league draft. So a minor leaguer is worth what he beats the prospect that slot would hold anyway. His value is on the same three-year scale as everyone else. For a ranked prospect it comes from his MLB Pipeline rank, measured on what ranked prospects who had not yet played actually returned over their next three seasons (2021-24 lists): the top three averaged about 200, ranks 4-10 about 80, 11-25 about 30, and 26-100 about 10-15. The rank carries almost all of it; his stat line and level only decide when the value arrives. An unranked prospect is valued from minor leaguers like him (level, age for it, bat or arm) and what they returned.</li>
+    <li><b>Draft picks</b> are the ones each team actually holds on Fantrax, including traded ones. A traded pick keeps its original team's slot, and a team holding more picks than it has roster spots (15, after 7 keepers) only gets value from the extra ones by what they beat.</li>
+    <li><b>Nothing lopsided gets suggested.</b> A trade can leave both keeper groups better off and still be one no commissioner would allow (Kurtz for a fourth-rounder helps Basketball only because Sal Stewart would take his spot). So every suggested deal also has to be close on what changes hands: each asset at the most any roster in the league would gain from it, with the best piece counting for more than the pieces around it, and each side getting at least 80% of what it gives. The analyzer flags any trade that fails that test.</li>
     <li><b>Three-team deals</b> are rotations: you send a player to one team, it sends one to a third, and the third sends one to you. Each team is scored on what it sends and receives, exactly as in a two-team deal, and a rotation is listed only when all three gain and a straight swap with the third team would not work on its own. In the analyzer, <i>Add a third team</i> lets you build any three-way shape and choose where each player goes.</li></ul></details></div>
   <div class="desk" id="desk">
     <div class="deskhead"><div><h3 style="margin:0">Deal desk</h3><p class="hint" style="margin:2px 0 0">Tap one of <b>your</b> players to shop him, or one of <b>theirs</b> to see what it would take to get him. Tap several to search them together: a few of yours, a few of theirs, or some of each. Every deal opens in the analyzer below with the same numbers.</p></div>
@@ -994,8 +995,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close" aria-label="Close player page" title="Close">✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260928T1904"></script>
-<script src="data/streamers.js?v=20260928T1904"></script>
+<script src="data/lab.js?v=20260928T1935"></script>
+<script src="data/streamers.js?v=20260928T1935"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -2918,6 +2919,8 @@ const ROSTERED_H = 13, ROSTERED_P = 7;
 const HAGE = Object.fromEntries((D.aging||[]).map(a=>[a.age, a.yoy_delta])); const PAGE = Object.fromEntries((D.pitcher_aging||[]).map(a=>[a.age, a.yoy_delta]));
 const ageStep = (tbl, age) => { const ks = Object.keys(tbl).map(Number); if(!ks.length) return 0; const a = Math.max(Math.min(age, Math.max(...ks)), Math.min(...ks)); return tbl[a] ?? 0; };
 let VAL = null;
+// market value of each trade asset (the most any roster would gain from it), cached for one build of the values
+let MKT = new Map(), TRC = null, OWNED = new Map(), PFC = new Map();   // per-build caches: market values, rosters, picks held, pick values   // TRC: the rosters split for the trade tools, built once per build of the values
 // Everything that does not depend on who is kept. Split out of renderKeepers so the keeper set can be decided once,
 // after values exist, instead of each page deciding for itself — which is how the Keepers tab and My team came to
 // disagree about four keeper slots (the single-season number favours the older player, the three-year number the younger).
@@ -3045,7 +3048,7 @@ function computeValues(){
   // what a minor-league slot holds anyway: the best prospect left once every team has its MKEEP
   const mPool = minors.filter(r=>r.eligible).sort((a,b)=>b.DV_c-a.DV_c); const mRepl = mPool.length ? mPool[Math.min(TEAMS*MKEEP, mPool.length-1)].DV_c : 0;
   mPool.forEach((r,i)=>{ r.mrank = i+1; });
-  VAL = {cur, pc, replH, replP, replPos, posTable, cutH, cutP, disc:DISC, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO, minors, mRepl};
+  VAL = {cur, pc, replH, replP, replPos, posTable, cutH, cutP, disc:DISC, avail, picks, dvRatio:+RAT.toFixed(2), kept, byO, pByO, minors, mRepl}; MKT = new Map(); TRC = null; OWNED = new Map(); PFC = new Map();
   // ---- keep-or-draft: what a keeper slot is worth over spending that team's first pick on the best man left.
   // One number on the three-year scale, so the verdict on the Keepers tab cannot contradict the keep pill beside it.
   const first = {}; Object.keys({...byO, ...pByO}).forEach(o=>{
@@ -3136,7 +3139,8 @@ function assetObj(a){ if (a.type==='pick'){ const hold = pickHolder(a); return {
 const ROSTER_MAX = 22;
 const openSpots = () => Math.max(0, ROSTER_MAX - HKEEP - PKEEP);
 const samePick = (a, b) => a.team===b.team && a.round===b.round && a.year===b.year;
-function pickCapital(list, hs, ps){ const v = list.map(k=>pickFit(k, hs, ps)).sort((a,b)=>b-a); let t = 0; for (let i=0;i<Math.min(v.length, openSpots());i++) t += v[i]; return t; }
+function pickFitC(a, hs, ps){ const k = a.team+'|'+a.round+'|'+a.year+'|'+Math.round(nthDV(hs, HKEEP))+'|'+Math.round(nthDV(ps, PKEEP)); let v = PFC.get(k); if (v === undefined){ v = pickFit(a, hs, ps); PFC.set(k, v); } return v; }
+function pickCapital(list, hs, ps){ const v = list.map(k=>pickFitC(k, hs, ps)).sort((a,b)=>b-a); let t = 0; for (let i=0;i<Math.min(v.length, openSpots());i++) t += v[i]; return t; }
 function pickDelta(team, out, inn, before, after){ const po = out.filter(a=>a.type==='pick'), pi = inn.filter(a=>a.type==='pick'); if (!po.length && !pi.length) return 0;
   let d = 0; for (const y of new Set([...po, ...pi].map(k=>k.year))){ const held = team ? ownedPicks(team).filter(k=>k.year===y) : po.filter(k=>k.year===y);
     const aft = held.filter(k=>!po.some(o=>samePick(o, k))).concat(pi.filter(k=>k.year===y && !held.some(h=>samePick(h, k))));
@@ -3146,8 +3150,7 @@ function pickDelta(team, out, inn, before, after){ const po = out.filter(a=>a.ty
 // draft; the holder is who can trade it. Without the sync every team is assumed to hold its own.
 const pickShort = t => teamLabel(t).replace(/ \(.*\)$/,'');
 function pickHolder(a){ const po = D.pick_owners; if (!po || !po.length) return a.team; const x = po.find(x=>x.original===a.team && x.round===a.round && x.year===a.year); return x ? x.owner : null; }
-let OWNED = new Map();
-function ownedPicks(team){ const ck = team + '|' + JSON.stringify(draftSlots()); if (OWNED.has(ck)) return OWNED.get(ck).slice(); const po = D.pick_owners; const list = (po && po.length) ? po.filter(x=>x.owner===team).map(x=>({type:'pick', team:x.original, round:x.round, year:x.year}))
+function ownedPicks(team){ const ck = team; if (OWNED.has(ck)) return OWNED.get(ck).slice(); const po = D.pick_owners; const list = (po && po.length) ? po.filter(x=>x.owner===team).map(x=>({type:'pick', team:x.original, round:x.round, year:x.year}))
     : Array.from({length:15}, (_,i)=>({type:'pick', team, round:i+1, year:CUR+1}));
   list.sort((a,b)=>a.year-b.year || pickOverall(a.team, a.round)-pickOverall(b.team, b.round)); OWNED.set(ck, list); return list.slice(); }
 const pickLabel = (a, holder) => `${a.year} R${a.round} · #${pickOverall(a.team, a.round)}${holder && a.team!==holder ? ` (from ${pickShort(a.team)})` : ''}`;
@@ -3165,7 +3168,7 @@ function pickFit(a, hs, ps){ const {pk, par, dv} = pickParts(a.round, a.team, a.
   const cut = pk.bestKind==='p' ? Math.max(0, nthDV(ps, PKEEP)) : Math.max(0, nthDV(hs, HKEEP));
   return +(par + (dv > cut ? Math.max(0, dv - par) : 0)).toFixed(1); }
 function playerFit(team, obj, kind, skipIds){
-  const tp = teamPlayers(team); const skip = skipIds || new Set();
+  const tp = teamRosters()[team] || teamPlayers(team); const skip = skipIds || new Set();
   const h = tp.h.filter(r=>r.mlbam_id!==obj.mlbam_id && !skip.has('h'+r.mlbam_id)), p = tp.p.filter(r=>r.mlbam_id!==obj.mlbam_id && !skip.has('p'+r.mlbam_id)), m = tp.m.filter(r=>r.mlbam_id!==obj.mlbam_id && !skip.has('m'+r.mlbam_id));
   const before = keeperSet(h, p, m).v; pushTo(h, p, m, {type:kind, r:obj}); return +(keeperSet(h, p, m).v - before).toFixed(1); }
 // open market: the most any roster in the league would gain by adding this asset. Not what THIS trade does — it is the
@@ -3206,19 +3209,32 @@ function spareNote(entered, gain, who){ const out = [];
   for (const r of entered){ if (r.mtype==='m') continue; const bm = bestMarket({type: kindOfRow(r), id: r.mlbam_id});
     if (bm.v > gain + 5) out.push(`it also uses up ${who==='you' ? 'your' : 'their'} spare ${lastName(r.name)}, who alone would add about ${Math.round(bm.v)} to ${esc(teamLabel(bm.team).replace(/ \(.*\)$/,''))}'s keepers; selling him instead is likely the better deal for ${who==='you' ? 'you' : 'them'}`); }
   return out; }
+// ---------- the league's eye. A deal can leave both rosters better off and still be one no commissioner lets through:
+// Kurtz for a fourth-rounder helps Basketball only because Sal Stewart would take his keeper spot, and on the open
+// market Kurtz is worth far more than the pick. So every suggestion also has to be fair on what changes hands: each
+// asset at its market value, the most any roster in the league would gain from it (bestMarket: for Kurtz, what he adds
+// to the team with the weakest hitters; for a pick, its value to the team best placed to use it), and each side has to
+// get at least 80% of what it gives, counted with a star premium (below). That is the view a commissioner takes.
+const MKT_FAIR = 0.8;
+function mktOf(a){ const k = deskKey(a); if (MKT.has(k)) return MKT.get(k); const v = bestMarket(a.type==='pick' ? a : {type:a.type, id:a.id}).v; MKT.set(k, v); return v; }
+// counted with a star premium (value^1.5, as the hockey room's "name value"): two middling pieces do not add up to one
+// star in anyone's eyes, which is how the Kurtz-for-two-fourths deals got through a plain sum
+function mktSides(give, get){ const nv = a => Math.pow(Math.max(0, mktOf(a)), 1.5); return [give.reduce((x,a)=>x+nv(a),0), get.reduce((x,a)=>x+nv(a),0)]; }
+function marketFair(give, get){ const [g, r] = mktSides(give, get), big = Math.max(g, r); return big < 60 || Math.min(g, r) >= MKT_FAIR * big; }
 // ---------- trade finder: search the league for deals both sides would actually take
 // The analyzer answers "is this trade good"; this answers "which trade should I offer". Same scoring, so the two can
 // never disagree: a roster's gain is the change in its best HKEEP hitters + PKEEP pitchers, with picks valued to that
 // roster (see pickFit). bestMarket is deliberately not used here — it is a per-asset league scan and far too slow to
 // run inside a search over thousands of pairs.
 let FIND_MODE = 'both';
-function teamRosters(){ const V = VAL || computeValues(); const m = {}; const get = o => (m[o] ||= {t:o, h:[],p:[],m:[]});
+function teamRosters(){ if (TRC && VAL) return TRC; const V = VAL || computeValues(); const m = {}; const get = o => (m[o] ||= {t:o, h:[],p:[],m:[]});
   V.cur.forEach(r=>{ if(r.owner && !isFA(r.owner) && !r.pslot) get(r.owner).h.push(r); });
   V.pc.forEach(r=>{ if(r.owner && !isFA(r.owner)) get(r.owner).p.push(r); });
   (V.minors||[]).forEach(r=>{ if(r.owner && !isFA(r.owner)) get(r.owner)[r.mtype].push(r); });
-  return m; }
+  TRC = m; return m; }
+const KSC = new WeakMap();   // a roster's keepers before any trade: the same for every deal the searches try against it
 function evalSwap(rost, out, inn, full){
-  const before = keeperSet(rost.h, rost.p, rost.m);
+  let before = KSC.get(rost); if (!before){ before = keeperSet(rost.h, rost.p, rost.m); KSC.set(rost, before); }
   const oid = new Set(out.filter(a=>a.type!=='pick').map(a=>a.type+a.id));
   const h = rost.h.filter(r=>!oid.has('h'+r.mlbam_id)), p = rost.p.filter(r=>!oid.has('p'+r.mlbam_id)), m = (rost.m||[]).filter(r=>!oid.has('m'+r.mlbam_id));
   inn.forEach(a=>{ if(a.type!=='pick') pushTo(h, p, m, a); });
@@ -3262,9 +3278,14 @@ function findDeals(me){
       let extra = null, side = '';
       if (g1 != null && g2 != null && (g1 > 0 !== g2 > 0)){ // one side is short: the smallest pick from the team ahead that fixes it
         const ahead = g1 > g2, pool = ahead ? myPicks : theirPicks;
-        for (let i = pool.length - 1; i >= 0; i--){ const pk = pool[i];
+        // the picks run best to worst, so the side that is short gains less the further down the list: binary-search the
+        // cheapest pick that squares it, then check the side paying it still comes out ahead
+        const shortGain = pk => ahead ? lands(th, [b], [a, pk]) : lands(mine, [a], [b, pk]);
+        let lo = 0, hi = pool.length - 1, found = -1;
+        while (lo <= hi){ const mid = (lo + hi) >> 1; const g = shortGain(pool[mid]); if (g != null && g > 0){ found = mid; lo = mid + 1; } else hi = mid - 1; }
+        if (found >= 0){ const pk = pool[found];
           const n1 = lands(mine, ahead ? [a, pk] : [a], ahead ? [b] : [b, pk]), n2 = lands(th, ahead ? [b] : [b, pk], ahead ? [a, pk] : [a]);
-          if (n1 > 0 && n2 > 0){ g1 = n1; g2 = n2; extra = pk; side = ahead ? 'me' : 'them'; break; } }
+          if (n1 > 0 && n2 > 0){ g1 = n1; g2 = n2; extra = pk; side = ahead ? 'me' : 'them'; } }
       }
       if (!(g1 > 0) || !(g2 > 0)) continue;
       out.push({t, give: side==='me' ? [a, extra] : [a], get: side==='them' ? [b, extra] : [b], me:g1, them:g2});
@@ -3274,7 +3295,8 @@ function findDeals(me){
   }
   // A deal where they gain three times what you do still passes "both gain", but it is not one to open with, and a thin
   // edge on a player you would have kept is the first thing model error erases. Hold the default list to a real share.
-  const list = FIND_MODE==='me' ? out : out.filter(d=>d.me >= 0.3 * d.them);
+  const fairMkt = out.filter(d=>d.me >= 3 && d.them >= 3 && marketFair(d.give, d.get));
+  const list = FIND_MODE==='me' ? fairMkt : fairMkt.filter(d=>d.me >= 0.3 * d.them);
   const key = FIND_MODE==='me' ? (d=>d.me) : (d=>Math.min(d.me, d.them));
   list.sort((x,y)=>key(y)-key(x));
   // one line per partner and set of players: the same men for a different pick is the same conversation
@@ -3305,12 +3327,13 @@ function findDeals3(me){
     for (const y of A[B]){ const gb = L(B, y, x); if (!(gb > 0)) continue; const g = L(me, x, y); if (g != null && g > best) best = g; } return soloB[k] = best; };
   const res = [];
   for (const x of A[me]) for (const B of others) for (const y of A[B]){
-    const gb = L(B, y, x); if (!(gb > 0)) continue;
+    const gb = L(B, y, x); if (!(gb >= 3)) continue;
     for (const C of others){ if (C===B) continue;
       for (const z of A[C]){ if ([x, y, z].filter(a=>a.type!=='pick').length < 2) continue;   // two picks and a player is two separate deals
-        const gc = L(C, z, y); if (!(gc > 0)) continue; const gm = L(me, x, z); if (!(gm > 0)) continue;
+        const gc = L(C, z, y); if (!(gc >= 3)) continue; const gm = L(me, x, z); if (!(gm >= 3)) continue;
         const direct = L(C, z, x); if (direct != null && direct > 0) continue;               // C would take x straight up: no need for B
         if (gm < solo(x, B) + 8) continue;                                                     // B alone would give you as much
+        if (!marketFair([x], [z]) || !marketFair([y], [x]) || !marketFair([z], [y])) continue;   // no leg the league would call lopsided
         res.push({B, C, x, y, z, me:gm, b:gb, c:gc}); } } }
   const fair = FIND_MODE !== 'me';
   const L2 = fair ? res.filter(d=>d.me >= 0.3 * (d.b + d.c) / 2) : res;
@@ -3343,7 +3366,9 @@ function renderFinder3now(){
     tr.b = d.B; tr.c = d.C; tr.give.a = [ser(d.x, 'b')]; tr.give.b = [ser(d.y, 'c')]; tr.give.c = [ser(d.z, 'a')];
     renderTrade(); $('#trade').scrollIntoView({behavior:'smooth', block:'start'}); }));
 }
-function renderFinder(){
+let F2T = null;
+function renderFinder(){ const el = $('#findlist'); if (el && !el.innerHTML) el.innerHTML = '<p class="hint">Searching the league…</p>'; clearTimeout(F2T); F2T = setTimeout(renderFinderNow, 10); }
+function renderFinderNow(){
   const me = tr.a, list = findDeals(me); const nMe = teamLabel(me).replace(/ \(.*\)$/,'');
   const leg = (arr, dir, t) => `<span class="leg"><span class="arrow">${dir}</span>${arr.map(a=>a.type==='pick'
       ? `<b>${esc(pickLabel(a, t))}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22, a.r.mlbam_id)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
@@ -3448,8 +3473,10 @@ function deskSell(sel, only){
 // first. When nothing is fair, say so and show the price instead of an empty box.
 function deskRank(list, perTeam){
   const fair = DESK.sort === 'fair';
-  let L = fair ? list.filter(d=>d.me > 0 && d.them > 0 && d.me >= 0.3*d.them) : list.filter(d=>d.them > 0), fallback = false;
-  if (fair && !L.length){ L = list.filter(d=>d.them > 0); fallback = true; }
+  // nothing leaves this page that a commissioner would call lopsided, the price fallback included
+  const ok = list.filter(d=>marketFair(d.give, d.get));
+  let L = fair ? ok.filter(d=>d.me >= 3 && d.them >= 3 && d.me >= 0.3*d.them) : ok.filter(d=>d.them >= 3), fallback = false;
+  if (fair && !L.length){ L = ok.filter(d=>d.them >= 3); fallback = true; }
   const key = (fair && !fallback) ? (d=>Math.min(d.me, d.them)) : (d=>d.me);
   L.sort((a,b)=>key(b)-key(a) || (b.them-a.them));
   // one line per set of players: the same men with a different pick attached is the same conversation
@@ -3721,6 +3748,10 @@ function renderTrade(){
       const got = playerFit(to, o.r, a.type); if (bm.v > got + 0.25 * Math.max(40, bm.v) && bm.team && bm.team !== to)
         sold.push(`${esc(o.name)} is worth ${Math.round(bm.v)} to ${esc(tshort(bm.team))} but only ${Math.round(got)} to ${esc(tshort(to))}`); }));
     if (sold.length) sub += ` Open market: ${sold.join('; ')}, so the better return is elsewhere.`;
+    // the commissioner's view: what each side gets, valued at its best use anywhere in the league
+    const lin = arr => arr.reduce((x,a)=>x+mktOf(a),0);
+    const lop = keys.map(k=>{ const [g, r] = mktSides(tr.give[k], F[k].inn); return {k, g, r, gl: lin(tr.give[k]), rl: lin(F[k].inn)}; }).filter(x=>Math.max(x.g, x.r) >= 60 && Math.min(x.g, x.r) < MKT_FAIR * Math.max(x.g, x.r));
+    if (lop.length) sub += ` <b>Lopsided on what changes hands:</b> ${lop.map(x=>`${esc(nm(x.k))} gives ${Math.round(x.gl)} and gets ${Math.round(x.rl)}`).join('; ')}, each asset at the most any roster in the league would gain from it, with the best piece counting for more than the pieces around it. Even if the keeper math works for both rosters, a deal this uneven is the kind a league questions.`;
   }
   const ledger = (name, ev) => `<table><tbody><tr><td class="l" title="change in this team's best ${HKEEP} hitters and ${PKEEP} pitchers, plus its ${MKEEP} minor-league keepers; a player they cannot keep is worth nothing here">Keepers (${HKEEP}H + ${PKEEP}P + ${MKEEP} minors)</td><td>${signed(ev.keeperDelta)}</td></tr><tr><td class="l" title="whoever they draft is on the roster all of ${CUR+1} whether or not he is kept, so a pick always carries that year; the later years count only if he would crack their keeper group">Draft picks received − given</td><td>${signed(ev.picksIn - ev.picksOut)}</td></tr>${tr.mode==='now'?`<tr><td class="l">Rest of this week</td><td>${signed(ev.rosIn - ev.rosOut)}</td></tr>`:''}<tr class="tot"><td class="l">Net to ${esc(poss(name))} roster</td><td>${signed(ev.total)}</td></tr><tr><td class="l" style="padding-top:12px" title="the most any of the 12 rosters would gain by adding what they gave up">Open market: given up</td><td style="padding-top:12px">${ev.mktOut?'−'+Math.round(ev.mktOut):'0'}</td></tr><tr><td class="l" title="the most any of the 12 rosters would gain by adding what they received">Open market: received</td><td>${ev.mktIn?'+'+Math.round(ev.mktIn):'0'}</td></tr><tr class="tot"><td class="l" title="not what this trade does for them: what these assets are worth to the team best set up to use them">Market value, ${esc(name)}</td><td>${signed(Math.round(ev.mkt))}</td></tr></tbody></table>`;
   const ev = filled && !three ? evenIt() : null;
@@ -3756,6 +3787,6 @@ buildLeagueBar(); rescore(); prescore(); buildPct(); computeValues(); buildExplo
 renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); buildRehab(); renderScorecard(); goTab(MY && [...new Set(SHD.map(r=>r.date))].some(d=>d>=localISO()) ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
 </script>
 
-<script src="live.js?v=20260928T1904"></script>
+<script src="live.js?v=20260928T1935"></script>
 </body>
 </html>
