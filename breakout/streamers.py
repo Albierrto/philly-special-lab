@@ -357,10 +357,16 @@ def _log_row(pid: int, season: int, W: dict, asof: str | None) -> dict:
     allg = [dict(date=str(x.get("date"))[:10], opp=((x.get("opponent") or {}).get("abbreviation") or (x.get("opponent") or {}).get("name")),
                  home=(x.get("isHome") if x.get("isHome") is not None else None), ip=round(_ip(x["stat"].get("inningsPitched", 0)), 1),
                  K=x["stat"].get("strikeOuts", 0), BB=x["stat"].get("baseOnBalls", 0), H=x["stat"].get("hits", 0), ER=x["stat"].get("earnedRuns", 0),
-                 gs=int(x["stat"].get("gamesStarted") == 1), pts=round(pts_of(x["stat"]), 1)) for x in sp]
+                 gs=int(x["stat"].get("gamesStarted") == 1), pts=round(pts_of(x["stat"]), 1),
+                 np=x["stat"].get("numberOfPitches"), st=x["stat"].get("strikes")) for x in sp]
     recent = allg[-10:]
     summary = rolling(allg, asof); summary["starts"] = n
     summary["pts_start"] = round(sum(p for p in pts) / n, 1) if n else None
+    # pitch counts: how long his leash is running right now (the last five starts), next to the season's
+    npc = [s["stat"].get("numberOfPitches") for s in starts if s["stat"].get("numberOfPitches") is not None]
+    if npc:
+        summary["np_season"] = round(sum(npc) / len(npc), 1); summary["np_last5"] = round(sum(npc[-5:]) / len(npc[-5:]), 1)
+        summary["np_max5"] = int(max(npc[-5:])); summary["np_hi"] = int(max(npc)); summary["np_100"] = int(sum(1 for v in npc if v >= 100))
     return dict(mlbam_id=int(pid), n_starts=n, g_total=len(sp), n_relief=len(sp) - n,
                 start_dates=[str(x.get("date"))[:10] for x in starts], recent=recent, summary=summary,
                 pts_start=(sum(pts) / n if n else np.nan), ip_start=(sum(_ip(s["stat"].get("inningsPitched", 0)) for s in starts) / n if n else np.nan),
