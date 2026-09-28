@@ -39,6 +39,12 @@ def main(argv=None):
     # headshots for everyone on a roster, inline, because an artifact cannot reach an outside image host
     data["faces"] = faces.build(data)
     tpl_txt = tpl.read_text(encoding="utf-8")
+    # the NFBC Holdem board, inline: an artifact cannot load data/postseason.js from the site, and the board reads window.POST first
+    post = C.ROOT / "site" / "data" / "postseason.js"
+    if post.exists():
+        tag = '<script id="data" type="application/json">__DATA__</script>'
+        js = post.read_text(encoding="utf-8").strip().replace("</", "<\\/")
+        if tag in tpl_txt: tpl_txt = tpl_txt.replace(tag, f"<script>{js}</script>\n{tag}", 1)
     # Bort's edition (defaults to his team) and a league edition (defaults to league view, a different title)
     data["meta"]["default_team"] = data["meta"].get("my_abbrev", "BB")
     html = tpl_txt.replace("__DATA__", json.dumps(data, separators=(",", ":")).replace("</", "<\\/"))
