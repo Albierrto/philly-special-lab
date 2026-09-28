@@ -44,6 +44,29 @@ ROUNDS = ("DS", "LCS", "WS")
 MULT = dict(held=(1, 2, 3), add_lcs=(0, 1, 2), add_ws=(0, 0, 1))
 LIMITS = dict(DS=(1, 3), LCS=(2, 6), WS=(6, 10))
 SLOTS = ["C", "1B", "2B", "3B", "SS", "OF", "OF", "OF", "OF", "UT", "P", "P", "P", "P", "P", "P"]
+ROLE_OV = DATA / "overrides" / "postseason_roles.csv"   # reported rotations, closers and availability (beat reports, dated)
+
+
+def _norm(name: str) -> str:
+    import unicodedata
+    n = unicodedata.normalize("NFKD", str(name)).encode("ascii", "ignore").decode()
+    return " ".join(n.lower().replace(".", "").replace("-", " ").split())
+
+
+def role_overrides() -> pd.DataFrame:
+    """Rows of team, name, role (SP1-SP4 for a reported rotation order, CL with a share of the saves for a named
+    closer or a committee, START with the chance a hitter starts each game, AVAIL for availability only), share, avail, note, source, as_of. What a manager or a beat
+    writer has said beats the model's guess from September rates; the file is dated so stale rows are easy to spot."""
+    if not ROLE_OV.exists():
+        return pd.DataFrame(columns=["team", "name", "role", "share", "avail", "note", "source", "as_of", "key"])
+    o = pd.read_csv(ROLE_OV, dtype=str).fillna("")
+    o["team"] = o["team"].str.strip().str.upper(); o["role"] = o["role"].str.strip().str.upper()
+    o["key"] = o["name"].map(_norm)
+    return o
+
+
+def _ov_note(r) -> str:
+    return f"{r.note} ({r.as_of})" if r.as_of else r.note
 
 
 def log(*a):
@@ -367,6 +390,15 @@ def roster40(f: pd.DataFrame, season: int) -> pd.DataFrame:
                 ros.at[i, "il"] = r["status"]
     except Exception as e:
         log("injury text skipped:", e)
+    ov = role_overrides(); ov = ov[ov["avail"] != ""]
+    if len(ov):
+        abbr = ros["team_id"].map(dict(zip(f["id"], f["abbr"]))); key = ros["name"].map(_norm)
+        for r in ov.itertuples():
+            m = (abbr == r.team) & (key == r.key)
+            if not m.any():
+                log(f"availability override: {r.name} not on the {r.team} 40-man"); continue
+            ros.loc[m, "avail"] = float(r.avail)
+            ros.loc[m, "il"] = ros.loc[m, "il"].map(lambda v: (v + " · " if v else "") + _ov_note(r))
     return ros
 
 
@@ -380,6 +412,8 @@ def hitters(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
     ros = roster40(f, season)
     stl = B.recent_lineups(d)
     elig = MS.season_fielding(season)
+    ov = role_overrides(); ov = ov[(ov["role"] == "START") & (ov["share"] != "")]
+    HOV = {(r.team, r.key): r for r in ov.itertuples()}
     rows = []
     for t in f.itertuples():
         act = ros[(ros["team_id"] == t.id) & ((ros["ptype"] != "Pitcher") | (ros["pos"] == "TWP")) & (ros["avail"] > 0)]
@@ -397,11 +431,14 @@ def hitters(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
                 # a regular on the short IL: his usual slot from earlier in the year, at the reduced chance he is back
                 seen = stl[(stl["bat_team"] == t.abbr) & (stl["batter"] == r.pid)]
                 if len(seen) >= 10: p_start = 0.9; slot = int(round(seen.tail(20)["slot"].mean()))
+            o = HOV.get((t.abbr, _norm(r.name)))
+            if o is not None: p_start = float(o.share)     # a reported everyday role (back from the IL, DH every game) beats a thin September sample
+            hnote = _ov_note(o) if o is not None else ""
             if hs["PA"] < 40 and p_start < 0.3: continue
             prim = POS_SLOT.get(r.pos, "UT")
             pos = sorted({prim} | {p for p in elig.get(r.pid, []) if p in ("C", "1B", "2B", "3B", "SS", "OF")}) if prim != "UT" or elig.get(r.pid) else [prim]
             pos = [p for p in pos if p != "UT"] or ["UT"]
-            rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, pos=pos, bats=r.bats,
+            rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, pos=pos, bats=r.bats, note=hnote,
                              PA=int(hs["PA"]), ppa=round(float(hs["ppa"]), 4), p_start=round(p_start, 3), slot=slot, avail=float(r.avail), il=r.il,
                              ppg=round(float(hs["ppa"]) * PA_BY_SLOT.get(min(max(slot, 1), 9), 3.5) * HIT_DEFLATE * p_start, 3),
                              line=dict(HR=int(hs["HR"]), R=int(hs["R"]), RBI=int(hs["RBI"]), SB=int(hs["SB"]), BB=int(hs["BB"]),
@@ -420,7 +457,7 @@ def pitchers(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
     # batters faced per start from the plate-appearance cache, so a swingman's relief innings do not inflate his starts
     work = G.sp_workload(d); work = work[work["season"] == season]
     bf_start = work.groupby("pitcher")["bf"].apply(lambda v: v.tail(6).mean())
-    rows = []
+    rows = []; OV = role_overrides()
     for t in f.itertuples():
         act = ros[(ros["team_id"] == t.id) & ((ros["ptype"] == "Pitcher") | (ros["pos"] == "TWP")) & (ros["avail"] > 0)]
         ps = Pz[Pz["pid"].isin(act["pid"]) & (Pz["IP"] > 0)].copy()
@@ -434,18 +471,38 @@ def pitchers(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
         # rotation order: rate quality over a standard five innings (a manager starts his best arms, not his longest)
         sp["ps"] = 5 + 5 * sp["k_ip"] - 5 * sp["era"] / 9 * SP_ER_SCALE
         sp = sp.sort_values("ps", ascending=False)
+        ov = OV[OV["team"] == t.abbr]; note = {}
+        byname = dict(zip(ps["name"].map(_norm), ps["pid"]))
+        forced = {}
+        for r in ov[ov["role"].str.fullmatch(r"SP[1-5]")].itertuples():
+            if r.key in byname: forced[int(r.role[2:])] = byname[r.key]; note[byname[r.key]] = _ov_note(r)
+            else: log(f"rotation override: {r.name} not an active {t.abbr} pitcher")
+        if forced:
+            rest = [q for q in sp["pid"] if q not in forced.values()]
+            order = [forced[i] if i in forced else rest.pop(0) for i in range(1, 6) if i in forced or rest]
+            sp = ps.set_index("pid").loc[order].reset_index()
         for i, r in enumerate(sp.head(5).itertuples(), 1):
             ip = min(SP_IP_SCALE * r.ip_gs, 6.5)
-            rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, role=f"SP{i}", rot=i, ip=round(ip, 2), k_ip=round(r.k_ip, 3), era=round(r.era, 2), avail=float(r.avail), il=r.il,
+            rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, role=f"SP{i}", rot=i, ip=round(ip, 2), k_ip=round(r.k_ip, 3), era=round(r.era, 2), avail=float(r.avail), il=r.il, note=note.get(r.pid, ""),
                              pps=round(ip + ip * r.k_ip - ip * r.era / 9 * SP_ER_SCALE, 3),     # per start before the win
                              line=dict(GS=int(r.GS), IP=round(r.IP, 1), K=int(r.K), W=int(r.W), ERA=round(r.era, 2), pts=round(float(MS.holdem_pit_points(pd.DataFrame([r._asdict()])).iat[0]), 1))))
         rp = ps[~ps["pid"].isin(sp.head(5)["pid"]) & (ps["G"] >= 15)].copy()
         rp["ip_g"] = rp["IP"] / rp["G"].clip(lower=1)
-        closer = rp.sort_values(["SV", "HLD"], ascending=False).head(1)
+        closer = rp.sort_values(["SV", "HLD"], ascending=False).head(1); share = {}
+        cl_ov = ov[ov["role"] == "CL"]
+        if len(cl_ov):
+            got = [(byname[r.key], float(r.share or 1), _ov_note(r)) for r in cl_ov.itertuples() if r.key in byname]
+            for r in cl_ov.itertuples():
+                if r.key not in byname: log(f"closer override: {r.name} not an active {t.abbr} pitcher")
+            if got:
+                closer = ps[ps["pid"].isin([g[0] for g in got]) & ~ps["pid"].isin(sp.head(5)["pid"])].copy()
+                closer["ip_g"] = closer["IP"] / closer["G"].clip(lower=1)
+                share = {g[0]: g[1] for g in got}; note.update({g[0]: g[2] for g in got})
         setup = rp[~rp["pid"].isin(closer["pid"])].sort_values(["HLD", "K"], ascending=False).head(2)
         for r in closer.itertuples():
             app = 0.55; ip = min(r.ip_g, 1.2)
             rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, role="CL", rot=0, ip=round(ip, 2), k_ip=round(r.k_ip, 3), era=round(r.era, 2), app=app, avail=float(r.avail), il=r.il,
+                             sv_share=share.get(r.pid, 1.0), note=note.get(r.pid, ""),
                              ppg=round(app * (ip + ip * r.k_ip - ip * r.era / 9 * SP_ER_SCALE), 3),
                              line=dict(G=int(r.G), SV=int(r.SV), IP=round(r.IP, 1), K=int(r.K), ERA=round(r.era, 2), pts=round(float(MS.holdem_pit_points(pd.DataFrame([r._asdict()])).iat[0]), 1))))
         for r in setup.itertuples():
@@ -453,7 +510,10 @@ def pitchers(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
             rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, role="RP", rot=0, ip=round(ip, 2), k_ip=round(r.k_ip, 3), era=round(r.era, 2), app=app, avail=float(r.avail), il=r.il,
                              ppg=round(app * (ip + ip * r.k_ip - ip * r.era / 9 * SP_ER_SCALE), 3),
                              line=dict(G=int(r.G), HLD=int(r.HLD), IP=round(r.IP, 1), K=int(r.K), ERA=round(r.era, 2), pts=round(float(MS.holdem_pit_points(pd.DataFrame([r._asdict()])).iat[0]), 1))))
-    return pd.DataFrame(rows)
+    out = pd.DataFrame(rows)
+    out["sv_share"] = out["sv_share"].fillna(1.0) if "sv_share" in out else 1.0
+    out["note"] = out["note"].fillna("") if "note" in out else ""
+    return out
 
 
 def expected(hit: pd.DataFrame, pit: pd.DataFrame, P: dict) -> list[dict]:
@@ -463,7 +523,8 @@ def expected(hit: pd.DataFrame, pit: pd.DataFrame, P: dict) -> list[dict]:
     for r in hit.itertuples():
         p = P[r.team]
         by = {rnd: round(p["g" + rnd] * r.ppg * r.avail, 2) for rnd in ROUNDS}
-        out.append(dict(id=int(r.pid), n=r.name, t=r.team, pos=list(r.pos), kind="H", slot=r.slot, ps=r.p_start, ppg=r.ppg, avail=r.avail, il=r.il or "", by=by, line=r.line))
+        out.append(dict(id=int(r.pid), n=r.name, t=r.team, pos=list(r.pos), kind="H", slot=r.slot, ps=r.p_start, ppg=r.ppg, avail=r.avail, il=r.il or "", by=by, line=r.line,
+                        **({"note": r.note} if r.note else {})))
     for r in pit.itertuples():
         p = P[r.team]; by = {}
         for rnd, n in (("DS", 5), ("LCS", 7), ("WS", 7)):
@@ -473,10 +534,11 @@ def expected(hit: pd.DataFrame, pit: pd.DataFrame, P: dict) -> list[dict]:
                 starts = sum(reach[g - 1] for g in SP_GAME[n].get(r.rot, [])) if r.rot <= 4 else 0.0
                 by[rnd] = round(starts * (r.pps + 4 * pwin * SP_WIN_SHARE) * r.avail, 2)
             elif r.role == "CL":
-                by[rnd] = round(games * (r.ppg + 4 * pwin * CLOSER_SAVE_SHARE) * r.avail, 2)
+                by[rnd] = round(games * (r.ppg + 4 * pwin * CLOSER_SAVE_SHARE * r.sv_share) * r.avail, 2)
             else:
                 by[rnd] = round(games * r.ppg * r.avail, 2)
-        out.append(dict(id=int(r.pid), n=r.name, t=r.team, pos=["P"], kind="P", role=r.role, avail=r.avail, il=r.il or "", by=by, line=r.line))
+        out.append(dict(id=int(r.pid), n=r.name, t=r.team, pos=["P"], kind="P", role=r.role, avail=r.avail, il=r.il or "", by=by, line=r.line,
+                        **({"note": r.note} if r.note else {}), **({"sv_share": r.sv_share} if r.role == "CL" and r.sv_share < 1 else {})))
     for o in out:
         p = P[o["t"]]; b = o["by"]
         o["p"] = dict(DS=round(p["DS"], 4), LCS=round(p["LCS"], 4), WS=round(p["WS"], 4))
@@ -660,7 +722,11 @@ STRATEGY = [
     dict(h="Byes are worth less than they used to be, but a bye club still cannot lose the Wild Card",
          p="Since 2022 the two bye clubs in each league have reached the World Series in six of sixteen chances, and a Wild Card club did in five of eight Series. The markets already price this; the point is that a bye is certainty about the Division Series, not about October."),
     dict(h="What the model does not know",
-         p="Lineups and rotations in October are set by managers who have not decided yet: the rotation order here is the season's rate quality among September starters, and a club can go to a three-man rotation or an opener. Injured players on the 10- or 15-day list are carried at a reduced chance and flagged; count them in or out yourself as news breaks. Series lengths are random even on a chosen bracket, so the numbers are averages."),
+         p="Lineups and rotations in October are set by managers who have not decided yet. Where a manager or a beat writer has named the order or the closer, that is used (data/overrides/postseason_roles.csv, dated, marked on the Players table); elsewhere the order is the season's rate quality among September starters, and a club can still go to a three-man rotation or an opener. Injured players on the 10- or 15-day list are carried at a reduced chance and flagged; count them in or out yourself as news breaks. Series lengths are random even on a chosen bracket, so the numbers are averages."),
+    dict(h="Enter after the Wild Card, not before",
+         p="The Wild Card Series ends by October 1 and the entry closes at 1 PM ET on October 3, before the first Division Series pitch. Waiting costs nothing: by then the eight clubs are known, the four losers' picks are gone from the menu, and the Division Series starters are usually named. An entry made today spends a slot on a Wild Card club that may already be out."),
+    dict(h="One entry: back a pair the field is light on",
+         p="First place is $20,000, the largest share of a pool that pays twenty places, so most of an entry's value is its chance of finishing at the very top. When your pennant pair wins, you are competing only with the other entries on that pair; when it loses, almost everyone who beats you picked the pair that won. So a pair is worth its chance divided by how many entries share it. The Dodgers are the favourite and will be the most-backed club; a pair that is nearly as likely but less crowded is worth more to a single entry than the chalk."),
 ]
 
 
