@@ -292,6 +292,15 @@ button:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visibl
 .addbar .dd button:hover{background:var(--panel2)}
 .addbar .dd small{color:var(--ink3);margin-left:auto;font-family:var(--font-m);font-size:11.5px}
 .trade.three .tside{grid-column:span 4}
+.desktray{display:none;margin:10px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:var(--shadow-sm)}
+.desktray.on{display:block;position:sticky;bottom:10px;z-index:15}
+.desktray .trayrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.desktray .traylab{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-right:2px}
+.desktray .trayrow .traylab:not(:first-child){margin-left:8px}
+.pchip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:999px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:32px}
+.pchip small{color:var(--ink3);font-size:11px}
+.pchip span{color:var(--ink3);font-size:11px}
+.desktray .trayacts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
 #pickhold tr.me td{font-weight:600;background:var(--panel2)}
 .tr3{grid-column:span 12;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-4px 0 0}
 .asset .tr-to{margin-top:5px;font-size:12.5px;max-width:100%}
@@ -503,6 +512,8 @@ tbody tr:hover td,tbody tr:hover td.sticky{background-color:color-mix(in srgb,va
 @media (max-width:560px){ th.opt2,td.opt2{display:none} #dash td.name{white-space:normal} #dash .mst{display:block;margin:3px 0 0} #dash .mst:empty{display:none} #dash td .pill{white-space:nowrap} #dash table td,#dash table th{padding-left:8px;padding-right:8px} }
 @media (max-width:900px){ .mst{display:inline;margin-left:6px} .mst .pill{font-size:10.5px;line-height:18px;padding:0 7px} }
 @media (max-width:560px){ .drawer .themerow{display:flex} }
+/* deal desk on a phone: taller rows to tap, the tray above the bottom tab bar */
+@media (max-width:900px){ .desktray.on{bottom:calc(66px + env(safe-area-inset-bottom))} .rrow{padding:9px 10px} .rlist{max-height:300px} }
 </style>
 
 <header class="topbar">
@@ -544,12 +555,13 @@ tbody tr:hover td,tbody tr:hover td.sticky{background-color:color-mix(in srgb,va
     <li><b>Draft picks</b> are the ones each team actually holds on Fantrax, including traded ones. A traded pick keeps its original team's slot.</li>
     <li><b>Three-team deals</b> are rotations: you send a player to one team, it sends one to a third, and the third sends one to you. Each team is scored on what it sends and receives, exactly as in a two-team deal, and a rotation is listed only when all three gain and a straight swap with the third team would not work on its own. In the analyzer, <i>Add a third team</i> lets you build any three-way shape and choose where each player goes.</li></ul></details></div>
   <div class="desk" id="desk">
-    <div class="deskhead"><div><h3 style="margin:0">Deal desk</h3><p class="hint" style="margin:2px 0 0">Click one of <b>your</b> players to shop him around the league, or one of <b>theirs</b> to see what it would take to get him. Every deal opens in the analyzer below with the same numbers, where you can change it.</p></div>
+    <div class="deskhead"><div><h3 style="margin:0">Deal desk</h3><p class="hint" style="margin:2px 0 0">Tap one of <b>your</b> players to shop him, or one of <b>theirs</b> to see what it would take to get him. Tap several to search them together: a few of yours, a few of theirs, or some of each. Every deal opens in the analyzer below with the same numbers.</p></div>
       <div class="deskq"><input type="search" id="desk-q" placeholder="Find any rostered player" autocomplete="off" aria-label="Find any rostered player"><div class="dd" id="desk-dd"></div></div></div>
     <div class="deskgrid">
       <div><h4 class="deskh">Your roster <span class="hint" id="desk-me"></span></h4><div class="rlist" id="desk-mine"></div></div>
       <div><h4 class="deskh">Their roster <select id="desk-team" aria-label="Team to deal with"></select></h4><div class="rlist" id="desk-theirs"></div></div>
     </div>
+    <div class="desktray" id="desk-tray" aria-live="polite"></div>
     <div id="desk-out"></div>
   </div>
   <div class="finder">
@@ -2380,7 +2392,7 @@ const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f
 (function buildTeamSel(){ const sel = $('#team-sel'); const owners = [...new Set([...Object.values(PROJ).map(p=>p.owner), ...Object.values(PPROJ).map(p=>p.owner)].filter(o=>o && !isFA(o)))].sort();
   sel.innerHTML = '<option value="">League view</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY) ? MY : '';
   if(!owners.includes(MY)) MY = '';
-  window.setTeam = function(o){ MY = o || ''; sel.value = MY; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(x=>x.value===MY)) ko.value = MY; tr.a = MY || tr.a; tr.c = null; tr.give = {a:[], b:[], c:[]}; DESK.sel = null; DESK.team = ''; DESK.filter = ''; MST.me = MY || null; MST.opp = null; refreshAll(); renderStreamers(); renderPros(); if (typeof renderMatchup==='function' && $('#m-me')) renderMatchup(); if (MY) goTab('today'); };
+  window.setTeam = function(o){ MY = o || ''; sel.value = MY; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(x=>x.value===MY)) ko.value = MY; tr.a = MY || tr.a; tr.c = null; tr.give = {a:[], b:[], c:[]}; DESK.sel = null; DESK.multi = []; DESK.team = ''; DESK.filter = ''; MST.me = MY || null; MST.opp = null; refreshAll(); renderStreamers(); renderPros(); if (typeof renderMatchup==='function' && $('#m-me')) renderMatchup(); if (MY) goTab('today'); };
   sel.addEventListener('change', ()=>setTeam(sel.value));
 })();
 
@@ -3093,9 +3105,11 @@ function rowOf(type, id){ const V = VAL || computeValues(); if (type==='m') retu
   return (type==='h' ? V.cur : V.pc).find(x=>x.mlbam_id===id) || (V.minors||[]).find(r=>r.mlbam_id===id && r.mtype===type) || null; }
 // A team's keepers: best HKEEP hitters + PKEEP pitchers by multi-year value, plus its best MKEEP minor leaguers. A minor
 // leaguer is worth only what he beats the prospect his slot would hold anyway (the minor-league draft) by.
+// The two minor-league slots belong to whoever is in them (Bort keeps two, so a new prospect has to push one out), but a
+// prospect worth less than the minor-league draft's usual return adds nothing, because that is what the slot holds anyway.
 function keeperSet(h, p, m){ const hs = h.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(0,HKEEP), ps = p.slice().sort((a,b)=>b.DV_c-a.DV_c).slice(0,PKEEP);
-  const mr = (VAL && VAL.mRepl) || 0, ms = (m||[]).filter(r=>r.DV_c > mr).sort((a,b)=>b.DV_c-a.DV_c).slice(0,MKEEP);
-  const v = hs.reduce((a,r)=>a+Math.max(0,r.DV_c),0) + ps.reduce((a,r)=>a+Math.max(0,r.DV_c),0) + ms.reduce((a,r)=>a+(r.DV_c-mr),0); return {hs, ps, ms, v}; }
+  const mr = (VAL && VAL.mRepl) || 0, ms = (m||[]).slice().sort((a,b)=>b.DV_c-a.DV_c).slice(0,MKEEP);
+  const v = hs.reduce((a,r)=>a+Math.max(0,r.DV_c),0) + ps.reduce((a,r)=>a+Math.max(0,r.DV_c),0) + ms.reduce((a,r)=>a+Math.max(0, r.DV_c-mr),0); return {hs, ps, ms, v}; }
 const keptKeys = k => new Set([...k.hs.map(r=>'h'+r.mlbam_id), ...k.ps.map(r=>'p'+r.mlbam_id), ...(k.ms||[]).map(r=>'m'+r.mlbam_id)]);
 const pushTo = (h, p, m, a) => { if (a.type==='h') h.push(a.r); else if (a.type==='p') p.push(a.r); else if (a.type==='m') m.push(a.r); };
 // the minor-leaguer line for an asset card and a typeahead
@@ -3105,13 +3119,26 @@ function assetObj(a){ if (a.type==='pick'){ const hold = pickHolder(a); return {
   const r = rowOf(a.type, a.id); if(!r) return null;
   if (r.minor) return {...a, r, name:r.name, sub:`${minorSub(r)} · value ${Math.round(r.DV_c)}`, value:+r.DV_c.toFixed(1)};
   return {...a, r, name:r.name, sub:`${a.type==='h'?(r.elig||''):'SP'} · age ${r.age} · 2027 proj ${Math.round(a.type==='h'?r.proj_pts:(r.tot_c??r.proj_pts))} · ${r.tier_c||''}`, value:+r.DV_c.toFixed(1)}; }
+// ---------- a draft class is capped by the roster: 22 players, less the 5+2 kept, is 15 spots. A team holding more picks
+// than that cannot use them all (The Chosen Juan has 20), so an extra pick is worth only what it beats the worst pick it
+// pushes out, and a team short of picks fills the gap from free agents, so one more pick there is worth its full value.
+const ROSTER_MAX = 22;
+const openSpots = () => Math.max(0, ROSTER_MAX - HKEEP - PKEEP);
+const samePick = (a, b) => a.team===b.team && a.round===b.round && a.year===b.year;
+function pickCapital(list, hs, ps){ const v = list.map(k=>pickFit(k, hs, ps)).sort((a,b)=>b-a); let t = 0; for (let i=0;i<Math.min(v.length, openSpots());i++) t += v[i]; return t; }
+function pickDelta(team, out, inn, before, after){ const po = out.filter(a=>a.type==='pick'), pi = inn.filter(a=>a.type==='pick'); if (!po.length && !pi.length) return 0;
+  let d = 0; for (const y of new Set([...po, ...pi].map(k=>k.year))){ const held = team ? ownedPicks(team).filter(k=>k.year===y) : po.filter(k=>k.year===y);
+    const aft = held.filter(k=>!po.some(o=>samePick(o, k))).concat(pi.filter(k=>k.year===y && !held.some(h=>samePick(h, k))));
+    d += pickCapital(aft, after.hs, after.ps) - pickCapital(held, before.hs, before.ps); }
+  return d; }
 // ---------- who holds which pick (Fantrax, read-only sync). A pick keeps its ORIGINAL team's slot in the fixed-order
 // draft; the holder is who can trade it. Without the sync every team is assumed to hold its own.
 const pickShort = t => teamLabel(t).replace(/ \(.*\)$/,'');
 function pickHolder(a){ const po = D.pick_owners; if (!po || !po.length) return a.team; const x = po.find(x=>x.original===a.team && x.round===a.round && x.year===a.year); return x ? x.owner : null; }
-function ownedPicks(team){ const po = D.pick_owners; const list = (po && po.length) ? po.filter(x=>x.owner===team).map(x=>({type:'pick', team:x.original, round:x.round, year:x.year}))
+let OWNED = new Map();
+function ownedPicks(team){ const ck = team + '|' + JSON.stringify(draftSlots()); if (OWNED.has(ck)) return OWNED.get(ck).slice(); const po = D.pick_owners; const list = (po && po.length) ? po.filter(x=>x.owner===team).map(x=>({type:'pick', team:x.original, round:x.round, year:x.year}))
     : Array.from({length:15}, (_,i)=>({type:'pick', team, round:i+1, year:CUR+1}));
-  return list.sort((a,b)=>a.year-b.year || pickOverall(a.team, a.round)-pickOverall(b.team, b.round)); }
+  list.sort((a,b)=>a.year-b.year || pickOverall(a.team, a.round)-pickOverall(b.team, b.round)); OWNED.set(ck, list); return list.slice(); }
 const pickLabel = (a, holder) => `${a.year} R${a.round} · #${pickOverall(a.team, a.round)}${holder && a.team!==holder ? ` (from ${pickShort(a.team)})` : ''}`;
 const teamList = () => { const V = VAL || computeValues(); return [...new Set([...V.cur.map(r=>r.owner), ...V.pc.map(r=>r.owner), ...(V.minors||[]).map(r=>r.owner)].filter(o=>o && !isFA(o)))]; };
 // What one asset is worth TO ONE ROSTER, on the same scale for players and picks — the thing the old page got wrong by
@@ -3143,7 +3170,8 @@ function sideEval(team, out, inn){
   inn.filter(a=>a.type!=='pick').forEach(a=>{ const o = assetObj(a); if(!o) return; pushTo(h, p, m, {type:a.type, r:o.r}); });
   const after = keeperSet(h, p, m);
   // picks are valued against the keeper group this team ends the trade with, so both sides of the ledger answer the same question
-  const picksIn = inn.filter(a=>a.type==='pick').reduce((s,a)=>s+pickFit(a, after.hs, after.ps),0), picksOut = out.filter(a=>a.type==='pick').reduce((s,a)=>s+pickFit(a, before.hs, before.ps),0);
+  // picks: the change in this team's usable draft class (its best openSpots() picks), so a pick it has no roster spot for counts only for what it beats
+  const picksIn = pickDelta(team, out, inn, before, after), picksOut = 0;
   const rosIn = tr.mode==='now' ? inn.filter(a=>a.type!=='pick').reduce((s,a)=>s+rosWeek(a.type,a.id),0) : 0, rosOut = tr.mode==='now' ? out.filter(a=>a.type!=='pick').reduce((s,a)=>s+rosWeek(a.type,a.id),0) : 0;
   const keeperDelta = after.v - before.v; const total = keeperDelta + picksIn - picksOut + rosIn - rosOut;
   const keptAfter = keptKeys(after), keptBefore = keptKeys(before);
@@ -3155,14 +3183,25 @@ function sideEval(team, out, inn){
   return {before, after, keeperDelta, picksIn, picksOut, rosIn, rosOut, total, keptAfter, keptBefore, mktIn, mktOut, mkt: mktIn - mktOut};
 }
 // is this minor leaguer one of his owner's MKEEP (and better than what the minor-league draft would give them)?
-function minorKept(r){ if (!r || !r.owner || isFA(r.owner)) return false; const ms = ((VAL && VAL.minors) || []).filter(x=>x.owner===r.owner && x.mtype==='m' && x.DV_c > VAL.mRepl).sort((a,b)=>b.DV_c-a.DV_c).slice(0, MKEEP); return ms.includes(r); }
+function minorKept(r){ if (!r || !r.owner || isFA(r.owner)) return false; const ms = ((VAL && VAL.minors) || []).filter(x=>x.owner===r.owner && x.mtype==='m').sort((a,b)=>b.DV_c-a.DV_c).slice(0, MKEEP); return ms.includes(r); }
+// what kind of asset a roster row is, for the market lookups
+const kindOfRow = r => r.mtype==='m' ? 'm' : (VAL.pc.includes(r) || (r.minor && r.kind==='p')) ? 'p' : 'h';
+// A minor leaguer pushed out of a slot the model already counts as worth nothing: say so, or the deal reads as if it fills an empty spot
+const minorNote = r => r.mtype==='m' && r.DV_c <= VAL.mRepl ? `${lastName(r.name)} is in a minor-league slot, but the model has him at ${Math.round(r.DV_c)}, below the ${Math.round(VAL.mRepl)} a minor-league draft pick usually brings${r.kind==='p' ? ' (pitching prospects rarely pay off within three years in this format)' : ''}, so losing the slot costs nothing here; if you rate him higher, this deal is worse than it says` : '';
+// The other side's best use of the spare this deal hands a keeper spot to. A deal can leave a team better off than doing
+// nothing and still be the worse of its two options: Basketball giving up Kurtz lets Sal Stewart slide into his spot, but
+// Stewart alone would have fetched more, and they cannot do both.
+function spareNote(entered, gain, who){ const out = [];
+  for (const r of entered){ if (r.mtype==='m') continue; const bm = bestMarket({type: kindOfRow(r), id: r.mlbam_id});
+    if (bm.v > gain + 5) out.push(`it also uses up ${who==='you' ? 'your' : 'their'} spare ${lastName(r.name)}, who alone would add about ${Math.round(bm.v)} to ${esc(teamLabel(bm.team).replace(/ \(.*\)$/,''))}'s keepers; selling him instead is likely the better deal for ${who==='you' ? 'you' : 'them'}`); }
+  return out; }
 // ---------- trade finder: search the league for deals both sides would actually take
 // The analyzer answers "is this trade good"; this answers "which trade should I offer". Same scoring, so the two can
 // never disagree: a roster's gain is the change in its best HKEEP hitters + PKEEP pitchers, with picks valued to that
 // roster (see pickFit). bestMarket is deliberately not used here — it is a per-asset league scan and far too slow to
 // run inside a search over thousands of pairs.
 let FIND_MODE = 'both';
-function teamRosters(){ const V = VAL || computeValues(); const m = {}; const get = o => (m[o] ||= {h:[],p:[],m:[]});
+function teamRosters(){ const V = VAL || computeValues(); const m = {}; const get = o => (m[o] ||= {t:o, h:[],p:[],m:[]});
   V.cur.forEach(r=>{ if(r.owner && !isFA(r.owner) && !r.pslot) get(r.owner).h.push(r); });
   V.pc.forEach(r=>{ if(r.owner && !isFA(r.owner)) get(r.owner).p.push(r); });
   (V.minors||[]).forEach(r=>{ if(r.owner && !isFA(r.owner)) get(r.owner)[r.mtype].push(r); });
@@ -3173,9 +3212,7 @@ function evalSwap(rost, out, inn, full){
   const h = rost.h.filter(r=>!oid.has('h'+r.mlbam_id)), p = rost.p.filter(r=>!oid.has('p'+r.mlbam_id)), m = (rost.m||[]).filter(r=>!oid.has('m'+r.mlbam_id));
   inn.forEach(a=>{ if(a.type!=='pick') pushTo(h, p, m, a); });
   const after = keeperSet(h, p, m);
-  const pin = inn.reduce((x,a)=>x + (a.type==='pick' ? pickFit(a, after.hs, after.ps) : 0), 0);
-  const pout = out.reduce((x,a)=>x + (a.type==='pick' ? pickFit(a, before.hs, before.ps) : 0), 0);
-  const v = +(after.v - before.v + pin - pout).toFixed(1);
+  const v = +(after.v - before.v + pickDelta(rost.t, out, inn, before, after)).toFixed(1);
   return full ? {v, kept: keptKeys(after), cut:{h: nthDV(after.hs, HKEEP), p: nthDV(after.ps, PKEEP)}} : v; }
 // a player coming back has to actually make the receiving team's keeper group, or he is a throw-in dressed as a return
 const lands = (rost, out, inn) => { const e = evalSwap(rost, out, inn, true);
@@ -3285,7 +3322,8 @@ function renderFinder3now(){
     const leg = (a, t) => a.type==='pick' ? `${tshort(t)} gets pick #${pickOverall(a.team, a.round)}` : `${nmL(a)} becomes ${a.type==='m' ? 'a minor-league keeper' : 'a keeper'} for ${tshort(t)}`;
     bits.push(leg(d.x, d.B)); bits.push(leg(d.y, d.C));
     bits.push(`and ${nmL(d.z)} ${d.z.type==='pick' ? 'comes to you' : 'lands in your keepers'}; ${tshort(d.C)} would not take ${nmL(d.x)} for ${d.z.type==='pick' ? 'it' : 'him'} straight up, and nothing ${tshort(d.B)} could send you alone is worth as much, which is why it takes a third team`);
-    const flags = [d.x, d.y, d.z].filter(a=>a.type==='h'||a.type==='p').map(a=>availFlag(a.r, a.type)).filter(Boolean);
+    const RR = teamRosters(); const bumped = [[d.B, d.y, d.x], [d.C, d.z, d.y], [me, d.x, d.z]].flatMap(([t, o, i])=>deskMoves(RR[t], [o], [i]).bumped);
+    const flags = [d.x, d.y, d.z].filter(a=>a.type==='h'||a.type==='p').map(a=>availFlag(a.r, a.type)).concat(bumped.map(minorNote)).filter(Boolean);
     return bits.join(', ') + (flags.length ? '. ' + flags.join('; ') : '') + '.'; };
   el.innerHTML = list.length ? list.map((d,i)=>`<div class="deal" data-i3="${i}"><div class="legs">${leg('you send', d.x, tshort(d.B), me)}${leg(tshort(d.B)+' sends', d.y, tshort(d.C), d.B)}${leg(tshort(d.C)+' sends', d.z, 'you', d.C)}</div><div class="num">${signed(Math.round(d.me))} <small>${esc(tshort(me))}</small>${signed(Math.round(d.b))} <small>${esc(tshort(d.B))}</small>${signed(Math.round(d.c))} <small>${esc(tshort(d.C))}</small></div><div class="why">${esc(why(d))}</div></div>`).join('') + `<p class="hint" style="margin:4px 0 0">${list.length} of every rotation across the other eleven rosters · searched in ${ms} ms</p>`
     : `<p class="hint">No three-team rotation leaves all three rosters better off where a two-team deal would not do the same job. That is common: most three-way value is already reachable one partner at a time.</p>`;
@@ -3313,10 +3351,13 @@ function renderFinder(){
     // who actually moves in and out of each keeper group: the truthful account of why the other side says yes
     const Rr = teamRosters(), mm = deskMoves(Rr[me], d.give, d.get), tm = deskMoves(Rr[d.t], d.get, d.give);
     const inMe = d.get.filter(a=>a.type!=='pick' && mm.keptAfter.has(a.id)), inThem = d.give.filter(a=>a.type!=='pick' && tm.keptAfter.has(a.id));
-    if (inMe.length && mm.bumped.length) bits.push(`for you, ${inMe.map(a=>lastName(a.r.name)).join(' and ')} ${inMe.length>1?'take':'takes'} the place of ${mm.bumped.map(r=>lastName(r.name)).join(' and ')}`);
-    if (inThem.length) bits.push(`for them, ${inThem.map(a=>lastName(a.r.name)).join(' and ')} ${tm.bumped.length ? `${inThem.length>1?'take':'takes'} the place of ${tm.bumped.map(r=>lastName(r.name)).join(' and ')}` : `${inThem.length>1?'fill':'fills'} an open keeper spot`}`);
+    const spot = arr => arr.every(a=>a.type==='m') ? 'an open minor-league spot' : 'an open keeper spot';
+    if (inMe.length) bits.push(`for you, ${inMe.map(a=>lastName(a.r.name)).join(' and ')} ${mm.bumped.length ? `${inMe.length>1?'take':'takes'} the place of ${mm.bumped.map(r=>lastName(r.name)).join(' and ')}` : `${inMe.length>1?'fill':'fills'} ${spot(inMe)}`}`);
+    if (inThem.length) bits.push(`for them, ${inThem.map(a=>lastName(a.r.name)).join(' and ')} ${tm.bumped.length ? `${inThem.length>1?'take':'takes'} the place of ${tm.bumped.map(r=>lastName(r.name)).join(' and ')}` : `${inThem.length>1?'fill':'fills'} ${spot(inThem)}`}`);
     const outThem = d.get.filter(a=>a.type!=='pick' && tm.keptBefore.has(a.id));
     if (outThem.length && tm.entered.length) bits.push(`${outThem.map(a=>lastName(a.r.name)).join(' and ')} ${outThem.length>1?'are':'is'} their keeper, but ${tm.entered.map(r=>lastName(r.name)).join(' and ')} ${tm.entered.length>1?'step':'steps'} in behind, so losing him costs them less than the return is worth`);
+    [...mm.bumped, ...tm.bumped].map(minorNote).filter(Boolean).forEach(x=>bits.push(x));
+    spareNote(tm.entered, d.them, 'them').concat(spareNote(mm.entered, d.me, 'you')).forEach(x=>bits.push(x));
     const flags = [...d.give, ...d.get].filter(a=>a.type==='h'||a.type==='p').map(a=>availFlag(a.r, a.type)).concat([...mm.bumped, ...tm.bumped].map(r=>availFlag(r, VAL.pc.includes(r) ? 'p' : 'h'))).filter(Boolean);
     if (flags.length) bits.push([...new Set(flags)].join('; '));
     return bits.length ? bits.join('; ') + '.' : 'both keeper groups come out ahead.'; };
@@ -3342,7 +3383,7 @@ $$('[data-fmode]').forEach(b=>b.addEventListener('click',()=>{ FIND_MODE=b.datas
 // Packages are searched, not guessed: every single asset, every pair, a player with a pick and two players with a pick,
 // from the side paying. A player sent has to land in the receiving keeper group or he is a throw-in, and the smaller
 // package without him already covers that deal honestly (see lands()).
-const DESK = { sel:null, team:'', sort:'fair', filter:'' };
+const DESK = { sel:null, multi:[], team:'', sort:'fair', filter:'' };   // multi: every player tapped, yours and theirs; sel mirrors it when there is exactly one
 const deskKey = a => a.type==='pick' ? `pk${a.team}-${a.year}-${a.round}` : a.type+a.id;
 // the picks a team actually holds (Fantrax), not the fifteen it started with: some have traded away their first four rounds
 const deskPicks = t => { const own = ownedPicks(t); return [...own.filter(k=>k.year===CUR+1).slice(0, 10), ...own.filter(k=>k.year>CUR+1).slice(0, 3)]; };
@@ -3420,7 +3461,7 @@ function deskWhy(d){
   const nm = list => list.map(a=>lastName(a.r.name)).join(' and ');
   const inMe = d.get.filter(a=>a.type!=='pick'), outMe = d.give.filter(a=>a.type!=='pick');
   const inK = inMe.filter(a=>m.keptAfter.has(a.id)), inX = inMe.filter(a=>!m.keptAfter.has(a.id));
-  if (inK.length) bits.push(`${nm(inK)} ${inK.length>1?'join':'joins'} your keeper group${m.bumped.length ? `, pushing out ${m.bumped.map(r=>lastName(r.name)).join(' and ')}` : ''}`);
+  if (inK.length) bits.push(`${nm(inK)} ${inK.every(a=>a.type==='m') ? (inK.length>1?'take your minor-league slots':'takes a minor-league slot') : (inK.length>1?'join your keeper group':'joins your keeper group')}${m.bumped.length ? `, pushing out ${m.bumped.map(r=>lastName(r.name)).join(' and ')}` : ''}`);
   if (inX.length) bits.push(`${nm(inX)} would not make your keeper group, so for you he goes back in the pool at the keeper deadline`);
   const spare = outMe.filter(a=>!m.keptBefore.has(a.id)), core = outMe.filter(a=>m.keptBefore.has(a.id));
   if (spare.length) bits.push(`${nm(spare)} ${spare.length>1?'sit':'sits'} outside your keeper group, so ${spare.length>1?'they cost':'he costs'} you nothing next year`);
@@ -3430,21 +3471,74 @@ function deskWhy(d){
   else if (outMe.length && t.bumped.length) bits.push(`for them, ${nm(outMe)} ${outMe.length>1?'slot':'slots'} in ahead of ${t.bumped.map(r=>lastName(r.name)).join(' and ')}`);
   const pk = d.get.concat(d.give).find(a=>a.type==='pick'); if (pk){ const b = VAL.picks[Math.min(pickOverall(pk.team, pk.round), VAL.picks.length-1)]; if (b?.best && pk.year===CUR+1){ const hold = d.give.includes(pk) ? tr.a : d.t; bits.push(`${hold===tr.a ? 'your' : 'their'} round ${pk.round}${pk.team!==hold ? ` (originally ${pickShort(pk.team)}'s)` : ''} is around pick #${b.k}, where the best man left today is ${b.best}`); } }
   const flags = [...d.give, ...d.get].filter(a=>a.type==='h'||a.type==='p').map(a=>availFlag(a.r, a.type)).concat([...m.bumped, ...t.bumped].map(r=>availFlag(r, VAL.pc.includes(r) ? 'p' : 'h'))).filter(Boolean);
-  return bits.slice(0, 4).concat([...new Set(flags)].slice(0, 2)).join('; ') + '.'; }
+  const notes = [...m.bumped, ...t.bumped].map(minorNote).filter(Boolean).concat(spareNote(t.entered, d.them, 'them'), spareNote(m.entered, d.me, 'you'));
+  return bits.slice(0, 4).concat(notes.slice(0, 2), [...new Set(flags)].slice(0, 2)).join('; ') + '.'; }
 function deskLoad(d){ const ser = a => a.type==='pick' ? {type:'pick', team:a.team, round:a.round, year:a.year} : {type:a.type, id:a.id};
   tr.b = d.t; tr.c = null; tr.give.c = []; tr.give.a = d.give.map(ser); tr.give.b = d.get.map(ser); renderTrade(); $('#trade').scrollIntoView({behavior:'smooth', block:'start'}); }
 function deskOpen(spec){ const [type, id] = String(spec).split(':'); const s = deskFind(+id, type); if (!s) return;
-  DESK.sel = s; DESK.filter = ''; if (s.owner !== tr.a && !isFA(s.owner)) DESK.team = s.owner; goTab('trades'); renderDesk(); requestAnimationFrame(()=>$('#desk').scrollIntoView({block:'start'})); }
+  DESK.multi = [s]; DESK.sel = s; DESK.filter = ''; if (s.owner !== tr.a && !isFA(s.owner)) DESK.team = s.owner; goTab('trades'); renderDesk(); requestAnimationFrame(()=>$('#desk').scrollIntoView({block:'start'})); }
+// ---------- several players at once. Yours only: every combination of them (one, two or all three) against what each team
+// could send back. Theirs only: every package from your roster for any of them. Some of each: that swap, and the same swap
+// with one pick added from either side, so it can be made even. Same scoring as everywhere else (deskScore).
+function deskSubsets(arr, max){ const out = []; for (let mask = 1; mask < (1 << arr.length); mask++){ const x = arr.filter((_, i)=>mask & (1 << i)); if (x.length <= max) out.push(x); } return out; }
+function deskMulti(me, R){
+  const mine = R[me]; const asA = x => ({type:x.type, id:x.id, r:x.r});
+  const give0 = DESK.multi.filter(x=>x.owner===me).map(asA), theirs = DESK.multi.filter(x=>x.owner!==me && R[x.owner]);
+  const res = [];
+  if (theirs.length){
+    const byT = {}; theirs.forEach(x=>{ (byT[x.owner] ||= []).push(asA(x)); });
+    for (const [t, xs] of Object.entries(byT)){ const th = R[t];
+      const gets = deskSubsets(xs, 3);
+      const gives = give0.length ? deskSubsets(give0, 3).flatMap(g=>[g, ...deskPicks(me).filter(k=>k.year===CUR+1).slice(0, 6).map(k=>[...g, k])])
+                                 : deskPacks(deskAssets(mine, deskCut(th), 10), deskPicks(me).slice(0, 8), 3);
+      const back = give0.length ? deskPicks(t).filter(k=>k.year===CUR+1).slice(0, 6) : [];
+      for (const get of gets){ for (const give of gives){ const s = deskScore(mine, th, give, get, false, true); if (s && s.them > 0) res.push({t, give, get, ...s}); }
+        // when what you picked is more than they are giving, a pick from them can square it
+        for (const k of back){ const s = deskScore(mine, th, give0, [...get, k], false, true); if (s && s.them > 0) res.push({t, give:give0, get:[...get, k], ...s}); } } }
+  } else {
+    const myCut = deskCut(mine); const gives = deskSubsets(give0, 3);
+    for (const t of Object.keys(R)){ if (t===me || (DESK.filter && t!==DESK.filter)) continue; const th = R[t];
+      const gets = deskPacks(deskAssets(th, myCut, DESK.filter ? 8 : 5), deskPicks(t).slice(0, DESK.filter ? 8 : 6), 2);
+      for (const give of gives) for (const get of gets){ const s = deskScore(mine, th, give, get, true, false); if (s && s.them > 0) res.push({t, give, get, ...s}); } }
+  }
+  return deskRank(res, !theirs.length && !DESK.filter); }
+function renderDeskMulti(out, R, me){
+  out.innerHTML = '<p class="hint">Searching every combination…</p>';
+  clearTimeout(DESK.timer); DESK.timer = setTimeout(()=>{
+    const t0 = performance.now(); const list = deskMulti(me, R); const ms = Math.round(performance.now() - t0);
+    const mineP = DESK.multi.filter(x=>x.owner===me), theirP = DESK.multi.filter(x=>x.owner!==me);
+    const names = arr => arr.map(x=>esc(x.r.name)).join(', ');
+    const title = mineP.length && theirP.length ? `Swapping ${names(mineP)} for ${names(theirP)}` : mineP.length ? `Shopping ${names(mineP)}` : `Getting ${names(theirP)}`;
+    const ctx = mineP.length && theirP.length ? `The swap as you picked it, every smaller version of it, and each with one pick added from either side, so you can see what makes it work for both teams.`
+      : mineP.length ? `Every combination of these ${mineP.length} (each alone, in pairs${mineP.length>2 ? ', all three' : ''}) against what each team could send back: players who would make your keeper group, picks, or both.`
+      : `Every package from your roster, up to two players and a pick, for any of them, and for them together when they are on the same team.`;
+    const leg = (arr, dir, t) => `<span class="leg"><span class="arrow">${dir}</span>${arr.map(a=>a.type==='pick' ? `<b>${esc(pickLabel(a, t))}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22, a.r.mlbam_id)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
+    const deals = list.map((d,i)=>`<div class="deal${d.me > 0 ? '' : ' over'}" data-di="${i}"><div class="legs">${leg(d.give, 'send', me)}${leg(d.get, 'get', d.t)}<span class="leg" style="color:var(--ink3)">with ${esc(deskShort(d.t))}</span></div><div class="num">${signed(Math.round(d.me))} <small>${esc(deskShort(me))}</small>${signed(Math.round(d.them))} <small>them</small></div><div class="why">${esc(deskWhy(d))}</div><div class="acts"><button class="btn small" data-dload="${i}">Open in analyzer</button></div></div>`).join('');
+    const fb = list.fallback ? `<p class="hint" style="margin:0 0 8px">No combination leaves both rosters better off, so here is the price instead: what the other side would accept, best for you first.</p>` : '';
+    const teams = [...new Set(theirP.map(x=>x.owner))]; const oneTeam = teams.length === 1 ? teams[0] : (!theirP.length && DESK.filter ? DESK.filter : '');
+    out.innerHTML = `<div class="deskres"><div class="deskbar"><h4>${title}</h4><div class="acts"><button class="btn small" data-dact="build" ${!oneTeam && theirP.length ? 'disabled title="pick players from one team to build it by hand"' : ''}>Build it myself</button></div></div>
+      <p class="ctx">${ctx}</p>
+      <div class="deskbar"><div class="seg" role="group" aria-label="How to rank the deals"><button data-dsort="fair" aria-pressed="${DESK.sort==='fair'}">Fair to both</button><button data-dsort="me" aria-pressed="${DESK.sort==='me'}">Best for me</button></div><span class="hint">${list.length} deal${list.length===1?'':'s'} · searched in ${ms} ms</span></div>
+      ${fb}${deals || `<p class="hint">Nothing fits: no combination of these would leave the other side better off while your players make their keeper group. Try fewer players, or the analyzer below.</p>`}</div>`;
+    $$('#desk-out [data-dload]').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); deskLoad(list[+b.dataset.dload]); }));
+    $$('#desk-out .deal').forEach(el=>el.addEventListener('click', ()=>deskLoad(list[+el.dataset.di])));
+    $$('#desk-out [data-dsort]').forEach(b=>b.addEventListener('click', ()=>{ DESK.sort = b.dataset.dsort; renderDesk(); }));
+    $('#desk-out [data-dact="build"]').addEventListener('click', ()=>{ tr.c = null; tr.give.c = [];
+      tr.give.a = mineP.map(x=>({type:x.type, id:x.id})); tr.give.b = theirP.filter(x=>x.owner===oneTeam).map(x=>({type:x.type, id:x.id})); if (oneTeam) tr.b = oneTeam;
+      renderTrade(); $('#trade').scrollIntoView({behavior:'smooth', block:'start'}); });
+  }, 20); }
 function renderDesk(){
   if (!$('#desk')) return; const V = VAL || computeValues(); const R = teamRosters(); const me = tr.a;
   if (!me || !R[me]){ $('#desk-out').innerHTML = '<p class="hint">Pick your team in the top bar to use the deal desk.</p>'; return; }
   const owners = Object.keys(R).sort((a,b)=>deskShort(a).localeCompare(deskShort(b)));
   if (!DESK.team || DESK.team===me || !R[DESK.team]) DESK.team = (tr.b && tr.b!==me && R[tr.b]) ? tr.b : owners.find(o=>o!==me);
-  if (DESK.sel && DESK.sel.owner !== me && !R[DESK.sel.owner]) DESK.sel = null;
-  if (DESK.sel){ const f = deskFind(DESK.sel.id, DESK.sel.type); DESK.sel = f && (f.owner===me || R[f.owner]) ? f : null; }   // values move when settings change
+  // values move when settings change, so every pick is looked up again; anyone no longer on a roster drops out
+  if (DESK.sel && !DESK.multi.some(x=>x.id===DESK.sel.id)) DESK.multi = [DESK.sel];
+  DESK.multi = DESK.multi.map(x=>deskFind(x.id, x.type)).filter(f=>f && (f.owner===me || R[f.owner] || isFA(f.owner)));
+  DESK.sel = DESK.multi.length === 1 ? DESK.multi[0] : null;
   const kept = t => keptKeys(keeperSet(R[t].h, R[t].p, R[t].m));
   const rows = t => [...R[t].h.map(r=>({type:'h', r})), ...R[t].p.map(r=>({type:'p', r}))].sort((a,b)=>b.r.DV_c-a.r.DV_c).concat(R[t].m.slice().sort((a,b)=>b.DV_c-a.DV_c).map(r=>({type:'m', r})));
-  const row = (x, K, mineSide) => { const r = x.r, k = K.has(x.type+r.mlbam_id), on = !!DESK.sel && DESK.sel.id===r.mlbam_id; const mi = x.type==='m';
+  const row = (x, K, mineSide) => { const r = x.r, k = K.has(x.type+r.mlbam_id), on = DESK.multi.some(y=>y.id===r.mlbam_id); const mi = x.type==='m';
     const live = mi ? r.DV_c > VAL.mRepl : r.DV_c > 0;
     const tag = k ? `<span class="pill g">${mi ? 'minors keeper' : 'keeper'}</span>` : (live ? `<span class="pill b" title="${mineSide ? 'outside your keeper group: worth nothing to you next year, full value to a team with room for him' : 'outside their keeper group, so moving him costs them nothing next year'}">${mineSide ? 'surplus' : 'gettable'}</span>` : '');
     const pos = mi ? `${r.kind==='p' ? 'SP' : 'bat'} · ${r.level || 'draftee'}${r.rank ? ' · #'+r.rank : ''}` : x.type==='h' ? (eligN(r)||(r.minor ? 'prospect' : '')) : ((r.proj_pts_hitting||0) > 0 ? 'SP + bat' : 'SP');
@@ -3454,9 +3548,26 @@ function renderDesk(){
   $('#desk-mine').innerHTML = rows(me).map(x=>row(x, kept(me), true)).join('');
   $('#desk-team').innerHTML = owners.filter(o=>o!==me).map(o=>`<option value="${esc(o)}" ${o===DESK.team?'selected':''}>${esc(teamLabel(o))}</option>`).join('');
   $('#desk-theirs').innerHTML = rows(DESK.team).map(x=>row(x, kept(DESK.team), false)).join('');
-  $$('#desk .rrow').forEach(b=>b.addEventListener('click', ()=>{ const [type, id] = b.dataset.desk.split(':'); DESK.sel = deskFind(+id, type); DESK.filter = ''; renderDesk(); }));
-  const out = $('#desk-out'); const s = DESK.sel;
-  if (!s){ out.innerHTML = `<p class="hint" style="margin:0">Nothing picked yet. Your spare players (<span class="pill b">surplus</span>) are the easiest to sell: they are worth nothing to you next year and full value to a team with room. Their <span class="pill b">gettable</span> players are the cheapest to buy for the same reason.</p>`; return; }
+  // tap to add, tap again to remove: up to four on each side
+  $$('#desk .rrow').forEach(b=>b.addEventListener('click', ()=>{ const [type, id] = b.dataset.desk.split(':'); const i = DESK.multi.findIndex(x=>x.id===+id && x.type===type);
+    if (i >= 0) DESK.multi.splice(i, 1);
+    else { const f = deskFind(+id, type); if (!f) return; const side = f.owner===me;
+      if (DESK.multi.filter(x=>(x.owner===me)===side).length >= 4){ DESK.note = 'Four a side is the most the search handles quickly. Remove one to add another.'; }
+      else { DESK.multi.push(f); DESK.note = ''; } }
+    DESK.filter = ''; renderDesk(); }));
+  // the tray: who is picked, on which side, and a way to the deals. It sticks to the bottom of the screen on a phone while you scroll the lists.
+  const tray = $('#desk-tray'); const pickedMine = DESK.multi.filter(x=>x.owner===me), pickedTheirs = DESK.multi.filter(x=>x.owner!==me);
+  const chip = x => `<button class="pchip" data-unpick="${x.type}:${x.id}" aria-label="Remove ${esc(x.r.name)}">${esc(x.r.name)}${x.owner!==me && !isFA(x.owner) ? ` <small>${esc(deskShort(x.owner))}</small>` : ''} <span aria-hidden="true">✕</span></button>`;
+  tray.innerHTML = DESK.multi.length ? `<div class="trayrow">${pickedMine.length ? `<span class="traylab">You send</span>${pickedMine.map(chip).join('')}` : ''}${pickedTheirs.length ? `<span class="traylab">You get</span>${pickedTheirs.map(chip).join('')}` : ''}</div>
+    <div class="trayacts"><button class="btn small" id="desk-clear">Clear</button><button class="btn small primary" id="desk-go">See the deals ↓</button></div>${DESK.note ? `<p class="hint" style="margin:4px 0 0">${esc(DESK.note)}</p>` : ''}` : '';
+  tray.classList.toggle('on', DESK.multi.length > 0);
+  $$('#desk-tray [data-unpick]').forEach(b=>b.addEventListener('click', ()=>{ const [type, id] = b.dataset.unpick.split(':'); DESK.multi = DESK.multi.filter(x=>!(x.id===+id && x.type===type)); DESK.note = ''; renderDesk(); }));
+  const clr = $('#desk-clear'); if (clr) clr.addEventListener('click', ()=>{ DESK.multi = []; DESK.note = ''; renderDesk(); });
+  const go = $('#desk-go'); if (go) go.addEventListener('click', ()=>$('#desk-out').scrollIntoView({behavior:'smooth', block:'start'}));
+  const out = $('#desk-out');
+  if (DESK.multi.length >= 2){ renderDeskMulti(out, R, me); return; }
+  const s = DESK.sel;
+  if (!s){ out.innerHTML = `<p class="hint" style="margin:0">Nothing picked yet. Tap a player to shop him or go after him, or tap several: two or three of yours to see every deal that moves any of them, theirs to see what it takes to get them, or some of each to make that swap work. Your spare players (<span class="pill b">surplus</span>) are the easiest to sell: they are worth nothing to you next year and full value to a team with room. Their <span class="pill b">gettable</span> players are the cheapest to buy for the same reason.</p>`; return; }
   const t0 = performance.now(); const buying = s.owner !== me; const name = s.r.name, first = name.split(' ')[0];
   if (isFA(s.owner)){ const fit = evalSwap(R[me], [], [{type:s.type, id:s.id, r:s.r}]);
     out.innerHTML = `<div class="deskres"><h4>${esc(name)} <span class="hint">free agent</span></h4><p class="ctx">No trade needed: he is on waivers. Added for nothing he is worth <b>${signedTxt(fit)}</b> to your keeper group.</p></div>`; return; }
@@ -3504,7 +3615,7 @@ $('#desk-team').addEventListener('change', e=>{ DESK.team = e.target.value; rend
     Object.entries(R).forEach(([t, ro])=>{ ro.h.forEach(r=>out.push({spec:'h:'+r.mlbam_id, name:r.name, team:r.team_abbr, id:r.mlbam_id, t})); ro.p.forEach(r=>out.push({spec:'p:'+r.mlbam_id, name:r.name, team:r.team, id:r.mlbam_id, t})); (ro.m||[]).forEach(r=>out.push({spec:'m:'+r.mlbam_id, name:r.name, team:r.team_abbr, id:r.mlbam_id, t})); });
     return out; };
   const show = list => { dd.innerHTML = list.map((x,i)=>`<button data-i="${i}">${ava(x.name, x.team, 26, x.id)}<span>${esc(x.name)}</span><small>${esc(x.t===tr.a ? 'yours' : deskShort(x.t))}</small></button>`).join(''); dd.classList.toggle('open', list.length > 0);
-    dd.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ const x = list[+b.dataset.i]; dd.classList.remove('open'); inp.value = ''; const s = deskFind(x.id, x.spec[0]); if (!s) return; DESK.sel = s; DESK.filter = ''; if (s.owner !== tr.a) DESK.team = s.owner; renderDesk(); })); };
+    dd.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ const x = list[+b.dataset.i]; dd.classList.remove('open'); inp.value = ''; const s = deskFind(x.id, x.spec[0]); if (!s) return; if (!DESK.multi.some(m=>m.id===s.id && m.type===s.type)) DESK.multi.push(s); DESK.filter = ''; if (s.owner !== tr.a) DESK.team = s.owner; renderDesk(); })); };
   inp.addEventListener('input', ()=>{ const q = fold(inp.value.trim()); if (q.length < 2){ dd.classList.remove('open'); return; } show(items().filter(x=>fold(x.name).includes(q)).slice(0, 10)); });
   inp.addEventListener('keydown', e=>{ if (e.key==='Enter'){ const b = dd.querySelector('button'); if (b){ e.preventDefault(); b.click(); } } });
   document.addEventListener('click', e=>{ if (!e.target.closest('.deskq')) dd.classList.remove('open'); });
