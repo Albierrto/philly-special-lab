@@ -463,7 +463,26 @@ def _pa_model(d: pd.DataFrame, cur: pd.DataFrame) -> pd.Series:
     tr = prep(tr); te = prep(cur)
     mu = tr[F].mean()
     m = LinearRegression().fit(tr[F].fillna(mu), tr["next_PA"])
-    return pd.Series(np.clip(m.predict(te[F].fillna(mu)), 200, 700), index=cur.index)
+    raw = m.predict(te[F].fillna(mu))
+    # CALIBRATE THE TOP. A straight line runs hot at the high end: out of sample (each season predicted by a fit on the
+    # others, 2021-25), hitters projected 600-640 PA got 580, 640-670 got 617, 670-700 got 604 and 700+ got 542, because a
+    # full season is a ceiling and every kind of lost time only takes PA away. The young-regular terms pushed Sal Stewart to
+    # 765 (shown as 700, the clip) against 628 for 650+ PA hitters under 25 the next year. Above a knot at 550, where the
+    # line stops being honest, the distance past the knot is shrunk by the slope those out-of-sample predictions actually
+    # earned (about 0.48): 575 -> 562 (real 571), 618 -> 583 (580), 652 -> 599 (617), 682 -> 614 (604). Continuous and
+    # order-preserving, so nobody leapfrogs anybody; below 550 nothing moves.
+    KNOT = 550.0
+    oos = pd.Series(np.nan, index=tr.index)
+    for s in sorted(tr["season"].unique()):
+        a, b = tr[tr["season"] != s], tr[tr["season"] == s]
+        if len(a) < 100 or b.empty: continue
+        mua = a[F].mean(); oos[b.index] = LinearRegression().fit(a[F].fillna(mua), a["next_PA"]).predict(b[F].fillna(mua))
+    hi = oos.notna() & (oos > KNOT)
+    if hi.sum() >= 60:
+        x, y = oos[hi].to_numpy() - KNOT, tr.loc[hi, "next_PA"].to_numpy() - KNOT
+        beta = float(np.clip((x * y).sum() / (x * x).sum(), 0.2, 1.0))
+        raw = np.where(raw > KNOT, KNOT + beta * (raw - KNOT), raw)
+    return pd.Series(np.clip(raw, 200, 700), index=cur.index)
 
 
 def _raw_pa(years) -> dict:
