@@ -21,11 +21,16 @@ is read off what actually happened to minor leaguers who looked like him.
             discounted like every other player (0.8 a year, applied on the page)
   estimate  a weighted average over the most similar players in those cohorts (k nearest, distance-weighted), with k
             picked on held-out cohorts. Only cohorts old enough to have seen that season count toward it.
-  pedigree  MLB Pipeline's rank is scouting information the stat line does not have, but there is no archive of past ranks
-            to measure how much it adds. So a ranked prospect is moved halfway toward the value typical of prospects
-            ranked near him (estimated on this year's list, from the same model), which smooths the stat line with the
-            scouts without pretending to know their exact weight. A ranked draftee with no qualifying line (a teenager
-            fresh out of the draft) gets the rank value alone.
+  pedigree  MLB Pipeline's rank, measured. The yearly top-100 pages on mlb.com carry the whole list (2019-2025, cached in
+            data/prospects/pipeline_hist.csv), so what a ranked prospect actually returned over the next three seasons
+            can be counted. It dwarfs the stat line: out of sample, the stat model put top-10 hitters at 12-19 and they
+            returned 86-140 (Witt, Julio, Chourio, De La Cruz and Henderson among them, Holliday and Torkelson not);
+            ranks 11-25 returned four times the stat model's number; once rank was known, the stat line and the level he
+            played at added nothing measurable. So a ranked prospect's three-year value comes from his rank, a curve fitted
+            on 239 ranked hitters (value = 285 x rank^-0.77, the top capped at the 197 the top three actually averaged)
+            and 110 ranked pitchers (ranks 4 and down; there is one top-three arm in the data, Skenes), and the stat model
+            only decides WHEN it arrives (the split across 2027-29). An unranked prospect keeps the stat model's number,
+            scaled by what unranked players returned against it out of sample.
 """
 from __future__ import annotations
 import json, sys
@@ -216,6 +221,59 @@ def _pick_k(coh: pd.DataFrame, col: str, okcol: str) -> int:
     return bk
 
 
+REF_CUT = {"h": 70.0, "p": 90.0}      # about where the page's keeper lines sit (60th hitter, 24th arm on the 2027 board)
+HIST = DATA / "prospects" / "pipeline_hist.csv"
+
+
+def fetch_hist_lists(years=range(2019, 2026)) -> pd.DataFrame:
+    """MLB Pipeline's preseason top 100 for each year, from the embedded page data on mlb.com/prospects/<year>/top100/."""
+    import html as H, re
+    rows = []
+    for y in years:
+        u = H.unescape(_S.get(f"https://www.mlb.com/prospects/{y}/top100/", timeout=90).text)
+        k = u.find("getPlayerRankingsFromSelection(")
+        if k < 0: continue
+        seg = u[k:k + 3_000_000]
+        for m in re.finditer(r'"rank":(\d+),"playerEntity":\{', seg):
+            ch = seg[m.end():m.end() + 6000]
+            pid = re.search(r'"player":\{"__ref":"Person:(\d+)"\}', ch); pos = re.search(r'"position":"([^"]*)"', ch); eta = re.search(r'"eta":"([^"]*)"', ch)
+            if pid: rows.append(dict(year=y, rank=int(m.group(1)), mlbam_id=int(pid.group(1)), pos=pos.group(1) if pos else "", eta=eta.group(1) if eta else ""))
+    d = pd.DataFrame(rows).drop_duplicates(["year", "rank"])
+    HIST.parent.mkdir(parents=True, exist_ok=True); d.to_csv(HIST, index=False)
+    return d
+
+
+def rank_curves(last: int) -> dict:
+    """Three-year value by Pipeline rank, from what ranked prospects who had not yet played actually returned."""
+    from sklearn.linear_model import PoissonRegressor
+    L = pd.read_csv(HIST) if HIST.exists() else fetch_hist_lists()
+    L["kind"] = np.where(L["pos"].astype(str).str.contains("HP"), "p", "h")
+    yrs = list(range(FIRST, last + 1)); out = {}
+    for kind in ("h", "p"):
+        mlb = mlb_hitting(yrs) if kind == "h" else mlb_pitching(yrs)
+        first = mlb[(mlb["PA"] if kind == "h" else mlb["app"]) > 0].groupby("mlbam_id")["season"].min().to_dict()
+        par = mlb.set_index(["mlbam_id", "season"])["par"].to_dict(); cut = REF_CUT[kind]; rows = []
+        for r in L[(L["kind"] == kind) & (L["year"] >= FIRST) & (L["year"] + 2 <= last)].itertuples():
+            f = first.get(r.mlbam_id, 9999)
+            if f < r.year: continue                      # had already played: not a minor leaguer by this league's rule
+            v = sum(w * max(0.0, par.get((r.mlbam_id, r.year + k), 0.0) - (cut if (k > 0 and f <= r.year + k - 1) else 0.0))
+                    for k, w in ((0, 1.0), (1, 0.8), (2, 0.64)))
+            rows.append((r.rank, v))
+        d = pd.DataFrame(rows, columns=["rank", "V"])
+        lo = 1 if kind == "h" else 4                     # one top-three arm in the data (Skenes) would steer the whole pitcher curve
+        fit = d[d["rank"] >= lo]
+        m = PoissonRegressor(alpha=0.0, max_iter=3000).fit(np.log(fit[["rank"]].to_numpy()), fit["V"])
+        top3 = float(d.loc[d["rank"] <= 3, "V"].mean()) if (d["rank"] <= 3).sum() >= 5 else None
+        out[kind] = dict(A=float(np.exp(m.intercept_)), b=float(m.coef_[0]), floor_rank=lo, cap=top3, n=int(len(d)),
+                         buckets={f"{a}-{b}": round(float(d.loc[(d["rank"] >= a) & (d["rank"] <= b), "V"].mean()), 1) for a, b in ((1, 3), (4, 10), (11, 25), (26, 50), (51, 100))})
+    return out
+
+
+def rank_value(rank: float, c: dict) -> float:
+    v = c["A"] * max(float(rank), c["floor_rank"]) ** c["b"]
+    return min(v, c["cap"]) if c.get("cap") else v
+
+
 def value(kind: str, cur_season: int) -> tuple[pd.DataFrame, dict]:
     yrs = list(range(FIRST, cur_season + 1))
     if kind == "h":
@@ -247,7 +305,25 @@ def value(kind: str, cur_season: int) -> tuple[pd.DataFrame, dict]:
                 comps[i] = [dict(name=tr.loc[j, "name"], season=int(tr.loc[j, "season"]), level=tr.loc[j, "level"], age=round(float(tr.loc[j, "age"]), 1),
                                  y1=round(float(tr.loc[j, "y1"]), 0)) for j in idx]
     out["comps"] = out["mlbam_id"].map(comps)
-    return out, dict(stats=stats, cohort=int(len(coh)), k=ks)
+    # out of sample, what unranked players returned against the stat model's number (each season predicted from the others)
+    L = pd.read_csv(HIST) if HIST.exists() else fetch_hist_lists()
+    ranked = set(zip(L["mlbam_id"], L["year"] - 1)); cut = REF_CUT[kind]
+    def at(row, y, c=cut): return float(np.interp(c, CUTS, [row[f"{y}_{x}"] for x in CUTS]))
+    num = den = 0.0
+    for s in sorted(coh.loc[coh["ok3"], "season"].unique()):
+        te = coh[(coh["season"] == s)].reset_index(drop=True)
+        te = te[[(i, s) not in ranked for i in te["mlbam_id"]]].reset_index(drop=True)
+        if te.empty: continue
+        pr = {}
+        for yk, okc, cols in (("y1", "ok1", ["y1"]), ("y2", "ok2", [f"y2_{c}" for c in CUTS]), ("y3", "ok3", [f"y3_{c}" for c in CUTS])):
+            tr = coh[(coh["season"] != s) & coh[okc]].reset_index(drop=True)
+            p_, _ = _knn(tr, te, cols, ks["y1" if yk == "y1" else f"{yk}_0"]); pr[yk] = pd.DataFrame(p_, columns=cols)
+        pred = pr["y1"]["y1"] + 0.8 * pr["y2"].apply(lambda r: at(r, "y2"), axis=1) + 0.64 * pr["y3"].apply(lambda r: at(r, "y3"), axis=1)
+        real = te["y1"] + 0.8 * te.apply(lambda r: at(r, "y2"), axis=1) + 0.64 * te.apply(lambda r: at(r, "y3"), axis=1)
+        top = pred >= pred.quantile(0.9)                 # the unranked players who matter here are the best of them
+        num += float(real[top].sum()); den += float(pred[top].sum())
+    unranked = float(np.clip(num / den, 0.3, 1.2)) if den > 0 else 1.0
+    return out, dict(stats=stats, cohort=int(len(coh)), k=ks, unranked_ratio=round(unranked, 3))
 
 
 def _pipeline() -> pd.DataFrame:
@@ -280,24 +356,35 @@ def build(cur_season: int | None = None) -> tuple[pd.DataFrame, dict]:
         allp = pd.concat([allp, miss], ignore_index=True)
     allp["eligible"] = ~allp["mlbam_id"].isin(played)
     ycols = ["y1"] + [f"y2_{c}" for c in CUTS] + [f"y3_{c}" for c in CUTS]
-    # pedigree: halfway to the value typical of prospects ranked near him (a rolling window over this year's ranked list)
+    # pedigree, measured (see the module note): a ranked prospect's three-year total comes from his Pipeline rank; the stat
+    # model only splits it across 2027-29. A ranked player with no qualifying line borrows that split from ranked peers.
+    curves = rank_curves(cur)
     allp["stat_only"] = allp["y1"].notna()
+    def ref_total(r, kind):
+        c = REF_CUT[kind]; at = lambda y: float(np.interp(c, CUTS, [r[f"{y}_{x}"] for x in CUTS]))
+        return r["y1"] + 0.8 * at("y2") + 0.64 * at("y3")
     for kind in ("h", "p"):
         m = (allp["kind"] == kind) & allp["pipeline_rank"].notna()
         rk = allp.loc[m & allp["stat_only"]].sort_values("pipeline_rank")
-        if len(rk) < 5: continue
-        for c in ycols:
-            s = rk.set_index("pipeline_rank")[c]
-            def at(r, s=s):
-                w = np.exp(-((s.index.to_numpy() - r) / 12.0) ** 2); return float((w * s.to_numpy()).sum() / w.sum())
-            typ = allp.loc[m, "pipeline_rank"].map(at)
-            has = allp.loc[m, c].notna()
-            allp.loc[m, c] = np.where(has, 0.5 * allp.loc[m, c].fillna(0) + 0.5 * typ, typ)
+        for c in ycols:                                   # shape for the ones with no line: ranked peers nearby
+            if len(rk) < 5: break
+            s_ = rk.set_index("pipeline_rank")[c]
+            def near(r, s_=s_):
+                w = np.exp(-((s_.index.to_numpy() - r) / 12.0) ** 2); return float((w * s_.to_numpy()).sum() / w.sum())
+            miss_ = m & allp[c].isna()
+            allp.loc[miss_, c] = allp.loc[miss_, "pipeline_rank"].map(near)
+        for i in allp.index[m]:
+            tgt = rank_value(allp.at[i, "pipeline_rank"], curves[kind]); base = ref_total(allp.loc[i], kind)
+            f = float(np.clip(tgt / max(base, 1.0), 0.3, 25.0))
+            allp.loc[i, ycols] = allp.loc[i, ycols].astype(float) * f
+        un = (allp["kind"] == kind) & allp["pipeline_rank"].isna()
+        ratio = (mh if kind == "h" else mp).get("unranked_ratio", 1.0)
+        allp.loc[un, ycols] = allp.loc[un, ycols].astype(float) * ratio
     allp[ycols] = allp[ycols].fillna(0).round(2)
     allp["deb1"] = allp["deb1"].round(3)
     allp["headline"] = allp["y1"] + 0.8 * allp["y2_100"] + 0.64 * allp["y3_100"]   # near the keeper lines the page uses
     allp = allp.sort_values("headline", ascending=False)
-    meta = dict(hitters=mh, pitchers=mp, cuts=CUTS, first=FIRST, season=cur)
+    meta = dict(hitters=mh, pitchers=mp, cuts=CUTS, first=FIRST, season=cur, rank_curves=curves, ref_cut=REF_CUT)
     return allp, meta
 
 
