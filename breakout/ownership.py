@@ -164,6 +164,13 @@ def apply(data: dict, ow: Owners | None = None) -> dict:
                 new = ow.get(r["name"], kind=kind if key(r["name"]) in cross else None)
                 if new != r.get("owner"): changed += 1
                 r["owner"] = new
+    # minor leaguers (prospect_value): owner by name, pitchers only against pitcher rows and hitters against hitter rows,
+    # since a prospect shares a name with a big leaguer more often than anyone else does
+    m_by = {}
+    for r in (data.get("minors") or {}).get("rows", []) or []:
+        new = ow.get(r["name"], kind="P" if r.get("kind") == "p" else "H")
+        if new != r.get("owner"): changed += 1
+        r["owner"] = new; m_by.setdefault(key(r["name"]), r["mlbam_id"])
     # the full Fantrax rosters (313 rows), each tied to the ids the tables know, so a team page can list everyone,
     # including a stashed prospect the models have no MLB line for
     h_by = {}; p_by = {}
@@ -173,7 +180,7 @@ def apply(data: dict, ow: Owners | None = None) -> dict:
         if r.get("name") and r.get("mlbam_id") is not None: h_by.setdefault(key(r["name"]), r["mlbam_id"])
     ro = ow.rows.astype(object).where(ow.rows.notna(), None)   # no NaN in the JSON
     data["rosters"] = [dict(player=r.player, mlb=r.mlb, pos=r.pos, slot=r.slot, status=r.status, owner=r.owner,
-                            h_id=h_by.get(key(r.player)), p_id=p_by.get(key(r.player))) for r in ro.itertuples()]
+                            h_id=h_by.get(key(r.player)), p_id=p_by.get(key(r.player)), m_id=m_by.get(key(r.player))) for r in ro.itertuples()]
     meta["owners_synced"] = ow.synced; meta["owners_changed"] = changed; data["meta"] = meta
     return data
 

@@ -2,7 +2,9 @@
 
 data/overrides/availability_2027.csv, one row per player, every row sourced and dated. starts_2027 replaces a starter's
 projected starts (0 = out for the season), pa_2027 a hitter's projected plate appearances. The model's own number is
-kept as the 2028 baseline (proj_GS_28 / proj_PA_28), so a pitcher out for 2027 is not also written off for 2028.
+kept as the 2028 baseline (proj_GS_28 / proj_PA_28), so a pitcher out for 2027 is not also written off for 2028. When the
+news runs the other way (no surgery, a full offseason to heal, so the model's injury-year number is too low) the higher
+of the two is the 2028 baseline, so a man is not docked in 2028 for a year the news says he has recovered from.
 Nothing here touches a player's rate. Only news that changes playing time belongs in this file, and a row should come
 out when it stops being true (a player signed, a timeline changed).
 """
@@ -27,6 +29,7 @@ def apply_pitchers(p: pd.DataFrame) -> pd.DataFrame:
     for r in o.itertuples():
         m = p["mlbam_id"] == int(r.mlbam_id)
         if not m.any(): continue
+        p.loc[m, "proj_GS_28"] = p.loc[m, "proj_GS_28"].clip(lower=float(r.starts_2027))
         p.loc[m, "proj_GS"] = float(r.starts_2027)
         p.loc[m, "proj_pts"] = (p.loc[m, "proj_pts_gs"] * float(r.starts_2027)).round(0)
         p.loc[m, "avail_note"] = f"{r.note} ({r.as_of})"
@@ -41,6 +44,7 @@ def apply_hitters(h: pd.DataFrame) -> pd.DataFrame:
     for r in o.itertuples():
         m = h["mlbam_id"] == int(r.mlbam_id)
         if not m.any(): continue
+        h.loc[m, "proj_PA_28"] = h.loc[m, "proj_PA_28"].clip(lower=float(r.pa_2027))
         h.loc[m, "proj_PA"] = float(r.pa_2027)
         h.loc[m, "proj_pts"] = (h.loc[m, "proj_rate"] * float(r.pa_2027)).round(0)
         h.loc[m, "avail_note"] = f"{r.note} ({r.as_of})"

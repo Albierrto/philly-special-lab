@@ -103,6 +103,11 @@ def augment(data: dict) -> dict:
     data["pick_points"] = json.loads(real[["season", "overall", "round", "team", "player", "kind", "pts", "par"]].to_json(orient="records"))
     data["pick_repl"] = {str(k): v for k, v in repl.items()}
     data["draft_slots"] = draft_slots()
+    # who actually holds each tradeable pick (fantrax_api.draft_picks). Absent file: the page falls back to own picks.
+    dp = C.DATA / "fantrax" / f"draft_picks_{C.CURRENT_SEASON + 1}.csv"
+    if dp.exists():
+        df = pd.read_csv(dp)
+        data["pick_owners"] = [dict(year=int(r.year), round=int(r.round), original=r.original, owner=r.owner) for r in df.itertuples()]
     return data
 
 

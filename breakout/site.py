@@ -10,7 +10,7 @@ import argparse, json, shutil, sys, time
 import pandas as pd
 from pathlib import Path
 from . import config as C
-from . import picks, ownership, faces
+from . import picks, ownership, faces, prospect_value
 from .assemble import HD_COLS, PS_COLS, G_COLS, columnar
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -232,7 +232,7 @@ output/*/philly_special*.html
 def build(default_team: str):
     site = ROOT / "site"; (site / "data").mkdir(parents=True, exist_ok=True)
     tpl = (C.OUT / "v4" / "explorer_template.html").read_text(encoding="utf-8")
-    data = ownership.apply(picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text())))
+    data = ownership.apply(prospect_value.augment(picks.augment(json.loads((C.OUT / "v3" / "explorer_data.json").read_text()))))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
     data["meta"]["schedule"] = cfg.get("schedule", {})                                        # periods + head-to-head, for the matchup simulator
     data["meta"]["standings"] = cfg.get(f"standings_{data['meta']['season']}", [])            # season pace, to sanity-check it

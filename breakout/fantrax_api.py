@@ -3,7 +3,7 @@
     python -m breakout.fantrax_api            # refresh data/fantrax/{rosters,standings,teams}_<season>.csv/json and the owner tables
 
 Endpoints (https://www.fantrax.com/fxea/general/...): getLeagueInfo, getTeamRosters, getStandings, getDraftResults,
-getPlayerIds. Nothing here can change a roster, make a claim, propose a trade or post a message; it only reads.
+getDraftPicks, getPlayerIds. Nothing here can change a roster, make a claim, propose a trade or post a message; it only reads.
 """
 from __future__ import annotations
 import json, re, sys, time
@@ -100,6 +100,17 @@ def draft_results(lid: str, tm: pd.DataFrame, ids: dict) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("overall")
 
 
+def draft_picks(lid: str, tm: pd.DataFrame) -> pd.DataFrame:
+    """Who holds every tradeable future pick: year, round, the team it originally belonged to (which fixes its slot in the
+    fixed-order draft) and the team that holds it now. Fantrax lists only picks that can still be traded."""
+    d = _get("getDraftPicks", leagueId=lid); ab = dict(zip(tm["team_id"], tm["abbrev"])); rows = []
+    for p in (d.get("futureDraftPicks") or []) + (d.get("currentDraftPicks") or []):
+        if p.get("year") is None or p.get("round") is None: continue
+        rows.append(dict(year=int(p["year"]), round=int(p["round"]), original=ab.get(p.get("originalOwnerTeamId"), p.get("originalOwnerTeamId")),
+                         owner=ab.get(p.get("currentOwnerTeamId"), p.get("currentOwnerTeamId"))))
+    return pd.DataFrame(rows, columns=["year", "round", "original", "owner"]).drop_duplicates().sort_values(["year", "round", "original"])
+
+
 def schedule(lid: str) -> dict:
     """The league's scoring periods and its head-to-head schedule, straight from getLeagueInfo.
 
@@ -134,6 +145,11 @@ def sync(season: int | None = None) -> dict:
     if cfg.get("user_team_abbrev") in names: names[cfg["user_team_abbrev"]] = f"{names[cfg['user_team_abbrev']].split(' (')[0]} (Bort)"
     cfg["fantasy_team_abbrevs"] = names; cfg[f"standings_{season}"] = st[["rank", "team", "abbrev", "W", "L", "points_for"]].to_dict(orient="records")
     cfg[f"draft_order_{season + 1}"] = slots["team"].tolist(); cfg["draft_order_rule"] = DRAFT_RULE
+    # traded picks: without this every team was assumed to hold its own 15, and some hold 20 while others hold 9
+    try:
+        dp = draft_picks(lid, tm)
+        if len(dp): dp.to_csv(out / f"draft_picks_{season + 1}.csv", index=False)
+    except Exception as e: print("draft pick sync failed, keeping what is on file:", e)
     try: cfg["schedule"] = schedule(lid)          # scoring periods + head-to-head, for the matchup simulator
     except Exception as e: print("schedule sync failed, keeping what is on file:", e)
     cfg_p.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))

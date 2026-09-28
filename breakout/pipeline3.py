@@ -190,6 +190,13 @@ def main(argv=None):
     )
     (out / "explorer_data.json").write_text(json.dumps(payload, separators=(",", ":")))
     print("explorer_data.json", round((out / "explorer_data.json").stat().st_size / 1e6, 2), "MB")
+    # minor-league values for the trade tools (six years of minor-league downloads, so only in the full rebuild). A failure
+    # keeps last week's file: prospects move slowly and the site reads whatever is on disk.
+    try:
+        from . import prospect_value
+        prospect_value.main()
+    except Exception as e:
+        print("prospect values skipped, keeping the file on disk:", e)
     print("done ->", out)
     return 0
 
