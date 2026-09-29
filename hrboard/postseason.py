@@ -112,6 +112,7 @@ def playoff_schedule(season: int) -> pd.DataFrame:
         for g in d["games"]:
             h, a = g["teams"]["home"], g["teams"]["away"]
             rows.append(dict(pk=g["gamePk"], gt=g["gameType"], date=g["officialDate"], when=g.get("gameDate"), detailed=(g.get("status") or {}).get("detailedState"),
+                             tbd=bool((g.get("status") or {}).get("startTimeTBD")),
                              home=h["team"].get("abbreviation"), away=a["team"].get("abbreviation"),
                              home_id=h["team"]["id"], away_id=a["team"]["id"], gno=g.get("seriesGameNumber"), state=g["status"]["abstractGameState"],
                              home_won=h.get("isWinner"), away_won=a.get("isWinner"), hs=h.get("score"), as_=a.get("score")))
@@ -780,7 +781,7 @@ def actual_points(season: int, sched: pd.DataFrame) -> tuple[dict, list, str, di
     g = sched[sched["gt"].isin(list(RND_OF))] if len(sched) else sched
     for r in (g.sort_values(["date", "pk"]).itertuples() if len(g) else []):
         rnd = RND_OF[r.gt]
-        games.append(dict(pk=int(r.pk), rnd=rnd, date=r.date, when=r.when, state=r.state, detailed=r.detailed, home=r.home, away=r.away,
+        games.append(dict(pk=int(r.pk), rnd=rnd, date=r.date, when=r.when, tbd=bool(getattr(r, "tbd", False)), state=r.state, detailed=r.detailed, home=r.home, away=r.away,
                           hs=None if pd.isna(r.hs) else int(r.hs), as_=None if pd.isna(r.as_) else int(r.as_), gno=r.gno,
                           won=r.home if r.home_won is True else r.away if r.away_won is True else None))
         if r.state not in ("Final", "Live"): continue
@@ -802,7 +803,13 @@ def actual_points(season: int, sched: pd.DataFrame) -> tuple[dict, list, str, di
         stage = max((x["rnd"] for x in started), key=["DS", "LCS", "WS"].index)
         ws = [x for x in games if x["rnd"] == "WS" and x["won"]]
         if ws and max(sum(1 for x in ws if x["won"] == t) for t in {x["won"] for x in ws}) >= 4: stage = "done"
-    first = lambda rnd: min((x["when"] for x in games if x["rnd"] == rnd and x["when"]), default=None)
+    def first(rnd):
+        """When a round's first game starts. An unscheduled game carries a placeholder clock time (07:33 UTC); then only
+        the day is known, and the page shows the day with 'time TBD'."""
+        g = [x for x in games if x["rnd"] == rnd and x["when"]]
+        if not g: return None
+        x = min(g, key=lambda x: x["when"])
+        return x["date"] if x.get("tbd") else x["when"]
     locks = dict(DS=DEADLINES.get(season) or first("DS"), LCS=first("LCS"), WS=first("WS"))
     return act, games, stage, locks
 
