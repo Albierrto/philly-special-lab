@@ -1,49 +1,49 @@
-team,name,role,share,avail,note,source,as_of
-LAD,Tarik Skubal,SP1,,,"Big Four rotation, order TBD; projected Game 1 (seven days' rest)",https://sports.yahoo.com/articles/dodgers-line-rotation-nlds-161618127.html,2026-09-25
-LAD,Yoshinobu Yamamoto,SP2,,,"Needs five days' rest; projected Game 2",https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
-LAD,Blake Snell,SP3,,,"1.04 ERA in six starts since returning from the IL; projected Game 3",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-LAD,Tyler Glasnow,SP4,,,"Says he is 'all hands on deck'; fourth starter or bullpen",https://sports.yahoo.com/articles/tyler-glasnow-reveals-most-likely-012939263.html,2026-09-23
-LAD,Tanner Scott,CL,0.45,,"Closer unsettled; matchups-based ninth likely",https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
-LAD,Edwin Díaz,CL,0.35,,"Acquired to close, struggled, better lately in lower leverage",https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
-MIL,Jacob Misiorowski,SP1,,,"Lock to start, lined up back to back with Henderson",https://www.mlb.com/news/brewers-2026-postseason-faq,2026-09-28
-MIL,Logan Henderson,SP2,,,"Lock to start",https://www.mlb.com/news/brewers-2026-postseason-faq,2026-09-28
-MIL,Dustin May,SP3,,,"Third starter uncertain (May or Harrison)",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-MIL,Kyle Harrison,SP4,,,"Third starter uncertain (May or Harrison)",https://www.mlb.com/news/brewers-2026-postseason-faq,2026-09-28
-TB,Drew Rasmussen,SP1,,,"Likely Game 1",https://www.mlb.com/news/rays-2026-postseason-faq,2026-09-28
-TB,Freddy Peralta,SP2,,,"Projected rotation Rasmussen, Peralta, Martinez; only three starters needed in the ALDS",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-TB,Nick Martinez,SP3,,,"Projected third starter",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-TB,Ian Seymour,SP4,,,"Seymour or Jax for a fourth start",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-TB,Shane McClanahan,AVAIL,,0,"Not available for the Division Series (forearm)",https://www.mlb.com/news/rays-2026-postseason-faq,2026-09-28
-CLE,Parker Messick,SP1,,,"Messick and Williams Games 1 and 2, each could start twice",https://www.mlb.com/news/guardians-2026-postseason-faq,2026-09-28
-CLE,Gavin Williams,SP2,,,"Messick and Williams Games 1 and 2",https://www.mlb.com/news/guardians-2026-postseason-faq,2026-09-28
-CLE,Tanner Bibee,SP3,,,"Game 3 uncertain: Bibee, Cantillo or Griffin",https://www.mlb.com/news/guardians-2026-postseason-faq,2026-09-28
-NYY,Cam Schlittler,SP1,,,"Wild Card Game 1; lines up for DS Game 2 and 5",https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
-NYY,Max Fried,SP2,,,"Wild Card Game 2",https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
-NYY,Gerrit Cole,SP3,,,"Wild Card Game 3 if needed",https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
-NYY,Carlos Rodón,SP4,,,"Rested for DS Game 1 if the Wild Card goes three",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-BOS,Sonny Gray,SP1,,,"Gray or Tolle Games 1 and 2, Suarez Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-BOS,Payton Tolle,SP2,,,"Gray or Tolle Games 1 and 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-BOS,Ranger Suarez,SP3,,,"Wild Card Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-HOU,Peter Lambert,SP1,,,"Wild Card Game 1",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-HOU,Hunter Brown,SP2,,,"Wild Card Game 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-HOU,Hayden Wesneski,SP3,,,"Wild Card Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CWS,David Sandlin,SP1,,,"Wild Card Game 1",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CWS,Sean Burke,SP2,,,"Wild Card Game 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CWS,Davis Martin,SP3,,,"Wild Card Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-PHI,Cristopher Sánchez,SP1,,,"Wild Card Game 1",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-PHI,Jesús Luzardo,SP2,,,"Wild Card Game 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-PHI,Zack Wheeler,SP3,,,"Wild Card Game 3 on short rest, or Nola",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-PHI,Aaron Nola,SP4,,,"Wild Card Game 3 or the fourth starter",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-ATL,Chris Sale,SP1,,,"Wild Card Game 1",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-ATL,Tyler Mahle,SP2,,,"Wild Card Game 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-ATL,Grant Holmes,SP3,,,"Wild Card Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-SD,Michael King,SP1,,,"Wild Card Game 1",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-SD,Nick Pivetta,SP2,,,"Wild Card Game 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-SD,Robbie Ray,SP3,,,"Game 3 among Buehler, Mize or Ray (Mize on the IL)",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CHC,Shota Imanaga,SP1,,,"Wild Card Game 1",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CHC,Clay Holmes,SP2,,,"Wild Card Game 2",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CHC,Matthew Boyd,SP3,,,"Wild Card Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-CHC,Kevin Gausman,SP4,,,"Rotation ranked Gausman first; not named for the Wild Card",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
-CHC,Alex Bregman,AVAIL,,0.4,"Multiple facial fractures from a foul ball; October status uncertain",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
-NYY,Aaron Judge,AVAIL,,0.5,"Moderate soleus strain; not planned for the Wild Card roster, aiming for the DS",https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
-LAD,Shohei Ohtani,START,1.0,,"Activated Sept. 23 and expected to DH every game",https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
+team,name,role,share,avail,ds,note,source,as_of
+LAD,Tarik Skubal,SP1,,,,"Big Four rotation, order TBD; projected Game 1 (seven days' rest)",https://sports.yahoo.com/articles/dodgers-line-rotation-nlds-161618127.html,2026-09-25
+LAD,Yoshinobu Yamamoto,SP2,,,,Needs five days' rest; projected Game 2,https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
+LAD,Blake Snell,SP3,,,,1.04 ERA in six starts since returning from the IL; projected Game 3,https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+LAD,Tyler Glasnow,SP4,,,,Says he is 'all hands on deck'; fourth starter or bullpen,https://sports.yahoo.com/articles/tyler-glasnow-reveals-most-likely-012939263.html,2026-09-23
+LAD,Tanner Scott,CL,0.45,,,Closer unsettled; matchups-based ninth likely,https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
+LAD,Edwin Díaz,CL,0.35,,,"Acquired to close, struggled, better lately in lower leverage",https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
+MIL,Jacob Misiorowski,SP1,,,,"Lock to start, lined up back to back with Henderson",https://www.mlb.com/news/brewers-2026-postseason-faq,2026-09-28
+MIL,Logan Henderson,SP2,,,,Lock to start,https://www.mlb.com/news/brewers-2026-postseason-faq,2026-09-28
+MIL,Dustin May,SP3,,,,Third starter uncertain (May or Harrison),https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+MIL,Kyle Harrison,SP4,,,,Third starter uncertain (May or Harrison),https://www.mlb.com/news/brewers-2026-postseason-faq,2026-09-28
+TB,Drew Rasmussen,SP1,,,,Likely Game 1,https://www.mlb.com/news/rays-2026-postseason-faq,2026-09-28
+TB,Freddy Peralta,SP2,,,,"Projected rotation Rasmussen, Peralta, Martinez; only three starters needed in the ALDS",https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+TB,Nick Martinez,SP3,,,,Projected third starter,https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+TB,Ian Seymour,SP4,,,,Seymour or Jax for a fourth start,https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+TB,Shane McClanahan,AVAIL,,0,,Not available for the Division Series (forearm),https://www.mlb.com/news/rays-2026-postseason-faq,2026-09-28
+CLE,Parker Messick,SP1,,,,"Messick and Williams Games 1 and 2, each could start twice",https://www.mlb.com/news/guardians-2026-postseason-faq,2026-09-28
+CLE,Gavin Williams,SP2,,,,Messick and Williams Games 1 and 2,https://www.mlb.com/news/guardians-2026-postseason-faq,2026-09-28
+CLE,Tanner Bibee,SP3,,,,"Game 3 uncertain: Bibee, Cantillo or Griffin",https://www.mlb.com/news/guardians-2026-postseason-faq,2026-09-28
+NYY,Cam Schlittler,SP1,,,"2,5",Wild Card Game 1; lines up for DS Game 2 and 5,https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
+NYY,Max Fried,SP2,,,3,Wild Card Game 2,https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
+NYY,Gerrit Cole,SP3,,,4,Wild Card Game 3 if needed,https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
+NYY,Carlos Rodón,SP4,,,1,Rested for DS Game 1 if the Wild Card goes three,https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+BOS,Sonny Gray,SP1,,,"2,5","Gray or Tolle Games 1 and 2, Suarez Game 3",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+BOS,Payton Tolle,SP2,,,3,Gray or Tolle Games 1 and 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+BOS,Ranger Suarez,SP3,,,4,Wild Card Game 3,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+HOU,Peter Lambert,SP1,,,"2,5",Wild Card Game 1,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+HOU,Hunter Brown,SP2,,,3,Wild Card Game 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+HOU,Hayden Wesneski,SP3,,,4,Wild Card Game 3,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CWS,David Sandlin,SP1,,,"2,5",Wild Card Game 1,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CWS,Sean Burke,SP2,,,3,Wild Card Game 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CWS,Davis Martin,SP3,,,4,Wild Card Game 3,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+PHI,Cristopher Sánchez,SP1,,,"2,5",Wild Card Game 1,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+PHI,Jesús Luzardo,SP2,,,3,Wild Card Game 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+PHI,Zack Wheeler,SP3,,,4,"Wild Card Game 3 on short rest, or Nola",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+PHI,Aaron Nola,SP4,,,1,Wild Card Game 3 or the fourth starter,https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+ATL,Chris Sale,SP1,,,"2,5",Wild Card Game 1,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+ATL,Tyler Mahle,SP2,,,3,Wild Card Game 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+ATL,Grant Holmes,SP3,,,4,Wild Card Game 3,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+SD,Michael King,SP1,,,"2,5",Wild Card Game 1,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+SD,Nick Pivetta,SP2,,,3,Wild Card Game 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+SD,Robbie Ray,SP3,,,4,"Game 3 among Buehler, Mize or Ray (Mize on the IL)",https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CHC,Shota Imanaga,SP1,,,"2,5",Wild Card Game 1,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CHC,Clay Holmes,SP2,,,3,Wild Card Game 2,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CHC,Matthew Boyd,SP3,,,4,Wild Card Game 3,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+CHC,Kevin Gausman,SP4,,,1,Rotation ranked Gausman first; not named for the Wild Card,https://www.si.com/mlb/ranking-pitching-rotations-2026-postseason-contenders,2026-09-25
+CHC,Alex Bregman,AVAIL,,0.4,,Multiple facial fractures from a foul ball; October status uncertain,https://sports.yahoo.com/mlb/article/mlb-wild-card-preview-series-predictions-x-factors-and-more-for-red-sox-yankees-cubs-padres-phillies-braves-and-white-sox-astros-001627858.html,2026-09-28
+NYY,Aaron Judge,AVAIL,,0.5,,"Moderate soleus strain; not planned for the Wild Card roster, aiming for the DS",https://www.mlb.com/news/yankees-2026-postseason-faq,2026-09-28
+LAD,Shohei Ohtani,START,1.0,,,Activated Sept. 23 and expected to DH every game,https://www.mlb.com/news/dodgers-2026-postseason-faq,2026-09-28
