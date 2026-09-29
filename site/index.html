@@ -1027,8 +1027,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close" aria-label="Close player page" title="Close">✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260929T0542"></script>
-<script src="data/streamers.js?v=20260929T0542"></script>
+<script src="data/lab.js?v=20260929T1322"></script>
+<script src="data/streamers.js?v=20260929T1322"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -3705,7 +3705,14 @@ function mktOf(a){ const k = deskKey(a); if (MKT.has(k)) return MKT.get(k); cons
 // counted with a star premium (value^1.5, as the hockey room's "name value"): two middling pieces do not add up to one
 // star in anyone's eyes, which is how the Kurtz-for-two-fourths deals got through a plain sum
 function mktSides(give, get){ const nv = a => Math.pow(Math.max(0, mktOf(a)), 1.5); return [give.reduce((x,a)=>x+nv(a),0), get.reduce((x,a)=>x+nv(a),0)]; }
-function marketFair(give, get){ const [g, r] = mktSides(give, get), big = Math.max(g, r); return big < 60 || Math.min(g, r) >= MKT_FAIR * big; }
+// One-directional since 9/29: the side named first (you, in every caller) may give more market value than it gets back,
+// which is what selling a surplus you cannot keep looks like and nobody investigates. What is never suggested is the other
+// team overpaying: you getting more than 1.25x what you send (Kurtz for a third-rounder), because they would say no and a
+// commissioner would ask why. Symmetric, this hid every pick offer for Sal Stewart: even a second-rounder read as lopsided
+// against Basketball.
+function marketFair(give, get){ const [g, r] = mktSides(give, get); return Math.max(g, r) < 60 || r * MKT_FAIR <= g; }
+// raw market sums, for saying "below market" in words
+const mktRaw = list => list.reduce((x, a) => x + Math.max(0, mktOf(a)), 0);
 // ---------- trade finder: search the league for deals both sides would actually take
 // The analyzer answers "is this trade good"; this answers "which trade should I offer". Same scoring, so the two can
 // never disagree: a roster's gain is the change in its best HKEEP hitters + PKEEP pitchers, with picks valued to that
@@ -3818,7 +3825,7 @@ function findDeals3(me){
         const gc = L(C, z, y); if (!(gc >= 3)) continue; const gm = L(me, x, z); if (!(gm >= 3)) continue;
         const direct = L(C, z, x); if (direct != null && direct > 0) continue;               // C would take x straight up: no need for B
         if (gm < solo(x, B) + 8) continue;                                                     // B alone would give you as much
-        if (!marketFair([x], [z]) || !marketFair([y], [x]) || !marketFair([z], [y])) continue;   // no leg the league would call lopsided
+        if (!marketFair([x], [z]) || !marketFair([x], [y]) || !marketFair([y], [z])) continue;   // you never get more than you send, and neither B nor C overpays
         res.push({B, C, x, y, z, me:gm, b:gb, c:gc}); } } }
   const fair = FIND_MODE !== 'me';
   const L2 = fair ? res.filter(d=>d.me >= 0.3 * (d.b + d.c) / 2) : res;
@@ -3908,7 +3915,9 @@ $$('[data-fmode]').forEach(b=>b.addEventListener('click',()=>{ FIND_MODE=b.datas
 const DESK = { sel:null, multi:[], team:'', sort:'fair', filter:'' };   // multi: every player tapped, yours and theirs; sel mirrors it when there is exactly one
 const deskKey = a => a.type==='pick' ? `pk${a.team}-${a.year}-${a.round}` : a.type+a.id;
 // the picks a team actually holds (Fantrax), not the fifteen it started with: some have traded away their first four rounds
-const deskPicks = t => { const own = ownedPicks(t); return [...own.filter(k=>k.year===CUR+1).slice(0, 10), ...own.filter(k=>k.year>CUR+1).slice(0, 3)]; };
+// every pick a team holds next year, not just its first ten: a team loaded with early picks (The Chosen Juan) has nothing
+// in its top ten that is cheap enough for a middling player, and its later ones never got looked at
+const deskPicks = t => { const own = ownedPicks(t); return [...own.filter(k=>k.year===CUR+1).slice(0, 18), ...own.filter(k=>k.year>CUR+1).slice(0, 3)]; };
 const deskCut = ro => { const k = keeperSet(ro.h, ro.p); return {h: nthDV(k.hs, HKEEP), p: nthDV(k.ps, PKEEP)}; };
 const deskShort = t => teamLabel(t).replace(/ \(.*\)$/,'');
 const deskAssets = (ro, cut, n) => [...ro.h.filter(r=>r.DV_c>0 && r.DV_c > 0.5*cut.h).map(r=>({type:'h', id:r.mlbam_id, r})), ...ro.p.filter(r=>r.DV_c>0 && r.DV_c > 0.5*cut.p).map(r=>({type:'p', id:r.mlbam_id, r})),
@@ -3949,12 +3958,31 @@ function deskBuy(sel){
     if (best) extra.push({t:sel.owner, give:d.give, get:[X, best.k], me:best.me, them:best.them}); });
   return deskRank(res.concat(extra), false); }
 // selling: what each team (or one team) could send back for Y
-function deskSell(sel, only){
+function deskSellRaw(sel, only){
   const me = MY || tr.a, R = teamRosters(), mine = R[me]; if (!mine) return [];
   const Y = {type:sel.type, id:sel.id, r:sel.r}; const myCut = deskCut(mine); const res = [];
   for (const t of Object.keys(R)){ if (t===me || (only && t!==only)) continue; const th = R[t];
     for (const get of deskPacks(deskAssets(th, myCut, only ? 14 : 8), deskPicks(t), only ? 3 : 2)){ const s = deskScore(mine, th, [Y], get, true, false); if (s && s.them > 0) res.push({t, give:[Y], get, ...s}); } }
-  return deskRank(res, !only); }
+  return res; }
+function deskSell(sel, only, raw){ return deskRank(raw || deskSellRaw(sel, only), !only); }
+// Who needs him: every team he would improve, what he would do there (who he pushes out of their keeper group, and how
+// he compares with their keeper at each position he plays) and the most they would give for him while still coming out
+// ahead, their picks included. Sorted by that best return, so the top line is where to shop him first.
+function deskBuyers(sel, raw){
+  const me = MY || tr.a, R = teamRosters(); const X = {type: sel.type, id: sel.id, r: sel.r};
+  const pos = sel.type === 'h' ? (eligN(sel.r) || '').split('/').filter(p => ['C','1B','2B','3B','SS','OF'].includes(p)) : [];
+  const projOf = r => Math.round(r.proj_pts ?? r.tot_c ?? 0), mine = projOf(sel.r);
+  const out = [];
+  for (const t of Object.keys(R)){ if (t === me) continue; const th = R[t];
+    const gain = evalSwap(th, [], [X]); if (!(gain > 0.5)) continue;
+    const mv = deskMoves(th, [], [X]); const ks = keeperSet(th.h, th.p, th.m);
+    const at = pos.map(p => { const k = ks.hs.filter(r => (eligN(r) || '').split('/').includes(p)).sort((a, b) => projOf(b) - projOf(a))[0];
+      return {p, k, better: !k || mine > projOf(k)}; });
+    const offers = raw.filter(d => d.t === t && d.them >= 3 && marketFair(d.give, d.get));
+    const best = offers.slice().sort((a, b) => b.me - a.me || b.them - a.them)[0] || null;
+    const bestPick = offers.filter(d => d.get.every(a => a.type === 'pick')).sort((a, b) => b.me - a.me)[0] || null;
+    out.push({t, gain, bumped: mv.bumped, at, best, bestPick}); }
+  return out.sort((a, b) => ((b.best ? b.best.me : -999) - (a.best ? a.best.me : -999)) || b.gain - a.gain); }
 // Fair: both rosters gain and you get a real share (the finder's rule). Best for me: anything they gain from, most for you
 // first. When nothing is fair, say so and show the price instead of an empty box.
 function deskRank(list, perTeam){
@@ -3968,7 +3996,8 @@ function deskRank(list, perTeam){
   // one line per set of players: the same men with a different pick attached is the same conversation
   const seen = new Set(), byT = {}, out = [];
   for (const d of L){ const ppl = [...d.give, ...d.get].filter(a=>a.type!=='pick').map(deskKey).sort().join('+');
-    const core = d.t + '|' + ppl + (d.give.concat(d.get).every(a=>a.type!=='pick') ? '' : '|pk');
+    // picks collapse by round, not to one line: selling a man for picks, "a 4th" and "two 4ths" and "a 2nd" are different offers
+    const core = d.t + '|' + ppl + (d.give.concat(d.get).every(a=>a.type!=='pick') ? '' : '|pk' + d.give.concat(d.get).filter(a=>a.type==='pick').map(a=>a.year+'r'+a.round).sort().join(','));
     if (seen.has(core) || (perTeam && (byT[d.t]||0) >= 2)) continue;
     seen.add(core); byT[d.t] = (byT[d.t]||0) + 1; out.push(d); if (out.length >= 10) break; }
   out.fallback = fallback; return out; }
@@ -4108,17 +4137,30 @@ function renderDesk(){
     ctx = (loss > 0.5 ? `He is worth <b>${Math.round(loss)}</b> to your keeper group, so a return has to beat that.` : `He is outside your keeper group, so everything you get back is profit: he returns to the draft pool at the keeper deadline otherwise.`)
         + ` What he adds to each roster is below; the teams at the top have the room to pay for him.`;
     chips = `<div class="tchips" role="group" aria-label="Team to shop him to"><button class="tchip" data-dteam="" aria-pressed="${!DESK.filter}">All teams</button>${fits.map(f=>`<button class="tchip" data-dteam="${esc(f.t)}" aria-pressed="${DESK.filter===f.t}" title="what ${esc(first)} adds to ${esc(poss(deskShort(f.t)))} keeper group">${esc(deskShort(f.t))}<b class="${f.v > 0.5 ? '' : 'z'}">${f.v > 0.5 ? '+' + Math.round(f.v) : '0'}</b></button>`).join('')}</div>`; }
-  const list = buying ? deskBuy(s) : deskSell(s, DESK.filter); const ms = Math.round(performance.now() - t0);
+  const rawSell = buying ? null : deskSellRaw(s, DESK.filter);
+  const list = buying ? deskBuy(s) : deskSell(s, DESK.filter, rawSell);
+  let buyersHtml = '';
+  if (!buying && !DESK.filter){
+    const B = deskBuyers(s, rawSell); const pk = d => d.get.map(a => a.type === 'pick' ? pickLabel(a, d.t) : a.r.name).join(' + ');
+    buyersHtml = B.length ? `<h4 style="margin:12px 0 4px">Who needs ${esc(first)} <small class="hint">the teams he improves, and the most each would give while still coming out ahead</small></h4>
+      <div class="tblwrap" style="max-height:none"><table class="mini"><thead><tr><th class="l">Team</th><th title="what he adds to their keeper group, multi-year">Adds</th><th class="l">What he does there</th><th class="l">Most they would give</th><th title="your gain / theirs">You / them</th></tr></thead><tbody>
+      ${B.map(b => `<tr data-dteam="${esc(b.t)}" style="cursor:pointer"><td class="l"><b>${esc(deskShort(b.t))}</b></td><td>+${Math.round(b.gain)}</td>
+        <td class="l" style="white-space:normal;min-width:200px">${b.bumped.length ? `replaces ${esc(b.bumped.map(r => `${r.name} (${eligN(r) || 'SP'})`).join(' and '))} in their keeper group` : 'fills an open keeper spot'}${b.at.length ? `<div class="hint">${b.at.map(x => x.k ? `${x.p}: ${x.better ? 'better than' : 'behind'} ${esc(x.k.name)}` : `${x.p}: no keeper there`).join(' · ')}</div>` : ''}</td>
+        <td class="l" style="white-space:normal;min-width:160px">${b.best ? esc(pk(b.best)) + (b.bestPick && b.bestPick !== b.best ? `<div class="hint">best in picks only: ${esc(pk(b.bestPick))} (${signedTxt(b.bestPick.me)})</div>` : '') : '<span class="hint">nothing they would part with for him</span>'}</td>
+        <td>${b.best ? `${signedTxt(b.best.me)} / ${signedTxt(b.best.them)}` : ''}</td></tr>`).join('')}</tbody></table></div>
+      <p class="hint" style="margin:6px 0 10px">Tap a team to see every package from them. "Most they would give" is the best return for you where they still gain at least 3 and are not paying more than he is worth on the open market. His position matters less than it looks in this scoring (two utility spots), which is why the ranking is by keeper value, but the line under each team says how he compares with their keeper at ${esc(eligN(s.r) || 'his position')}.</p>` : '';
+  }
+  const ms = Math.round(performance.now() - t0);
   const nMe = deskShort(me);
   const leg = (arr, dir, t) => `<span class="leg"><span class="arrow">${dir}</span>${arr.map(a=>a.type==='pick' ? `<b>${esc(pickLabel(a, t))}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22, a.r.mlbam_id)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
-  const deals = list.map((d,i)=>`<div class="deal${d.me > 0 ? '' : ' over'}" data-di="${i}">${`<div class="legs">${leg(d.give, 'send', me)}${leg(d.get, 'get', d.t)}<span class="leg" style="color:var(--ink3)">with ${esc(deskShort(d.t))}</span></div>`}<div class="num">${signed(Math.round(d.me))} <small>${esc(nMe)}</small>${signed(Math.round(d.them))} <small>them</small></div><div class="why">${esc(deskWhy(d))}</div><div class="acts"><button class="btn small" data-dload="${i}">Open in analyzer</button></div></div>`).join('');
+  const deals = list.map((d,i)=>`<div class="deal${d.me > 0 ? '' : ' over'}" data-di="${i}">${`<div class="legs">${leg(d.give, 'send', me)}${leg(d.get, 'get', d.t)}<span class="leg" style="color:var(--ink3)">with ${esc(deskShort(d.t))}</span></div>`}<div class="num">${signed(Math.round(d.me))} <small>${esc(nMe)}</small>${signed(Math.round(d.them))} <small>them</small></div><div class="why">${esc(deskWhy(d))}${(() => { const g = mktRaw(d.give), r = mktRaw(d.get); return g >= 30 && r < 0.8 * g ? ` Below market: what you send is worth about ${Math.round(g)} to the team best placed to use it, what comes back about ${Math.round(r)}; fine for a player you cannot keep, but ask for more first.` : ''; })()}</div><div class="acts"><button class="btn small" data-dload="${i}">Open in analyzer</button></div></div>`).join('');
   const none = buying ? `No package from your roster leaves ${esc(deskShort(s.owner))} better off. ${esc(first)} is worth more to them than anything you could send that would also make their keeper group.`
-                      : `No team has a package that fits: nothing they could send back would make your keeper group${DESK.filter ? ' from this team' : ''}. ${esc(first)} can still go for a pick; try the analyzer below.`;
+                      : `No offer${DESK.filter ? ' from this team' : ''} works: nothing they hold (players who would make your keeper group, or any of their picks) leaves them ahead for ${esc(first)} without paying more than he is worth. Try another team, or the analyzer below.`;
   const fb = list.fallback ? `<p class="hint" style="margin:0 0 8px">No deal leaves both rosters better off, so here is the price instead: the packages ${buying ? esc(deskShort(s.owner)) : 'the other teams'} would accept, best for you first. A red number on your side is what it costs you in keeper value.</p>` : '';
   out.innerHTML = `<div class="deskres">
     <div class="deskbar"><h4>${buying ? `Getting ${esc(name)} <span class="hint">from ${esc(teamLabel(s.owner))}</span>` : `Shopping ${esc(name)}`}</h4>
       <div class="acts"><button class="btn small" data-dact="card">Player page</button><button class="btn small" data-dact="build">${buying ? 'Build it myself' : (DESK.filter ? `Build it with ${esc(deskShort(DESK.filter))}` : 'Build it myself')}</button></div></div>
-    <p class="ctx">${ctx}</p>${chips}
+    <p class="ctx">${ctx}</p>${chips}${buyersHtml}
     <div class="deskbar"><div class="seg" role="group" aria-label="How to rank the deals"><button data-dsort="fair" aria-pressed="${DESK.sort==='fair'}">Fair to both</button><button data-dsort="me" aria-pressed="${DESK.sort==='me'}">Best for me</button></div><span class="hint">${list.length} deal${list.length===1?'':'s'} · searched in ${ms} ms · keeper values, offseason</span></div>
     ${fb}${deals || `<p class="hint">${none}</p>`}</div>`;
   $$('#desk-out [data-dload]').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); deskLoad(list[+b.dataset.dload]); }));
@@ -4298,6 +4340,6 @@ renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); b
 window.LEAGUE_ON = true; setLeague(LEAGUE, null, true);   // Philly lands where it always has (Today in season, My team after); NFBC opens its board
 </script>
 
-<script src="live.js?v=20260929T0542"></script>
+<script src="live.js?v=20260929T1322"></script>
 </body>
 </html>
