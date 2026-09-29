@@ -272,4 +272,10 @@ def write(season: int) -> dict:
 if __name__ == "__main__":
     import sys
     from .config import CURRENT_SEASON
-    sys.exit(0 if write(CURRENT_SEASON) else 1)
+    ok = write(CURRENT_SEASON)
+    try:                                   # the offseason moves feed rides along: same transaction feed, same never-fail step
+        from . import moves
+        moves.write(CURRENT_SEASON)
+    except Exception as e:
+        print("moves skipped:", e)
+    sys.exit(0 if ok else 1)

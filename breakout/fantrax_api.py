@@ -158,9 +158,37 @@ def sync(season: int | None = None) -> dict:
     try: cfg["schedule"] = schedule(lid)          # scoring periods + head-to-head, for the matchup simulator
     except Exception as e: print("schedule sync failed, keeping what is on file:", e)
     cfg_p.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
+    try: fx_map(ids, out)
+    except Exception as e: print("fantrax id map skipped:", e)
     res = dict(teams=len(tm), rostered=len(ro), standings=len(st), synced_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), season=season)
     (out / "sync_meta.json").write_text(json.dumps(res, indent=2))
     return res
+
+
+def fx_map(ids: dict, out) -> dict:
+    """Fantrax player id -> the lab's own key ('h' + MLBAM id for a hitter, 'p' + id for a pitcher), for every player on
+    the projection boards. The draft page reads getDraftResults live during the draft, and Fantrax names players by its
+    own ids, so this is what lets a pick on Fantrax take the right man off the lab's board. Matched on name, with the
+    MLB club deciding between namesakes and Fantrax's position deciding hitter or pitcher."""
+    from .names import key
+    boards = []
+    for kind, f in (("h", C.OUT / "v3" / "hitter_projections_2027.csv"), ("p", C.OUT / "v3" / "pitcher_projections_2027.csv")):
+        if f.exists():
+            d = pd.read_csv(f, usecols=lambda c: c in ("mlbam_id", "name", "team", "team_abbr"))
+            for r in d.itertuples(): boards.append((kind, int(r.mlbam_id), key(r.name), str(getattr(r, "team_abbr", "") or getattr(r, "team", "") or "")))
+    by = {}
+    for kind, mid, k, club in boards: by.setdefault((kind, k), []).append((mid, club))
+    m = {}
+    for fid, p in ids.items():
+        nm = flip_name(p.get("name", "")); pos = str(p.get("position") or ""); kind = "p" if pos.split(",")[0] in ("SP", "RP", "P") else "h"
+        c = by.get((kind, key(nm)))
+        if not c: continue
+        if len(c) > 1:
+            c = [x for x in c if x[1] == p.get("team")] or c[:1]
+        m[fid] = kind + str(c[0][0])
+    (out / "fx_map.json").write_text(json.dumps(m, separators=(",", ":"), sort_keys=True))
+    print(f"fantrax id map: {len(m)} players on the boards")
+    return m
 
 
 def main(argv=None):

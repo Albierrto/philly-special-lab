@@ -28,6 +28,12 @@ def main(argv=None):
         data["streamers"] = dict(meta=s["meta"], hitter_days=columnar(s["hitter_days"], HD_COLS), pitcher_starts=columnar(s["pitcher_starts"], PS_COLS), games=columnar(s["games"], G_COLS),
                                  park_factors=s["park_factors"], venues=s.get("venues", []), logs=s.get("logs", {}))
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text()); data["meta"]["team_names"] = cfg.get("fantasy_team_abbrevs", {})
+    # the next draft: its Fantrax league (once the new season's league exists and is in league_ids) and the id map that
+    # turns a live Fantrax pick into a player on the lab's board
+    data["meta"]["draft_league"] = (cfg.get("league_ids") or {}).get(str(data["meta"]["season"] + 1))
+    fxm = C.DATA / "fantrax" / "fx_map.json"; data["fx"] = json.loads(fxm.read_text()) if fxm.exists() else {}
+    mv = C.DATA / "news" / f"moves_{data['meta']['season']}.json"
+    data["moves"] = json.loads(mv.read_text()) if mv.exists() else {"moves": [], "teams": {}}
     data["meta"]["schedule"] = cfg.get("schedule", {})          # scoring periods + head-to-head, for the matchup simulator
     data["meta"]["standings"] = cfg.get(f"standings_{data['meta']['season']}", [])   # season pace, to sanity-check the simulator
     sc = C.DATA / "scorecard" / "summary.csv"
