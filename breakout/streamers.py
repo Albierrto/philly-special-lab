@@ -60,6 +60,10 @@ def teams() -> pd.DataFrame:
     return pd.DataFrame([dict(team_id=t["id"], abbr=t["abbreviation"], name=t["name"], club=t.get("teamName")) for t in j.get("teams", [])])
 
 
+SCHED_COLS = ["gamePk", "date", "gameDate", "status", "venue_id", "venue", "dayNight", "doubleHeader", "team_id", "team", "home",
+              "opp_id", "opp", "sp_id", "sp_name", "sp_source"]
+
+
 def schedule(start: str, end: str) -> pd.DataFrame:
     j = _get(f"{API}/schedule", sportId=1, startDate=start, endDate=end, hydrate="probablePitcher,venue,team")
     rows = []
@@ -77,7 +81,9 @@ def schedule(start: str, end: str) -> pd.DataFrame:
                                  venue_id=g["venue"]["id"], venue=g["venue"]["name"], dayNight=g.get("dayNight"), doubleHeader=g.get("doubleHeader"),
                                  team_id=t["team"]["id"], team=t["team"]["name"], home=(side == "home"), opp_id=o["team"]["id"], opp=o["team"]["name"],
                                  sp_id=pp.get("id"), sp_name=pp.get("fullName"), sp_source="listed" if pp else None))
-    return pd.DataFrame(rows)
+    # typed even when empty: in October and all winter a window can hold no regular-season game, and a column-less
+    # frame made every caller that filters on status die with KeyError (the refresh would have failed from Oct 14 on)
+    return pd.DataFrame(rows, columns=SCHED_COLS)
 
 
 def venues() -> pd.DataFrame:
@@ -432,7 +438,10 @@ def pitch_cache(ids, end: str, group: int = 80) -> pd.DataFrame:
     frames = []; full = 0; topup = 0
     for gt, lt in weeks:
         f = PITCH_CACHE / f"{gt}.parquet"; fi = PITCH_CACHE / f"{gt}.ids"
-        done = lt < end                       # a week that has finished never changes again
+        # a week that finished at least two days ago never changes again. "Before today" was not enough: the last pull of a
+        # week happens during its final day, before the night games, and Savant posts those overnight, so the cached
+        # week kept only the afternoon of its last day (9/22 had 6 of 32 starters) for good.
+        done = lt <= (end_d - timedelta(days=2)).isoformat()
         if f.exists() and done:
             d = pd.read_parquet(f)
             asked = set(json.loads(fi.read_text())) if fi.exists() else set(d["pitcher"].astype(int))

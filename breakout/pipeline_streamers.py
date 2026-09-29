@@ -30,6 +30,17 @@ def main(argv=None):
     tm = ST.teams(); sch = ST.schedule(start, end); ven = ST.venues()
     # past the last regular-season Sunday there are no games this week: keep serving the final week (as the site did the
     # morning after the season ended) rather than an empty table that stops every step below
+    prev = out / "streamers.json"
+    if not len(sch) and not a.start and prev.exists():
+        # the season is over (or not started): the final week's tables stay exactly as they were built, flagged, instead
+        # of being rebuilt every run with 7/14/30-day windows that drain toward nothing. The page reads season_over and
+        # shows its offseason state; the first week with regular-season games rebuilds normally.
+        j = json.loads(prev.read_text()); m = j.setdefault("meta", {})
+        if not m.get("season_over"):
+            m["season_over"] = True; m["season_over_flagged"] = asof.isoformat()
+            prev.write_text(json.dumps(j, separators=(",", ":")))
+        print(f"no regular-season games {start} .. {end}: season over, keeping the final week ({m.get('start')} .. {m.get('end')}) as built")
+        return 0
     back = 0
     while not len(sch) and not a.start and back < 6:
         back += 1

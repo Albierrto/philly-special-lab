@@ -16,7 +16,7 @@ Everything it writes goes through reference.check() first. A file that does not 
 a wrong list is worse than no list, because the site would show it as this week's advice.
 """
 from __future__ import annotations
-import argparse, csv, io, os, re, shutil, sys, tempfile
+import argparse, csv, io, json, os, re, shutil, sys, tempfile
 from pathlib import Path
 from datetime import date, timedelta
 import pandas as pd
@@ -134,9 +134,26 @@ def _name(prefix: str, pub: str) -> str:
     return f"cbs_week{max(1, ((d - date(d.year, 3, 23)).days // 7) + 1):02d}_{pub}.csv"
 
 
+def _in_season(today: str) -> bool:
+    """Between the league's first and last scoring day. Outside it there are no weekly tiers or two-start lists to read,
+    and every refresh all winter would otherwise spend two web-search model calls finding nothing new."""
+    try:
+        from . import config as _C
+        per = (json.loads((_C.DATA / "fantrax" / "league_config.json").read_text()).get("schedule") or {}).get("periods") or []
+        return not per or (per[0]["start"] <= today < per[-1]["end"])
+    except Exception:
+        return True
+
+
 def run(force: bool = False, dry: bool = False, asof: str | None = None) -> int:
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    today = asof or date.today().isoformat()
+    try:
+        from .config import league_today as _lt
+        today = asof or _lt().isoformat()          # the league's day, not the runner's UTC date
+    except Exception:
+        today = asof or date.today().isoformat()
+    if not force and not _in_season(today):
+        print(f"analyst lists: {today} is outside the league's season, skipping"); return 0
     if not key:
         print("analyst lists: no ANTHROPIC_API_KEY, skipping (the site carries on with whatever is on file)")
         return 0

@@ -31,7 +31,12 @@ def _get(path: str, **params) -> dict | list:
 def league_id(season: int | None = None) -> str:
     cfg = json.loads((C.DATA / "fantrax" / "league_config.json").read_text())
     ids = cfg.get("league_ids", {}); season = season or C.CURRENT_SEASON
-    return ids.get(str(season)) or cfg.get("league_id") or next(iter(ids.values()))
+    if str(season) in ids: return ids[str(season)]
+    # no league configured for this season yet (the season was bumped before Fantrax's 2027 league existed): say so
+    # loudly rather than quietly syncing last year's league into this year's files
+    print(f"WARNING: no Fantrax league id for {season} in league_config.json league_ids; using the latest configured "
+          f"({max(ids) if ids else 'league_id'}). Add the {season} id once the league is created.", flush=True)
+    return ids[max(ids)] if ids else cfg.get("league_id")
 
 
 def player_ids() -> dict:

@@ -179,8 +179,19 @@ def apply(data: dict, ow: Owners | None = None) -> dict:
     for r in data.get("prospects", []) or []:
         if r.get("name") and r.get("mlbam_id") is not None: h_by.setdefault(key(r["name"]), r["mlbam_id"])
     ro = ow.rows.astype(object).where(ow.rows.notna(), None)   # no NaN in the JSON
-    data["rosters"] = [dict(player=r.player, mlb=r.mlb, pos=r.pos, slot=r.slot, status=r.status, owner=r.owner,
-                            h_id=h_by.get(key(r.player)), p_id=p_by.get(key(r.player)), m_id=m_by.get(key(r.player))) for r in ro.itertuples()]
+    def ids(r):
+        # the name key drops "Jr.", so a hitter can collide with a pitcher of the same name (Luis Garcia Jr., NYY 2B, was
+        # carrying the Astros' Luis Garcia as his pitcher id). A player gets the other side's id only when it is the same
+        # MLB id, which is what a real two-way player (Ohtani) looks like.
+        k = key(r.player); h, p = h_by.get(k), p_by.get(k)
+        pitcher = str(r.pos or "") in ("SP", "RP", "P")
+        if pitcher and h is not None and h != p: h = None
+        if not pitcher and p is not None and p != h: p = None
+        return h, p
+    data["rosters"] = []
+    for r in ro.itertuples():
+        h, p = ids(r)
+        data["rosters"].append(dict(player=r.player, mlb=r.mlb, pos=r.pos, slot=r.slot, status=r.status, owner=r.owner, h_id=h, p_id=p, m_id=m_by.get(key(r.player))))
     meta["owners_synced"] = ow.synced; meta["owners_changed"] = changed; data["meta"] = meta
     return data
 

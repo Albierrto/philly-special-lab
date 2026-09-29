@@ -153,9 +153,22 @@ def statuses(refresh: bool = True) -> dict[int, str]:
     return out
 
 
+def milb_season_end(season: int) -> str | None:
+    """Last day of the minor-league season (Triple-A postseason included), from MLB's season calendar."""
+    try:
+        j = _S.get("https://statsapi.mlb.com/api/v1/seasons/%d" % season, params={"sportId": 11}, timeout=30).json()
+        s = (j.get("seasons") or [{}])[0]
+        return s.get("postSeasonEndDate") or s.get("regularSeasonEndDate")
+    except Exception:
+        return None
+
+
 def build(season: int, with_outings: bool = True) -> dict:
     """The live board: open assignments with their outings, plus who came back in the last fortnight."""
     today = league_today()
+    # once the minor-league season is over nobody can play a rehab game, so "no game in ten days" stops meaning a setback
+    mend = milb_season_end(season)
+    milb_over = bool(mend) and today > dt.date.fromisoformat(mend)
     seen, tx = set(), []
     for t in list(transactions(season)) + _recent(season):
         i = t.get("id")
@@ -231,21 +244,21 @@ def build(season: int, with_outings: bool = True) -> dict:
         # routinely out there past the nominal window on a second assignment or an agreed extension, and Gavin Stone
         # throwing 54 pitches four days ago is plainly still rehabbing. So the setback flag is about the games, and
         # being past the window is reported as its own thing rather than a negative countdown.
-        stalled = (since is None and age >= 5) or (since is not None and since >= STALE_OUTING)
-        over = age > cap
+        stalled = not milb_over and ((since is None and age >= 5) or (since is not None and since >= STALE_OUTING))
+        over = age + 1 > cap                                   # "day 21 of 20" is past the window
         open_rows.append({
             "mlbam_id": pid, "name": start["name"], "pos": start["pos"], "pitcher": pitcher,
             "club": start["club"], "to": stint[-1]["to"], "level": stint[-1]["level"],
             "started": start["date"], "day": age + 1, "cap": cap,
             "deadline": (dt.date.fromisoformat(start["date"]) + dt.timedelta(days=cap)).isoformat(),
-            "left": max(0, cap - age), "stalled": stalled, "over": over, "since_outing": since,
+            "left": max(0, cap - age), "stalled": stalled, "over": over, "since_outing": since, "milb_over": milb_over,
             "moved": len({s["to"] for s in stint}) > 1, "il": stat.get(pid, ""),
             "reason": rs.get("text") or "", "il_date": rs.get("date") or "",
             "outings": og, "last_outing": last, "n_outings": len(og)})
     # the ones actually playing come first, soonest to run out of window at the top; setbacks sit below
     open_rows.sort(key=lambda r: (r["stalled"], r["over"], r["left"], -r["day"]))
     back_rows.sort(key=lambda r: r["back"], reverse=True)
-    return {"asof": today.isoformat(), "open": open_rows, "returned": back_rows}
+    return {"asof": today.isoformat(), "open": open_rows, "returned": back_rows, "milb_over": milb_over, "milb_end": mend}
 
 
 def write(season: int) -> dict:

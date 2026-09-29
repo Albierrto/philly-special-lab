@@ -85,7 +85,12 @@ def archive(day: str | None = None) -> str:
     # it would be grading a "forecast" written with part of the answer in hand (4 of the first 14 days were first
     # written between 3 and 4:30 pm ET)
     first = _first_pitch(day)
-    if first is not None and _now() >= first:
+    if first is None:     # MLB's schedule call failed: fall back on the build's own first pitch, and never write blind
+        ts = [pd.Timestamp(x).tz_localize(None) if pd.Timestamp(x).tzinfo is None else pd.Timestamp(x).tz_convert("UTC").tz_localize(None) for x in starts if x]
+        first = min(ts) if ts else None
+        if first is None:
+            print(f"scorecard: first pitch for {day} unknown - not archiving, so nothing can be written after games start"); return str(out) if out.exists() else ""
+    if _now() >= first:
         if out.exists():
             print(f"scorecard: {day} is already under way - keeping the forecast that was on the page before it started")
         else:
