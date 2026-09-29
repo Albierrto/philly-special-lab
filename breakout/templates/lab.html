@@ -507,6 +507,7 @@ tbody tr:hover td,tbody tr:hover td.sticky{background-color:color-mix(in srgb,va
 @media (max-width:700px){ .herogrid{grid-template-columns:repeat(2,minmax(0,1fr))} .hstat b{font-size:30px} }
 /* phones: the day/night switch moves into Settings so the team picker gets the room */
 @media (max-width:560px){ #theme-btn{display:none} .teamsel select{max-width:132px} .dcard,.tside,.verdict,.desk{padding:14px 14px} }
+@media (max-width:560px){ body[data-league="nfbc"] #theme-btn{display:inline-flex} }   /* NFBC hides settings, so its phone bar keeps the theme toggle */
 .drawer .themerow{display:none}
 .mst{display:none}
 @media (max-width:560px){ th.opt2,td.opt2{display:none} #dash td.name{white-space:normal} #dash .mst{display:block;margin:3px 0 0} #dash .mst:empty{display:none} #dash td .pill{white-space:nowrap} #dash table td,#dash table th{padding-left:8px;padding-right:8px} }
@@ -1335,20 +1336,22 @@ function refreshAll(){ rescore(); prescore(); buildPct(); computeValues(); rende
 // ---------- player card
 // a man on a rehab assignment, said on his own card, because that is where you look before deciding to sit him
 function rehabChip(id){ const r = (typeof onRehab === 'function') ? onRehab(id) : null; if (!r) return '';
+  if (r.milb_over) return `<span class="pill n" title="${esc(`rehab assignment at ${r.to||''} from ${r.started}; the minor-league season has ended`)}">rehab \u00b7 minors season over</span>`;
   const when = r.stalled ? (r.since_outing==null ? 'no game since it was filed' : `setback, ${r.since_outing} days since a game`)
              : r.over ? `day ${r.day}, past the ${r.cap}-day window`
              : `day ${r.day} of ${r.cap}, ${r.left} left`;
   return `<span class="pill ${r.stalled?'r':'w'}" title="${esc(`on a rehab assignment at ${r.to||''} since ${r.started}${r.reason?' \u00b7 '+r.reason:''}`)}">rehab \u00b7 ${esc(when)}</span>`; }
 
 // how many points he has actually put up in this league — the first thing anyone wants when they open a player
-function ptsBand(id, kind, seasonPts, rank, extra){
+function ptsBand(id, kind, seasonPts, rank, extra, season){
   const L = ((kind==='p' ? LOGS().p : LOGS().h) || {})[String(id)] || {}; const su = L.s || {};
   const per = kind==='p' ? (su.pts_start!=null ? [su.pts_start, 'per start'] : null)
                          : (su.g ? [+(su.pts/su.g).toFixed(1), 'per game'] : null);
   const win = (d) => su['pts'+d]==null ? '' : `<div class="sp">${su['pts'+d]}<small>last ${d} days <em>${su['g'+d]||0} g</em></small></div>`;
   const tot = su.pts!=null ? su.pts : (seasonPts!=null ? Math.round(seasonPts) : null);
   if (tot==null) return '';
-  return `<div class="ptsband"><div class="big">${tot}<small>${CUR} fantasy points</small></div>
+  const yr = su.pts!=null ? CUR : (season || CUR);   // an injured man's last line is an older season: say which
+  return `<div class="ptsband"><div class="big">${tot}<small>${yr} fantasy points</small></div>
     ${per?`<div class="sp">${per[0]}<small>${per[1]} <em>${su.g||0} ${kind==='p'?'g':'g'}</em></small></div>`:''}
     ${win(7)}${win(30)}
     ${rank?`<div class="sp">#${rank}<small>${kind==='p'?'among starters':'among hitters'}</small></div>`:''}
@@ -1358,7 +1361,11 @@ const sec = (title, body, open=false, note='') => body ? `<details class="sec"${
 const kp = (l,v,c='')=>`<div class="kpi${c?' '+c:''}"><b>${v}</b><span>${l}</span></div>`;
 function showCard(html, id){ $('#card-body').innerHTML = html;
   // from any player page: straight to the deal desk with him picked, as a buy or a sell depending on whose he is
-  if (id != null && typeof deskFind === 'function' && VAL){ const f = deskFind(id); if (f && !isFA(f.owner)){ const mine = f.owner === tr.a;
+  if (LEAGUE === 'nfbc'){   // the card itself is the Philly Special card: say so, and leave out the Philly trade shortcuts
+    const po = window.POST && window.POST.players.find(o => o.id === id);
+    const strip = `<div class="note" style="margin:0 0 10px">${po ? `<b>NFBC Holdem:</b> ${esc(po.t)}, ${esc(po.kind === 'P' ? po.role : 'bats ' + (po.slot || '?'))}, expected ${po.by.DS.toFixed(1)} DS / ${po.by.LCS.toFixed(1)} LCS / ${po.by.WS.toFixed(1)} WS points, ${po.ev.toFixed(1)} held. ` : ''}The rest of this card is scored in Philly Special points.</div>`;
+    $('#card-body').insertAdjacentHTML('afterbegin', strip);
+  } else if (id != null && MY && typeof deskFind === 'function' && VAL){ const f = deskFind(id); if (f && !isFA(f.owner)){ const mine = f.owner === MY;
     const strip = `<div class="cardtrade"><button class="btn small" data-deskgo="${f.type}:${id}">${mine ? 'Shop him: best deals for him' : `Trade for him: what ${esc(teamLabel(f.owner).replace(/ \(.*\)$/,''))} would take`}</button><span class="hint">${mine ? 'every team, what they could send back' : 'packages from your roster they would accept'}</span></div>`;
     const pb = $('#card-body .pband'); if (pb) pb.insertAdjacentHTML('afterend', strip); else $('#card-body').insertAdjacentHTML('afterbegin', strip);
     $$('#card-body [data-deskgo]').forEach(b=>b.addEventListener('click', ()=>{ closeCard(); deskOpen(b.dataset.deskgo); })); } }
@@ -1412,7 +1419,7 @@ function hitterSection(id, sub=false){
   const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', (p?.kept_2026_as && MY===HOME_ABBR)?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', p?.avail_note?`<span class="pill r" title="${esc(p.avail_note)}">2027 playing time adjusted</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a hitter</h3><div class="hint">${subline}</div>` : pband(last.name, last.team_abbr, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
-    ${ptsBand(id, 'h', last.pts_c, last.rank_c)}
+    ${ptsBand(id, 'h', last.pts_c, last.rank_c, '', last.season)}
     <div class="kpis">${kp('Above repl.', Math.round(last.LPAR_c))}${kp('Luck', last.luck_c==null?'–':(last.luck_c>=0?'+':'')+Math.round(last.luck_c))}${pj}</div>
     ${sec('Recent games', gameLog(id, 'h'), true, `last ${logCount(id,'h')} · this league's points`)}
     ${sec('Season by season', `<div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`)}
@@ -1459,7 +1466,7 @@ function pitcherSection(id, sub){
   const chips = [p?.keep_tier?`<span class="pill">keeper: ${p.keep_tier}</span>`:'', (p?.kept_2026_as && MY===HOME_ABBR)?`<span class="pill">your 2026 keeper (${p.kept_2026_as})</span>`:'', p?.avail_note?`<span class="pill r" title="${esc(p.avail_note)}">2027 starts adjusted</span>`:'', rehabChip(last.mlbam_id)].filter(Boolean);
   const head = sub ? `<h3 style="font-size:24px;margin-top:22px;border-top:2px solid var(--line);padding-top:14px">As a pitcher</h3><div class="hint">${subline}</div>` : pband(last.name, last.team, subline, chips, last.mlbam_id);
   return `${head}<div class="card-body">
-    ${ptsBand(id, 'p', last.pts_c, last.rank_c)}
+    ${ptsBand(id, 'p', last.pts_c, last.rank_c, '', last.season)}
     <div class="kpis">${kp('Pitching+', last.pitching_plus?.toFixed(0)??'–')}${kp('Stuff+', last.stuff_plus?.toFixed(0)??'–')}${kp('Location+', last.location_plus?.toFixed(0)??'–')}${pj}</div>
     ${sec('Recent games', gameLog(id, 'p'), true, `last ${logCount(id,'p')} · this league's points`)}
     ${sec('Season by season', `<div class="tblwrap" style="max-height:none"><table><thead><tr>${cols.map(c=>`<th class="${c.t==='txt'?'l':''}">${c.l}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`)}
@@ -1675,12 +1682,13 @@ function refNote(m){
 function renderStreamers(){
   if(!SD){ $('#s-lede').textContent = 'No streamer data in this build.'; return; }
   const TDY = localISO();
+  if (seasonOver() && sstate.day==='rest' && !sstate.offTouched){ sstate.day = 'week'; const sel = $('#s-day'); if (sel && sel.options.length) sel.value = 'week'; }   // the rest of a finished week is nothing
   const agg = sstate.day==='week' || sstate.day==='rest';                 // aggregate over days rather than show one
   const dayOk = r => sstate.day==='rest' ? r.date >= TDY : (sstate.day==='week' ? true : r.date===sstate.day);
   const gone = SPS.filter(r=>r.date < TDY).length;
-  const m = SD.meta; $('#s-lede').innerHTML = `<b>${dayLabel(m.start)} – ${dayLabel(m.end)}</b>. Who to pick up and who to start, game by game: every hitter's and pitcher's expected points for each matchup, from the posted or projected starter, the park, the weather at first pitch and lefty/righty splits. ${m.listed} of ${m.games} games have a posted probable (the rest are projected from each rotation). Free-agent status is the Fantrax table as of ${esc(m.asof)}; injured, minor-league and off-40-man players are hidden.${gone&&sstate.day==='rest'?` <b>Showing what is still to come.</b> ${gone} start${gone===1?'':'s'} earlier this week ${gone===1?'is':'are'} already thrown and hidden — switch the day to <i>whole week</i> to see them.`:''}${refNote(m)}`;
+  const m = SD.meta; $('#s-lede').innerHTML = (seasonOver() ? `<span class="pill w">season over</span> The ${CUR} fantasy season ended ${esc(seasonEndLabel())}; this is the last week of MLB games as it was built, kept for reference. ` : '') + `<b>${dayLabel(m.start)} – ${dayLabel(m.end)}</b>. Who to pick up and who to start, game by game: every hitter's and pitcher's expected points for each matchup, from the posted or projected starter, the park, the weather at first pitch and lefty/righty splits. ${m.listed} of ${m.games} games have a posted probable (the rest are projected from each rotation). Free-agent status is the Fantrax table as of ${esc(m.asof)}; injured, minor-league and off-40-man players are hidden.${gone&&sstate.day==='rest'?` <b>Showing what is still to come.</b> ${gone} start${gone===1?'':'s'} earlier this week ${gone===1?'is':'are'} already thrown and hidden — switch the day to <i>whole week</i> to see them.`:''}${refNote(m)}`;
   const days = [...new Set(SHD.map(r=>r.date))].sort();
-  if(!$('#s-day').options.length){ $('#s-day').innerHTML = '<option value="rest">rest of week</option><option value="week">whole week (incl. played)</option>' + days.map(d=>`<option value="${d}">${dayLabel(d)}</option>`).join(''); $('#s-day').value = sstate.day; $('#s-day').addEventListener('change', e=>{ sstate.day=e.target.value; renderStreamers(); });
+  if(!$('#s-day').options.length){ $('#s-day').innerHTML = '<option value="rest">rest of week</option><option value="week">whole week (incl. played)</option>' + days.map(d=>`<option value="${d}">${dayLabel(d)}</option>`).join(''); $('#s-day').value = sstate.day; $('#s-day').addEventListener('change', e=>{ sstate.day=e.target.value; sstate.offTouched = true; renderStreamers(); });
     $('#s-avail').addEventListener('change', e=>{ sstate.avail=e.target.value; renderStreamers(); }); $('#s-listed').addEventListener('change', e=>{ sstate.listed=e.target.checked; renderStreamers(); }); $('#s-more').addEventListener('change', e=>{ sstate.more=e.target.checked; renderStreamers(); });
     $('#s-pavail').addEventListener('change', e=>{ sstate.pavail=e.target.value; renderStreamers(); }); $('#s-two').addEventListener('change', e=>{ sstate.two=e.target.checked; renderStreamers(); }); $('#s-allroles').addEventListener('change', e=>{ sstate.allroles=e.target.checked; renderStreamers(); });
     $('#s-pos').innerHTML = posList.map(p=>`<span class="chip" role="button" tabindex="0" aria-pressed="false" data-p="${p}">${p}</span>`).join('');
@@ -1693,10 +1701,10 @@ function renderStreamers(){
   if (agg){
     const by = {}; rows.forEach(r=>{ const k=r.mlbam_id; (by[k] ||= {...r, games:0, week_pts:0, mults:[], days:[]}); by[k].games++; by[k].week_pts += r.exp_pts; by[k].mults.push(r.mult); by[k].days.push(`${dayLabel(r.date).split(',')[0]} ${r.home?'vs':'@'} ${r.opp.split(' ').pop()} (${r.opp_sp_throws||'?'}HP${r.opp_sp_source==='projected'?'·P':''}) ${r.exp_pts.toFixed(1)}`); });
     rows = Object.values(by).map(r=>({...r, week_pts:+r.week_pts.toFixed(1), avg_mult:+(r.mults.reduce((a,b)=>a+b,0)/r.mults.length).toFixed(3), days_txt:r.days.join(' · ')}));
-    cols = [{k:'name',l:'Hitter',t:'name'},{k:'team',l:'Team',t:'txt'},{k:'bats',l:'B',t:'txt'},{k:'owner',l:'Owner',t:'txt'},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'games',l:'G',f:'int'},{k:'week_pts',l:sstate.day==='rest'?'Left this week':'Week expected',f:'1'},{k:'days_txt',l:'Day by day',t:'txt'}];
+    cols = [{k:'name',l:'Hitter',t:'name'},{k:'team',l:'Team',t:'txt'},{k:'bats',l:'B',t:'txt'},{k:'owner',l:'Owner',t:'txt'},{k:'cbs',l:(SD && SD.meta.cbs_asof ? 'CBS ' + dayLabel(SD.meta.cbs_asof).replace(/^\w+,? /,'') : 'CBS'),render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'games',l:'G',f:'int'},{k:'week_pts',l:sstate.day==='rest'?'Left this week':'Week expected',f:'1'},{k:'days_txt',l:'Day by day',t:'txt'}];
     if (sstate.more) cols.splice(7,0,{k:'avg_mult',l:'Avg nudge',f:'3'},{k:'base_rate',l:'Pts / PA',f:'3'},{k:'pa_g',l:'PA/G',f:'2'},{k:'woba_30',l:'wOBA 30d',f:'3'},{k:'pa_30',l:'PA 30d',f:'int'});
   } else {
-    cols = [{k:'name',l:'Hitter',t:'name'},{k:'lineup',l:'Today',render:(v,r)=>lineupPill(r),left:true},{k:'owner',l:'Owner',t:'txt'},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(abbrOf(v))} ${stateChip(r.gamePk)}`,left:true},{k:'opp_sp',l:'Opp SP',render:(v,r)=>spTag(v,r.opp_sp_source)+(r.opp_sp_throws?` <span class="hint">${r.opp_sp_throws}HP</span>`:''),left:true},{k:'exp_pts',l:'Expected pts',f:'2'},{k:'why',l:'Why',render:(v,r)=>whyChips(r,3),left:true},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'local_start',l:'First pitch',t:'txt'}];
+    cols = [{k:'name',l:'Hitter',t:'name'},{k:'lineup',l:'Today',render:(v,r)=>lineupPill(r),left:true},{k:'owner',l:'Owner',t:'txt'},{k:'cbs',l:(SD && SD.meta.cbs_asof ? 'CBS ' + dayLabel(SD.meta.cbs_asof).replace(/^\w+,? /,'') : 'CBS'),render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(abbrOf(v))} ${stateChip(r.gamePk)}`,left:true},{k:'opp_sp',l:'Opp SP',render:(v,r)=>spTag(v,r.opp_sp_source)+(r.opp_sp_throws?` <span class="hint">${r.opp_sp_throws}HP</span>`:''),left:true},{k:'exp_pts',l:'Expected pts',f:'2'},{k:'why',l:'Why',render:(v,r)=>whyChips(r,3),left:true},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'local_start',l:'First pitch',t:'txt'}];
     if (sstate.more) cols.splice(7,0,{k:'mult',l:'Total nudge',f:'3'},{k:'f_sp',l:'× Pitcher',f:'3'},{k:'f_platoon',l:'× L/R',f:'3'},{k:'f_park',l:'× Park',f:'3'},{k:'f_wx',l:'× Weather',f:'3'},{k:'f_form',l:'× Last 30',f:'3'},{k:'sp_xwoba',l:'Pitcher xwOBA',f:'3'},{k:'sp_k',l:'Pitcher K%',f:'1'},{k:'park_runs',l:'Park runs',f:'int'},{k:'park_hr',l:'Park HR',f:'int'},{k:'base_rate',l:'Pts / PA',f:'3'},{k:'pa_g',l:'PA/G',f:'2'},{k:'woba_30',l:'wOBA 30d',f:'3'},{k:'team',l:'Team',t:'txt'},{k:'bats',l:'B',t:'txt'});
   }
   $('#s-count').textContent = `${rows.length} hitters`;
@@ -1714,7 +1722,7 @@ function renderStreamers(){
   const withRest = r => { const rn = restN[r.mlbam_id]||0;
     return {...r, rest_n: rn, rest_pts: +((restP[r.mlbam_id]||0).toFixed(1)), two_left: rn >= 2, thrown: (fullN[r.mlbam_id]||0) - rn}; };
   let prow = SPS.map(withRest).filter(r => r.sp_source!=='replaced' && r.active!==0 && pOk(r.owner) && (sstate.allroles || goodRole(r) || r.owner===MY) && (!sstate.two || (sstate.day==='week' ? r.two_start : r.two_left)) && dayOk(r));
-  const pcols = [{k:'date',l:'Day',render:v=>dayLabel(v),left:true},{k:'name',l:'Pitcher',t:'name'},{k:'owner',l:'Owner',t:'txt'},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(abbrOf(v))} ${stateChip(r.gamePk)}`,left:true},{k:'sp_source',l:'',render:v=>v==='projected'?'<span class="pill n" title="projected from rotation order">P</span>':'<span class="pill g">listed</span>'},{k:'exp_pts',l:'Expected pts',f:'2'},{k:'why',l:'Why',render:(v,r)=>whyChipsP(r,3),left:true},{k:'pl_tier',l:'PitcherList 9/8',render:(v,r)=>tierPillP(v)+(r.pl_note?` <span class="hint" title="${esc(r.pl_note)}">ⓘ</span>`:''),left:true},{k:'cbs',l:'CBS wk 26',render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'two_start',l:'Two-start',render:(v,r)=> r.two_left ? '<span class="pill b" title="two starts still to come">2</span>' : (v ? `<span class="pill n" title="a two-start week on paper, but ${r.thrown} already thrown">2 · ${r.rest_n} left</span>` : '')},{k:'rest_pts',l:'Left this week',f:'1',title:'expected points from the starts he has LEFT this week - a start already thrown is worth nothing to you now'},{k:'week_pts',l:'Full week',f:'1',title:'the whole Mon-Sun window, including starts that have already happened'},{k:'last5_pts',l:'Last 5 starts',f:'1'},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'local_start',l:'First pitch',t:'txt'}];
+  const pcols = [{k:'date',l:'Day',render:v=>dayLabel(v),left:true},{k:'name',l:'Pitcher',t:'name'},{k:'owner',l:'Owner',t:'txt'},{k:'opp',l:'Opp',render:(v,r)=>`${r.home?'vs':'@'} ${esc(abbrOf(v))} ${stateChip(r.gamePk)}`,left:true},{k:'sp_source',l:'',render:v=>v==='projected'?'<span class="pill n" title="projected from rotation order">P</span>':'<span class="pill g">listed</span>'},{k:'exp_pts',l:'Expected pts',f:'2'},{k:'why',l:'Why',render:(v,r)=>whyChipsP(r,3),left:true},{k:'pl_tier',l:(SD && SD.meta.pitcherlist_asof ? 'PitcherList ' + dayLabel(SD.meta.pitcherlist_asof).replace(/^\w+,? /,'') : 'PitcherList'),render:(v,r)=>tierPillP(v)+(r.pl_note?` <span class="hint" title="${esc(r.pl_note)}">ⓘ</span>`:''),left:true},{k:'cbs',l:(SD && SD.meta.cbs_asof ? 'CBS ' + dayLabel(SD.meta.cbs_asof).replace(/^\w+,? /,'') : 'CBS'),render:v=>v?`<span class="pill b">${esc(v)}</span>`:'',left:true},{k:'two_start',l:'Two-start',render:(v,r)=> r.two_left ? '<span class="pill b" title="two starts still to come">2</span>' : (v ? `<span class="pill n" title="a two-start week on paper, but ${r.thrown} already thrown">2 · ${r.rest_n} left</span>` : '')},{k:'rest_pts',l:'Left this week',f:'1',title:'expected points from the starts he has LEFT this week - a start already thrown is worth nothing to you now'},{k:'week_pts',l:'Full week',f:'1',title:'the whole Mon-Sun window, including starts that have already happened'},{k:'last5_pts',l:'Last 5 starts',f:'1'},{k:'temp_f',l:'Weather',render:(v,r)=>wxCell(r),left:true},{k:'local_start',l:'First pitch',t:'txt'}];
   if (sstate.more) pcols.splice(7,0,{k:'role',l:'Role',t:'txt'},{k:'n_starts',l:'Starts',f:'int'},{k:'ip_gs',l:'IP / start',f:'1'},{k:'base_gs',l:'Pts / start',f:'2'},{k:'opp_woba_vs_hand',l:'Lineup wOBA',f:'3',title:"the club's season wOBA against this pitcher's hand — what the matchup is actually priced on"},{k:'opp_lineup_woba',l:'Bats playing now',f:'3',title:'the same season splits, but weighted by the plate appearances the club\u2019s hitters are taking in the last 30 days. Shown for context only: tested on 3,072 starts it did not predict better than the season split, so it does not move expected points'},{k:'opp_k_vs_hand',l:'Lineup K%',render:v=>v==null?'':(100*v).toFixed(1),title:"the club's season strikeout rate against this hand, ALREADY nudged by how it has been striking out over the last 30 days (at half weight). It moves every build, just slowly - a season rate shifts about a tenth of a point a day."},{k:'opp_k_30',l:'K% last 30d',render:v=>v==null?'':(100*v).toFixed(1),title:'the same club\u2019s actual strikeout rate over the last 30 days, unsmoothed. This is the number that moves day to day.'},{k:'opp_k_move',l:'K% trend',render:v=>v==null||v===0?'':`<span class="${v>0?'pill w':'pill b'}">${v>0?'+':''}${Math.round(100*v)}%</span>`,title:'last 30 days against the rest of the season. Positive means the club is striking out MORE lately, which helps your pitcher. Half of this is carried into expected points.'},{k:'park_runs',l:'Park',f:'int'},{k:'f_opp',l:'× Lineup',f:'3'},{k:'f_park',l:'× Park',f:'3'},{k:'f_wx',l:'× Weather',f:'3'},{k:'k_bonus',l:'K bonus',f:'2'},{k:'pitching_plus',l:'Pitching+',f:'1'},{k:'xera',l:'xERA',f:'2'},{k:'pts_gs_2026',l:'2026 pts / start',f:'2',title:'his own points per start this year, counting STARTS ONLY \u2014 relief outings are excluded, so a swingman is not credited with his bullpen work divided by his start count'},{k:'n_relief',l:'Relief apps',f:'int',title:'appearances out of the bullpen, not counted in points per start'},{k:'GS',l:'GS',f:'int'},{k:'team',l:'Team',t:'txt'});
   $('#s-pcount').textContent = `${prow.length} starts`;
   if(!tSP) tSP = table('t-sp', pcols, prow, {sort:'exp_pts', card:openPitcherCard, rowClass:x=>x.owner===MY?'mine':''}); else { tSP.setCols(pcols); tSP.setRows(prow); }
@@ -1894,7 +1902,21 @@ const FIRST_PO = (D.meta.schedule && D.meta.schedule.first_playoff_period) || 99
 // Fantrax stores a period Monday to the NEXT Monday (each end is the next start), so the end is exclusive: an inclusive
 // test put every period's first Monday in the previous period and simulated that Monday alone
 const curPeriod = (day) => { const t = day || localISO(); return PERIODS.find(p => p.start <= t && t < p.end) || PERIODS[PERIODS.length-1] || null; };
-const dayBefore = iso => { const d = new Date(iso+'T12:00:00'); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); };
+const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;   // not toISOString: east of UTC+12 local noon is already tomorrow in UTC
+const dayBefore = iso => { const d = new Date(iso+'T12:00:00'); d.setDate(d.getDate()-1); return isoLocal(d); };
+// the league's season: its scoring periods. After the last one ends, lineups, streamers and the matchup simulator have
+// nothing to decide until next year, and those pages say so instead of serving last week's slate as if it were live.
+const inSeasonDay = d => PERIODS.some(p => p.start <= d && d < p.end);
+function seasonOver(){ if (SD && SD.meta && SD.meta.season_over) return true; const last = PERIODS.length ? PERIODS[PERIODS.length-1].end : null; return !!last && localISO() >= last; }
+const seasonEndLabel = () => PERIODS.length ? dayLabel(dayBefore(PERIODS[PERIODS.length-1].end)) : 'the last period';
+function offseasonCard(extra){
+  const st = (D.meta.standings || []).find(x => x.abbrev === MY);
+  return `<div class="dcard w12 offcard" style="border-left:4px solid var(--accent)"><h3>The ${CUR} season is over <small>last scoring day ${esc(seasonEndLabel())}</small></h3>
+    <p class="hint">${st ? `${esc(teamLabel(MY).replace(/ \(.*\)$/,''))} finished the regular season ${st.W}-${st.L}, ${ordinal(st.rank)} of ${(D.meta.standings || []).length}. ` : ''}Lineups, streamers and the matchup simulator come back with ${CUR+1}'s first week. ${extra || ''}What matters until then:</p>
+    <div class="dayseg" style="margin-top:6px">${[['keepers', `Keepers for ${CUR+1}`], ['trades', `Trades and ${CUR+1} picks`], ['dash', 'My team'], ['prospects', 'Prospects'], ['breakouts', 'Breakouts']].map(([k, l]) => `<button data-go="${k}">${esc(l)}</button>`).join('')}</div></div>`;
+}
+const ordinal = n => { const v = n % 100; return n + (v >= 11 && v <= 13 ? 'th' : ({1: 'st', 2: 'nd', 3: 'rd'})[n % 10] || 'th'); };
+function wireOffCard(root){ $$(root + ' .offcard [data-go]').forEach(b => b.addEventListener('click', () => goTab(b.dataset.go))); }
 // What each team has ACTUALLY averaged per period this season. Fantrax's read-only API exposes a roster status but
 // not the lineup a manager has set, so "what if he leaves his lineup alone" is not knowable from here. This is the
 // honest stand-in: the projection below assumes a perfectly set lineup, and a manager's own season pace says how
@@ -1985,6 +2007,9 @@ function renderMatchup(){
   $('#m-days').innerHTML = allDays.map(d=>`<button aria-pressed="${d===TDY}" data-mday="${d}" title="simulate the rest of the period starting from this day">${dayWord(d)}</button>`).join('')
     + (TDY !== dflt ? `<button data-mday="" title="back to the real today" style="border-style:dashed">back to ${dayWord(dflt).toLowerCase()}</button>` : '');
   $$('#m-days button').forEach(b=>b.addEventListener('click', ()=>{ MST.day = b.dataset.mday || null; renderMatchup(); }));
+  if (!inSeasonDay(TDY) && seasonOver()){
+    $('#m-lede').innerHTML = `The ${CUR} fantasy season ended ${esc(seasonEndLabel())}, so there is no matchup to simulate. The simulator comes back with ${CUR+1}'s first scoring period; how its forecasts did all year is on the Scorecard.`;
+    $('#m-days').innerHTML = ''; $('#m-out').innerHTML = offseasonCard(); wireOffCard('#m-out'); return; }
   const per = curPeriod(TDY);
   const from = TDY, to = per ? dayBefore(per.end) : allDays[allDays.length-1];
   // the streamer build only carries one week of schedule, so a period that runs past it is simulated short rather
@@ -2004,7 +2029,7 @@ function renderMatchup(){
   const A = sideSlate(MST.me, from, to), B = sideSlate(MST.opp, from, to);
   const baseA = +$('#m-mine-now').value || 0, baseB = +$('#m-opp-now').value || 0;
   const sa = simulate(A, MST.sims, baseA), sb = simulate(B, MST.sims, baseB);
-  let wins = 0; for (let i=0;i<MST.sims;i++) if (sa.out[i] > sb.out[i]) wins++;
+  let wins = 0; for (let i=0;i<MST.sims;i++) wins += sa.out[i] > sb.out[i] ? 1 : sa.out[i] === sb.out[i] ? 0.5 : 0;   // a tie is half, not a loss
   const wp = wins / MST.sims;
   const arrA = Array.from(sa.out).sort((x,y)=>x-y), arrB = Array.from(sb.out).sort((x,y)=>x-y);
   const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
@@ -2140,7 +2165,7 @@ function renderRehab(){
   };
   const rows = REHAB.open.filter(keep);
   const nLive = REHAB.open.filter(r=>!r.stalled).length;
-  $('#rh-lede').innerHTML = `<b>${REHAB.open.length}</b> players are on a rehab assignment${REHAB.asof?` as of ${dayLabel(REHAB.asof)}`:''} — <b>${nLive}</b> with the clock running and <b>${REHAB.open.length-nLive}</b> who have stopped playing. <b>${REHAB.returned.length}</b> came off the injured list in the last two weeks. Every line is MLB's own filing and his actual box scores at the affiliate.`;
+  $('#rh-lede').innerHTML = (REHAB.milb_over ? `<span class="pill w">minors season over</span> The minor-league season ended ${REHAB.milb_end ? dayLabel(REHAB.milb_end) : ''}, so nobody is playing rehab games now; the list below is where each assignment stood, and these players stay on the injured list until clubs reinstate them in November. ` : '') + `<b>${REHAB.open.length}</b> players are on a rehab assignment${REHAB.asof?` as of ${dayLabel(REHAB.asof)}`:''} — <b>${nLive}</b> with the clock running and <b>${REHAB.open.length-nLive}</b> who have stopped playing. <b>${REHAB.returned.length}</b> came off the injured list in the last two weeks. Every line is MLB's own filing and his actual box scores at the affiliate.`;
   $('#rh-count').textContent = `${rows.length} shown`;
 
   const card = r => { const w = rhWho(r), c = rhClock(r), og = (r.outings||[]).slice(-8).reverse();
@@ -2425,15 +2450,15 @@ const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f
 (function buildTeamSel(){ const sel = $('#team-sel'); const owners = [...new Set([...Object.values(PROJ).map(p=>p.owner), ...Object.values(PPROJ).map(p=>p.owner)].filter(o=>o && !isFA(o)))].sort();
   sel.innerHTML = '<option value="">League view</option>' + owners.map(o=>`<option value="${esc(o)}">${esc(teamLabel(o))}</option>`).join(''); sel.value = owners.includes(MY) ? MY : '';
   if(!owners.includes(MY)) MY = '';
-  window.setTeam = function(o){ MY = o || ''; sel.value = MY; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(x=>x.value===MY)) ko.value = MY; tr.a = MY || tr.a; tr.c = null; tr.give = {a:[], b:[], c:[]}; DESK.sel = null; DESK.multi = []; DESK.team = ''; DESK.filter = ''; MST.me = MY || null; MST.opp = null; refreshAll(); renderStreamers(); renderPros(); if (typeof renderMatchup==='function' && $('#m-me')) renderMatchup(); if (MY) goTab('today'); };
+  window.setTeam = function(o){ MY = o || ''; sel.value = MY; try{ localStorage.setItem('lab-team', MY); }catch(e){} const ko = $('#k-owner'); if(ko && MY && [...ko.options].some(x=>x.value===MY)) ko.value = MY; tr.a = MY || tr.a; tr.c = null; tr.give = {a:[], b:[], c:[]}; DESK.sel = null; DESK.multi = []; DESK.team = ''; DESK.filter = ''; MST.me = MY || null; MST.opp = null; refreshAll(); renderStreamers(); renderPros(); if (typeof renderMatchup==='function' && $('#m-me')) renderMatchup(); };
   sel.addEventListener('change', ()=>setTeam(sel.value));
 })();
 
 // ---------- dashboard
 function renderDash(){
   const V = VAL || computeValues();
-  const today = localISO(); const dates = [...new Set(SHD.map(r=>r.date))].sort(); const day = dates.find(d=>d>=today) || dates[0];
-  $('#dash-asof').textContent = (SD ? `Built ${SD.meta.generated}` : `Built ${D.meta.generated}`) + (D.meta.owners_synced ? ` · Fantrax rosters synced ${fmtSync(D.meta.owners_synced)} (refreshes every morning)` : '');
+  const today = localISO(); const dates = [...new Set(SHD.map(r=>r.date))].sort(); const day = dates.find(d=>d>=today) || dates[dates.length-1];
+  $('#dash-asof').textContent = `Built ${fmtSync(SD ? SD.meta.generated : D.meta.generated)}` + (D.meta.owners_synced ? ` · Fantrax rosters synced ${fmtSync(D.meta.owners_synced)} (refreshes every morning)` : '');
   const rowH = (r, val, sub2, extra='') => `<div class="row" data-h="${r.mlbam_id}">${ava(r.name, r.team_abbr||r.team, 32, r.mlbam_id)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
   const rowP = (r, val, sub2, extra='') => `<div class="row" data-p="${r.mlbam_id}">${ava(r.name, r.team, 32, r.mlbam_id)}<div><div class="nm">${esc(r.name)}${extra}</div><div class="sub">${sub2}</div></div><div class="val">${val}</div></div>`;
   const tierP = t => t ? `<span class="pill ${t==='lock'?'r':t==='clear keep'?'g':t==='marginal'?'w':t==='surplus'?'b':'n'}">${esc(t)}</span>` : '';
@@ -2464,7 +2489,7 @@ function renderDash(){
   // week outlook: best lineup each day + starts
   const myH = SHD.filter(r=>r.owner===MY && r.active!==0); const weekPts = dates.reduce((a,d)=>a+bestLineup(myH.filter(r=>r.date===d), d).reduce((x,[s,r])=>x+(r?r.exp_pts:0),0),0);
   const myStarts = SPS.filter(r=>r.owner===MY && r.active!==0 && r.sp_source!=='replaced').sort((a,b)=>b.exp_pts-a.exp_pts); const startPts = myStarts.slice(0,10).reduce((a,r)=>a+r.exp_pts,0);
-  $('#dash-sub').textContent = `Week of ${dayLabel(SD?.meta.start||day)}: about ${weekPts.toFixed(0)} expected points from your best lineups and ${startPts.toFixed(0)} from your best ${Math.min(10,myStarts.length)} starts.`;
+  $('#dash-sub').textContent = seasonOver() ? `Offseason: your ${CUR+1} keeper group, draft picks and trade chips. The ${CUR} season ended ${seasonEndLabel()}.` : `Week of ${dayLabel(SD?.meta.start||day)}: about ${weekPts.toFixed(0)} expected points from your best lineups and ${startPts.toFixed(0)} from your best ${Math.min(10,myStarts.length)} starts.`;
   // roster status
   // the roster is the Fantrax roster (every player, including a stashed prospect the models have no MLB line for); the
   // streamer tables supply the week's numbers for the ones they know
@@ -2482,6 +2507,8 @@ function renderDash(){
   } else { hRoster = [...shdBy.values()]; pRoster = [...spsBy.values()]; }
   const hInfo = id => ROWS.find(r=>r.season===CUR && r.mlbam_id===id) || {}; const pInfo = id => PROWS.find(r=>r.season===CUR && r.mlbam_id===id) || {};
   const weekH = id => myH.filter(r=>r.mlbam_id===id).reduce((a,r)=>a+r.exp_pts,0), weekP = id => myStarts.filter(r=>r.mlbam_id===id).reduce((a,r)=>a+r.exp_pts,0);
+  const known = (r, c) => (r.nodata && c && c.mlbam_id != null) ? {...r, nodata: false, status: r.active === 0 ? r.status : null} : r;   // no row this week is not the same as no MLB data
+  hRoster = hRoster.map(r => known(r, hInfo(r.mlbam_id))); pRoster = pRoster.map(r => known(r, pInfo(r.mlbam_id)));
   const hRows = hRoster.map(r=>{ const c = hInfo(r.mlbam_id); const hot = (r.woba_30!=null && c.woba!=null) ? r.woba_30 - c.woba : null; return {r, c, hot, week: weekH(r.mlbam_id), dv: c.DV_c}; }).sort((a,b)=>(b.c.pts_c||0)-(a.c.pts_c||0));
   const pRows = pRoster.map(r=>{ const c = pInfo(r.mlbam_id); return {r, c, week: weekP(r.mlbam_id), dv: c.DV_c}; }).sort((a,b)=>(b.c.pts_c||0)-(a.c.pts_c||0));
   const statusPill = r => r.active===0 ? `<span class="pill r">${esc(r.status||'out')}</span>` : (r.nodata ? `<span class="pill n">${esc(r.status||'no MLB data yet')}</span>` : '');
@@ -2538,8 +2565,9 @@ function loadPost(cb){
   document.head.appendChild(s);
 }
 function poPathValues(list, path){
-  const dsw = new Set(path.ds), lcw = new Set(path.lcs);
+  const dsw = new Set(path.ds), lcw = new Set(path.lcs), f8 = new Set(path.ds8 || []);
   for (const o of list){ const b = o.by, inL = dsw.has(o.t), inW = lcw.has(o.t);
+    if (f8.size && !f8.has(o.t)){ o.v_held = o.v_lcs = o.v_ws = 0; continue; }      // a club this bracket puts out in the Wild Card round plays no DS
     o.v_held = +(b.DS + (inL ? 2*b.LCS : 0) + (inW ? 3*b.WS : 0)).toFixed(1);
     o.v_lcs = +((inL ? b.LCS : 0) + (inW ? 2*b.WS : 0)).toFixed(1);
     o.v_ws = +(inW ? b.WS : 0).toFixed(1); }
@@ -2609,14 +2637,19 @@ function renderPost(){
     if (!PO.err) loadPost(renderPost); return;
   }
   const P = window.POST; if (!PO.custom) PO.custom = poDefaultCustom(P);
-  const views = [['bracket','Bracket'],['players','Players'],['roster','Roster'],['brackets','Brackets'],['playbook','Playbook']];
+  if (!PO.viewSet && P.locks && P.locks.DS && Date.now() >= new Date(P.locks.DS)){ PO.view = 'entry'; PO.viewSet = true; }   // after the deadline the entry is what matters
+  const views = [['bracket','Bracket'],['entry','My entry'],['players','Players'],['roster','Roster'],['brackets','Brackets'],['playbook','Playbook']];
   $('#po-views').innerHTML = views.map(([k,l]) => `<button aria-pressed="${PO.view===k}" data-v="${k}">${l}</button>`).join('');
-  $$('#po-views button').forEach(b => b.addEventListener('click', () => { PO.view = b.dataset.v; renderPost(); }));
+  $$('#po-views button').forEach(b => b.addEventListener('click', () => { PO.view = b.dataset.v; PO.viewSet = true; renderPost(); }));
   const dl = new Date(P.deadline);
   $('#po-lede').innerHTML = `Built ${esc(fmtSync(P.built))} · ${P.settled ? 'field settled' : 'field projected from the standings'} · <b>${poCountdown(P.deadline)}</b> (${dl.toLocaleString('en-US', {timeZone:'America/New_York', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})} ET). $150 an entry, up to twelve entries, $20,000 to the winner.`;
-  out.innerHTML = PO.view === 'bracket' ? poBracketView(P) : PO.view === 'players' ? poPlayersView(P) : PO.view === 'roster' ? poRosterView(P) : PO.view === 'brackets' ? poBracketsView(P) : poPlaybookView(P);
-  $$('#po-out [data-h]').forEach(el => el.addEventListener('click', () => { const id = +el.dataset.h; if (BY_ID[id] || PBY_ID[id]) openCard(id); }));
+  out.innerHTML = PO.view === 'bracket' ? poBracketView(P) : PO.view === 'entry' ? poEntryView(P) : PO.view === 'players' ? poPlayersView(P) : PO.view === 'roster' ? poRosterView(P) : PO.view === 'brackets' ? poBracketsView(P) : poPlaybookView(P);
+  $$('#po-out [data-h]').forEach(el => { const id = +el.dataset.h; const o = P.players.find(x => x.id === id);
+    const fn = o && o.kind === 'P' && PBY_ID[id] ? openPitcherCard : (BY_ID[id] || PBY_ID[id]) ? openCard : null;
+    if (!fn){ el.style.cursor = 'default'; return; }
+    el.addEventListener('click', () => fn(id)); });
   poWire(P);
+  if (PO.view === 'entry'){ peWire(P); if (P.stage && P.stage !== 'done' && (P.stage !== 'pre' || (P.locks && P.locks.DS && Date.now() >= new Date(P.locks.DS) - 6*36e5))) peStartPolling(P); }
 }
 const poTeam = (P, a) => P.teams.find(t => t.abbr === a);
 const poNick = n => { const w = n.split(' '); return /^(Sox|Jays)$/.test(w[w.length-1]) ? w.slice(-2).join(' ') : w[w.length-1]; };
@@ -2646,18 +2679,19 @@ function poBracketView(P){
 }
 function poPlayersView(P){
   const path = poBracketOf(P); const list = P.players.map(o => ({...o})); if (path) poPathValues(list, path);
-  const teams = P.teams.slice().sort((a, b) => (a.league > b.league) - (a.league < b.league) || a.seed - b.seed);
+  const inList = new Set(P.players.map(o => o.t));
+  const teams = P.teams.filter(t => inList.has(t.abbr)).sort((a, b) => (a.league > b.league) - (a.league < b.league) || a.seed - b.seed);
   const val = o => path ? o.v_held : o.ev, vl = o => path ? o.v_lcs : o.ev_lcs, vw = o => path ? o.v_ws : o.ev_ws;
   let rows = list.filter(o => (PO.il || !o.il) && (!PO.kind || o.kind === PO.kind) && (!PO.team || o.t === PO.team) && (!PO.slot || poElig(o).includes(PO.slot)) && (!PO.q || o.n.toLowerCase().includes(PO.q)));
   const key = {val, lcs: vl, ws: vw, DS: o => o.by.DS, LCS: o => o.by.LCS, WS: o => o.by.WS, pl: o => o.p.LCS, pw: o => o.p.WS, n: o => o.n, t: o => o.t}[PO.sort] || val;
   rows.sort((a, b) => { const x = key(a), y = key(b); return typeof x === 'string' ? x.localeCompare(y) * (PO.dir === -1 ? -1 : 1) : (PO.dir === -1 ? y - x : x - y); });
   const th = (k, l, title) => `<th data-sort="${k}" aria-sort="${PO.sort===k ? (PO.dir===-1 ? 'descending' : 'ascending') : 'none'}"${title ? ` title="${esc(title)}"` : ''} style="cursor:pointer">${l}</th>`;
   const role = o => o.kind === 'P' ? o.role + (o.sv_share ? ` (${poPct(o.sv_share)} of saves)` : '') : (o.slot ? `bats ${o.slot}${o.ps < 0.85 ? ` (${poPct(o.ps)} to start)` : ''}` : 'bench');
-  const line = o => o.kind === 'P' ? `${o.line.GS} GS, ${o.line.IP} IP, ${o.line.K} K, ${o.line.ERA} ERA` : `${o.line.HR} HR, ${o.line.R} R, ${o.line.RBI} RBI, ${o.line.SB} SB, .${String(Math.round(1000*o.line.AVG)).padStart(3,'0')}`;
+  const line = o => o.kind === 'P' ? (o.line.GS != null ? `${o.line.GS} GS, ` : `${o.line.G} G, ${o.line.SV != null ? o.line.SV + ' SV, ' : ''}${o.line.HLD != null ? o.line.HLD + ' HLD, ' : ''}`) + `${o.line.IP} IP, ${o.line.K} K, ${o.line.ERA} ERA` : `${o.line.HR} HR, ${o.line.R} R, ${o.line.RBI} RBI, ${o.line.SB} SB, .${String(Math.round(1000*o.line.AVG)).padStart(3,'0')}`;
   const under = path ? (PO.pick === 'custom' ? 'your custom bracket' : `bracket #${+PO.pick + 1}`) : 'no bracket (expected over every path, weighted by its chance)';
   return `<div class="filters">
     <label>Value under <select id="po-under"><option value="ev"${PO.pick==='ev'?' selected':''}>no bracket: expected over all paths</option>${P.brackets.map((b, i) => `<option value="${i}"${PO.pick===String(i)?' selected':''}>#${i+1} ${b.lcs.join(' vs ')} World Series (${poPct(b.p_pair, 1)})</option>`).join('')}<option value="custom"${PO.pick==='custom'?' selected':''}>custom bracket (set it on Roster)</option></select></label>
-    <label>Club <select id="po-team"><option value="">all eight</option>${teams.map(t => `<option value="${t.abbr}"${PO.team===t.abbr?' selected':''}>${t.abbr} (${t.league} ${t.seed})</option>`).join('')}</select></label>
+    <label>Club <select id="po-team"><option value="">all ${teams.length}</option>${teams.map(t => `<option value="${t.abbr}"${PO.team===t.abbr?' selected':''}>${t.abbr} (${t.league} ${t.seed})</option>`).join('')}</select></label>
     <label>Type <select id="po-kind"><option value="">bats and arms</option><option value="H"${PO.kind==='H'?' selected':''}>bats</option><option value="P"${PO.kind==='P'?' selected':''}>arms</option></select></label>
     <label>Slot <select id="po-slot"><option value="">any</option>${['C','1B','2B','3B','SS','OF','UT','P'].map(s => `<option${PO.slot===s?' selected':''}>${s}</option>`).join('')}</select></label>
     <label><input type="checkbox" id="po-il"${PO.il?' checked':''}> count injured-list men (at their chance of playing)</label>
@@ -2690,7 +2724,8 @@ function poRosterView(P){
         <div class="dcard w6"><h3>After the LCS <small>drop the two losers' men (${outLCS.length}), add ${r.ws_add.length}</small></h3><p class="hint">Out: ${outLCS.map(x => `${esc(byId[x.id].n)} (${byId[x.id].t})`).join(', ') || 'nobody'}</p>${poAddTable(r.ws_add, byId, 'WS, 1x')}<p class="hint">Clubs in the World Series: ${cnt(r.ds.concat(r.lcs_add).filter(x => path.lcs.includes(byId[x.id].t)).concat(r.ws_add))}</p></div>
       </div>`;
   }
-  return `<div class="filters"><label>Bracket <select id="po-pick">${opts}</select></label><label><input type="checkbox" id="po-il"${PO.il?' checked':''}> count injured-list men</label><button class="btn small" id="po-copy">Copy the sixteen</button></div>${body}`;
+  const locked = P.locks && P.locks.DS && Date.now() >= new Date(P.locks.DS);
+  return `${locked ? '<div class="note">Entries are locked. This is how the board would build a roster now; your own entry, its points and the moves between rounds are under <b>My entry</b>.</div>' : ''}<div class="filters"><label>Bracket <select id="po-pick">${opts}</select></label><label><input type="checkbox" id="po-il"${PO.il?' checked':''}> count injured-list men</label><button class="btn small" id="po-copy">Copy the sixteen</button></div>${body}`;
 }
 function poRosterTable(P, ds, byId, title, vlabel, path){
   const order = Object.fromEntries(['C','1B','2B','3B','SS','OF','UT','P'].map((s, i) => [s, i]));
@@ -2783,7 +2818,241 @@ function poWire(P){
   on('#po-copy', 'click', () => { const byId = Object.fromEntries(P.players.map(o => [o.id, o])); const path = poBracketOf(P); const r = PO.pick === 'ev' ? P.ev_roster : poRosterFor(P, path);
     const order = Object.fromEntries(['C','1B','2B','3B','SS','OF','UT','P'].map((s, i) => [s, i]));
     const txt = r.ds.slice().sort((a, b) => order[a.slot] - order[b.slot] || b.v - a.v).map(x => `${x.slot}\t${byId[x.id].n}\t${byId[x.id].t}`).join('\n');
-    navigator.clipboard?.writeText(txt).then(() => { const b = $('#po-copy'); if (b){ b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy the sixteen', 1500); } }); });
+    const b = $('#po-copy'); try { navigator.clipboard.writeText(txt).then(() => { if (b){ b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy the sixteen', 1500); } }, () => { if (b) b.textContent = 'Copy blocked here'; }); } catch(e){ if (b) b.textContent = 'Copy blocked here'; } });
+}
+
+// ---------- NFBC: my entry. Saved in this browser, scored from the box scores (the build's, plus live games read
+// straight from MLB while the page is open), with the moves the rules allow between rounds.
+const PO_R = ['DS', 'LCS', 'WS'];
+const PE_SLOTS = ['C','1B','2B','3B','SS','OF','OF','OF','OF','UT','P','P','P','P','P','P'];
+const PE_LIVE = {games: {}, at: null, timer: null, err: null};
+let PE = null;
+const peKey = P => 'po-entry-' + (P.season || 2026);
+function peLoad(P){
+  if (PE && PE._season === P.season) return PE;
+  try { PE = JSON.parse(localStorage.getItem(peKey(P)) || 'null'); } catch(e){ PE = null; }
+  if (!PE || !Array.isArray(PE.stints)) PE = {stints: []};
+  PE._season = P.season; return PE;
+}
+function peSave(P){ try { const {_season, ...keep} = PE; localStorage.setItem(peKey(P), JSON.stringify(keep)); } catch(e){} }
+const peActive = () => PE.stints.filter(s => !s.to);
+const peMult = (from, r) => PO_R.indexOf(r) - PO_R.indexOf(from) + 1;          // held from the DS 1/2/3, added for the LCS 1/2, for the WS 1
+const peIn = (s, r) => PO_R.indexOf(r) >= PO_R.indexOf(s.from) && (!s.to || PO_R.indexOf(r) < PO_R.indexOf(s.to));
+const peSnap = o => ({id: o.id, n: o.n, t: o.t, pos: o.pos, kind: o.kind});
+// one game's box score in Holdem points, the same arithmetic as the build (hrboard/postseason.py box_rows)
+function peBox(j){
+  const rows = [];
+  for (const side of ['home', 'away']){
+    const t = (j.teams || {})[side] || {}; const ab = (t.team || {}).abbreviation;
+    for (const q of Object.values(t.players || {})){
+      const b = (q.stats || {}).batting || {}, pi = (q.stats || {}).pitching || {}; let h = null, p = null;
+      if (b.plateAppearances || b.runs || b.stolenBases){ const H = b.hits || 0, x2 = b.doubles || 0, x3 = b.triples || 0, hr = b.homeRuns || 0;
+        h = (H - x2 - x3 - hr) + 2*x2 + 3*x3 + 4*hr + (b.runs || 0) + (b.rbi || 0) + (b.stolenBases || 0) + (b.baseOnBalls || 0) + (b.hitByPitch || 0) - 0.25*((b.atBats || 0) - H); }
+      if (pi.battersFaced || pi.outs){ p = (pi.outs || 0)/3 + (pi.strikeOuts || 0) + 4*(pi.wins || 0) + 4*(pi.saves || 0) - (pi.earnedRuns || 0); }
+      if (h == null && p == null) continue;
+      rows.push({pid: q.person.id, t: ab, h, p, lb: h != null ? (b.summary || '') : '', lp: p != null ? (pi.summary || '') : ''});
+    }
+  }
+  return rows;
+}
+// every game line for a player: the build's, with any game read live since replacing the build's copy of it
+function peGames(P, id){
+  const base = ((P.actual || {})[id] || {}).g || [];
+  const out = base.filter(g => !PE_LIVE.games[g[0]]);
+  for (const [pk, G] of Object.entries(PE_LIVE.games)){
+    const r = G.rows.find(x => x.pid === id); if (!r) continue;
+    const opp = r.t === G.home ? G.away : G.home;
+    out.push([+pk, G.rnd, G.date, opp, r.h, r.p, r.lb, r.lp, G.live]);
+  }
+  return out.sort((a, b) => a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : a[0] - b[0]);
+}
+function pePoints(P, s){
+  const by = {DS: 0, LCS: 0, WS: 0}; let live = false;
+  for (const g of peGames(P, s.id)){ const v = s.kind === 'P' ? g[5] : g[4]; if (v == null) continue; by[g[1]] += v; if (g[8]) live = true; }
+  const scored = {}; let tot = 0;
+  for (const r of PO_R){ scored[r] = peIn(s, r) ? by[r] * peMult(s.from, r) : 0; tot += scored[r]; }
+  return {raw: by, scored, tot, live};
+}
+async function peFetchLive(P){
+  const T = new Set(P.teams.map(t => t.abbr)); const d0 = new Date(Date.now() - 864e5), d1 = new Date();
+  const iso = d => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0, 10);
+  try {
+    const j = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&gameTypes=D,L,W&startDate=${iso(d0)}&endDate=${iso(d1)}&hydrate=team`).then(r => r.json());
+    const known = Object.fromEntries((P.games || []).map(g => [g.pk, g]));
+    const todo = [];
+    for (const d of j.dates || []) for (const g of d.games || []){
+      const st = g.status?.abstractGameState; if (st !== 'Live' && st !== 'Final') continue;
+      if (st === 'Final' && known[g.gamePk]?.state === 'Final') continue;            // the build already has it
+      todo.push({pk: g.gamePk, rnd: {D: 'DS', L: 'LCS', W: 'WS'}[g.gameType], date: g.officialDate, live: st === 'Live',
+                 home: g.teams.home.team.abbreviation, away: g.teams.away.team.abbreviation, hs: g.teams.home.score, as: g.teams.away.score, inn: g.linescore?.currentInningOrdinal});
+    }
+    for (const g of todo){
+      if (!g.rnd || !T.has(g.home)) continue;
+      const box = await fetch(`https://statsapi.mlb.com/api/v1/game/${g.pk}/boxscore`).then(r => r.json());
+      PE_LIVE.games[g.pk] = {...g, rows: peBox(box)};
+    }
+    PE_LIVE.at = new Date(); PE_LIVE.err = null;
+    return todo.some(g => g.live);
+  } catch(e){ PE_LIVE.err = 'live scores unavailable here'; return false; }
+}
+function peStartPolling(P){
+  if (PE_LIVE.timer) return;
+  const tick = async () => {
+    if (LEAGUE !== 'nfbc' || PO.view !== 'entry' || document.hidden){ PE_LIVE.timer = setTimeout(tick, 60000); return; }
+    const live = await peFetchLive(P); if (PO.view === 'entry' && LEAGUE === 'nfbc' && !PO.peSwap) renderPost();
+    PE_LIVE.timer = setTimeout(tick, live ? 45000 : 300000);
+  };
+  PE_LIVE.timer = setTimeout(tick, 50);
+}
+// where the contest stands: which round is being scored, and whether changes for the next round are open
+function pePhase(P){
+  const now = Date.now(), L = P.locks || {DS: P.deadline};
+  const T = Object.fromEntries(P.teams.map(t => [t.abbr, t]));
+  const decided = r => P.teams.every(t => t.p[r] === 0 || t.p[r] === 1);        // every series of the round before is over
+  const before = r => !L[r] || now < new Date(L[r]);
+  if (L.DS ? now < new Date(L.DS) : P.stage === 'pre') return {k: 'build', label: 'Before the deadline', T};
+  if (P.stage === 'done') return {k: 'play', r: 'WS', label: 'The World Series is over', T};
+  if (decided('WS')) return P.stage !== 'WS' && before('WS') ? {k: 'swap', r: 'WS', label: 'LCS over: moves for the World Series', T} : {k: 'play', r: 'WS', label: 'World Series under way', T};
+  if (decided('LCS')) return P.stage === 'DS' && before('LCS') ? {k: 'swap', r: 'LCS', label: 'Division Series over: moves for the LCS', T} : {k: 'play', r: 'LCS', label: 'LCS under way', T};
+  return {k: 'play', r: 'DS', label: P.stage === 'pre' ? 'Locked; the Division Series starts soon' : 'Division Series under way', T};
+}
+function peSuggest(P, R){
+  const act = peActive(); const alive = t => { const x = P.teams.find(y => y.abbr === t); return x && x.p[R] > 0; };
+  const kept = act.filter(s => alive(s.t)), out = act.filter(s => !alive(s.t));
+  const freed = {}; out.forEach(s => freed[s.slot] = (freed[s.slot] || 0) + 1);
+  const have = {}; kept.forEach(s => have[s.t] = (have[s.t] || 0) + 1);
+  const clubs = P.teams.filter(t => t.p[R] > 0).map(t => t.abbr); const [lo, hi] = R === 'LCS' ? [2, 6] : [6, 10];
+  const used = new Set(PE.stints.map(s => s.id));
+  const cands = P.players.filter(o => clubs.includes(o.t) && !used.has(o.id) && (PO.il || !o.il)).map(o => ({...o, v: R === 'LCS' ? o.ev_lcs : o.ev_ws}));
+  const adds = out.length ? poAssign(cands, 'v', freed, Object.fromEntries(clubs.map(t => [t, Math.max(0, lo - (have[t] || 0))])), Object.fromEntries(clubs.map(t => [t, hi - (have[t] || 0)]))) : [];
+  const after = {...have}; adds.forEach(a => after[a.o.t] = (after[a.o.t] || 0) + 1);
+  const short = clubs.filter(t => (after[t] || 0) < lo);
+  return {out, adds, clubs, after, short, lo, hi};
+}
+// the rules checklist for whatever the entry holds now
+function peCheck(P, ph){
+  const act = peActive(); const msgs = []; const T = ph.T;
+  const need = {}; PE_SLOTS.forEach(s => need[s] = (need[s] || 0) + 1);
+  const have = {}; act.forEach(s => have[s.slot] = (have[s.slot] || 0) + 1);
+  const miss = Object.keys(need).filter(s => (have[s] || 0) < need[s]).map(s => `${need[s] - (have[s] || 0)} ${s}`);
+  if (miss.length) msgs.push(`Open: ${miss.join(', ')}`);
+  const bad = act.filter(s => { const o = P.players.find(x => x.id === s.id); return o && !poElig(o).includes(s.slot); });
+  if (bad.length) msgs.push(`Not eligible at his slot: ${bad.map(s => `${s.n} (${s.slot})`).join(', ')}`);
+  const wc = act.filter(s => T[s.t] && T[s.t].p.DS === 0);
+  if (wc.length) msgs.push(`Out in the Wild Card round, so not allowed on an entry: ${wc.map(s => `${s.n} (${s.t})`).join(', ')}`);
+  const r = ph.k === 'build' ? 'DS' : ph.r || 'DS'; const [lo, hi] = {DS: [1, 3], LCS: [2, 6], WS: [6, 10]}[r];
+  const cnt = {}; act.forEach(s => cnt[s.t] = (cnt[s.t] || 0) + 1);
+  const over = Object.entries(cnt).filter(([t, n]) => n > hi).map(([t, n]) => `${t} ${n}`);
+  if (over.length) msgs.push(`Over the ${hi}-a-club limit for the ${r}: ${over.join(', ')}`);
+  const field = P.teams.filter(t => r === 'DS' ? t.p.DS === 1 : t.p[r] === 1).map(t => t.abbr);
+  const full = r === 'DS' ? field.length === 8 : r === 'LCS' ? field.length === 4 : field.length === 2;
+  if (full){ const under = field.filter(t => (cnt[t] || 0) < lo); if (under.length) msgs.push(`The ${r} needs at least ${lo} from ${under.join(', ')}`); }
+  else if (r === 'DS') msgs.push('The eight Division Series clubs are set when the Wild Card round ends (by Oct 1); the entry needs one to three from each of them.');
+  return msgs;
+}
+function peLoadRoster(P, key){
+  let r;
+  if (key === 'ev') r = P.ev_roster;
+  else if (key === 'custom') r = poBuild(P, PO.custom);
+  else r = poRosterFor(P, P.brackets[+key]);
+  if (!r || !r.ds) return;
+  const byId = Object.fromEntries(P.players.map(o => [o.id, o]));
+  PE.stints = r.ds.filter(x => byId[x.id]).map(x => ({...peSnap(byId[x.id]), slot: x.slot, from: 'DS'}));
+  PE.src = key === 'ev' ? 'the expected-value roster' : key === 'custom' ? 'your custom bracket' : `bracket #${+key + 1}`; peSave(P);
+}
+function poEntryView(P){
+  peLoad(P); const ph = pePhase(P); const T = ph.T; const act = peActive();
+  const order = Object.fromEntries(['C','1B','2B','3B','SS','OF','UT','P'].map((s, i) => [s, i]));
+  const status = t => { const x = T[t]; if (!x) return '<span class="pill n">?</span>';
+    if (x.p.DS === 0) return '<span class="pill r">out (Wild Card)</span>';
+    if (x.p.LCS === 0) return '<span class="pill r">out after the DS</span>';
+    if (x.p.WS === 0) return '<span class="pill r">out after the LCS</span>';
+    if (P.stage === 'done' && x.p.title === 1) return '<span class="pill g">champion</span>';
+    return x.p.WS === 1 ? '<span class="pill g">in the WS</span>' : x.p.LCS === 1 ? '<span class="pill g">in the LCS</span>' : '<span class="pill b">alive</span>'; };
+  const srcOpts = `<option value="ev">the expected-value roster (no bracket)</option>${P.rosters.length ? P.brackets.slice(0, 12).map((b, i) => `<option value="${i}">bracket #${i+1}: ${b.lcs.join(' v ')} World Series</option>`).join('') : ''}<option value="custom">your custom bracket (Roster view)</option>`;
+  const lockTxt = r => { const w = (P.locks || {})[r]; return w ? new Date(w).toLocaleString('en-US', {timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}) + ' ET' : 'not scheduled yet'; };
+  if (!PE.stints.length){
+    return `<div class="dcard w12" style="margin-top:6px"><h3>My entry</h3>
+      <p class="hint">Put the sixteen you entered on the NFBC here and this page keeps score all October: every player's points from the box scores with the 1x / 2x / 3x multipliers applied, live while games are on, and after each round the replacements the rules allow for the players whose clubs are out. It is saved in this browser only.</p>
+      <div class="filters"><label>Start from <select id="pe-src">${srcOpts}</select></label><button class="btn" id="pe-load">Load it</button></div>
+      <p class="hint">Then swap any slot to match what you actually entered. ${ph.k === 'build' ? `Entries lock ${lockTxt('DS')}.` : ''}</p></div>`;
+  }
+  const pts = new Map(PE.stints.map(s => [s, pePoints(P, s)]));
+  const sum = r => PE.stints.reduce((a, s) => a + pts.get(s).scored[r], 0);
+  const total = PO_R.reduce((a, r) => a + sum(r), 0); const anyLive = PE.stints.some(s => pts.get(s).live);
+  const alive = act.filter(s => { const x = T[s.t]; return x && x.p.DS > 0 && x.p.LCS !== 0 && x.p.WS !== 0 && !(P.stage === 'done' && x.p.title !== 1); }).length;
+  const msgs = peCheck(P, ph);
+  const rowsA = act.slice().sort((a, b) => order[a.slot] - order[b.slot] || pts.get(b).tot - pts.get(a).tot);
+  const nowR = ph.k === 'build' ? 'DS' : (ph.k === 'swap' ? ph.r : (ph.r || 'DS'));
+  const row = (s, closed) => { const q = pts.get(s); const open = PO.peOpen === s.id;
+    const mult = closed ? '' : (() => { const m = peMult(s.from, nowR); return m >= 1 ? `<span class="pill ${m === 3 ? 'g' : m === 2 ? 'b' : 'n'}">${m}x</span>` : ''; })();
+    const games = peGames(P, s.id).filter(g => peIn(s, g[1]));
+    return `<tr class="${closed ? 'out' : ''}"><td class="l"><b>${s.slot}</b></td>
+      <td class="l name" data-pe="${s.id}" style="cursor:pointer">${ava(s.n, s.t, 26, s.id)} ${esc(s.n)}${q.live ? ' <span class="pill r">live</span>' : ''}<div class="sub">${esc((s.pos || []).join('/'))} · added for the ${s.from}${s.to ? `, replaced for the ${s.to}` : ''}</div></td>
+      <td>${poTag(s.t, true)}</td><td class="l">${closed ? '<span class="pill n">replaced</span>' : status(s.t)}</td><td>${mult}</td>
+      ${PO_R.map(r => `<td>${peIn(s, r) ? q.scored[r].toFixed(1) : '<span class="hint">·</span>'}</td>`).join('')}<td><b>${q.tot.toFixed(1)}</b></td>
+      <td>${(() => { if (closed) return ''; const repl = ph.k === 'swap' && T[s.t] && T[s.t].p[ph.r] === 0; return repl || ph.k === 'build' || PO.peEdit ? `<button class="btn small" data-pe-swap="${s.id}">${repl ? 'Replace' : 'Change'}</button>` : ''; })()}</td></tr>
+      ${open ? `<tr><td></td><td class="l" colspan="9">${games.length ? `<table class="mini"><tbody>${games.map(g => `<tr><td class="l">${esc(g[2].slice(5).replace('-', '/'))}</td><td class="l">${g[1]}</td><td class="l">vs ${esc(g[3])}</td><td class="l hint">${esc(s.kind === 'P' ? g[7] : g[6])}</td><td>${(s.kind === 'P' ? g[5] : g[4]) == null ? '·' : (s.kind === 'P' ? g[5] : g[4]).toFixed(1)} x${peMult(s.from, g[1])}</td>${g[8] ? '<td><span class="pill r">live</span></td>' : ''}</tr>`).join('')}</tbody></table>` : '<p class="hint">No games yet.</p>'}</td></tr>` : ''}
+      ${PO.peSwap === s.id ? `<tr><td></td><td class="l" colspan="9">${pePicker(P, s, ph)}</td></tr>` : ''}`; };
+  let swapHtml = '';
+  if (ph.k === 'swap'){
+    const R = ph.r;
+    { const sg = peSuggest(P, R);
+      swapHtml = sg.out.length ? `<div class="dcard w12" style="margin-top:12px"><h3>Moves for the ${R} <small>changes lock ${esc(lockTxt(R))}</small></h3>
+        <p class="hint">Only players whose clubs are out can be replaced (${sg.out.map(s => esc(s.n)).join(', ')}). The ${R} needs ${sg.lo} to ${sg.hi} from each club still alive. A player added now scores ${R === 'LCS' ? 'single in the LCS and double in the World Series' : 'single in the World Series'}; everyone you kept keeps his multiplier.</p>
+        ${poAddTable(sg.adds.map(a => ({id: a.o.id, slot: a.s, v: a.o.v})), Object.fromEntries(P.players.map(o => [o.id, o])), R === 'LCS' ? 'expected LCS + 2x WS' : 'expected WS')}
+        <p class="hint">Clubs after the moves: ${Object.entries(sg.after).filter(([t]) => sg.clubs.includes(t)).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${poTag(t, true)} ${n}`).join(' ')}${sg.short.length ? ` · <b>still short at ${sg.short.join(', ')}</b>: pick those by hand` : ''}</p>
+        <div class="filters"><button class="btn" id="pe-apply" data-r="${R}">Make these ${sg.adds.length} moves</button><span class="hint">or use Replace on each player to choose your own.</span></div></div>` : `<div class="note">Everyone on your entry is still alive for the ${R}. Nothing to change.</div>`;
+    }
+  }
+  const closed = PE.stints.filter(s => s.to);
+  return `<div class="kpis">
+      <div class="kpi"><b>${total.toFixed(1)}</b><span>points${anyLive ? ' (live)' : ''}</span></div>
+      ${PO_R.map(r => `<div class="kpi"><b>${sum(r).toFixed(1)}</b><span>${r}</span></div>`).join('')}
+      <div class="kpi"><b>${alive} of 16</b><span>still alive</span></div>
+      <div class="kpi"><b style="font-size:15px">${esc(ph.label)}</b><span>${ph.k === 'build' ? 'locks ' + esc(lockTxt('DS')) : PE_LIVE.at ? 'live check ' + PE_LIVE.at.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'}) : esc(PE_LIVE.err || 'scores from the last build')}</span></div></div>
+    ${msgs.length ? `<div class="note" style="border-left-color:var(--warn)">${msgs.map(esc).join('<br>')}</div>` : ph.k === 'build' ? '<p class="hint">Legal: sixteen slots filled, one to three from each of the eight clubs.</p>' : ''}
+    ${swapHtml}
+    <div class="tblwrap" style="margin-top:10px"><table><thead><tr><th class="l">Slot</th><th class="l">Player</th><th>Club</th><th class="l">Status</th><th title="multiplier his points get in the round being played">Now</th><th>DS</th><th>LCS</th><th>WS</th><th>Total</th><th></th></tr></thead><tbody>
+      ${rowsA.map(s => row(s, false)).join('')}
+      ${closed.length ? `<tr><td colspan="10" class="l hint" style="padding-top:12px">Replaced earlier (their points still count)</td></tr>${closed.map(s => row(s, true)).join('')}` : ''}
+    </tbody></table></div>
+    <p class="hint">Tap a name for his game-by-game line. Points: 1B 1, 2B 2, 3B 3, HR 4, R, RBI, SB, BB, HBP 1, each out −0.25; IP 1, K 1, W 4, SV 4, ER −1. A player held from the Division Series scores 1x, 2x and 3x; added for the LCS, 1x and 2x; added for the World Series, 1x. Scores come from MLB's box scores; the NFBC's own standings are the official ones.</p>
+    <div class="filters" style="margin-top:8px"><label>Start over from <select id="pe-src">${srcOpts}</select></label><button class="btn small" id="pe-load">Replace my entry</button><button class="btn small" id="pe-undo"${PE.hist && PE.hist.length ? '' : ' disabled'}>Undo last change</button><button class="btn small" id="pe-copy">Copy the sixteen</button>${ph.k === 'build' ? '' : `<label><input type="checkbox" id="pe-edit"${PO.peEdit ? ' checked' : ''}> fix a mistake in my entry</label>`}</div>`;
+}
+function pePicker(P, s, ph){
+  const repl = ph.k === 'swap' && ph.T[s.t] && ph.T[s.t].p[ph.r] === 0; const R = repl ? ph.r : 'DS';
+  const used = new Set(peActive().map(x => x.id)); const q = (PO.peQ || '').toLowerCase();
+  const key = o => R === 'LCS' ? o.ev_lcs : R === 'WS' ? o.ev_ws : o.ev;
+  const pool = P.players.filter(o => poElig(o).includes(s.slot) && !used.has(o.id) && (!repl || ph.T[o.t] && ph.T[o.t].p[R] > 0) && (!q || o.n.toLowerCase().includes(q)))
+    .sort((a, b) => key(b) - key(a)).slice(0, 25);
+  return `<div class="filters" style="margin:4px 0"><label>${repl ? `Replace ${esc(s.n)} for the ${R}` : `${esc(s.slot)} instead of ${esc(s.n)}`} <input id="pe-q" value="${esc(PO.peQ || '')}" placeholder="search a name" autocomplete="off"></label><button class="btn small" data-pe-cancel="1">Cancel</button></div>
+    <div class="tblwrap"><table class="mini"><tbody>${pool.map(o => `<tr><td class="l">${ava(o.n, o.t, 22, o.id)} ${esc(o.n)}${o.il ? ' <span class="pill w">IL</span>' : ''}</td><td>${poTag(o.t, true)}</td><td class="l hint">${esc(o.kind === 'P' ? o.role : (o.pos || []).join('/'))}</td><td>${key(o).toFixed(1)}</td><td><button class="btn small" data-pe-pick="${o.id}" data-pe-for="${s.id}" data-pe-r="${repl ? R : ''}">Pick</button></td></tr>`).join('') || '<tr><td class="hint">No eligible player matches.</td></tr>'}</tbody></table></div>`;
+}
+function peWire(P){
+  const on = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
+  const push = () => { PE.hist = (PE.hist || []).slice(-19); PE.hist.push(JSON.stringify(PE.stints)); };
+  on('#pe-load', 'click', () => { const k = $('#pe-src').value; if (PE.stints.length) push(); peLoadRoster(P, k); renderPost(); });
+  on('#pe-undo', 'click', () => { const h = (PE.hist || []).pop(); if (h){ PE.stints = JSON.parse(h); peSave(P); renderPost(); } });
+  on('#pe-copy', 'click', () => { const order = Object.fromEntries(['C','1B','2B','3B','SS','OF','UT','P'].map((s, i) => [s, i]));
+    const txt = peActive().slice().sort((a, b) => order[a.slot] - order[b.slot]).map(s => `${s.slot}\t${s.n}\t${s.t}\t(${s.from})`).join('\n');
+    const b = $('#pe-copy'); const ok = () => { if (b){ b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy the sixteen', 1500); } };
+    try { navigator.clipboard.writeText(txt).then(ok, () => { if (b) b.textContent = 'Copy blocked here'; }); } catch(e){ if (b) b.textContent = 'Copy blocked here'; } });
+  on('#pe-apply', 'click', e => { const R = e.target.dataset.r; const sg = peSuggest(P, R); if (!sg.adds.length) return; push();
+    const freedBy = {}; sg.out.forEach(s => (freedBy[s.slot] = freedBy[s.slot] || []).push(s));
+    for (const a of sg.adds){ const s = (freedBy[a.s] || []).shift(); if (!s) continue; s.to = R; PE.stints.push({...peSnap(a.o), slot: a.s, from: R}); }
+    peSave(P); renderPost(); });
+  $$('#po-out [data-pe]').forEach(el => el.addEventListener('click', () => { const id = +el.dataset.pe; PO.peOpen = PO.peOpen === id ? null : id; renderPost(); }));
+  $$('#po-out [data-pe-swap]').forEach(b => b.addEventListener('click', () => { const id = +b.dataset.peSwap; PO.peSwap = PO.peSwap === id ? null : id; PO.peQ = ''; renderPost(); const q = $('#pe-q'); if (q) q.focus(); }));
+  $$('#po-out [data-pe-cancel]').forEach(b => b.addEventListener('click', () => { PO.peSwap = null; renderPost(); }));
+  on('#pe-edit', 'change', e => { PO.peEdit = e.target.checked; renderPost(); });
+  on('#pe-q', 'input', e => { PO.peQ = e.target.value; const pos = e.target.selectionStart; renderPost(); const n = $('#pe-q'); if (n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  $$('#po-out [data-pe-pick]').forEach(b => b.addEventListener('click', () => {
+    const o = P.players.find(x => x.id === +b.dataset.pePick); const s = peActive().find(x => x.id === +b.dataset.peFor); if (!o || !s) return; push();
+    const R = b.dataset.peR;
+    if (R){ s.to = R; PE.stints.push({...peSnap(o), slot: s.slot, from: R}); }          // a real between-round replacement
+    else { Object.assign(s, peSnap(o)); }                                                  // fixing the entry itself: same slot, same round added
+    PO.peSwap = null; peSave(P); renderPost(); }));
 }
 
 // ---------- navigation (rail on desktop, tab bar + "more" sheet on phones)
@@ -2822,10 +3091,17 @@ const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['stre
 const tstate = { day: null };
 const fmtSync = iso => { const d = new Date(/Z$|[+-]\d\d:?\d\d$/.test(iso)?iso:iso.replace(' ','T')+'Z'); return isNaN(d) ? iso : d.toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}); };
 const localISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
-function dayWord(d){ const t = localISO(); const tm = new Date(new Date(t+'T12:00:00').getTime()+864e5).toISOString().slice(0,10); return d===t ? 'Today' : d===tm ? 'Tomorrow' : dayLabel(d); }
+function dayWord(d){ const t = localISO(); const tm = isoLocal(new Date(new Date(t+'T12:00:00').getTime()+864e5)); return d===t ? 'Today' : d===tm ? 'Tomorrow' : dayLabel(d); }
 function renderToday(){
-  const days = [...new Set(SHD.map(r=>r.date))].sort(); if(!days.length){ $('#today').innerHTML = '<div class="dcard w12"><p class="hint">No schedule data in this build.</p></div>'; return; }
-  if (!tstate.day || !days.includes(tstate.day)) tstate.day = days.find(d=>d>=localISO()) || days[0];
+  const days = [...new Set(SHD.map(r=>r.date))].sort();
+  if (seasonOver() && !tstate.showLast){
+    $('#today-days').innerHTML = ''; $('#today-title').textContent = 'Offseason'; const tx = $('#today-explain'); if (tx) tx.style.display = 'none';
+    $('#today-sub').textContent = `No lineup to set: the ${CUR} fantasy season ended ${seasonEndLabel()}.`;
+    $('#today').innerHTML = offseasonCard() + (days.length ? `<div class="dcard w12"><button class="btn small" id="t-last">Show the final week's lineups anyway</button></div>` : '');
+    wireOffCard('#today'); const b = $('#t-last'); if (b) b.addEventListener('click', () => { tstate.showLast = true; renderToday(); }); return; }
+  { const tx = $('#today-explain'); if (tx) tx.style.display = ''; }
+  if(!days.length){ $('#today').innerHTML = '<div class="dcard w12"><p class="hint">No schedule data in this build.</p></div>'; return; }
+  if (!tstate.day || !days.includes(tstate.day)) tstate.day = days.find(d=>d>=localISO()) || days[days.length-1];
   const day = tstate.day;
   $('#today-days').innerHTML = days.map(d=>`<button aria-pressed="${d===day}" data-day="${d}">${dayWord(d)}</button>`).join('');
   $$('#today-days button').forEach(b=>b.addEventListener('click',()=>{ tstate.day=b.dataset.day; renderToday(); }));
@@ -3369,7 +3645,7 @@ function findDeals3(me){
 let F3T = null;
 function renderFinder3(){ const el = $('#find3'); if (!el) return; if (!el.innerHTML) el.innerHTML = '<p class="hint">Searching every rotation…</p>'; clearTimeout(F3T); F3T = setTimeout(renderFinder3now, 30); }
 function renderFinder3now(){
-  const el = $('#find3'); if (!el) return; const me = tr.a; if (!me){ el.innerHTML = ''; return; }
+  const el = $('#find3'); if (!el) return; const me = MY || null; if (!me){ el.innerHTML = ''; return; }
   const t0 = performance.now(); const list = findDeals3(me); const ms = Math.round(performance.now() - t0);
   const nm = (a, t) => a.type==='pick' ? `<b>${esc(pickLabel(a, t))}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22, a.r.mlbam_id)}<b>${esc(a.r.name)}</b>`;
   const leg = (from, a, to, t) => `<span class="leg"><span class="arrow">${esc(from)}</span>${nm(a, t)}<span class="arrow">to ${esc(to)}</span></span>`;
@@ -3390,7 +3666,8 @@ function renderFinder3now(){
 let F2T = null;
 function renderFinder(){ const el = $('#findlist'); if (el && !el.innerHTML) el.innerHTML = '<p class="hint">Searching the league…</p>'; clearTimeout(F2T); F2T = setTimeout(renderFinderNow, 10); }
 function renderFinderNow(){
-  const me = tr.a, list = findDeals(me); const nMe = teamLabel(me).replace(/ \(.*\)$/,'');
+  if (!MY){ const el = $('#findlist'); if (el) el.innerHTML = '<p class="hint">Pick your team in the top bar and this lists the deals worth proposing to every other team.</p>'; return; }
+  const me = MY, list = findDeals(me); const nMe = teamLabel(me).replace(/ \(.*\)$/,'');
   const leg = (arr, dir, t) => `<span class="leg"><span class="arrow">${dir}</span>${arr.map(a=>a.type==='pick'
       ? `<b>${esc(pickLabel(a, t))}</b>` : `${ava(a.r.name, a.r.team_abbr||a.r.team, 22, a.r.mlbam_id)}<b>${esc(a.r.name)}</b>`).join(' + ')}</span>`;
   const why = d => { const bits = [];
@@ -3473,7 +3750,7 @@ function deskScore(mine, theirs, give, get, needMe, needThem){
   return (g1==null || g2==null) ? null : {me:g1, them:g2}; }
 // buying: what I could send for X (and, when I am overpaying, which of their picks they could hand back)
 function deskBuy(sel){
-  const me = tr.a, R = teamRosters(), mine = R[me], th = R[sel.owner]; if (!mine || !th) return [];
+  const me = MY || tr.a, R = teamRosters(), mine = R[me], th = R[sel.owner]; if (!mine || !th) return [];
   const X = {type:sel.type, id:sel.id, r:sel.r};
   const cand = deskAssets(mine, deskCut(th), 14);
   const res = [];
@@ -3485,7 +3762,7 @@ function deskBuy(sel){
   return deskRank(res.concat(extra), false); }
 // selling: what each team (or one team) could send back for Y
 function deskSell(sel, only){
-  const me = tr.a, R = teamRosters(), mine = R[me]; if (!mine) return [];
+  const me = MY || tr.a, R = teamRosters(), mine = R[me]; if (!mine) return [];
   const Y = {type:sel.type, id:sel.id, r:sel.r}; const myCut = deskCut(mine); const res = [];
   for (const t of Object.keys(R)){ if (t===me || (only && t!==only)) continue; const th = R[t];
     for (const get of deskPacks(deskAssets(th, myCut, only ? 14 : 8), deskPicks(t), only ? 3 : 2)){ const s = deskScore(mine, th, [Y], get, true, false); if (s && s.them > 0) res.push({t, give:[Y], get, ...s}); } }
@@ -3516,7 +3793,7 @@ function deskMoves(ro, out, inn){
   const innR = new Set(inn.filter(x=>x.type!=='pick').map(x=>x.r));
   return { bumped: all(b).filter(r=>!idsA.has(r.mlbam_id) && !oid.has(typ(r) + r.mlbam_id)), entered: all(a).filter(r=>!idsB.has(r.mlbam_id) && !innR.has(r)), keptBefore: idsB, keptAfter: idsA }; }
 function deskWhy(d){
-  const R = teamRosters(), me = tr.a; const m = deskMoves(R[me], d.give, d.get), t = deskMoves(R[d.t], d.get, d.give); const bits = [];
+  const R = teamRosters(), me = MY || tr.a; const m = deskMoves(R[me], d.give, d.get), t = deskMoves(R[d.t], d.get, d.give); const bits = [];
   const nm = list => list.map(a=>lastName(a.r.name)).join(' and ');
   const inMe = d.get.filter(a=>a.type!=='pick'), outMe = d.give.filter(a=>a.type!=='pick');
   const inK = inMe.filter(a=>m.keptAfter.has(a.id)), inX = inMe.filter(a=>!m.keptAfter.has(a.id));
@@ -3535,7 +3812,7 @@ function deskWhy(d){
 function deskLoad(d){ const ser = a => a.type==='pick' ? {type:'pick', team:a.team, round:a.round, year:a.year} : {type:a.type, id:a.id};
   tr.b = d.t; tr.c = null; tr.give.c = []; tr.give.a = d.give.map(ser); tr.give.b = d.get.map(ser); renderTrade(); $('#trade').scrollIntoView({behavior:'smooth', block:'start'}); }
 function deskOpen(spec){ const [type, id] = String(spec).split(':'); const s = deskFind(+id, type); if (!s) return;
-  DESK.multi = [s]; DESK.sel = s; DESK.filter = ''; if (s.owner !== tr.a && !isFA(s.owner)) DESK.team = s.owner; goTab('trades'); renderDesk(); requestAnimationFrame(()=>$('#desk').scrollIntoView({block:'start'})); }
+  DESK.multi = [s]; DESK.sel = s; DESK.filter = ''; if (s.owner !== MY && !isFA(s.owner)) DESK.team = s.owner; goTab('trades'); renderDesk(); requestAnimationFrame(()=>$('#desk').scrollIntoView({block:'start'})); }
 // ---------- several players at once. Yours only: every combination of them (one, two or all three) against what each team
 // could send back. Theirs only: every package from your roster for any of them. Some of each: that swap, and the same swap
 // with one pick added from either side, so it can be made even. Same scoring as everywhere else (deskScore).
@@ -3587,8 +3864,8 @@ function renderDeskMulti(out, R, me){
       renderTrade(); $('#trade').scrollIntoView({behavior:'smooth', block:'start'}); });
   }, 20); }
 function renderDesk(){
-  if (!$('#desk')) return; const V = VAL || computeValues(); const R = teamRosters(); const me = tr.a;
-  if (!me || !R[me]){ $('#desk-out').innerHTML = '<p class="hint">Pick your team in the top bar to use the deal desk.</p>'; return; }
+  if (!$('#desk')) return; const V = VAL || computeValues(); const R = teamRosters(); const me = MY && R[MY] ? MY : null;
+  if (!me){ $('#desk-out').innerHTML = '<p class="hint">Pick your team in the top bar to use the deal desk.</p>'; ['#desk-mine','#desk-theirs'].forEach(x=>{ const e=$(x); if (e) e.innerHTML=''; }); return; }
   const owners = Object.keys(R).sort((a,b)=>deskShort(a).localeCompare(deskShort(b)));
   if (!DESK.team || DESK.team===me || !R[DESK.team]) DESK.team = (tr.b && tr.b!==me && R[tr.b]) ? tr.b : owners.find(o=>o!==me);
   // values move when settings change, so every pick is looked up again; anyone no longer on a roster drops out
@@ -3673,7 +3950,7 @@ $('#desk-team').addEventListener('change', e=>{ DESK.team = e.target.value; rend
   const items = () => { const R = teamRosters(); const out = [];
     Object.entries(R).forEach(([t, ro])=>{ ro.h.forEach(r=>out.push({spec:'h:'+r.mlbam_id, name:r.name, team:r.team_abbr, id:r.mlbam_id, t})); ro.p.forEach(r=>out.push({spec:'p:'+r.mlbam_id, name:r.name, team:r.team, id:r.mlbam_id, t})); (ro.m||[]).forEach(r=>out.push({spec:'m:'+r.mlbam_id, name:r.name, team:r.team_abbr, id:r.mlbam_id, t})); });
     return out; };
-  const show = list => { dd.innerHTML = list.map((x,i)=>`<button data-i="${i}">${ava(x.name, x.team, 26, x.id)}<span>${esc(x.name)}</span><small>${esc(x.t===tr.a ? 'yours' : deskShort(x.t))}</small></button>`).join(''); dd.classList.toggle('open', list.length > 0);
+  const show = list => { dd.innerHTML = list.map((x,i)=>`<button data-i="${i}">${ava(x.name, x.team, 26, x.id)}<span>${esc(x.name)}</span><small>${esc(x.t===(MY || tr.a) ? 'yours' : deskShort(x.t))}</small></button>`).join(''); dd.classList.toggle('open', list.length > 0);
     dd.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ const x = list[+b.dataset.i]; dd.classList.remove('open'); inp.value = ''; const s = deskFind(x.id, x.spec[0]); if (!s) return; if (!DESK.multi.some(m=>m.id===s.id && m.type===s.type)) DESK.multi.push(s); DESK.filter = ''; if (s.owner !== tr.a) DESK.team = s.owner; renderDesk(); })); };
   inp.addEventListener('input', ()=>{ const q = fold(inp.value.trim()); if (q.length < 2){ dd.classList.remove('open'); return; } show(items().filter(x=>fold(x.name).includes(q)).slice(0, 10)); });
   inp.addEventListener('keydown', e=>{ if (e.key==='Enter'){ const b = dd.querySelector('button'); if (b){ e.preventDefault(); b.click(); } } });
@@ -3783,7 +4060,8 @@ function renderTrade(){
   const resetTo = () => keys.forEach(k=>(tr.give[k]||[]).forEach(a=>{ delete a.to; }));
   keys.forEach(k=>{ $('#tr-'+k).addEventListener('change', e=>{ const v = e.target.value; const clash = keys.find(j=>j!==k && tr[j]===v);
     if (clash){ tr[clash] = tr[k]; tr.give[clash] = []; } tr[k] = v; tr.give[k] = []; resetTo(); renderTrade(); if (k==='a'){ renderFinder(); renderDesk(); } }); });
-  const a3 = $('#tr-add3'); if (a3) a3.addEventListener('click', ()=>{ tr.c = owners.find(o=>o!==tr.a && o!==tr.b) || null; tr.give.c = []; renderTrade(); });
+  const a3 = $('#tr-add3'); if (a3) a3.addEventListener('click', ()=>{ tr.give.a.forEach(x=>{ if (!x.to) x.to = 'b'; }); tr.give.b.forEach(x=>{ if (!x.to) x.to = 'a'; });   // what A and B already send each other stays theirs
+    tr.c = owners.find(o=>o!==tr.a && o!==tr.b) || null; tr.give.c = []; renderTrade(); });
   const d3 = $('#tr-drop3'); if (d3) d3.addEventListener('click', ()=>{ tr.c = null; tr.give.c = []; ['a','b'].forEach(k=>tr.give[k].forEach(a=>{ delete a.to; })); renderTrade(); });
   $$('#trade .tr-to').forEach(s=>s.addEventListener('change', ()=>{ tr.give[s.dataset.side][+s.dataset.i].to = s.value; renderTrade(); }));
   if (ev) $$('#trade [data-even]').forEach(b=>b.addEventListener('click', ()=>{ const o = ev.opts[+b.dataset.even]; tr.give[ev.key].push(o.c.type==='pick' ? {type:'pick', team:o.c.team, round:o.c.round, year:o.c.year} : {type:o.c.type, id:o.c.id}); renderTrade(); }));
@@ -3810,6 +4088,7 @@ let LEAGUE = (() => { try{ if (/^#nfbc/i.test(location.hash)) return 'nfbc'; ret
 const LEAGUE_META = { philly: {name:'Philly Special', short:'PS', b:'Philly <span>Special</span>', small:'Lab · 2026 season'},
                       nfbc: {name:'NFBC Holdem', short:'NFBC', b:'NFBC <span>Holdem</span>', small:'Postseason · 2026'} };
 function setLeague(lg, tab, boot){ LEAGUE = lg === 'nfbc' ? 'nfbc' : 'philly'; try{ localStorage.setItem('lab-league', LEAGUE); }catch(e){}
+  if (LEAGUE === 'philly' && /^#nfbc/i.test(location.hash)){ try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){} }   // a #nfbc link should not pull every later visit back
   document.body.dataset.league = LEAGUE; const m = LEAGUE_META[LEAGUE];
   $('#league-name').textContent = m.name; $('#league-short').textContent = m.short; $('#brand').querySelector('b').innerHTML = m.b; $('#brand').querySelector('small').textContent = m.small;
   $$('#league-menu [data-league]').forEach(b=>b.setAttribute('aria-checked', b.dataset.league===LEAGUE));
@@ -3824,6 +4103,9 @@ function setLeague(lg, tab, boot){ LEAGUE = lg === 'nfbc' ? 'nfbc' : 'philly'; t
 
 // ---------- tabs + boot
 buildLeagueBar(); rescore(); prescore(); buildPct(); computeValues(); buildExplorer(); renderBreak(); buildPitch(); renderStreamers(); renderKeepers(); renderDrafts(); renderPros(); renderFormulaScoring(); drawAging(); drawPAging(); renderCV(); renderPCV();
-renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); buildRehab(); renderScorecard(); goTab(MY && [...new Set(SHD.map(r=>r.date))].some(d=>d>=localISO()) ? 'today' : 'dash'); try{ const t=localStorage.getItem('lab-tab'); if(t && $(`[data-tab="${t}"]`)) goTab(t); }catch(e){}
+renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); buildRehab(); renderScorecard();
+{ let saved = null; try{ saved = localStorage.getItem('lab-tab'); }catch(e){}     // read before the first goTab writes over it
+  const dflt = MY && !seasonOver() && [...new Set(SHD.map(r=>r.date))].some(d=>d>=localISO()) ? 'today' : 'dash';
+  goTab(saved && saved !== 'post' && !(saved === 'today' && seasonOver()) && $(`.rail [data-tab="${saved}"]`) ? saved : dflt); }
 window.LEAGUE_ON = true; setLeague(LEAGUE, null, true);   // Philly lands where it always has (Today in season, My team after); NFBC opens its board
 </script>
