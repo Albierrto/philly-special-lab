@@ -1027,8 +1027,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close" aria-label="Close player page" title="Close">✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260929T0536"></script>
-<script src="data/streamers.js?v=20260929T0536"></script>
+<script src="data/lab.js?v=20260929T0542"></script>
+<script src="data/streamers.js?v=20260929T0542"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -2957,7 +2957,8 @@ function pePhase(P){
   const now = Date.now(), L = P.locks || {DS: P.deadline};
   const T = Object.fromEntries(P.teams.map(t => [t.abbr, t]));
   const decided = r => P.teams.every(t => t.p[r] === 0 || t.p[r] === 1);        // every series of the round before is over
-  const before = r => !L[r] || now < new Date(L[r]);
+  const lockAt = w => new Date(/^\d{4}-\d\d-\d\d$/.test(w) ? w + 'T16:00:00Z' : w);     // a day with no time yet: noon ET, before any first pitch
+  const before = r => !L[r] || now < lockAt(L[r]);
   if (L.DS ? now < new Date(L.DS) : P.stage === 'pre') return {k: 'build', label: 'Before the deadline', T};
   if (P.stage === 'done') return {k: 'play', r: 'WS', label: 'The World Series is over', T};
   if (decided('WS')) return P.stage !== 'WS' && before('WS') ? {k: 'swap', r: 'WS', label: 'LCS over: moves for the World Series', T} : {k: 'play', r: 'WS', label: 'World Series under way', T};
@@ -3018,7 +3019,9 @@ function poEntryView(P){
     if (P.stage === 'done' && x.p.title === 1) return '<span class="pill g">champion</span>';
     return x.p.WS === 1 ? '<span class="pill g">in the WS</span>' : x.p.LCS === 1 ? '<span class="pill g">in the LCS</span>' : '<span class="pill b">alive</span>'; };
   const srcOpts = `<option value="ev">the expected-value roster (no bracket)</option>${P.rosters.length ? P.brackets.slice(0, 12).map((b, i) => `<option value="${i}">bracket #${i+1}: ${b.lcs.join(' v ')} World Series</option>`).join('') : ''}<option value="custom">your custom bracket (Roster view)</option>`;
-  const lockTxt = r => { const w = (P.locks || {})[r]; return w ? new Date(w).toLocaleString('en-US', {timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}) + ' ET' : 'not scheduled yet'; };
+  const lockTxt = r => { const w = (P.locks || {})[r]; if (!w) return 'not scheduled yet';
+    if (/^\d{4}-\d\d-\d\d$/.test(w)) return new Date(w + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}) + ', time TBD';   // only the day is set
+    return new Date(w).toLocaleString('en-US', {timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}) + ' ET'; };
   if (!PE.stints.length){
     return `<div class="dcard w12" style="margin-top:6px"><h3>My entry</h3>
       <p class="hint">Put the sixteen you entered on the NFBC here and this page keeps score all October: every player's points from the box scores with the 1x / 2x / 3x multipliers applied, live while games are on, and after each round the replacements the rules allow for the players whose clubs are out. It is saved in this browser only.</p>
@@ -4295,6 +4298,6 @@ renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); b
 window.LEAGUE_ON = true; setLeague(LEAGUE, null, true);   // Philly lands where it always has (Today in season, My team after); NFBC opens its board
 </script>
 
-<script src="live.js?v=20260929T0536"></script>
+<script src="live.js?v=20260929T0542"></script>
 </body>
 </html>
