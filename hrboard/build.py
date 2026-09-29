@@ -38,7 +38,8 @@ def platt(p, ab):
 # ------------------------------------------------------------------ inputs
 def load_history(today: str) -> pd.DataFrame:
     yday = (date.fromisoformat(today) - timedelta(days=1)).isoformat()
-    parts = [savant.load(2024, refresh_open=False), savant.load(2025, refresh_open=False), savant.load(2026, end=yday)]
+    y = int(today[:4])      # the two seasons before this one, plus this one through yesterday (was 2024-26 hard-coded)
+    parts = [savant.load(y - 2, refresh_open=False), savant.load(y - 1, refresh_open=False), savant.load(y, end=yday)]
     d = F.prepare(pd.concat(parts, ignore_index=True))
     return d[d["game_date"] < pd.Timestamp(today)]
 
@@ -645,6 +646,10 @@ def main(argv=None):
     t0 = time.time()
     today = a.date or datetime.now(ET).date().isoformat()
     log("slate", today)
+    # offseason (and October): no regular-season game today or in the next days, so there is no slate to build. The
+    # page keeps the last board; from January the history step asked for a season with no data and failed the job.
+    if not a.date and not any(fetch_games((date.fromisoformat(today) + timedelta(days=k)).isoformat()) for k in range(max(a.days, 2))):
+        log("no regular-season games on the next slates: the board stays as built (offseason)"); return 0
     d = load_history(today)
     log(f"history {len(d):,} PA through {d['game_date'].max().date()}")
     mj = M.load()

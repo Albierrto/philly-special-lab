@@ -111,7 +111,8 @@ def playoff_schedule(season: int) -> pd.DataFrame:
     for d in j.get("dates", []):
         for g in d["games"]:
             h, a = g["teams"]["home"], g["teams"]["away"]
-            rows.append(dict(pk=g["gamePk"], gt=g["gameType"], date=g["officialDate"], home=h["team"].get("abbreviation"), away=a["team"].get("abbreviation"),
+            rows.append(dict(pk=g["gamePk"], gt=g["gameType"], date=g["officialDate"], when=g.get("gameDate"), detailed=(g.get("status") or {}).get("detailedState"),
+                             home=h["team"].get("abbreviation"), away=a["team"].get("abbreviation"),
                              home_id=h["team"]["id"], away_id=a["team"]["id"], gno=g.get("seriesGameNumber"), state=g["status"]["abstractGameState"],
                              home_won=h.get("isWinner"), away_won=a.get("isWinner"), hs=h.get("score"), as_=a.get("score")))
     return pd.DataFrame(rows)
@@ -222,10 +223,11 @@ class Bracket:
         """Series already under way: (wins a, wins b) so far, else (0, 0)."""
         if not len(self.played): return 0, 0
         p = self.played[(self.played["gt"] == gt) & (self.played["state"] == "Final")]
-        p = p[((p["home"] == a) & (p["away"] == b)) | ((p["home"] == b) & (p["away"] == a))]
-        wa = int(((p["home"] == a) & (p["home_won"] == True)).sum() + ((p["away"] == a) & (p["away_won"] == True)).sum())
-        wb = int(len(p) - wa)
-        return wa, wb
+        p = p[((p["home"] == a) & (p["away"] == b)) | ((p["home"] == b) & (p["away"] == a))].drop_duplicates("pk", keep="last")
+        # a postponed game is also "Final" in the feed, with no winner; the old count gave it to the other club, so one
+        # rainout could put a live club out of the bracket. Only games with a winner flag count, each for its winner.
+        won = lambda t: int(((p["home"] == t) & (p["home_won"] == True)).sum() + ((p["away"] == t) & (p["away_won"] == True)).sum())
+        return won(a), won(b)
 
     def _series_from(self, gt, hi, lo, best_of):
         """Given the games already played: P(hi wins), expected remaining games, P(each remaining game number is
@@ -341,6 +343,7 @@ def elig_slots(pos) -> list:
     pos = [pos] if isinstance(pos, str) else list(pos)
     if pos == ["P"]: return ["P"]
     return sorted({p for p in pos if p in ("C", "1B", "2B", "3B", "SS", "OF")} | {"UT"})
+WC_DS_GAMES = {1: [2, 5], 2: [3], 3: [4], 4: [1]}   # Division Series games by Wild Card rotation slot
 SP_GAME = {5: {1: [1, 5], 2: [2], 3: [3], 4: [4]}, 7: {1: [1, 5], 2: [2, 6], 3: [3, 7], 4: [4]}}     # which games each rotation slot starts
 
 
@@ -473,10 +476,17 @@ def pitchers(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
         sp = sp.sort_values("ps", ascending=False)
         ov = OV[OV["team"] == t.abbr]; note = {}
         byname = dict(zip(ps["name"].map(_norm), ps["pid"]))
-        forced = {}
+        forced = {}; dsg = {}
         for r in ov[ov["role"].str.fullmatch(r"SP[1-5]")].itertuples():
-            if r.key in byname: forced[int(r.role[2:])] = byname[r.key]; note[byname[r.key]] = _ov_note(r)
+            if r.key in byname:
+                forced[int(r.role[2:])] = byname[r.key]; note[byname[r.key]] = _ov_note(r)
+                if getattr(r, "ds", ""): dsg[int(r.role[2:])] = [int(g) for g in str(r.ds).replace(" ", "").split(",") if g]
             else: log(f"rotation override: {r.name} not an active {t.abbr} pitcher")
+        # a Wild Card club's order is its Wild Card order, which the Division Series shifts by one: the Game 1 starter of
+        # the Wild Card round comes back for DS Game 2 (and 5), Game 2's for DS Game 3, and DS Game 1 goes to whoever is
+        # rested. A `ds` column on any of the club's rows switches the whole club to that mapping; explicit games win.
+        if dsg:
+            for i, g in WC_DS_GAMES.items(): dsg.setdefault(i, g)
         if forced:
             rest = [q for q in sp["pid"] if q not in forced.values()]
             order = [forced[i] if i in forced else rest.pop(0) for i in range(1, 6) if i in forced or rest]
@@ -484,6 +494,7 @@ def pitchers(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
         for i, r in enumerate(sp.head(5).itertuples(), 1):
             ip = min(SP_IP_SCALE * r.ip_gs, 6.5)
             rows.append(dict(pid=r.pid, name=r.name, team=t.abbr, role=f"SP{i}", rot=i, ip=round(ip, 2), k_ip=round(r.k_ip, 3), era=round(r.era, 2), avail=float(r.avail), il=r.il, note=note.get(r.pid, ""),
+                             ds_games=dsg.get(i),
                              pps=round(ip + ip * r.k_ip - ip * r.era / 9 * SP_ER_SCALE, 3),     # per start before the win
                              line=dict(GS=int(r.GS), IP=round(r.IP, 1), K=int(r.K), W=int(r.W), ERA=round(r.era, 2), pts=round(float(MS.holdem_pit_points(pd.DataFrame([r._asdict()])).iat[0]), 1))))
         rp = ps[~ps["pid"].isin(sp.head(5)["pid"]) & (ps["G"] >= 15)].copy()
@@ -511,6 +522,7 @@ def pitchers(f: pd.DataFrame, season: int, d: pd.DataFrame) -> pd.DataFrame:
                              ppg=round(app * (ip + ip * r.k_ip - ip * r.era / 9 * SP_ER_SCALE), 3),
                              line=dict(G=int(r.G), HLD=int(r.HLD), IP=round(r.IP, 1), K=int(r.K), ERA=round(r.era, 2), pts=round(float(MS.holdem_pit_points(pd.DataFrame([r._asdict()])).iat[0]), 1))))
     out = pd.DataFrame(rows)
+    if "ds_games" not in out: out["ds_games"] = None
     out["sv_share"] = out["sv_share"].fillna(1.0) if "sv_share" in out else 1.0
     out["note"] = out["note"].fillna("") if "note" in out else ""
     return out
@@ -531,7 +543,8 @@ def expected(hit: pd.DataFrame, pit: pd.DataFrame, P: dict) -> list[dict]:
             reach = p["r" + rnd]; games = p["g" + rnd]; wins = p["w" + rnd]
             pwin = wins / games if games > 0 else 0.5
             if r.role.startswith("SP"):
-                starts = sum(reach[g - 1] for g in SP_GAME[n].get(r.rot, [])) if r.rot <= 4 else 0.0
+                games_of = r.ds_games if (rnd == "DS" and isinstance(r.ds_games, list)) else SP_GAME[n].get(r.rot, [])
+                starts = sum(reach[g - 1] for g in games_of if g <= len(reach)) if (r.rot <= 4 or rnd == "DS" and isinstance(r.ds_games, list)) else 0.0
                 by[rnd] = round(starts * (r.pps + 4 * pwin * SP_WIN_SHARE) * r.avail, 2)
             elif r.role == "CL":
                 by[rnd] = round(games * (r.ppg + 4 * pwin * CLOSER_SAVE_SHARE * r.sv_share) * r.avail, 2)
@@ -661,7 +674,8 @@ def top_brackets(B: "Bracket", n: int = 24) -> list[dict]:
                 hi, lo = (x, y) if seedno[x] < seedno[y] else (y, x)
                 pl = B._series_from("L", hi, lo, 7)[0]
                 for (z, pz) in ((hi, pl), (lo, 1 - pl)):
-                    paths.append(dict(ds8=ds_field, ds=[x, y], lcs=z, p=p45 * p36 * px * py * pz, p_field=p45 * p36))
+                    q = p45 * p36 * px * py * pz
+                    if q > 0: paths.append(dict(ds8=ds_field, ds=[x, y], lcs=z, p=q, p_field=p45 * p36))   # a path through a series already lost is gone
         best, tot = {}, {}
         for q in paths:
             tot[q["lcs"]] = tot.get(q["lcs"], 0.0) + q["p"]
@@ -730,26 +744,98 @@ STRATEGY = [
 ]
 
 
+# ------------------------------------------------------------------ what has actually been scored (box scores)
+RND_OF = {"D": "DS", "L": "LCS", "W": "WS"}
+DEADLINES = {2026: "2026-10-03T17:00:00Z"}     # NFBC entry deadline (rules page 2618): 1 PM ET on the first Division Series day
+
+
+def box_rows(pk: int) -> list[dict]:
+    """Holdem points for everyone who played in one game: hitting (1B 1, 2B 2, 3B 3, HR 4, R, RBI, SB, BB, HBP 1, each
+    out -0.25) and pitching (IP 1, K 1, W 4, SV 4, ER -1), kept apart so a two-way man counts only on the side he is
+    rostered as."""
+    j = MS._get(f"{MS.API}/game/{pk}/boxscore"); rows = []
+    for side in ("home", "away"):
+        t = (j.get("teams") or {}).get(side) or {}; ab = (t.get("team") or {}).get("abbreviation")
+        for q in (t.get("players") or {}).values():
+            st = q.get("stats") or {}; b = st.get("batting") or {}; pi = st.get("pitching") or {}
+            h = pt = None
+            if b.get("plateAppearances") or b.get("runs") or b.get("stolenBases"):
+                H = b.get("hits", 0); x2, x3, hr = b.get("doubles", 0), b.get("triples", 0), b.get("homeRuns", 0)
+                h = (H - x2 - x3 - hr) + 2 * x2 + 3 * x3 + 4 * hr + b.get("runs", 0) + b.get("rbi", 0) + b.get("stolenBases", 0) \
+                    + b.get("baseOnBalls", 0) + b.get("hitByPitch", 0) - 0.25 * (b.get("atBats", 0) - H)
+            if pi.get("battersFaced") or pi.get("outs"):
+                pt = pi.get("outs", 0) / 3 + pi.get("strikeOuts", 0) + 4 * pi.get("wins", 0) + 4 * pi.get("saves", 0) - pi.get("earnedRuns", 0)
+            if h is None and pt is None: continue
+            rows.append(dict(pid=int(q["person"]["id"]), t=ab, h=None if h is None else round(h, 2), p=None if pt is None else round(pt, 2),
+                             lb=b.get("summary", "") if h is not None else "", lp=pi.get("summary", "") if pt is not None else ""))
+    return rows
+
+
+def actual_points(season: int, sched: pd.DataFrame) -> tuple[dict, list, str, dict]:
+    """Every Division Series, LCS and World Series game started so far, scored from the box score. A finished game is
+    cached (data/postseason/boxes_<season>/<pk>.json) and never fetched again; a game in progress is re-read each run.
+    Returns (points by player, the games, the stage, when each round locks)."""
+    cache = DATA / "postseason" / f"boxes_{season}"; cache.mkdir(parents=True, exist_ok=True)
+    act: dict = {}; games = []
+    g = sched[sched["gt"].isin(list(RND_OF))] if len(sched) else sched
+    for r in (g.sort_values(["date", "pk"]).itertuples() if len(g) else []):
+        rnd = RND_OF[r.gt]
+        games.append(dict(pk=int(r.pk), rnd=rnd, date=r.date, when=r.when, state=r.state, detailed=r.detailed, home=r.home, away=r.away,
+                          hs=None if pd.isna(r.hs) else int(r.hs), as_=None if pd.isna(r.as_) else int(r.as_), gno=r.gno,
+                          won=r.home if r.home_won is True else r.away if r.away_won is True else None))
+        if r.state not in ("Final", "Live"): continue
+        if r.state == "Final" and r.home_won is not True and r.away_won is not True: continue     # postponed or suspended
+        f = cache / f"{int(r.pk)}.json"
+        if f.exists(): rows = json.loads(f.read_text())
+        else:
+            rows = box_rows(int(r.pk))
+            if r.state == "Final" and rows: f.write_text(json.dumps(rows, separators=(",", ":")))
+        for x in rows:
+            a = act.setdefault(str(x["pid"]), dict(h={}, p={}, g=[]))
+            opp = r.away if x["t"] == r.home else r.home
+            if x["h"] is not None: a["h"][rnd] = round(a["h"].get(rnd, 0) + x["h"], 2)
+            if x["p"] is not None: a["p"][rnd] = round(a["p"].get(rnd, 0) + x["p"], 2)
+            a["g"].append([int(r.pk), rnd, r.date, opp, x["h"], x["p"], x["lb"], x["lp"], r.state == "Live"])
+    started = [x for x in games if x["state"] in ("Final", "Live")]
+    stage = "pre"
+    if started:
+        stage = max((x["rnd"] for x in started), key=["DS", "LCS", "WS"].index)
+        ws = [x for x in games if x["rnd"] == "WS" and x["won"]]
+        if ws and max(sum(1 for x in ws if x["won"] == t) for t in {x["won"] for x in ws}) >= 4: stage = "done"
+    first = lambda rnd: min((x["when"] for x in games if x["rnd"] == rnd and x["when"]), default=None)
+    locks = dict(DS=DEADLINES.get(season) or first("DS"), LCS=first("LCS"), WS=first("WS"))
+    return act, games, stage, locks
+
+
 def write(season: int, out: Path | None = None) -> dict:
     from . import build as B
     t0 = time.time()
     f, settled = field(season)
     sched = playoff_schedule(season)
     mk = market_odds(season)
-    rec = {r.abbr: r.w for r in f.itertuples()}
+    rec = {r.abbr: r.w / max(r.w + r.l, 1) for r in f.itertuples()}     # World Series home field goes by winning percentage
     s = fit_strength(f, mk, played=sched, records=rec)
     P = Bracket(f, s, played=sched, records=rec).run()
     log(f"field {'settled' if settled else 'projected'}, markets {mk['sources']}, ratings fit ({time.time()-t0:.0f}s)")
     d = B.load_history(datetime.now().date().isoformat())
     hit = hitters(f, season, d); pit = pitchers(f, season, d)
     players = expected(hit, pit, P)
+    alive = {t for t in P if P[t]["DS"] > 0}
+    gone = sorted({o["t"] for o in players} - alive)
+    players = [o for o in players if o["t"] in alive]      # a club out in the Wild Card round cannot be on an entry
+    if gone: log(f"out in the Wild Card round, players dropped: {', '.join(gone)}")
     players.sort(key=lambda o: -o["ev"])
+    act, games, stage, locks = actual_points(season, sched)
+    log(f"stage {stage}; {sum(1 for x in games if x['state'] == 'Final')} postseason games final, points for {len(act)} players")
     log(f"{len(hit)} hitters, {len(pit)} pitchers ({time.time()-t0:.0f}s)")
     B = Bracket(f, s, played=sched, records=rec)
     brackets = top_brackets(B, n=24)
     rosters = []
-    for b in brackets[:12]:
-        r = build_roster([dict(o) for o in players], b); r["p"] = b["p"]; rosters.append(r)
+    # entries lock at the first Division Series pitch; after that a fresh entry roster answers nothing (and past the DS
+    # the per-club quotas cannot be met by the clubs still alive), so the page's My entry view takes over
+    if stage == "pre":
+        for b in brackets[:12]:
+            r = build_roster([dict(o) for o in players], b); r["p"] = b["p"]; rosters.append(r)
     ds8 = max(brackets, key=lambda b: b["p_field"])["ds8"]   # the likeliest Division Series field (the field itself, once the Wild Cards are done)
     evr = ev_roster([dict(o) for o in players if o["t"] in ds8], ds8); evr["ds8"] = ds8
     log(f"{len(brackets)} brackets, {len(rosters)} rosters, EV roster {evr['total']} ({time.time()-t0:.0f}s)")
@@ -763,7 +849,7 @@ def write(season: int, out: Path | None = None) -> dict:
                               opp=dict(DS={k: round(v, 3) for k, v in p["opp"].get("DS", {}).items()}),
                               mk=dict(title=round(mk["ws"].get(t.abbr, 0), 4), pennant=round(mk[t.league].get(t.abbr, 0), 4))))
     payload = dict(built=datetime.now(timezone.utc).isoformat(timespec="seconds"), season=season, settled=settled,
-                   deadline="2026-10-03T17:00:00Z", rules=dict(slots=SLOTS, limits=LIMITS, mult=MULT, scoring=dict(hit=MS.HOLDEM_H, pit=MS.HOLDEM_P)),
+                   deadline=locks["DS"], locks=locks, stage=stage, actual=act, games=games, rules=dict(slots=SLOTS, limits=LIMITS, mult=MULT, scoring=dict(hit=MS.HOLDEM_H, pit=MS.HOLDEM_P)),
                    teams=team_rows, players=players, brackets=brackets, rosters=rosters, ev_roster=evr, history=history_notes(), strategy=STRATEGY,
                    assumptions=dict(hit_deflate=HIT_DEFLATE, sp_ip_scale=SP_IP_SCALE, sp_er_scale=SP_ER_SCALE, sp_win_share=SP_WIN_SHARE,
                                     closer_save_share=CLOSER_SAVE_SHARE, home_logit=HOME_LOGIT, pa_by_slot=PA_BY_SLOT, il_avail=IL_AVAIL),
@@ -785,6 +871,11 @@ def _json(o):
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--season", type=int, default=datetime.now().year)
+    ap = argparse.ArgumentParser(); ap.add_argument("--season", type=int); ap.add_argument("--force", action="store_true")
     a = ap.parse_args()
-    write(a.season)
+    today = datetime.now(timezone.utc).date()
+    # the board only means something from September's races to the World Series; the rest of the year the step used to
+    # run eight times a day for nothing, and from January it asked for a season with no standings and failed
+    if a.season is None and not a.force and not (today.month == 9 or today.month == 10 or (today.month == 11 and today.day <= 10)):
+        print(f"{today}: outside the postseason window (Sept 1 to Nov 10); the last board stays as built"); raise SystemExit(0)
+    write(a.season or today.year)
