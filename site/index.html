@@ -517,7 +517,8 @@ tbody tr:hover td,tbody tr:hover td.sticky{background-color:color-mix(in srgb,va
 @media (max-width:700px){ .herogrid{grid-template-columns:repeat(2,minmax(0,1fr))} .hstat b{font-size:30px} }
 /* phones: the day/night switch moves into Settings so the team picker gets the room */
 @media (max-width:560px){ #theme-btn{display:none} .teamsel select{max-width:132px} .dcard,.tside,.verdict,.desk{padding:14px 14px} }
-@media (max-width:560px){ body[data-league="nfbc"] #theme-btn{display:inline-flex} }   /* NFBC hides settings, so its phone bar keeps the theme toggle */
+@media (max-width:560px){ body[data-league="nfbc"] #theme-btn{display:inline-flex} }
+#d27-out td.name{min-width:190px} @media (max-width:560px){ #d27-out .opt{display:none} #d27-out td.name{min-width:172px} }   /* NFBC hides settings, so its phone bar keeps the theme toggle */
 .drawer .themerow{display:none}
 .mst{display:none}
 @media (max-width:560px){ th.opt2,td.opt2{display:none} #dash td.name{white-space:normal} #dash .mst{display:block;margin:3px 0 0} #dash .mst:empty{display:none} #dash td .pill{white-space:nowrap} #dash table td,#dash table th{padding-left:8px;padding-right:8px} }
@@ -743,6 +744,11 @@ body[data-league="nfbc"] main{max-width:1280px;width:100%;margin:0 auto;padding-
     <div><h3>Your week</h3><div id="s-mine"></div></div>
     <div><h3>Games, parks and weather</h3><div class="tblwrap" style="max-height:50vh"><table id="t-sgames"></table></div><p class="hint">Weather is Open-Meteo's hourly forecast at first pitch (temperature, wind speed and the wind component blowing out to center field from the park's orientation). Roofed parks ignore weather. Park factors are Savant's three-year Statcast run factors by batter side.</p></div>
   </div>
+</section>
+
+<section role="tabpanel" id="tab-draft27">
+  <div class="pagehead"><div><h2>The next draft</h2><p class="lede" id="d27-lede"></p></div><div class="dayseg" id="d27-views"></div></div>
+  <div id="d27-out"></div>
 </section>
 
 <section role="tabpanel" id="tab-keepers">
@@ -1021,8 +1027,8 @@ that decide whether anyone gets a second start in the week:
 
 <div class="overlay" id="overlay"></div>
 <aside class="card" id="card" aria-label="Player page"><button class="btn small close" id="card-close" aria-label="Close player page" title="Close">✕</button><div id="card-body" class="card-body"></div></aside>
-<script src="data/lab.js?v=20260929T0519"></script>
-<script src="data/streamers.js?v=20260929T0519"></script>
+<script src="data/lab.js?v=20260929T0536"></script>
+<script src="data/streamers.js?v=20260929T0536"></script>
 <script>
 const D = window.__LAB__; D.streamers = window.__STREAM__;
 const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
@@ -1342,7 +1348,7 @@ function renderWts(){
   $('#wts').innerHTML = EVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${W[e]??0}"></label>`).join(''); $$('#wts input').forEach(i=>i.addEventListener('input',e=>{ W[e.target.dataset.e]=+e.target.value||0; $('#preset').value='custom'; refreshAll(); }));
   $('#pwts').innerHTML = PEVENTS.map(e=>`<label>${e} <input type="number" step="0.1" data-e="${e}" value="${PW[e]??0}"></label>`).join(''); $$('#pwts input').forEach(i=>i.addEventListener('input',e=>{ PW[e.target.dataset.e]=+e.target.value||0; $('#ppreset').value='custom'; refreshAll(); }));
 }
-function refreshAll(){ rescore(); prescore(); buildPct(); computeValues(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); if (typeof renderRehab==='function' && $('#rh-out')) renderRehab(); }
+function refreshAll(){ rescore(); prescore(); buildPct(); computeValues(); renderExplorer(); renderBreak(); renderPitch(); renderKeepers(); renderDrafts(); renderFormulaScoring(); renderValues(); renderDash(); renderToday(); if (typeof renderRehab==='function' && $('#rh-out')) renderRehab(); if ($('#tab-draft27')?.classList.contains('on') && typeof renderD27==='function') renderD27(); }
 
 // ---------- player card
 // a man on a rehab assignment, said on his own card, because that is where you look before deciding to sit him
@@ -1380,6 +1386,9 @@ function showCard(html, id){ $('#card-body').innerHTML = html;
     const strip = `<div class="cardtrade"><button class="btn small" data-deskgo="${f.type}:${id}">${mine ? 'Shop him: best deals for him' : `Trade for him: what ${esc(teamLabel(f.owner).replace(/ \(.*\)$/,''))} would take`}</button><span class="hint">${mine ? 'every team, what they could send back' : 'packages from your roster they would accept'}</span></div>`;
     const pb = $('#card-body .pband'); if (pb) pb.insertAdjacentHTML('afterend', strip); else $('#card-body').insertAdjacentHTML('afterbegin', strip);
     $$('#card-body [data-deskgo]').forEach(b=>b.addEventListener('click', ()=>{ closeCard(); deskOpen(b.dataset.deskgo); })); } }
+  if (id != null && typeof MOVES !== 'undefined'){ const mv = MOVES.filter(m => m.id === id).slice(0, 4);
+    if (mv.length){ const box = `<div class="sec" style="margin:8px 0"><div class="hint" style="margin-bottom:2px">Recent moves (MLB transactions)</div><div class="rowlist">${mv.map(moveLine).join('')}</div></div>`;
+      const pb = $('#card-body .pband'); if (pb) pb.insertAdjacentHTML('afterend', box); else $('#card-body').insertAdjacentHTML('afterbegin', box); } }
   $('#overlay').classList.add('open'); $('#card').classList.add('open'); $('#card-close').focus(); $('#card').scrollTop = 0; }
 // ---------- recent games (MLB game logs, scored in the league's points)
 const LOGS = () => (D.streamers && D.streamers.logs) || {};
@@ -1924,7 +1933,7 @@ function offseasonCard(extra){
   const st = (D.meta.standings || []).find(x => x.abbrev === MY);
   return `<div class="dcard w12 offcard" style="border-left:4px solid var(--accent)"><h3>The ${CUR} season is over <small>last scoring day ${esc(seasonEndLabel())}</small></h3>
     <p class="hint">${st ? `${esc(teamLabel(MY).replace(/ \(.*\)$/,''))} finished the regular season ${st.W}-${st.L}, ${ordinal(st.rank)} of ${(D.meta.standings || []).length}. ` : ''}Lineups, streamers and the matchup simulator come back with ${CUR+1}'s first week. ${extra || ''}What matters until then:</p>
-    <div class="dayseg" style="margin-top:6px">${[['keepers', `Keepers for ${CUR+1}`], ['trades', `Trades and ${CUR+1} picks`], ['dash', 'My team'], ['prospects', 'Prospects'], ['breakouts', 'Breakouts']].map(([k, l]) => `<button data-go="${k}">${esc(l)}</button>`).join('')}</div></div>`;
+    <div class="dayseg" style="margin-top:6px">${[['keepers', `Keepers for ${CUR+1}`], ['trades', `Trades and ${CUR+1} picks`], ['draft27', 'Next draft: your picks'], ['dash', 'My team'], ['prospects', 'Prospects']].map(([k, l]) => `<button data-go="${k}">${esc(l)}</button>`).join('')}</div></div>`;
 }
 const ordinal = n => { const v = n % 100; return n + (v >= 11 && v <= 13 ? 'th' : ({1: 'st', 2: 'nd', 3: 'rd'})[n % 10] || 'th'); };
 function wireOffCard(root){ $$(root + ' .offcard [data-go]').forEach(b => b.addEventListener('click', () => goTab(b.dataset.go))); }
@@ -2428,7 +2437,7 @@ try{ const t=localStorage.getItem('lab-theme'); if(t) setTheme(t); }catch(e){}
 $('#settings-btn').addEventListener('click', ()=>{ $('#settings').classList.toggle('open'); });
 $('#settings-close').addEventListener('click', ()=>$('#settings').classList.remove('open'));
 function goTab(k){ if (window.LEAGUE_ON){ if (k==='post' && LEAGUE!=='nfbc'){ setLeague('nfbc'); return; } if (k!=='post' && LEAGUE==='nfbc'){ setLeague('philly', k); return; } }
-  $('#moresheet')?.classList.remove('open'); $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); if (k!=='post'){ try{localStorage.setItem('lab-tab',k);}catch(e){} } window.scrollTo({top:0}); fitCharts(k); if(k==='post' && typeof renderPost==='function') renderPost(); }
+  $('#moresheet')?.classList.remove('open'); $$('[data-tab]').forEach(x=>x.setAttribute('aria-selected', x.dataset.tab===k)); $$('section[role="tabpanel"]').forEach(s=>s.classList.toggle('on', s.id==='tab-'+k)); if (k!=='post'){ try{localStorage.setItem('lab-tab',k);}catch(e){} } window.scrollTo({top:0}); fitCharts(k); if(k==='post' && typeof renderPost==='function') renderPost(); if(k==='draft27' && typeof renderD27==='function') renderD27(); }
 function fitCharts(k){ try{ if(k==='drafts') drawPickCurve(); if(k==='formulas'){ drawAging(); drawPAging(); } }catch(e){} }   // a hidden panel has no width, so charts are re-fitted the moment their tab is shown
 let _fitT; addEventListener('resize', ()=>{ clearTimeout(_fitT); _fitT = setTimeout(()=>{ const on = document.querySelector('section[role="tabpanel"].on'); if(on) fitCharts(on.id.replace('tab-','')); }, 180); });
 $$('[data-tab]').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.tab)));
@@ -2466,6 +2475,32 @@ const fold = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f
 })();
 
 // ---------- dashboard
+// ---------- offseason moves (breakout/moves.py): MLB's transaction feed, cut to rostered players, the top of the next draft
+// pool and the prospects on the minors board. A change of club shows the old and new home park, because that is most of
+// what a signing does to a hitter's numbers.
+const MOVES = (D.moves && D.moves.moves) || [];
+const MV_TEAMS = (D.moves && D.moves.teams) || {};
+function parkOf(venue){ const pf = ((SD && SD.park_factors) || []).find(x => x.venue_id === venue && x.bat_side === 'All'); return pf || null; }
+function moveLine(m){
+  const a = m.fv && m.tv && m.fv !== m.tv ? [parkOf(m.fv), parkOf(m.tv)] : null;
+  const park = a && a[0] && a[1] ? ` · park runs ${a[0].pf_runs} → ${a[1].pf_runs}, homers ${a[0].pf_hr} → ${a[1].pf_hr}` : '';
+  const pill = {trade: 'b', signed: 'g', 'free agent': 'w', claimed: 'b', designated: 'r', outrighted: 'r', released: 'r', retired: 'n', injury: 'r', 'Rule 5': 'b', selected: 'g'}[m.kind] || 'n';
+  const inj = m.kind === 'injury' && /activated|reinstated/i.test(m.desc) ? ['back', 'g'] : null;
+  return `<div class="row" data-mv="${m.id}">${ava(m.name, m.to || m.fr || '', 32, m.id)}<div><div class="nm">${esc(m.name)} <span class="pill ${inj ? inj[1] : pill}">${esc(inj ? inj[0] : m.kind)}</span></div><div class="sub" style="white-space:normal">${esc(m.desc)}${esc(park)}</div></div><div class="val">${esc(dayLabel(m.date).replace(/^\w+,? /, ''))}</div></div>`;
+}
+function movesCard(myIds){
+  if (!MOVES.length) return '';
+  const cut = d => { const t = new Date(localISO() + 'T12:00:00'); t.setDate(t.getDate() - d); return isoLocal(t); };
+  const mine = new Set(myIds); const since45 = cut(45), since30 = cut(30);
+  const my = MOVES.filter(m => mine.has(m.id) && m.date >= since45).slice(0, 8);
+  const big = MOVES.filter(m => !mine.has(m.id) && m.why !== 'prospect' && ['trade', 'signed', 'free agent', 'claimed', 'released', 'designated', 'retired'].includes(m.kind) && m.date >= since30).slice(0, 8);
+  const pros = MOVES.filter(m => !mine.has(m.id) && m.why === 'prospect' && ['trade', 'selected', 'signed'].includes(m.kind) && m.date >= since30).slice(0, 5);
+  if (!my.length && !big.length && !pros.length) return '';
+  return `<div class="dcard w12"><h3>Moves and news <small>MLB's transaction feed since ${esc(dayLabel(MOVES.length ? D.moves.since : since45))}${D.moves.asof ? ', checked ' + esc(dayLabel(D.moves.asof)) : ''}</small></h3>
+    ${MY ? `<div class="hint" style="margin:2px 0 4px">Your players</div><div class="rowlist">${my.map(moveLine).join('') || '<p class="hint">Nothing new for your roster in the last 45 days.</p>'}</div>` : ''}
+    ${big.length ? `<div class="hint" style="margin:10px 0 4px">Around the league: trades, signings and free agents from the top of the next draft</div><div class="rowlist">${big.map(moveLine).join('')}</div>` : ''}
+    ${pros.length ? `<div class="hint" style="margin:10px 0 4px">Prospects on the minors board</div><div class="rowlist">${pros.map(moveLine).join('')}</div>` : ''}</div>`;
+}
 function renderDash(){
   const V = VAL || computeValues();
   const today = localISO(); const dates = [...new Set(SHD.map(r=>r.date))].sort(); const day = dates.find(d=>d>=today) || dates[dates.length-1];
@@ -2553,7 +2588,9 @@ function renderDash(){
   // injuries
   const inj = [...hRoster.filter(r=>r.active===0).map(r=>({r, c:hInfo(r.mlbam_id), kind:'h'})), ...pRoster.filter(r=>r.active===0).map(r=>({r, c:pInfo(r.mlbam_id), kind:'p'}))];
   cards += `<div class="dcard w6"><h3>Out right now <small>IL, minors, or off the 40-man</small></h3><div class="rowlist">${inj.map(({r,c,kind})=>(kind==='h'?rowH:rowP)(r, `<span class="pill r">${esc(r.status||'out')}</span>`, `${kind==='h'?esc(r.elig||''):'SP'} · ${esc(abbrOf(r.team))}${c.il_reasons?' · '+esc(c.il_reasons):''}${c.il_days?' · '+Math.round(c.il_days)+' IL days this year':''}`)).join('')||'<p class="hint">Everyone is active.</p>'}</div></div>`;
+  cards += movesCard(MY ? [...hRoster, ...pRoster].map(r=>r.mlbam_id).concat(RO.map(x=>x.m_id)).filter(x=>x!=null) : []);
   $('#dash').innerHTML = cards;
+  $$('#dash [data-mv]').forEach(el=>el.addEventListener('click',()=>{ const id = +el.dataset.mv; (PBY_ID[id] && !BY_ID[id] ? openPitcherCard : openCard)(id); }));
   $$('#dash .row[data-h], #dash td.name[data-kind="h"]').forEach(el=>{ const id = +(el.dataset.h||el.dataset.id); if (id) el.addEventListener('click',()=>openCard(id)); else el.classList.add('noclick'); });
   $$('#dash .row[data-p], #dash td.name[data-kind="p"]').forEach(el=>{ const id = +(el.dataset.p||el.dataset.id); if (id) el.addEventListener('click',()=>openPitcherCard(id)); else el.classList.add('noclick'); });
   $$('#dash .go, #dash .hstat').forEach(b=>b.addEventListener('click',()=>goTab(b.dataset.go)));
@@ -3066,6 +3103,141 @@ function peWire(P){
     PO.peSwap = null; peSave(P); renderPost(); }));
 }
 
+// ---------- the next draft: every team's likely keepers off the board, what is left, when your picks come up and who is
+// likely still there. Keepers are free, so a team keeps its best five hitters and two pitchers; how sure that is depends on
+// how far above its own cut a player sits (a star is certain, the fifth hitter is a coin flip with the sixth). Other
+// managers are assumed to take players roughly in value order, with the spread growing down the board (a normal curve
+// around his expected slot, 2 picks wide at the top and about a third of his slot deeper down). Your marks override it.
+const D27 = {view: 'picks', pos: '', q: '', hideKept: true, sort: 'par'};
+const D27S = 30;                     // points of multi-year value that move a keeper from a coin flip to about 73% / 27%
+const d27Key = () => 'lab-d27-' + (CUR + 1);
+let D27O = null;
+function d27Load(){ if (D27O) return D27O; try { D27O = JSON.parse(localStorage.getItem(d27Key()) || 'null'); } catch(e){ D27O = null; } if (!D27O || typeof D27O !== 'object') D27O = {keep: {}, taken: {}}; D27O.keep ||= {}; D27O.taken ||= {}; return D27O; }
+function d27Save(){ try { localStorage.setItem(d27Key(), JSON.stringify(D27O)); } catch(e){} }
+const d27Sig = x => 1 / (1 + Math.exp(-x));
+const d27Phi = x => 0.5 * (1 + (x => { const t = 1/(1+0.3275911*Math.abs(x)); const y = 1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x >= 0 ? y : -y; })(x / Math.SQRT2));
+// the whole draft order: overall pick -> round, original team, and who holds it now (traded picks included)
+function d27Order(){
+  const slots = draftSlots(); const bySlot = {}; Object.entries(slots).forEach(([t, s]) => bySlot[s] = t);
+  const po = D.pick_owners || []; const holder = (orig, rd) => (po.find(x => x.year === CUR + 1 && x.original === orig && x.round === rd) || {}).owner || orig;
+  const out = [];
+  for (let k = 1; k <= TEAMS * 15; k++){ const rd = Math.floor((k - 1) / TEAMS) + 1, sl = ((k - 1) % TEAMS) + 1, orig = bySlot[sl]; out.push({k, round: rd, slot: sl, orig, team: orig ? holder(orig, rd) : null}); }
+  return out;
+}
+function d27Model(){
+  const V = VAL || computeValues(); const O = d27Load();
+  const keepP = new Map(), cutOf = (arr, n) => n <= 0 ? Infinity : arr.length > n ? (arr[n-1].DV_c + arr[n].DV_c) / 2 : -Infinity;
+  for (const t of teamList()){
+    const ps = (V.pByO[t] || []).slice().sort((a, b) => b.DV_c - a.DV_c), hs = (V.byO[t] || []).slice().sort((a, b) => b.DV_c - a.DV_c);
+    const cp = cutOf(ps, PKEEP), ch = cutOf(hs, HKEEP);
+    ps.forEach(r => keepP.set('p' + r.mlbam_id, cp === Infinity ? 0 : cp === -Infinity ? 1 : d27Sig((r.DV_c - cp) / D27S)));
+    hs.forEach(r => keepP.set('h' + r.mlbam_id, ch === Infinity ? 0 : ch === -Infinity ? 1 : d27Sig((r.DV_c - ch) / D27S)));
+  }
+  const items = [];
+  V.cur.forEach(r => { if (r.pslot) return; items.push({key: 'h' + r.mlbam_id, id: r.mlbam_id, kind: 'h', r, name: r.name, team: r.team_abbr, pos: eligN(r), par: r.PAR_c, dv: r.DV_c, owner: r.owner, age: r.age, proj: r.proj_pts}); });
+  V.pc.forEach(r => items.push({key: 'p' + r.mlbam_id, id: r.mlbam_id, kind: 'p', r, name: r.name, team: r.team || r.team_abbr, pos: 'SP', par: r.PAR_c, dv: r.DV_c, owner: r.owner, age: r.age, proj: r.tot_c ?? r.proj_pts}));
+  for (const x of items){
+    const auto = (!x.owner || isFA(x.owner)) ? 0 : (keepP.get(x.key) ?? 0);
+    x.pkAuto = auto; x.pk = O.keep[x.key] === true ? 1 : O.keep[x.key] === false ? 0 : auto; x.ov = O.keep[x.key];
+    x.taken = O.taken[x.key] || null;
+  }
+  const order = d27Order(); const made = new Set([...Object.values(O.taken), ...(O.made || [])]);      // picks gone: marked by hand or seen on Fantrax
+  const nTaken = made.size; const onClock = order.find(p => !made.has(p.k)) || null;
+  const pool = items.filter(x => !x.taken && x.pk < 1).sort((a, b) => b.par - a.par);
+  let exp = 1; for (const x of pool){ x.r = exp; exp += 1 - x.pk; }         // expected slot among what is actually left
+  // chance he is still there when overall pick k comes up
+  const done = nTaken;
+  const avail = (x, k) => { if (x.taken || x.pk >= 1) return 0; const pos = k - done; if (pos <= 1) return 1 - x.pk; const sd = Math.max(2, 0.3 * x.r); return (1 - x.pk) * (1 - d27Phi((pos - 0.5 - x.r) / sd)); };
+  // tiers: a new tier where the board drops off (a gap of 15+ points of 2027 value between neighbours, or 12% of the tier's top)
+  const tp = pool.filter(x => x.pk < 0.5); let tier = 1, top = tp.length ? tp[0].par : 0;   // tiers over what is likely to reach the draft
+  tp.forEach((x, i) => { if (i && (tp[i-1].par - x.par >= 15 || top - x.par > Math.max(25, 0.12 * Math.abs(top)))){ tier++; top = x.par; } x.tier = tier; });
+  const mine = MY ? order.filter(p => p.team === MY) : [];
+  return {V, O, items, pool, order, onClock, mine, avail, done};
+}
+function d27Expect(M, k){       // expected best 2027 value on the board at pick k (players as independent; good enough to rank picks)
+  let e = 0, none = 1; const cands = [];
+  for (const x of M.pool){ const a = M.avail(x, k); if (a <= 0.001) continue; e += none * a * Math.max(0, x.par); none *= (1 - a); if (cands.length < 6 && a >= 0.2) cands.push({x, a}); if (none < 0.002) break; }
+  return {e, cands};
+}
+const D27SYNC = {timer: null, at: null, err: null, n: 0};
+async function d27Sync(){
+  const lid = D.meta.draft_league; if (!lid) return 0;
+  try {
+    const j = await fetch(`https://www.fantrax.com/fxea/general/getDraftResults?leagueId=${encodeURIComponent(lid)}`).then(r => r.json());
+    const O = d27Load(); const picks = (j.draftPicks || []).filter(p => p.playerId && p.pick); let ch = 0;
+    for (const p of picks){ const key = (D.fx || {})[p.playerId]; if (key && O.taken[key] !== p.pick){ O.taken[key] = p.pick; ch++; } }
+    const made = picks.map(p => p.pick).sort((a, b) => a - b); if (JSON.stringify(made) !== JSON.stringify(O.made || [])){ O.made = made; ch++; }
+    if (ch) d27Save(); D27SYNC.at = new Date(); D27SYNC.err = null; D27SYNC.n = picks.length;
+    return picks.length && picks.length < TEAMS * 15 ? 2 : 1;      // 2: the draft is on
+  } catch(e){ D27SYNC.err = 'Fantrax unreachable here'; return 0; }
+}
+function d27Poll(){
+  if (D27SYNC.timer || !D.meta.draft_league) return;
+  const tick = async () => { const on = $('#tab-draft27')?.classList.contains('on') && !document.hidden;
+    const st = on ? await d27Sync() : 1; if (on && !(document.activeElement && document.activeElement.id === 'd27-q')) renderD27(true);
+    D27SYNC.timer = setTimeout(tick, st === 2 ? 8000 : 120000); };
+  D27SYNC.timer = setTimeout(tick, 20);
+}
+function renderD27(fromPoll){
+  const el = $('#d27-out'); if (!el) return; if (!fromPoll) d27Poll();
+  const M = d27Model(); const O = M.O; const nxt = M.mine.find(p => !Object.values(O.taken).includes(p.k) && (!M.onClock || p.k >= M.onClock.k));
+  $('#d27-views').innerHTML = [['picks', 'Your picks'], ['board', 'Board'], ['keepers', 'Keepers by team'], ['order', 'Draft order']].map(([k, l]) => `<button aria-pressed="${D27.view === k}" data-v="${k}">${l}</button>`).join('');
+  $$('#d27-views button').forEach(b => b.addEventListener('click', () => { D27.view = b.dataset.v; renderD27(); }));
+  const nMarks = new Set([...Object.values(O.taken), ...(O.made || [])]).size, nOv = Object.keys(O.keep).length;
+  const sync = D.meta.draft_league ? (D27SYNC.err ? ` <span class="pill r">${esc(D27SYNC.err)}</span>` : D27SYNC.at ? ` <span class="pill g">live from Fantrax</span> ${D27SYNC.n} picks, checked ${D27SYNC.at.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit', second: '2-digit'})}.` : ' Connecting to Fantrax…')
+    : ` Live sync with Fantrax turns on once the ${CUR + 1} league exists and its id is added; until then, mark picks by hand.`;
+  const clock = M.onClock ? `Pick <b>#${M.onClock.k}</b> (round ${M.onClock.round}) is next, held by <b>${esc(deskShort(M.onClock.team) || M.onClock.team || '?')}</b>${M.onClock.team === MY ? ' <span class="pill g">you</span>' : ''}` : 'Every pick is marked.';
+  $('#d27-lede').innerHTML = `Fixed order, 15 rounds, ${TEAMS} teams. Every team's likely keepers (${HKEEP} hitters and ${PKEEP} pitchers) are off the board. ${nMarks ? `${nMarks} picks marked. ${clock}.` : `Nothing marked yet: during the draft, tap <b>Taken</b> as players go and everything re-prices.`}${nOv ? ` ${nOv} keeper call${nOv > 1 ? 's' : ''} set by you.` : ''}${sync}`;
+  let h = '';
+  const pill = x => x.pk >= 0.995 ? '' : x.owner && !isFA(x.owner) ? `<span class="pill ${x.pk >= 0.5 ? 'w' : 'n'}" title="chance ${esc(deskShort(x.owner))} keeps him">${x.ov === true ? 'kept (you)' : x.ov === false ? 'released (you)' : 'keep ' + Math.round(100 * x.pk) + '%'}</span>` : '';
+  const who = (x, extra = '') => `<div style="display:flex;gap:8px;align-items:center">${ava(x.name, x.team, 26, x.id)}<div style="min-width:0"><b style="white-space:nowrap">${esc(x.name)}</b><div class="sub" style="white-space:nowrap">${esc(x.pos)} · ${esc(abbrOf(x.team) || x.team || '')}${x.age ? ' · age ' + Math.floor(x.age + 1) : ''}</div>${extra ? `<div>${extra}</div>` : ''}</div></div>`;
+  if (!MY && (D27.view === 'picks')){ h = '<p class="hint">Pick your team in the top bar to see your picks. The Board, Keepers and Draft order views work for everyone.</p>'; D27.view = 'board'; }
+  if (D27.view === 'picks' && MY){
+    const upcoming = M.mine.filter(p => !Object.values(O.taken).includes(p.k));
+    h = upcoming.length ? upcoming.map((p, i) => { const E = d27Expect(M, p.k); const nextP = upcoming[i + 1];
+      return `<div class="dcard w12" style="margin-top:10px"><h3>Pick #${p.k} <small>round ${p.round}${p.orig !== MY ? `, from ${esc(deskShort(p.orig))}` : ''} · expected best value left about ${Math.round(E.e)}</small></h3>
+        ${E.cands.length ? `<div class="tblwrap" style="max-height:none"><table class="mini"><thead><tr><th class="l">Likely there</th><th title="points above replacement in ${CUR + 1}">Value</th><th class="opt">Multi-yr</th><th class="opt">Tier</th><th>There</th>${nextP ? `<th title="chance he is still there at your next pick, #${nextP.k}">At #${nextP.k}</th>` : ''}</tr></thead><tbody>
+          ${E.cands.map(({x, a}) => { const b = nextP ? M.avail(x, nextP.k) : null; return `<tr><td class="l name" data-d27card="${x.kind}:${x.id}">${who(x, pill(x))}</td><td>${Math.round(x.par)}</td><td class="opt">${Math.round(x.dv)}</td><td class="opt">${x.tier ?? '–'}</td><td><b>${Math.round(100 * a)}%</b></td>${nextP ? `<td style="white-space:nowrap">${Math.round(100 * b)}%${b < 0.35 ? '<div><span class="pill r">take now</span></div>' : b > 0.8 ? '<div><span class="pill g">can wait</span></div>' : ''}</td>` : ''}</tr>`; }).join('')}</tbody></table></div>` : '<p class="hint">Nobody on the board projects above replacement this deep; take the best prospect or the man whose role is about to grow.</p>'}</div>`; }).join('')
+      : '<p class="hint">You hold no picks in this draft.</p>';
+    h = `<p class="hint">Each card is one of your picks, with the players most likely to still be there (20% or better) ranked by what they add in ${CUR + 1}. "Take now" means he is unlikely to reach your next pick; "can wait" means he probably will.</p>` + h;
+  }
+  if (D27.view === 'board'){
+    const q = D27.q.toLowerCase(); const k0 = nxt ? nxt.k : null;
+    let rows = M.items.filter(x => !x.taken && (!D27.hideKept || x.pk < 0.9) && (!D27.pos || (D27.pos === 'SP' ? x.kind === 'p' : x.kind === 'h' && x.pos.split('/').includes(D27.pos))) && (!q || x.name.toLowerCase().includes(q)));
+    rows.sort((a, b) => D27.sort === 'dv' ? b.dv - a.dv : b.par - a.par); rows = rows.slice(0, 150);
+    h = `<div class="filters"><label>Position <select id="d27-pos">${['', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP'].map(p => `<option value="${p}"${D27.pos === p ? ' selected' : ''}>${p || 'all'}</option>`).join('')}</select></label>
+        <label>Sort <select id="d27-sort"><option value="par"${D27.sort === 'par' ? ' selected' : ''}>${CUR + 1} value</option><option value="dv"${D27.sort === 'dv' ? ' selected' : ''}>multi-year value</option></select></label>
+        <label><input type="checkbox" id="d27-hide"${D27.hideKept ? ' checked' : ''}> hide likely keepers (90%+)</label><label>Search <input id="d27-q" value="${esc(D27.q)}" placeholder="name"></label>
+        ${nMarks ? '<button class="btn small" id="d27-undo">Undo last pick</button>' : ''}</div>
+      <div class="tblwrap"><table><thead><tr><th>#</th><th class="l">Player</th><th class="l">Owner</th><th>Value</th><th class="opt">Multi-yr</th><th class="opt">Tier</th>${k0 ? `<th title="chance he is there at your next pick">At #${k0}</th>` : ''}<th></th></tr></thead><tbody>
+      ${rows.map((x, i) => `<tr${x.pk >= 0.5 ? ' class="out"' : ''}><td>${i + 1}</td><td class="l name" data-d27card="${x.kind}:${x.id}">${who(x)}</td><td class="l">${x.owner && !isFA(x.owner) ? esc(deskShort(x.owner)) + ' ' + pill(x) : '<span class="hint">free agent</span>'}</td><td>${Math.round(x.par)}</td><td class="opt">${Math.round(x.dv)}</td><td class="opt">${x.tier ?? ''}</td>${k0 ? `<td>${Math.round(100 * M.avail(x, k0))}%</td>` : ''}<td style="white-space:nowrap">${M.onClock ? `<button class="btn small" data-d27take="${x.key}">Taken</button>` : ''}</td></tr>`).join('')}</tbody></table></div>
+      <p class="hint">Value is points above replacement (${CUR + 1}), the same numbers as Keepers and Trades. Grey rows are more likely kept than drafted. Mark a player <b>Taken</b> as he goes (he is given to the pick on the clock), and your keeper calls on the Keepers view move him on or off the board.</p>`;
+  }
+  if (D27.view === 'keepers'){
+    const teams = teamList().sort((a, b) => (a === MY ? -1 : b === MY ? 1 : deskShort(a).localeCompare(deskShort(b))));
+    h = `<p class="hint">Tap a player to cycle your call: the model's guess → <b>kept</b> → <b>released</b> → back. Kept players leave the board; released ones join it. Useful once teams start announcing keepers.</p><div class="dash">` + teams.map(t => {
+      const hs = M.items.filter(x => x.owner === t && x.kind === 'h').sort((a, b) => b.dv - a.dv).slice(0, HKEEP + 3), ps = M.items.filter(x => x.owner === t && x.kind === 'p').sort((a, b) => b.dv - a.dv).slice(0, PKEEP + 2);
+      const line = x => `<div class="row" data-d27keep="${x.key}" title="tap to change the keeper call"><div class="nm" style="min-width:0">${esc(x.name)} <span class="hint">${esc(x.pos)}</span></div><div class="val">${x.ov === true ? '<span class="pill g">kept</span>' : x.ov === false ? '<span class="pill r">released</span>' : `<span class="pill ${x.pk >= 0.5 ? 'w' : 'n'}">${Math.round(100 * x.pk)}%</span>`}</div></div>`;
+      return `<div class="dcard w6"><h3>${esc(teamLabel(t).replace(/ \(.*\)$/, ''))}${t === MY ? ' <span class="pill g">you</span>' : ''}</h3><div class="rowlist">${hs.map(line).join('')}${ps.map(line).join('')}</div></div>`; }).join('') + '</div>';
+  }
+  if (D27.view === 'order'){
+    const byPick = {}; Object.entries(O.taken).forEach(([key, k]) => byPick[k] = M.items.find(x => x.key === key));
+    h = `<div class="tblwrap" style="max-height:none"><table class="mini"><thead><tr><th>Round</th>${Array.from({length: TEAMS}, (_, i) => `<th>${i + 1}</th>`).join('')}</tr></thead><tbody>${Array.from({length: 15}, (_, r) => `<tr><td><b>${r + 1}</b></td>${M.order.filter(p => p.round === r + 1).map(p => { const x = byPick[p.k];
+      return `<td style="${p.team === MY ? 'background:rgba(var(--cold-rgb),.14);' : ''}white-space:nowrap" title="#${p.k} ${esc(deskShort(p.team) || '')}${p.team !== p.orig ? ', originally ' + esc(deskShort(p.orig)) : ''}">${esc(p.team || '?')}${p.team !== p.orig ? '*' : ''}${x ? `<div class="hint">${esc(x.name)}</div>` : ''}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>
+      <p class="hint">* a traded pick (hover for the original team). Your picks are shaded. Slots follow the league rule from the final ${CUR} standings; picks are the ones each team holds on Fantrax.</p>`;
+  }
+  el.innerHTML = h;
+  const on = (sel, ev, fn) => { const e = $(sel); if (e) e.addEventListener(ev, fn); };
+  on('#d27-pos', 'change', e => { D27.pos = e.target.value; renderD27(); });
+  on('#d27-sort', 'change', e => { D27.sort = e.target.value; renderD27(); });
+  on('#d27-hide', 'change', e => { D27.hideKept = e.target.checked; renderD27(); });
+  on('#d27-q', 'input', e => { D27.q = e.target.value; const p = e.target.selectionStart; renderD27(); const n = $('#d27-q'); if (n){ n.focus(); n.setSelectionRange(p, p); } });
+  on('#d27-undo', 'click', () => { const last = Object.entries(O.taken).filter(([k, v]) => !(O.made || []).includes(v)).sort((a, b) => b[1] - a[1])[0]; if (last){ delete O.taken[last[0]]; d27Save(); renderD27(); } });
+  $$('#d27-out [data-d27take]').forEach(b => b.addEventListener('click', () => { if (!M.onClock) return; O.taken[b.dataset.d27take] = M.onClock.k; d27Save(); renderD27(); }));
+  $$('#d27-out [data-d27keep]').forEach(r => r.addEventListener('click', () => { const k = r.dataset.d27keep; const v = O.keep[k]; if (v === undefined) O.keep[k] = true; else if (v === true) O.keep[k] = false; else delete O.keep[k]; d27Save(); renderD27(); }));
+  $$('#d27-out [data-d27card]').forEach(c => c.addEventListener('click', () => { const [kind, id] = c.dataset.d27card.split(':'); (kind === 'p' ? openPitcherCard : openCard)(+id); }));
+}
+
 // ---------- navigation (rail on desktop, tab bar + "more" sheet on phones)
 const NAV_ICON = {
  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 14l1.5 1.5L16 13"/></svg>',
@@ -3077,6 +3249,7 @@ const NAV_ICON = {
  pitchers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M6 6c3 2 3 10 0 12M18 6c-3 2-3 10 0 12"/></svg>',
  breakouts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
  prospects:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 11c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 14c0-3-2.5-5-5-5 0 3 2.5 5 5 5z"/></svg>',
+ draft27:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 9v11M15 9v11"/></svg>',
  drafts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
  post:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8 21h8M9 17h6"/></svg>',
  formulas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5H7l6 7-6 7h11"/></svg>',
@@ -3085,8 +3258,9 @@ const NAV_ICON = {
  rehab:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2.5-5H21"/></svg>',
  scorecard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V9m5 10V5m5 14v-6"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>'};
-const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['rehab','Rehab','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
+const NAV = [['today','Today','Your team'],['dash','My team','Your team'],['streamers','Streamers','Your team'],['matchup','Matchup','Your team'],['trades','Trades','Your team'],['keepers','Keepers','Your team'],['draft27','Next draft','Your team'],['rehab','Rehab','Your team'],['explore','Hitters','Research'],['pitchers','Pitchers','Research'],['breakouts','Breakouts','Research'],['prospects','Prospects','Research'],['drafts','Drafts','Research'],['formulas','Methods','Help'],['scorecard','Scorecard','Help'],['glossary','Glossary','Help']];
 (function buildNav(){
+  if (seasonOver()){ const first = ['dash','keepers','trades','draft27']; const pick = NAV.filter(x=>first.includes(x[0])).sort((a,b)=>first.indexOf(a[0])-first.indexOf(b[0])); const rest = NAV.filter(x=>!first.includes(x[0])); NAV.length = 0; NAV.push(...pick, ...rest); }   // in the offseason the phone bar leads with what matters then
   const btn = (k,l) => `<button class="navbtn" role="tab" aria-selected="false" data-tab="${k}">${NAV_ICON[k]}<span>${l}</span></button>`;
   let h = '', g = '';
   for (const [k,l,grp] of NAV){ if (grp!==g){ h += `<div class="grp">${grp}</div>`; g = grp; } h += btn(k,l); }
@@ -4121,6 +4295,6 @@ renderGlossary(); renderValues(); renderDash(); renderToday(); buildMatchup(); b
 window.LEAGUE_ON = true; setLeague(LEAGUE, null, true);   // Philly lands where it always has (Today in season, My team after); NFBC opens its board
 </script>
 
-<script src="live.js?v=20260929T0519"></script>
+<script src="live.js?v=20260929T0536"></script>
 </body>
 </html>
