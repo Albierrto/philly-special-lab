@@ -6,7 +6,7 @@ Michael Harris II,CF,ATL,CS,ACTIVE
 Max Clark,CF,DET,CS,RESERVE
 Andy Pages,CF,LAD,CS,INJURED_RESERVE
 Andre Pallante,SP,STL,CS,ACTIVE
-Mickey Gasper,C,BOS,CS,ACTIVE
+Mickey Gasper,DH,BOS,CS,ACTIVE
 Ryan Sloan,SP,SEA,CS,MINORS
 Bryson Stott,2B,PHI,CS,ACTIVE
 Maikel Garcia,3B,KC,CS,INJURED_RESERVE
@@ -34,7 +34,7 @@ Zac Thornton,SP,NYM,CH,RESERVE
 Garrett Crochet,SP,BOS,CH,INJURED_RESERVE
 Eduardo Valencia,1B,DET,CH,RESERVE
 Austin Riley,3B,ATL,CH,RESERVE
-Bryce Eldridge,1B,SF,CH,ACTIVE
+Bryce Eldridge,DH,SF,CH,ACTIVE
 Franklin Arias,SS,BOS,CH,MINORS
 Trevor Story,SS,BOS,CH,ACTIVE
 A.J. Ewing,CF,NYM,CH,RESERVE
@@ -85,7 +85,7 @@ Thomas Saggese,2B,STL,MMM,ACTIVE
 Matt Olson,1B,ATL,MMM,RESERVE
 Josh Jung,3B,TEX,MMM,ACTIVE
 Dillon Dingler,C,DET,MMM,ACTIVE
-Yordan Alvarez,LF,HOU,MMM,ACTIVE
+Yordan Alvarez,DH,HOU,MMM,ACTIVE
 Jake McCarthy,LF,COL,MMM,ACTIVE
 Liam Hicks,C,TB,MMM,RESERVE
 Kyle Tucker,RF,LAD,MMM,ACTIVE
@@ -93,7 +93,7 @@ Chris Sale,SP,ATL,MMM,RESERVE
 Jacob Misiorowski,SP,MIL,MMM,ACTIVE
 Gerrit Cole,SP,NYY,MMM,ACTIVE
 Bryan Reynolds,RF,PIT,MMM,RESERVE
-Josue De Paula,RF,LAD,MMM,ACTIVE
+Josue De Paula,DH,LAD,MMM,ACTIVE
 Jazz Chisholm Jr.,2B,NYY,MMM,INJURED_RESERVE
 Jose Ramirez,3B,CLE,MMM,ACTIVE
 Joe Ryan,SP,MIN,MMM,RESERVE
@@ -109,8 +109,8 @@ Kody Clemens,1B,MIN,LTTA,ACTIVE
 Theo Gillen,CF,TB,LTTA,MINORS
 Kyle Bradish,SP,BAL,LTTA,ACTIVE
 Christian Yelich,DH,MIL,LTTA,ACTIVE
-George Springer,RF,TOR,LTTA,RESERVE
-Ivan Herrera,DH,STL,LTTA,ACTIVE
+George Springer,DH,TOR,LTTA,RESERVE
+Ivan Herrera,C,STL,LTTA,ACTIVE
 Christian Scott,SP,NYM,LTTA,ACTIVE
 Esmerlyn Valdez,RF,PIT,LTTA,ACTIVE
 Reid Detmers,RP,LAA,LTTA,RESERVE
@@ -154,8 +154,8 @@ Kevin McGonigle,SS,DET,GLIZZY,ACTIVE
 Jose Soriano,SP,TOR,GLIZZY,ACTIVE
 Leo De Vries,SS,ATH,Dan,MINORS
 Spencer Torkelson,1B,DET,Dan,RESERVE
-Salvador Perez,C,KC,Dan,ACTIVE
-Jorge Soler,RF,LAA,Dan,RESERVE
+Salvador Perez,DH,KC,Dan,ACTIVE
+Jorge Soler,DH,LAA,Dan,RESERVE
 Andres Gimenez,2B,TOR,Dan,RESERVE
 Max Meyer,SP,MIA,Dan,INJURED_RESERVE
 Brandon Nimmo,LF,TEX,Dan,ACTIVE
@@ -269,7 +269,7 @@ Caleb Durbin,3B,BOS,GK,ACTIVE
 Samuel Basallo,C,BAL,GK,RESERVE
 Sebastian Walcott,DH,TEX,GK,MINORS
 Cal Quantrill,SP,TEX,GK,RESERVE
-Dominic Canzone,RF,SEA,GK,ACTIVE
+Dominic Canzone,DH,SEA,GK,ACTIVE
 Max Fried,SP,NYY,GK,ACTIVE
 Sean Burke,SP,CHW,GK,ACTIVE
 Pete Alonso,1B,BAL,GK,ACTIVE
@@ -286,7 +286,7 @@ Tyler Phillips,RP,MIA,GK,ACTIVE
 Curtis Mead,1B,BOS,GK,INJURED_RESERVE
 Gunnar Henderson,SS,BAL,GK,ACTIVE
 Carter Jensen,C,KC,BB,RESERVE
-Shohei Ohtani,DH,LAD,BB,INJURED_RESERVE
+Shohei Ohtani,SP,LAD,BB,INJURED_RESERVE
 Julio Rodriguez,CF,SEA,BB,ACTIVE
 Bobby Witt Jr.,SS,KC,BB,ACTIVE
 Logan Gilbert,SP,SEA,BB,RESERVE

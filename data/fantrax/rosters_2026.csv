@@ -6,7 +6,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05u9y,Max Clark,DET,CF,OF,RESERVE,CS,City to the Shore
 04ru5,Andy Pages,LAD,CF,OF,INJURED_RESERVE,CS,City to the Shore
 05133,Andre Pallante,STL,SP,SP,ACTIVE,CS,City to the Shore
-06am0,Mickey Gasper,BOS,C,C,ACTIVE,CS,City to the Shore
+06am0,Mickey Gasper,BOS,DH,C,ACTIVE,CS,City to the Shore
 06ier,Ryan Sloan,SEA,SP,SP,MINORS,CS,City to the Shore
 04p10,Bryson Stott,PHI,2B,2B,ACTIVE,CS,City to the Shore
 05g3x,Maikel Garcia,KC,3B,UT,INJURED_RESERVE,CS,City to the Shore
@@ -34,7 +34,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ajh,Garrett Crochet,BOS,SP,SP,INJURED_RESERVE,CH,Charlie Hustle
 06rkk,Eduardo Valencia,DET,1B,1B,RESERVE,CH,Charlie Hustle
 03pom,Austin Riley,ATL,3B,3B,RESERVE,CH,Charlie Hustle
-05u96,Bryce Eldridge,SF,1B,1B,ACTIVE,CH,Charlie Hustle
+05u96,Bryce Eldridge,SF,DH,1B,ACTIVE,CH,Charlie Hustle
 06c78,Franklin Arias,BOS,SS,SS,MINORS,CH,Charlie Hustle
 02bqh,Trevor Story,BOS,SS,SS,ACTIVE,CH,Charlie Hustle
 06dn7,A.J. Ewing,NYM,CF,OF,RESERVE,CH,Charlie Hustle
@@ -85,7 +85,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 02mwm,Matt Olson,ATL,1B,1B,RESERVE,MMM,Midwest MooseKnuckle Mafia
 04y44,Josh Jung,TEX,3B,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05gx4,Dillon Dingler,DET,C,C,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-04355,Yordan Alvarez,HOU,LF,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+04355,Yordan Alvarez,HOU,DH,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 03qyv,Jake McCarthy,COL,LF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05ynb,Liam Hicks,TB,C,C,RESERVE,MMM,Midwest MooseKnuckle Mafia
 03pir,Kyle Tucker,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
@@ -93,7 +93,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 061yu,Jacob Misiorowski,MIL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01spo,Gerrit Cole,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 03e5m,Bryan Reynolds,PIT,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
-061zv,Josue De Paula,LAD,RF,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+061zv,Josue De Paula,LAD,DH,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 045qo,Jazz Chisholm Jr.,NYY,2B,2B,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
 01ub6,Jose Ramirez,CLE,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 04ps7,Joe Ryan,MIN,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
@@ -109,8 +109,8 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05u2m,Theo Gillen,TB,CF,OF,MINORS,LTTA,Let’s try this again
 04pq4,Kyle Bradish,BAL,SP,SP,ACTIVE,LTTA,Let’s try this again
 025dn,Christian Yelich,MIL,DH,OF,ACTIVE,LTTA,Let’s try this again
-025he,George Springer,TOR,RF,OF,RESERVE,LTTA,Let’s try this again
-04hyc,Ivan Herrera,STL,DH,C,ACTIVE,LTTA,Let’s try this again
+025he,George Springer,TOR,DH,OF,RESERVE,LTTA,Let’s try this again
+04hyc,Ivan Herrera,STL,C,C,ACTIVE,LTTA,Let’s try this again
 05xpq,Christian Scott,NYM,SP,SP,ACTIVE,LTTA,Let’s try this again
 05rbw,Esmerlyn Valdez,PIT,RF,OF,ACTIVE,LTTA,Let’s try this again
 0596g,Reid Detmers,LAA,RP,SP,RESERVE,LTTA,Let’s try this again
@@ -154,8 +154,8 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04c0o,Jose Soriano,TOR,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 067yc,Leo De Vries,ATH,SS,UT,MINORS,Dan,Some Ting Wong
 04yk2,Spencer Torkelson,DET,1B,1B,RESERVE,Dan,Some Ting Wong
-01u75,Salvador Perez,KC,C,C,ACTIVE,Dan,Some Ting Wong
-02i11,Jorge Soler,LAA,RF,OF,RESERVE,Dan,Some Ting Wong
+01u75,Salvador Perez,KC,DH,C,ACTIVE,Dan,Some Ting Wong
+02i11,Jorge Soler,LAA,DH,OF,RESERVE,Dan,Some Ting Wong
 03pzn,Andres Gimenez,TOR,2B,UT,RESERVE,Dan,Some Ting Wong
 05a2d,Max Meyer,MIA,SP,SP,INJURED_RESERVE,Dan,Some Ting Wong
 02bq2,Brandon Nimmo,TEX,LF,OF,ACTIVE,Dan,Some Ting Wong
@@ -269,7 +269,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05rbv,Samuel Basallo,BAL,C,C,RESERVE,GK,Gotham Knights
 0662o,Sebastian Walcott,TEX,DH,SS,MINORS,GK,Gotham Knights
 03yxh,Cal Quantrill,TEX,SP,SP,RESERVE,GK,Gotham Knights
-05161,Dominic Canzone,SEA,RF,OF,ACTIVE,GK,Gotham Knights
+05161,Dominic Canzone,SEA,DH,OF,ACTIVE,GK,Gotham Knights
 02i2j,Max Fried,NYY,SP,SP,ACTIVE,GK,Gotham Knights
 05xod,Sean Burke,CHW,SP,SP,ACTIVE,GK,Gotham Knights
 041pz,Pete Alonso,BAL,1B,1B,ACTIVE,GK,Gotham Knights
@@ -286,7 +286,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05ahe,Curtis Mead,BOS,1B,3B,INJURED_RESERVE,GK,Gotham Knights
 050w9,Gunnar Henderson,BAL,SS,SS,ACTIVE,GK,Gotham Knights
 05vy5,Carter Jensen,KC,C,C,RESERVE,BB,Basketball
-02yc4,Shohei Ohtani,LAD,DH,UT,INJURED_RESERVE,BB,Basketball
+02yc4,Shohei Ohtani,LAD,SP,UT,INJURED_RESERVE,BB,Basketball
 04fhb,Julio Rodriguez,SEA,CF,OF,ACTIVE,BB,Basketball
 04lgp,Bobby Witt Jr.,KC,SS,SS,ACTIVE,BB,Basketball
 04n0m,Logan Gilbert,SEA,SP,SP,RESERVE,BB,Basketball
