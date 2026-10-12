@@ -16,12 +16,12 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04pbq,Geraldo Perdomo,ARI,SS,UT,RESERVE,CS,City to the Shore
 052c8,Cristopher Sanchez,PHI,SP,SP,ACTIVE,CS,City to the Shore
 062ho,Javier Sanoja,MIA,3B,OF,RESERVE,CS,City to the Shore
-04alp,Ernie Clement,TOR,3B,2B,RESERVE,CS,City to the Shore
+04alp,Ernie Clement,TOR,2B,2B,RESERVE,CS,City to the Shore
 01svq,Manny Machado,SD,3B,3B,ACTIVE,CS,City to the Shore
 041r1,Jesus Luzardo,PHI,SP,SP,RESERVE,CS,City to the Shore
 05jq2,Andrew Abbott,CIN,SP,SP,RESERVE,CS,City to the Shore
 05gef,Cade Cavalli,WSH,SP,SP,ACTIVE,CS,City to the Shore
-05y7t,Henry Bolte,ATH,RF,OF,ACTIVE,CS,City to the Shore
+05y7t,Henry Bolte,ATH,CF,OF,ACTIVE,CS,City to the Shore
 04mn5,Alec Bohm,PHI,3B,1B,ACTIVE,CS,City to the Shore
 03aac,Walker Buehler,SD,SP,SP,RESERVE,CS,City to the Shore
 04ppj,Jeremy Pena,HOU,SS,UT,ACTIVE,CS,City to the Shore
@@ -30,9 +30,9 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05yeg,Roch Cholowsky,CHW,SS,SS,MINORS,CH,Charlie Hustle
 041yb,Dean Kremer,MIN,SP,SP,ACTIVE,CH,Charlie Hustle
 05t9g,Gage Jump,ATH,SP,SP,ACTIVE,CH,Charlie Hustle
-06ekq,Zac Thornton,NYM,SP,SP,RESERVE,CH,Charlie Hustle
+06ekq,Zac Thornton,NYM,RP,SP,RESERVE,CH,Charlie Hustle
 05ajh,Garrett Crochet,BOS,SP,SP,INJURED_RESERVE,CH,Charlie Hustle
-06rkk,Eduardo Valencia,DET,1B,1B,RESERVE,CH,Charlie Hustle
+06rkk,Eduardo Valencia,DET,DH,1B,RESERVE,CH,Charlie Hustle
 03pom,Austin Riley,ATL,3B,3B,RESERVE,CH,Charlie Hustle
 05u96,Bryce Eldridge,SF,DH,1B,ACTIVE,CH,Charlie Hustle
 06c78,Franklin Arias,BOS,SS,SS,MINORS,CH,Charlie Hustle
@@ -51,37 +51,37 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 0510l,Emerson Hancock,SEA,SP,SP,INJURED_RESERVE,CH,Charlie Hustle
 03qpi,Patrick Sandoval,BOS,SP,SP,ACTIVE,CH,Charlie Hustle
 04pst,Jarren Duran,BOS,LF,OF,ACTIVE,CH,Charlie Hustle
-04yig,Brooks Lee,MIN,SS,UT,RESERVE,BAMBI,The Great Bambi
-06plc,Sam Antonacci,CHW,2B,2B,ACTIVE,BAMBI,The Great Bambi
+04yig,Brooks Lee,MIN,3B,UT,RESERVE,BAMBI,The Great Bambi
+06plc,Sam Antonacci,CHW,LF,2B,ACTIVE,BAMBI,The Great Bambi
 041ma,Cole Ragans,KC,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 02i2k,Byron Buxton,MIN,CF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
 05r8n,Yoshinobu Yamamoto,LAD,SP,SP,ACTIVE,BAMBI,The Great Bambi
 060u3,Andrew Alvarez,WSH,SP,SP,RESERVE,BAMBI,The Great Bambi
-0622w,Chandler Simpson,TB,CF,OF,ACTIVE,BAMBI,The Great Bambi
+0622w,Chandler Simpson,TB,LF,OF,ACTIVE,BAMBI,The Great Bambi
 06apx,Trey Yesavage,TOR,SP,SP,INJURED_RESERVE,BAMBI,The Great Bambi
 05ydp,Kade Anderson,SEA,SP,SP,ACTIVE,BAMBI,The Great Bambi
 0630d,Drake Baldwin,ATL,C,C,ACTIVE,BAMBI,The Great Bambi
 01fhm,Martin Perez,ATL,SP,SP,ACTIVE,BAMBI,The Great Bambi
 02bqr,Blake Snell,LAD,SP,SP,RESERVE,BAMBI,The Great Bambi
 024m0,Jose Altuve,HOU,2B,2B,RESERVE,BAMBI,The Great Bambi
-05r1m,Jordan Lawlar,ARI,3B,SS,RESERVE,BAMBI,The Great Bambi
+05r1m,Jordan Lawlar,ARI,CF,SS,RESERVE,BAMBI,The Great Bambi
 05aoc,Eury Perez,MIA,SP,SP,RESERVE,BAMBI,The Great Bambi
 05tzn,Parker Messick,CLE,SP,SP,ACTIVE,BAMBI,The Great Bambi
 01fh9,Bryce Harper,PHI,1B,1B,ACTIVE,BAMBI,The Great Bambi
-04b02,Seiya Suzuki,CHC,DH,OF,ACTIVE,BAMBI,The Great Bambi
+04b02,Seiya Suzuki,CHC,RF,OF,ACTIVE,BAMBI,The Great Bambi
 04qk8,CJ Abrams,WSH,SS,SS,ACTIVE,BAMBI,The Great Bambi
 06n8y,Eli Willits,WSH,SS,SS,MINORS,BAMBI,The Great Bambi
 060pm,Wyatt Langford,TEX,LF,OF,ACTIVE,BAMBI,The Great Bambi
-05rcf,Joshua Baez,STL,RF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
+05rcf,Joshua Baez,STL,LF,OF,INJURED_RESERVE,BAMBI,The Great Bambi
 04q2n,Adley Rutschman,BOS,C,UT,ACTIVE,BAMBI,The Great Bambi
 05t9v,Jonathan Aranda,TB,1B,UT,RESERVE,BAMBI,The Great Bambi
 05xch,Junior Caminero,TB,3B,3B,ACTIVE,BAMBI,The Great Bambi
 06ibv,Jesus Made,MIL,SS,SS,MINORS,BAMBI,The Great Bambi
-05uc4,Troy Melton,DET,RP,SP,ACTIVE,BAMBI,The Great Bambi
-05m1e,Jackson Chourio,MIL,CF,UT,ACTIVE,BAMBI,The Great Bambi
+05uc4,Troy Melton,DET,SP,SP,ACTIVE,BAMBI,The Great Bambi
+05m1e,Jackson Chourio,MIL,LF,UT,ACTIVE,BAMBI,The Great Bambi
 041rf,Shane Bieber,TOR,SP,SP,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
 03btv,Sandy Alcantara,MIA,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
-05mru,Thomas Saggese,STL,2B,2B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
+05mru,Thomas Saggese,STL,SS,2B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 02mwm,Matt Olson,ATL,1B,1B,RESERVE,MMM,Midwest MooseKnuckle Mafia
 04y44,Josh Jung,TEX,3B,UT,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05gx4,Dillon Dingler,DET,C,C,ACTIVE,MMM,Midwest MooseKnuckle Mafia
@@ -92,7 +92,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 01uca,Chris Sale,ATL,SP,SP,RESERVE,MMM,Midwest MooseKnuckle Mafia
 061yu,Jacob Misiorowski,MIL,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 01spo,Gerrit Cole,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-03e5m,Bryan Reynolds,PIT,RF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
+03e5m,Bryan Reynolds,PIT,LF,OF,RESERVE,MMM,Midwest MooseKnuckle Mafia
 061zv,Josue De Paula,LAD,DH,OF,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 045qo,Jazz Chisholm Jr.,NYY,2B,2B,INJURED_RESERVE,MMM,Midwest MooseKnuckle Mafia
 01ub6,Jose Ramirez,CLE,3B,3B,ACTIVE,MMM,Midwest MooseKnuckle Mafia
@@ -103,9 +103,9 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05u6q,Cam Schlittler,NYY,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 05udp,Elly De La Cruz,CIN,SS,SS,ACTIVE,MMM,Midwest MooseKnuckle Mafia
 02hjp,Jacob deGrom,TEX,SP,SP,ACTIVE,MMM,Midwest MooseKnuckle Mafia
-05ub0,Zack Gelof,ATH,2B,2B,ACTIVE,LTTA,Let’s try this again
+05ub0,Zack Gelof,ATH,3B,2B,ACTIVE,LTTA,Let’s try this again
 03oh0,Willson Contreras,BOS,1B,1B,INJURED_RESERVE,LTTA,Let’s try this again
-04ppi,Kody Clemens,MIN,1B,UT,ACTIVE,LTTA,Let’s try this again
+04ppi,Kody Clemens,MIN,2B,UT,ACTIVE,LTTA,Let’s try this again
 05u2m,Theo Gillen,TB,CF,OF,MINORS,LTTA,Let’s try this again
 04pq4,Kyle Bradish,BAL,SP,SP,ACTIVE,LTTA,Let’s try this again
 025dn,Christian Yelich,MIL,DH,OF,ACTIVE,LTTA,Let’s try this again
@@ -113,13 +113,13 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04hyc,Ivan Herrera,STL,C,C,ACTIVE,LTTA,Let’s try this again
 05xpq,Christian Scott,NYM,SP,SP,ACTIVE,LTTA,Let’s try this again
 05rbw,Esmerlyn Valdez,PIT,RF,OF,ACTIVE,LTTA,Let’s try this again
-0596g,Reid Detmers,LAA,RP,SP,RESERVE,LTTA,Let’s try this again
+0596g,Reid Detmers,LAA,SP,SP,RESERVE,LTTA,Let’s try this again
 05jr0,Alec Burleson,STL,1B,UT,ACTIVE,LTTA,Let’s try this again
 04n8z,Xavier Edwards,MIA,2B,2B,INJURED_RESERVE,LTTA,Let’s try this again
 04yie,George Kirby,SEA,SP,SP,ACTIVE,LTTA,Let’s try this again
 03m6o,Yandy Diaz,TB,DH,1B,ACTIVE,LTTA,Let’s try this again
-0648n,Chase Meidroth,CHW,SS,2B,RESERVE,LTTA,Let’s try this again
-04eud,Shane Drohan,MIL,SP,SP,RESERVE,LTTA,Let’s try this again
+0648n,Chase Meidroth,CHW,2B,2B,RESERVE,LTTA,Let’s try this again
+04eud,Shane Drohan,MIL,RP,SP,RESERVE,LTTA,Let’s try this again
 05y0j,Spencer Arrighetti,TOR,SP,SP,ACTIVE,LTTA,Let’s try this again
 05xu5,Zach Neto,LAA,SS,SS,ACTIVE,LTTA,Let’s try this again
 03aqw,Mauricio Dubon,ATL,LF,3B,ACTIVE,LTTA,Let’s try this again
@@ -131,13 +131,13 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 03poo,Peter Lambert,HOU,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04ru7,Miguel Vargas,CHW,3B,3B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 01sb3,Zack Wheeler,PHI,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-05m49,Jung Hoo Lee,SF,CF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-0514f,Hayden Wesneski,HOU,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+05m49,Jung Hoo Lee,SF,RF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
+0514f,Hayden Wesneski,HOU,RP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04yid,Ryne Nelson,ARI,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04cd5,MacKenzie Gore,TEX,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 060i2,Jake Bennett,BOS,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-041vt,Samad Taylor,SD,2B,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
-04y97,Kyle Stowers,MIA,LF,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+041vt,Samad Taylor,SD,LF,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+04y97,Kyle Stowers,MIA,1B,OF,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 03yrz,William Contreras,MIL,C,C,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 040b5,Randy Arozarena,SEA,LF,UT,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04eee,Drew Rasmussen,TB,SP,SP,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
@@ -146,19 +146,19 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04pr8,Taj Bradley,MIN,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 03pjd,Josh Naylor,SEA,1B,1B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 05tp6,Thomas White,MIA,SP,SP,MINORS,GLIZZY,The Greatest Glizzy Guzzlers
-03mew,Luis Arraez,PHI,1B,2B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
+03mew,Luis Arraez,PHI,2B,2B,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04e2u,Brent Rooker,ATH,DH,UT,INJURED_RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 04ee8,Heliot Ramos,NYY,LF,OF,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
-041qb,Bo Bichette,NYM,SS,UT,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
+041qb,Bo Bichette,NYM,3B,UT,RESERVE,GLIZZY,The Greatest Glizzy Guzzlers
 05yby,Kevin McGonigle,DET,SS,SS,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 04c0o,Jose Soriano,TOR,SP,SP,ACTIVE,GLIZZY,The Greatest Glizzy Guzzlers
 067yc,Leo De Vries,ATH,SS,UT,MINORS,Dan,Some Ting Wong
 04yk2,Spencer Torkelson,DET,1B,1B,RESERVE,Dan,Some Ting Wong
 01u75,Salvador Perez,KC,DH,C,ACTIVE,Dan,Some Ting Wong
 02i11,Jorge Soler,LAA,DH,OF,RESERVE,Dan,Some Ting Wong
-03pzn,Andres Gimenez,TOR,2B,UT,RESERVE,Dan,Some Ting Wong
+03pzn,Andres Gimenez,TOR,SS,UT,RESERVE,Dan,Some Ting Wong
 05a2d,Max Meyer,MIA,SP,SP,INJURED_RESERVE,Dan,Some Ting Wong
-02bq2,Brandon Nimmo,TEX,LF,OF,ACTIVE,Dan,Some Ting Wong
+02bq2,Brandon Nimmo,TEX,RF,OF,ACTIVE,Dan,Some Ting Wong
 05rb3,Chase Burns,CIN,SP,SP,ACTIVE,Dan,Some Ting Wong
 025j1,Robbie Ray,SD,SP,SP,ACTIVE,Dan,Some Ting Wong
 05sr2,Michael McGreevy,STL,SP,SP,ACTIVE,Dan,Some Ting Wong
@@ -168,12 +168,12 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05jp7,Gavin Williams,CLE,SP,SP,ACTIVE,Dan,Some Ting Wong
 03caf,Foster Griffin,CLE,SP,SP,ACTIVE,Dan,Some Ting Wong
 04pkr,Nico Hoerner,CHC,2B,2B,ACTIVE,Dan,Some Ting Wong
-030uc,Rafael Devers,SF,DH,1B,ACTIVE,Dan,Some Ting Wong
+030uc,Rafael Devers,SF,1B,1B,ACTIVE,Dan,Some Ting Wong
 03ae8,Dansby Swanson,CHC,SS,SS,ACTIVE,Dan,Some Ting Wong
 04pr1,Steven Kwan,CLE,LF,OF,ACTIVE,Dan,Some Ting Wong
 02i2q,Carlos Correa,HOU,SS,3B,INJURED_RESERVE,Dan,Some Ting Wong
 03d7h,Mitch Keller,PIT,SP,SP,RESERVE,Dan,Some Ting Wong
-0414g,Luis Garcia Jr.,NYY,2B,UT,ACTIVE,Dan,Some Ting Wong
+0414g,Luis Garcia Jr.,NYY,1B,UT,ACTIVE,Dan,Some Ting Wong
 04071,Isaac Paredes,HOU,3B,3B,ACTIVE,Dan,Some Ting Wong
 04tjl,Otto Lopez,MIA,SS,UT,ACTIVE,Dan,Some Ting Wong
 0512m,Ryan Pepiot,TB,SP,SP,INJURED_RESERVE,Dan,Some Ting Wong
@@ -184,10 +184,10 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05rch,Colson Montgomery,CHW,SS,3B,ACTIVE,THALER,The Chosen Juan
 05yaz,Will Warren,NYY,SP,SP,ACTIVE,THALER,The Chosen Juan
 04mlf,Casey Mize,SD,SP,SP,ACTIVE,THALER,The Chosen Juan
-06aw3,JJ Wetherholt,STL,SS,SS,INJURED_RESERVE,THALER,The Chosen Juan
-01s8u,Mike Trout,LAA,DH,OF,ACTIVE,THALER,The Chosen Juan
-0316v,Jake Bauers,MIL,LF,OF,ACTIVE,THALER,The Chosen Juan
-04y95,JJ Bleday,CIN,CF,OF,RESERVE,THALER,The Chosen Juan
+06aw3,JJ Wetherholt,STL,2B,SS,INJURED_RESERVE,THALER,The Chosen Juan
+01s8u,Mike Trout,LAA,CF,OF,ACTIVE,THALER,The Chosen Juan
+0316v,Jake Bauers,MIL,1B,OF,ACTIVE,THALER,The Chosen Juan
+04y95,JJ Bleday,CIN,LF,OF,RESERVE,THALER,The Chosen Juan
 03btu,Willi Castro,COL,2B,SS,INJURED_RESERVE,THALER,The Chosen Juan
 05zde,Travis Bazzana,CLE,2B,2B,ACTIVE,THALER,The Chosen Juan
 05u3u,Konnor Griffin,PIT,SS,SS,RESERVE,THALER,The Chosen Juan
@@ -195,7 +195,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 06fpn,Brett Bateman,TOR,CF,OF,ACTIVE,THALER,The Chosen Juan
 04s1g,Gabriel Moreno,ARI,C,UT,ACTIVE,THALER,The Chosen Juan
 04cwf,Shane Baz,BAL,SP,SP,ACTIVE,THALER,The Chosen Juan
-03ynj,Juan Soto,NYM,RF,UT,ACTIVE,THALER,The Chosen Juan
+03ynj,Juan Soto,NYM,LF,UT,ACTIVE,THALER,The Chosen Juan
 029si,Eduardo Rodriguez,ARI,SP,SP,ACTIVE,THALER,The Chosen Juan
 05xoo,Elmer Rodriguez,NYY,SP,SP,RESERVE,THALER,The Chosen Juan
 05tq1,Spencer Schwellenbach,ATL,SP,SP,INJURED_RESERVE,THALER,The Chosen Juan
@@ -205,12 +205,12 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 0629b,Walbert Urena,LAA,SP,SP,RESERVE,THALER,The Chosen Juan
 02bqy,Joe Musgrove,SD,SP,SP,INJURED_RESERVE,THALER,The Chosen Juan
 05rb0,Jackson Jobe,DET,SP,SP,RESERVE,THALER,The Chosen Juan
-041q8,Brandon Marsh,PHI,CF,OF,RESERVE,Dpf,Baseball Phanatic
+041q8,Brandon Marsh,PHI,LF,OF,RESERVE,Dpf,Baseball Phanatic
 05wru,Paul Skenes,PIT,SP,SP,ACTIVE,Dpf,Baseball Phanatic
 041qo,Zac Gallen,ARI,SP,SP,INJURED_RESERVE,Dpf,Baseball Phanatic
 0312g,Tyler Mahle,ATL,SP,SP,RESERVE,Dpf,Baseball Phanatic
 05gtn,Tyler Soderstrom,ATH,LF,OF,INJURED_RESERVE,Dpf,Baseball Phanatic
-04pmq,Braxton Ashcraft,PIT,RP,SP,ACTIVE,Dpf,Baseball Phanatic
+04pmq,Braxton Ashcraft,PIT,SP,SP,ACTIVE,Dpf,Baseball Phanatic
 03et8,Ranger Suarez,BOS,SP,SP,ACTIVE,Dpf,Baseball Phanatic
 02btf,Mookie Betts,LAD,SS,UT,ACTIVE,Dpf,Baseball Phanatic
 02mzg,Max Muncy,LAD,3B,UT,ACTIVE,Dpf,Baseball Phanatic
@@ -226,27 +226,27 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05y7s,Nolan McLean,NYM,SP,SP,ACTIVE,Dpf,Baseball Phanatic
 05lg3,Brandon Pfaadt,ARI,SP,SP,ACTIVE,Dpf,Baseball Phanatic
 03fi0,Ozzie Albies,ATL,2B,2B,ACTIVE,Dpf,Baseball Phanatic
-041e2,Mickey Moniak,COL,RF,OF,ACTIVE,Dpf,Baseball Phanatic
-04aeb,Royce Lewis,MIN,3B,3B,ACTIVE,Dpf,Baseball Phanatic
+041e2,Mickey Moniak,COL,LF,OF,ACTIVE,Dpf,Baseball Phanatic
+04aeb,Royce Lewis,MIN,1B,3B,ACTIVE,Dpf,Baseball Phanatic
 05jp9,Bryce Elder,ATL,SP,SP,RESERVE,Dpf,Baseball Phanatic
-06nue,Joshua Kuroda-Grauer,ATH,SS,3B,INJURED_RESERVE,Dpf,Baseball Phanatic
-05ydz,Tristan Peters,CHW,LF,OF,ACTIVE,Dpf,Baseball Phanatic
-05rcg,Braden Montgomery,CHW,CF,UT,ACTIVE,CJF,The Real Doctor
+06nue,Joshua Kuroda-Grauer,ATH,3B,3B,INJURED_RESERVE,Dpf,Baseball Phanatic
+05ydz,Tristan Peters,CHW,CF,OF,ACTIVE,Dpf,Baseball Phanatic
+05rcg,Braden Montgomery,CHW,RF,UT,ACTIVE,CJF,The Real Doctor
 041ps,Nick Lodolo,CIN,SP,SP,ACTIVE,CJF,The Real Doctor
 05y3u,Munetaka Murakami,CHW,1B,3B,ACTIVE,CJF,The Real Doctor
-02xic,Teoscar Hernandez,LAD,RF,OF,ACTIVE,CJF,The Real Doctor
+02xic,Teoscar Hernandez,LAD,LF,OF,ACTIVE,CJF,The Real Doctor
 04nqx,Ezequiel Duran,TEX,SS,OF,ACTIVE,CJF,The Real Doctor
 03nmw,Ian Happ,CHC,LF,OF,ACTIVE,CJF,The Real Doctor
 0512e,Spencer Steer,CIN,1B,UT,RESERVE,CJF,The Real Doctor
 05uc7,Noah Schultz,CHW,SP,SP,RESERVE,CJF,The Real Doctor
 05y72,Landen Roupp,SF,SP,SP,RESERVE,CJF,The Real Doctor
 03ojr,Vladimir Guerrero Jr.,TOR,1B,1B,RESERVE,CJF,The Real Doctor
-0597k,Nick Gonzales,PIT,2B,2B,ACTIVE,CJF,The Real Doctor
+0597k,Nick Gonzales,PIT,3B,2B,ACTIVE,CJF,The Real Doctor
 02c2r,Carlos Rodon,NYY,SP,SP,INJURED_RESERVE,CJF,The Real Doctor
 02n4s,Matthew Boyd,CHC,SP,SP,ACTIVE,CJF,The Real Doctor
 02bx4,Clay Holmes,CHC,SP,SP,INJURED_RESERVE,CJF,The Real Doctor
 03dc4,Freddy Peralta,TB,SP,SP,RESERVE,CJF,The Real Doctor
-05u9z,Roman Anthony,BOS,RF,OF,INJURED_RESERVE,CJF,The Real Doctor
+05u9z,Roman Anthony,BOS,LF,OF,INJURED_RESERVE,CJF,The Real Doctor
 04azv,Jake Burger,TEX,1B,1B,ACTIVE,CJF,The Real Doctor
 05gbf,Jordan Walker,STL,RF,UT,ACTIVE,CJF,The Real Doctor
 05vy6,Bryce Miller,SEA,SP,SP,ACTIVE,CJF,The Real Doctor
@@ -262,28 +262,28 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05gsi,Ceddanne Rafaela,BOS,CF,2B,RESERVE,GK,Gotham Knights
 031b2,Jonah Heim,ATH,C,C,ACTIVE,GK,Gotham Knights
 06f1r,Connelly Early,WSH,SP,SP,INJURED_RESERVE,GK,Gotham Knights
-041mb,Anthony Kay,CHW,SP,SP,RESERVE,GK,Gotham Knights
+041mb,Anthony Kay,CHW,RP,SP,RESERVE,GK,Gotham Knights
 05mre,Spencer Strider,ATL,SP,SP,INJURED_RESERVE,GK,Gotham Knights
 03wha,Ronald Acuna Jr.,ATL,RF,OF,ACTIVE,GK,Gotham Knights
 05y4b,Caleb Durbin,BOS,3B,3B,ACTIVE,GK,Gotham Knights
 05rbv,Samuel Basallo,BAL,C,C,RESERVE,GK,Gotham Knights
 0662o,Sebastian Walcott,TEX,DH,SS,MINORS,GK,Gotham Knights
-03yxh,Cal Quantrill,TEX,SP,SP,RESERVE,GK,Gotham Knights
+03yxh,Cal Quantrill,TEX,RP,SP,RESERVE,GK,Gotham Knights
 05161,Dominic Canzone,SEA,DH,OF,ACTIVE,GK,Gotham Knights
 02i2j,Max Fried,NYY,SP,SP,ACTIVE,GK,Gotham Knights
 05xod,Sean Burke,CHW,SP,SP,ACTIVE,GK,Gotham Knights
 041pz,Pete Alonso,BAL,1B,1B,ACTIVE,GK,Gotham Knights
 05ge9,Shota Imanaga,CHC,SP,SP,ACTIVE,GK,Gotham Knights
-03dgq,Ryan OHearn,PIT,1B,1B,INJURED_RESERVE,GK,Gotham Knights
-05uei,Chase DeLauter,CLE,CF,OF,RESERVE,GK,Gotham Knights
-06aly,Carson Benge,NYM,CF,UT,ACTIVE,GK,Gotham Knights
+03dgq,Ryan OHearn,PIT,RF,1B,INJURED_RESERVE,GK,Gotham Knights
+05uei,Chase DeLauter,CLE,RF,OF,RESERVE,GK,Gotham Knights
+06aly,Carson Benge,NYM,RF,UT,ACTIVE,GK,Gotham Knights
 05js4,Yohandy Morales,WSH,1B,3B,RESERVE,GK,Gotham Knights
-04ydd,Angel Martinez,CLE,CF,2B,ACTIVE,GK,Gotham Knights
+04ydd,Angel Martinez,CLE,LF,2B,ACTIVE,GK,Gotham Knights
 0326s,Ketel Marte,ARI,2B,UT,ACTIVE,GK,Gotham Knights
-04q08,Kyle Leahy,STL,RP,SP,ACTIVE,GK,Gotham Knights
-05t2b,Daylen Lile,WSH,RF,OF,ACTIVE,GK,Gotham Knights
+04q08,Kyle Leahy,STL,SP,SP,ACTIVE,GK,Gotham Knights
+05t2b,Daylen Lile,WSH,LF,OF,ACTIVE,GK,Gotham Knights
 03qt6,Tyler Phillips,MIA,RP,SP,ACTIVE,GK,Gotham Knights
-05ahe,Curtis Mead,BOS,1B,3B,INJURED_RESERVE,GK,Gotham Knights
+05ahe,Curtis Mead,BOS,3B,3B,INJURED_RESERVE,GK,Gotham Knights
 050w9,Gunnar Henderson,BAL,SS,SS,ACTIVE,GK,Gotham Knights
 05vy5,Carter Jensen,KC,C,C,RESERVE,BB,Basketball
 02yc4,Shohei Ohtani,LAD,SP,UT,INJURED_RESERVE,BB,Basketball
@@ -295,7 +295,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 03whq,Ty France,SD,1B,1B,ACTIVE,BB,Basketball
 03qjy,Brandon Lowe,PIT,2B,2B,ACTIVE,BB,Basketball
 02btx,Tyler Glasnow,LAD,SP,SP,RESERVE,BB,Basketball
-05rat,James Wood,WSH,LF,UT,ACTIVE,BB,Basketball
+05rat,James Wood,WSH,RF,UT,ACTIVE,BB,Basketball
 05u9o,Sal Stewart,CIN,1B,3B,ACTIVE,BB,Basketball
 03df2,Dylan Cease,TOR,SP,SP,ACTIVE,BB,Basketball
 05rcw,Leo Bernal,STL,C,C,ACTIVE,BB,Basketball
@@ -306,6 +306,6 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04ak5,Trevor Rogers,BAL,SP,SP,ACTIVE,BB,Basketball
 062k5,Nick Kurtz,ATH,1B,UT,INJURED_RESERVE,BB,Basketball
 05jpd,Ian Seymour,TB,RP,SP,RESERVE,BB,Basketball
-06gwk,Payton Tolle,BOS,RP,SP,ACTIVE,BB,Basketball
+06gwk,Payton Tolle,BOS,SP,SP,ACTIVE,BB,Basketball
 06mnp,Rainiel Rodriguez,STL,C,C,MINORS,BB,Basketball
 067yn,Seth Hernandez,PIT,SP,SP,MINORS,BB,Basketball
