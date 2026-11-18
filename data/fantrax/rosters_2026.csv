@@ -9,7 +9,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 06am0,Mickey Gasper,BOS,DH,C,ACTIVE,CS,City to the Shore
 06ier,Ryan Sloan,SEA,SP,SP,MINORS,CS,City to the Shore
 04p10,Bryson Stott,PHI,2B,2B,ACTIVE,CS,City to the Shore
-05g3x,Maikel Garcia,KC,3B,UT,INJURED_RESERVE,CS,City to the Shore
+05g3x,Maikel Garcia,SEA,3B,UT,INJURED_RESERVE,CS,City to the Shore
 03cag,Kyle Schwarber,PHI,DH,OF,ACTIVE,CS,City to the Shore
 05yo5,Ben Rice,NYY,1B,UT,ACTIVE,CS,City to the Shore
 02c68,Trea Turner,PHI,SS,SS,ACTIVE,CS,City to the Shore
@@ -177,7 +177,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 04071,Isaac Paredes,HOU,3B,3B,ACTIVE,Dan,Some Ting Wong
 04tjl,Otto Lopez,MIA,SS,UT,ACTIVE,Dan,Some Ting Wong
 0512m,Ryan Pepiot,TB,SP,SP,INJURED_RESERVE,Dan,Some Ting Wong
-0260v,Sonny Gray,BOS,SP,SP,RESERVE,Dan,Some Ting Wong
+0260v,Sonny Gray,MIN,SP,SP,RESERVE,Dan,Some Ting Wong
 04pkt,J.T. Ginn,ATH,SP,SP,RESERVE,THALER,The Chosen Juan
 04t9b,Michael Busch,CHC,1B,1B,ACTIVE,THALER,The Chosen Juan
 05ybr,Ethan Salas,SD,C,C,ACTIVE,THALER,The Chosen Juan
@@ -249,7 +249,7 @@ fantrax_id,player,mlb,pos,slot,status,owner,team
 05u9z,Roman Anthony,BOS,LF,OF,INJURED_RESERVE,CJF,The Real Doctor
 04azv,Jake Burger,TEX,1B,1B,ACTIVE,CJF,The Real Doctor
 05gbf,Jordan Walker,STL,RF,UT,ACTIVE,CJF,The Real Doctor
-05vy6,Bryce Miller,SEA,SP,SP,ACTIVE,CJF,The Real Doctor
+05vy6,Bryce Miller,KC,SP,SP,ACTIVE,CJF,The Real Doctor
 05y23,Tanner Bibee,CLE,SP,SP,ACTIVE,CJF,The Real Doctor
 04mnw,Ryan Weathers,NYY,SP,SP,RESERVE,CJF,The Real Doctor
 04si3,Brayan Rocchio,CLE,SS,SS,ACTIVE,CJF,The Real Doctor

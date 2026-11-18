@@ -9,7 +9,7 @@ Andre Pallante,SP,STL,CS,ACTIVE
 Mickey Gasper,DH,BOS,CS,ACTIVE
 Ryan Sloan,SP,SEA,CS,MINORS
 Bryson Stott,2B,PHI,CS,ACTIVE
-Maikel Garcia,3B,KC,CS,INJURED_RESERVE
+Maikel Garcia,3B,SEA,CS,INJURED_RESERVE
 Kyle Schwarber,DH,PHI,CS,ACTIVE
 Ben Rice,1B,NYY,CS,ACTIVE
 Trea Turner,SS,PHI,CS,ACTIVE
@@ -177,7 +177,7 @@ Luis Garcia Jr.,1B,NYY,Dan,ACTIVE
 Isaac Paredes,3B,HOU,Dan,ACTIVE
 Otto Lopez,SS,MIA,Dan,ACTIVE
 Ryan Pepiot,SP,TB,Dan,INJURED_RESERVE
-Sonny Gray,SP,BOS,Dan,RESERVE
+Sonny Gray,SP,MIN,Dan,RESERVE
 J.T. Ginn,SP,ATH,THALER,RESERVE
 Michael Busch,1B,CHC,THALER,ACTIVE
 Ethan Salas,C,SD,THALER,ACTIVE
@@ -249,7 +249,7 @@ Freddy Peralta,SP,TB,CJF,RESERVE
 Roman Anthony,LF,BOS,CJF,INJURED_RESERVE
 Jake Burger,1B,TEX,CJF,ACTIVE
 Jordan Walker,RF,STL,CJF,ACTIVE
-Bryce Miller,SP,SEA,CJF,ACTIVE
+Bryce Miller,SP,KC,CJF,ACTIVE
 Tanner Bibee,SP,CLE,CJF,ACTIVE
 Ryan Weathers,SP,NYY,CJF,RESERVE
 Brayan Rocchio,SS,CLE,CJF,ACTIVE
